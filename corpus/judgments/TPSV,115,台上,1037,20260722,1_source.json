@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台上,1037,20260722,1",
+  "jyear": "115",
+  "jcase": "台上",
+  "jno": "1037",
+  "jdate": "20260722",
+  "jtitle": "請求終止借名登記等",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台上,1048,20260624,1",
+  "jyear": "115",
+  "jcase": "台上",
+  "jno": "1048",
+  "jdate": "20260624",
+  "jtitle": "請求給付保險金",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

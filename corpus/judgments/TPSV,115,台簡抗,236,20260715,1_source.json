@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台簡抗,236,20260715,1",
+  "jyear": "115",
+  "jcase": "台簡抗",
+  "jno": "236",
+  "jdate": "20260715",
+  "jtitle": "酌定未成年子女權利義務行使負擔等聲請暫時處分",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

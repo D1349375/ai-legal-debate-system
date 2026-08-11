@@ -1,0 +1,10 @@
+{
+  "law_name": "中華民國刑法",
+  "pcode": "C0000001",
+  "source_url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=C0000001",
+  "fetch_url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?media=print&pcode=C0000001",
+  "database": "全國法規資料庫(法務部)",
+  "amendment_date_roc": "民國 115 年 07 月 22 日",
+  "fetched_at_utc": "2026-08-06T15:38:38Z",
+  "note": "此快取僅為查證引擎比對用之加速層,非權威來源本身;複查須回頭比對官網。全文以程式解析 law-article 區塊逐條抽取,未經摘要或改寫。Phase 1 MVP範圍僅需民事側法規,此份為五部法規清單既定項目一併收錄。"
+}

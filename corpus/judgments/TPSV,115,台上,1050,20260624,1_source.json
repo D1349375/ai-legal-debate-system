@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台上,1050,20260624,1",
+  "jyear": "115",
+  "jcase": "台上",
+  "jno": "1050",
+  "jdate": "20260624",
+  "jtitle": "請求所有權移轉登記",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

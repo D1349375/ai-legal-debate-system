@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,114,台上,104,20260722,1",
+  "jyear": "114",
+  "jcase": "台上",
+  "jno": "104",
+  "jdate": "20260722",
+  "jtitle": "請求給付代墊款再審之訴",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

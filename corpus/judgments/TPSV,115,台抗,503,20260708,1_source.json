@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台抗,503,20260708,1",
+  "jyear": "115",
+  "jcase": "台抗",
+  "jno": "503",
+  "jdate": "20260708",
+  "jtitle": "請求損害賠償強制執行聲明異議",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

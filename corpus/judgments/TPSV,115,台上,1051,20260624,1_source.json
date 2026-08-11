@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台上,1051,20260624,1",
+  "jyear": "115",
+  "jcase": "台上",
+  "jno": "1051",
+  "jdate": "20260624",
+  "jtitle": "分配表異議之訴再審之訴",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

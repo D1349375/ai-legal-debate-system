@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台抗,442,20260617,1",
+  "jyear": "115",
+  "jcase": "台抗",
+  "jno": "442",
+  "jdate": "20260617",
+  "jtitle": "請求清償借款聲請法官迴避",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

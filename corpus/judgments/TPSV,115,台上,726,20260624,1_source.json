@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台上,726,20260624,1",
+  "jyear": "115",
+  "jcase": "台上",
+  "jno": "726",
+  "jdate": "20260624",
+  "jtitle": "請求撤銷調解",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

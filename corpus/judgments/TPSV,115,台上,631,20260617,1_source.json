@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台上,631,20260617,1",
+  "jyear": "115",
+  "jcase": "台上",
+  "jno": "631",
+  "jdate": "20260617",
+  "jtitle": "請求確認合夥關係存在等",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

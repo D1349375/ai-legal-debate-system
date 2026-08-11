@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台上,1086,20260715,1",
+  "jyear": "115",
+  "jcase": "台上",
+  "jno": "1086",
+  "jdate": "20260715",
+  "jtitle": "請求收取徵收補償款",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}

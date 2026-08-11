@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>案件爭點分析比較卷宗</title>
+<style>
+:root {
+  --paper: #f4f3ee;
+  --paper-raised: #ffffff;
+  --ink: #1e2530;
+  --muted: #5b6472;
+  --faint: #8a90a0;
+  --accent: #6e2a34;
+  --accent-soft: #f1e3e2;
+  --line: #d8d5cc;
+}
+:root[data-theme="dark"] {
+  --paper: #14171c;
+  --paper-raised: #1b1f26;
+  --ink: #e8e6df;
+  --muted: #9aa0ac;
+  --faint: #6b7280;
+  --accent: #d99aa2;
+  --accent-soft: #33212a;
+  --line: #2a2e36;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171c;
+    --paper-raised: #1b1f26;
+    --ink: #e8e6df;
+    --muted: #9aa0ac;
+    --faint: #6b7280;
+    --accent: #d99aa2;
+    --accent-soft: #33212a;
+    --line: #2a2e36;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+body {
+  font-family: "Noto Serif TC", "PMingLiU", "新細明體", Georgia, serif;
+  line-height: 1.85;
+  font-size: 16px;
+}
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+.eyebrow {
+  font-family: "Noto Sans TC", "PingFang TC", "微軟正黑體", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+h1 {
+  font-size: 30px;
+  line-height: 1.35;
+  margin: 0 0 18px;
+  text-wrap: balance;
+  font-weight: 700;
+}
+h2 {
+  font-size: 21px;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+h3 {
+  font-family: "Noto Sans TC", "PingFang TC", "微軟正黑體", sans-serif;
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+  margin: 18px 0 8px;
+  font-weight: 700;
+  color: var(--muted);
+}
+h3:first-child { margin-top: 0; }
+p { margin: 0 0 14px; }
+.lede {
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 62ch;
+}
+.intro-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px 28px;
+  margin: 28px 0 8px;
+}
+.intro-card p:last-child { margin-bottom: 0; }
+.divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 56px 0 40px;
+}
+.case-file {
+  border-left: 3px solid var(--accent);
+  padding-left: 24px;
+  margin-bottom: 12px;
+}
+.case-tag {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 10px;
+  border-radius: 3px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.facts {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 14.5px;
+  color: var(--muted);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin: 16px 0 32px;
+  line-height: 1.8;
+}
+.facts strong { color: var(--ink); }
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .compare-grid { grid-template-columns: 1fr; }
+}
+.version-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 22px 22px 20px;
+  min-width: 0;
+}
+.version-head {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.body-text {
+  font-size: 15px;
+  line-height: 1.85;
+}
+.body-text p { margin-bottom: 10px; }
+.body-text p:last-child { margin-bottom: 0; }
+.body-text ul { margin: 0 0 10px; padding-left: 20px; }
+.body-text li { margin-bottom: 4px; }
+details {
+  margin-top: 16px;
+  border-top: 1px dashed var(--line);
+  padding-top: 12px;
+}
+summary {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.extra-block {
+  margin-top: 12px;
+  font-size: 14px;
+}
+.extra-block p { margin-bottom: 8px; }
+.extra-block .rnd-label {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 12px;
+  color: var(--faint);
+  font-weight: 600;
+  margin-top: 10px;
+  margin-bottom: 3px;
+}
+.q-list {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 15px;
+  line-height: 2;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 24px 28px;
+  counter-reset: q;
+}
+.q-list li {
+  list-style: none;
+  counter-increment: q;
+  margin-bottom: 14px;
+  padding-left: 28px;
+  position: relative;
+}
+.q-list li::before {
+  content: counter(q);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 13px;
+}
+.reveal summary {
+  font-size: 15px;
+  color: var(--accent);
+}
+.reveal-body {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 14.5px;
+  line-height: 1.9;
+}
+.reveal-table {
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 14px;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+}
+.reveal-table th, .reveal-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.reveal-table th { color: var(--muted); font-weight: 600; font-size: 12.5px; }
+footer {
+  margin-top: 64px;
+  font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+  font-size: 12.5px;
+  color: var(--faint);
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  line-height: 1.8;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="eyebrow">案件爭點分析 · 意見蒐集</p>
+<h1>三個案件的爭點分析比較</h1>
+<p class="lede">下面是三個<strong>虛構</strong>測試案件(非真實案件),每個案件都有兩份 AI 產出的<strong>爭點分析</strong>——不是正式訴狀、也不是判決預測,單純是「如果你是承辦這個案子的律師,這份分析對你判斷案情、準備攻防有沒有幫助」。</p>
+
+<div class="intro-card">
+<p><strong>怎麼看:</strong>每案有「版本一」與「版本二」,格式一樣,只有內容不同,不透露背後怎麼產生的。讀完後想想:哪一份對你比較有幫助?差在哪?</p>
+<p>看完三案、想好答案後,文末有幾個問題想請你回答;再往下有一個揭曉區塊,說明兩個版本實際上是怎麼做出來的。</p>
+</div>
+
+<hr class="divider">
+
+<!-- ============ CASE 1 ============ -->
+<section>
+<div class="case-file">
+<span class="case-tag">案件一 · 契約不履行</span>
+<h2>設備買賣價金給付爭議</h2>
+</div>
+<div class="facts">
+原告與被告簽訂設備買賣契約,價金<strong>200萬元</strong>,約定受領後30日內付款。原告已交付機台並經簽收,被告逾6個月未付款,僅回覆email稱「零件短少,正在盤點」,但從未提出具體瑕疵清單或鑑定報告。原告請求全額價金+利息。
+</div>
+
+<div class="compare-grid">
+
+<div class="version-card">
+<div class="version-head">版本一</div>
+<div class="body-text">
+<h3>原告方論點</h3>
+<p>被告email用語「正在盤點」「尚未確認損失金額」,代表「檢查」與「發見」兩個前置階段均尚未完成,依民法第356條規定根本不可能發生通知效力;縱認勉強成立通知,依第359條特定化之舉證責任仍在被告,被告迄未提出任何開箱照片、盤點紀錄或鑑定報告特定化短少範圍與金額,依誠信原則不得任令其無限期阻卻價金給付義務。</p>
+<h3>被告方論點</h3>
+<p>零件短少屬「依通常檢查不能發見之瑕疵」(第356條第2項但書),被告於發見後已即時以email通知,依民法第98條探求真意原則,通知不須具備特定格式;主張依第264條同時履行抗辯,就相當於短少價值部分拒絕給付,惟誠實承認目前欠缺盤點紀錄、鑑定報告等具體物證佐證短少範圍,此為本方最大風險。</p>
+<h3>整體案件分析與建議</h3>
+<p>本案爭點已收斂為單一核心問題:被告的email是否構成有效瑕疵通知,及其效力範圍。契約成立、交付簽收、逾期未付等基礎事實雙方全程無爭議,訴狀可簡要帶過。核心爭點上,被告方欠缺物證是最大弱點,其抗辯已從「全額拒絕」收斂為「僅特定化部分主張扣減」;但原告方的全額請求也附有明確讓步條件(被告日後補強物證則讓步特定化部分)。建議訴狀重兵集中在通知效力與舉證責任爭點,主動請求被告提出開箱照片、盤點紀錄,逾期未提出可強化「視為承認受領之物」的論證。</p>
+</div>
+</div>
+
+<div class="version-card">
+<div class="version-head">版本二</div>
+<div class="body-text">
+<h3>原告方論點</h3>
+<p>交付+簽收已完成,價金債務屬確定期限給付,期限屆滿即負遲延責任,無須催告;送貨單簽收構成合法受領,被告怠於依第356條規定檢查通知,已生「視為承認」效果,得請求全額價金及法定遲延利息。</p>
+<h3>被告方論點</h3>
+<p>物之瑕疵擔保抗辯,主張減少價金並行使同時履行抗辯權;主張email已構成第356條「初步通知」,並得主張抵銷抗辯爭取部分減損給付金額。</p>
+<h3>整體案件分析與建議</h3>
+<p>原告方訴訟地位明顯優勢,勝訴機率高,被告瑕疵抗辯完全欠缺具體化的事實與證據支撐。建議訴狀主動預先論證第356條通知義務之欠缺、聲請法院命被告提出盤點紀錄,並可評估改採更早的利息起算日以提高請求金額。</p>
+<details>
+<summary>查看更完整的分析內容</summary>
+<div class="extra-block">
+<p>雙方對此案的初步立場與上述相近。原告一方進一步指出:被告若真認為零件短少屬「不能即知之瑕疵」,依通常情形應能具體說明開箱檢查程序與短少品項,但被告始終未能提供,顯示其抗辯欠缺事實基礎,不應僅因一封內容空泛的email即無限期阻卻價金給付。</p>
+<p>被告一方進一步指出:第356條規範通知並無格式或內容完整度之要求,依民法第98條探求真意原則,只要客觀上足以使出賣人知悉買受人主張物有瑕疵,通知效力即已發生;惟同時承認,即便通知有效成立,仍不能替代具體瑕疵範圍與金額之舉證,這是本方目前最大的風險所在。</p>
+<p>雙方在論證過程中皆曾引用其他案例佐證己方立場,其中一方在核對對方引用案例的原始內容後,發現該案例實際爭點與本案性質不同,不能作為對方論點之依據,並就此提出質疑。</p>
+</div>
+</details>
+</div>
+
+</div>
+</section>
+
+<hr class="divider">
+
+<!-- ============ CASE 2 ============ -->
+<section>
+<div class="case-file">
+<span class="case-tag">案件二 · 侵權行為</span>
+<h2>追撞事故人身與財產損害賠償</h2>
+</div>
+<div class="facts">
+原告停等紅燈時遭被告(低頭滑手機分心)追撞,警方研判表認定被告為肇事主因、原告無肇事因素。原告受有頸部扭傷(甩鞭症候群),請求車損、醫療復健費、薪資損失、精神慰撫金共<strong>18萬5千元</strong>。被告警詢時稱「原告的車有點慢慢往前挪動」。
+</div>
+
+<div class="compare-grid">
+
+<div class="version-card">
+<div class="version-head">版本一</div>
+<div class="body-text">
+<h3>原告方論點</h3>
+<p>民法第191條之2舉證責任倒置,被告自承低頭滑手機分心,幾乎無法舉證已盡相當注意義務免責;警方研判表為有利之客觀證據,因果關係鏈完整,財產與非財產損害均有客觀憑據可佐證。</p>
+<h3>被告方論點</h3>
+<p>與有過失(第217條)可能減輕賠償,但這個抗辯先天體質不佳,預估頂多酌定小比例(個位數到一成左右);另可質疑甩鞭症候群因果關係(低速碰撞抗辯)及薪資損失、慰撫金金額。</p>
+<h3>整體案件分析與建議</h3>
+<p>責任成立部分幾乎沒有懸念,訴訟主要戰場不在有沒有責任,而在賠多少。薪資損失是本案舉證風險最高的一塊;精神慰撫金部分,建議心理準備法院可能酌減至2~3萬元區間。</p>
+</div>
+</div>
+
+<div class="version-card">
+<div class="version-head">版本二</div>
+<div class="body-text">
+<h3>原告方論點</h3>
+<p>被告因低頭操作手機分心追撞完全停等之原告車輛,依民法184/191之2/193/195/196/213/216條,應賠償車輛維修費8萬元、醫療復健費3萬5千元、薪資損失2萬元、精神慰撫金5萬元,共18萬5千元;被告除猜測性陳述外別無客觀證據佐證原告車輛移動,與有過失抗辯欠缺事實基礎。</p>
+<h3>被告方論點</h3>
+<p>對追撞肇事之基本事實不予否認,過失相抵僅維持備位聲明,誠實承認除警詢時片面猜測性陳述外別無客觀佐證;慰撫金相當性與薪資損失數額仍請求法院逐一審酌。</p>
+<h3>整體案件分析與建議</h3>
+<p>過失責任成立為證據結構最完整之核心爭點,方向對原告有利。過失相抵抗辯,被告已自承除猜測性陳述外別無客觀佐證,方向對被告不利。損害數額(醫療復健費3萬5千元、薪資損失2萬元、精神慰撫金5萬元)部分,原告目前僅以「待查證後補具」帶過,關鍵佐證文件(診斷證明書、任職證明、薪資單)迄今尚未提出,是原告陣營現階段最需優先補強之處,也是被告目前唯一還有實益的攻防點。建議訴狀優先處理損害數額之具體舉證,過失責任部分因幾無爭議可簡要敘明。</p>
+<details>
+<summary>查看更完整的分析內容</summary>
+<div class="extra-block">
+<p>雙方在攻防過程中都曾引用其他案例佐證自己的立場。其中一方在檢視自己先前引用的案例全文後,發現案由與自己原先描述的不同,主動更正,並誠實承認該案例的舉證法則其實對自己不利,而不是換一個對自己更有利的說法。</p>
+<p>另一方也在核對對方引用的兩則案例全文後指出,那兩案實際上都是與本案性質不同的糾紛類型,跟過失相抵、慰撫金相當性的爭點無關,不具參考價值。</p>
+<p>最後一輪,被告方主動表示:「不為誇大之抗辯,如實反映現無客觀證據佐證原告車輛移動之事實」,過失相抵抗辯「應予接受並承擔相應賠償數額」。</p>
+</div>
+</details>
+</div>
+
+</div>
+</section>
+
+<hr class="divider">
+
+<!-- ============ CASE 3 ============ -->
+<section>
+<div class="case-file">
+<span class="case-tag">案件三 · 勞資爭議</span>
+<h2>終止契約合法性與確認僱傭關係存在</h2>
+</div>
+<div class="facts">
+原告任職3年多,考績中等以上無懲處紀錄,被告以「業務緊縮」終止契約。原告發現離職前雇主已刊登相同職缺廣告,離職兩週後即有新人到職,且離職前一個月曾質疑主管將預算編列予配偶公司之利益迴避問題。資遣證明書記載依據為「第11條<strong>第4款</strong>」(業務性質變更),但口頭告知理由是「業務緊縮」(屬<strong>第2款</strong>)。原告請求確認僱傭關係存在,備位請求資遣費差額。
+</div>
+
+<div class="compare-grid">
+
+<div class="version-card">
+<div class="version-head">版本一</div>
+<div class="body-text">
+<h3>原告方論點</h3>
+<p>被告資遣證明書白紙黑字記載終止依據為第11條第4款,並非第2款;依誠信告知原則,不能於訴訟中片面改稱填載疏誤而回頭主張第2款以規避安置要件審查;縱認確屬第2款,解僱最後手段性原則之法理基礎在工作權保障之一般原則,對第2款終止裁量同具規制力;被告自承新職缺是否等同原職務、是否曾評估安置原告屬本方最大證據缺口,依誠信原則此空白應為不利被告之心證。</p>
+<h3>被告方論點</h3>
+<p>終止契約之實質事由自始為第2款業務緊縮,已依法給付資遣費與預告工資;誠信義務是實體法上的誡命,不是程序法上的舉證責任分配依據,報復動機仍應由原告負舉證責任;誠實承認新職缺具體職務內容是否與原職務相同、是否曾評估安置原告,現有資料均未記載,將向人資部門查證。</p>
+<h3>整體案件分析與建議</h3>
+<p>終止事由真正性此一爭點,現階段證據方向較有利原告——時間密接性、資遣證明書第2/4款混列、相同職缺於原告在職期間對外公告等,均為案件事實已載明之客觀情狀,被告方迄未提出足以填補「新職缺是否等同原職務」這個證據缺口的積極反證。安置義務是否及於第2款情形,方向上仍有相當不確定性,建議訴狀以輔助、備位論述層次呈現,核心攻防重點仍應放在終止事由真正性上。</p>
+</div>
+</div>
+
+<div class="version-card">
+<div class="version-head">版本二</div>
+<div class="body-text">
+<h3>原告方論點</h3>
+<p>職缺於離職前已刊登、離職後迅速回補,直接推翻業務緊縮之真實性;資遣證明書法條記載與理由自相矛盾,顯示事由臨訟編纂;終止與質疑利益迴避時點高度密接,構成動機不當。</p>
+<h3>被告方論點</h3>
+<p>雇主就經營必要性享有自主判斷空間,法院應採形式審查;證明書法條記載誤繕屬行政文書瑕疵,不影響實體效力;原告質疑事項非屬勞基法第74條保護之申訴範疇,報復動機應由原告舉證。</p>
+<h3>整體案件分析與建議</h3>
+<p>原告先位請求勝算應屬中等偏強,「職缺回填時間軸」是最具殺傷力的客觀證據。備位聲明(資遣費及預告工資差額)在現有事實下看不出明顯短付跡象,除非查得原告平均工資之計算基礎有誤,否則此部分實益有限。建議訴狀聲請法院命被告提出徵才紀錄、投保紀錄比對到職日,報復動機僅作為輔助論述,不宜作為單一主要立論支柱。</p>
+<details>
+<summary>查看更完整的分析內容</summary>
+<div class="extra-block">
+<p>雙方在攻防過程中皆各自引用了多則其他案例。其中一方逐一調閱對方引用的三則案例全文後指出,三案的終止依據分別是不同款次的規定,沒有一則真的對應本案所涉的款次,精準拆解了對方援引案例的射程。</p>
+<p>另一方隨即反擊:既然對方自己的資遣證明書寫的正是那一款,依誠信告知原則,不能等到訴訟中才改口說是自己填錯了、其實想主張另一款。</p>
+<p>最後,雙方都誠實承認各自有尚待查證的證據缺口——一方欠缺新職缺實際內容與是否評估安置的紀錄,另一方欠缺被告實際給付金額的明細,備位請求的差額數字現階段仍待雙方進一步核對。</p>
+</div>
+</details>
+</div>
+
+</div>
+</section>
+
+<hr class="divider">
+
+<h2>看完三案後,想請你回答幾個問題</h2>
+<ul class="q-list">
+<li>三個案件裡,你覺得版本一跟版本二有沒有實質差異?哪一份對你(如果要準備這個案子)比較有幫助?為什麼?</li>
+<li>你有沒有點開「查看更完整的分析內容」?看了之後,有沒有改變你對哪份比較好的判斷?</li>
+<li>有幾個案子裡,某一版本會主動核對對方引用的案例全文,進而抓到案例引用不當或錯誤的地方——這種東西如果是真實案件,你會覺得有實際幫助嗎,還是覺得「一個仔細一點的律師本來就該做到」而不算加分?</li>
+<li>如果只能選一份拿去當作準備這個案子的起點,你會選哪一份?</li>
+<li>兩份輸出裡,有沒有你覺得講得不夠好、法律推理有問題、或口氣不像律師的地方?請直接點出來,越具體越好。</li>
+<li>如果這種爭點分析要做成一個律師會用的工具,你覺得最大的疑慮或門檻會是什麼?</li>
+</ul>
+
+<hr class="divider">
+
+<details class="reveal">
+<summary>▸ 看完三案並想好答案後,點這裡看兩個版本實際上是怎麼做出來的</summary>
+<div class="reveal-body">
+<p>兩個版本用的是<strong>同一顆 AI 模型</strong>,差別純粹在於產生答案的方式,不是換了更強的模型:</p>
+<table class="reveal-table">
+<tr><th>案件</th><th>做法一</th><th>做法二</th></tr>
+<tr><td>案一・契約不履行</td><td>版本二</td><td>版本一</td></tr>
+<tr><td>案二・侵權行為</td><td>版本一</td><td>版本二</td></tr>
+<tr><td>案三・勞資爭議</td><td>版本二</td><td>版本一</td></tr>
+</table>
+<p><strong>做法一(單次提示)</strong>:直接請 AI 針對案件事實,一次性列出雙方最強論點跟整體評估,像貼給 ChatGPT/Claude 一個問題那樣,沒有分工、沒有來回。</p>
+<p><strong>做法二(多輪分工)</strong>:先讓 AI 分別扮演原告方、被告方,兩邊各自獨立寫出立場(互相看不到對方寫什麼),再讓一個第三方角色依雙方立場提出追問,原被告各自回應追問並互相看到對方的立場摘要(不是全文)進行第二輪交鋒,最後再由第三方角色整合三輪內容,產出案件整體分析。「查看更完整的分析內容」裡提到的「核對對方引用案例全文」「主動更正自己先前的錯誤」,都是這個多輪過程裡實際發生的事。</p>
+<p>這是一套正在開發中的法律 AI 工具的內部測試,想驗證「多輪分工」這個做法本身,有沒有比「單次提示」產出更高品質的爭點分析——你剛才給的意見會直接影響接下來的開發方向,謝謝你花時間看完。</p>
+</div>
+</details>
+
+<footer>
+本卷宗三案件均為虛構測試案例,由 AI 依真實台灣法規(民法/勞動基準法)自行編寫,非真實當事人資料,僅供內部品質測試使用。做法二之引用法條/判例已全數經機械查證引擎比對官方法規資料庫(law.moj.gov.tw)與司法院裁判書語料庫確認真實存在;做法一未經此查證流程。所有內容均非正式法律意見,不得作為實際案件之訴訟策略依據。
+</footer>
+
+</div>
+</body>
+</html>

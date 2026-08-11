@@ -1,0 +1,11 @@
+{
+  "jid": "TPSV,115,台抗,391,20260617,1",
+  "jyear": "115",
+  "jcase": "台抗",
+  "jno": "391",
+  "jdate": "20260617",
+  "jtitle": "請求損害賠償聲請補充判決",
+  "full_type": "file",
+  "source_api": "https://data.judicial.gov.tw/jdg/api/JDoc",
+  "database": "司法院裁判書開放API(data.judicial.gov.tw)"
+}
