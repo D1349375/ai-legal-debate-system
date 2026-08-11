@@ -34,7 +34,11 @@ venv.bak/
 htmlcov/
 .claude/
 .vscode/
-.idea/
+
+# Commercial & Internal Strategy Notes
+*YC投資調研*
+*競爭優勢與護城河*
+*競品調研*
 
 # Database & Temporary
 *.sqlite3
