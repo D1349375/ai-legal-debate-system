@@ -1,0 +1,10 @@
+# GitHub language statistics: this is a Python project. The UI prototype, the
+# documentation tree and the legal corpus should not be counted as source code.
+ui/**       linguist-documentation
+docs/**     linguist-documentation
+corpus/**   linguist-vendored
+*.html      linguist-documentation
+
+# Normalize line endings across Windows and POSIX.
+*.py   text eol=lf
+*.md   text eol=lf

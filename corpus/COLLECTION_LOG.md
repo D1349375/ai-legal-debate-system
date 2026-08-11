@@ -1,6 +1,6 @@
 # Phase 0 語料蒐集日誌
 
-> 對應 `C:\Users\user\.claude\plans\noble-dancing-duckling.md` Phase 0。追蹤語料來源與同意/去識別化狀態。
+> 對應 內部實作規劃文件(未隨本 repo 發布) Phase 0。追蹤語料來源與同意/去識別化狀態。
 
 ## 狀態總覽(2026-08-06)
 

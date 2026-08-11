@@ -16,7 +16,7 @@
 > **本文件於 2026-08-06 依三份技術附錄（RAG 系統設計、自建法學資料庫、YC 投資調研）之審視結果更新**，核心判斷標準統一為**台灣律師是否願意且能夠使用**，非投資人評分標準。詳細變更理由見 [`新增文件整合規劃報告.md`](./新增文件整合規劃報告.md)。
 
 ### 目前執行狀態（2026-08-07 更新）
-- **已有核准的實作規劃**：`C:\Users\user\.claude\plans\noble-dancing-duckling.md`，逐檔案比照 `DebateSystem`（schema.py/aggregate.py/trader-debate SKILL.md）與 `Startup Guide`（startup-content-verification SKILL.md）的真實程式碼設計，分 Phase 0（語料啟動）→ Phase 1（三角色民事模擬法庭核心引擎，單一模型）→ Phase 2（律師 Design Partner 驗證）→ Phase 3（防套皮強化，以 Phase 2 訊號為前提）→ Phase 4（刑事模式＋法庭 UI，規劃範圍外）。知識庫同步頁面：[[LegalDebate AI]]。
+- **已有核准的實作規劃**：內部實作規劃文件(未隨本 repo 發布)，逐檔案比照 `DebateSystem`（schema.py/aggregate.py/trader-debate SKILL.md）與 `Startup Guide`（startup-content-verification SKILL.md）的真實程式碼設計，分 Phase 0（語料啟動）→ Phase 1（三角色民事模擬法庭核心引擎，單一模型）→ Phase 2（律師 Design Partner 驗證）→ Phase 3（防套皮強化，以 Phase 2 訊號為前提）→ Phase 4（刑事模式＋法庭 UI，規劃範圍外）。知識庫同步頁面：「LegalDebate AI」(內部知識庫頁面,未隨本 repo 發布)。
 - **Phase 0 語料：2/3 完成**。五部法規全文（`corpus/statutes/`）與 20 筆最高法院民事裁判（`corpus/judgments/`，經官方開放 API 取得）皆已到位。**唯一剩下的阻塞項是 `corpus/pleadings/`（20 份真實去識別化訴狀）**，這是人脈/取得管道問題，不是工程問題，仍待律師 Design Partner。
 - **Phase 1.1（專案骨架）與 1.3（法規/判例查證引擎）已完成並通過測試**：`database/schema.py`、`database/db.py`、`engine/aggregate.py`、`engine/verify.py`、`main.py` 六個 CLI 子命令皆已實作，21 個 pytest 測試（含 3 個實際連線官網的整合測試）全過，並跑過一次完整端到端煙霧測試（案件輸入→雙方三階段攻防→法官訊問→機械彙整→查證→判決→訴狀，含 write-once 與查證閘門的失敗路徑驗證）。
 - **Phase 1.2（taiwan-legal-pleading Skill 蒸餾）仍卡在 Phase 0 訴狀語料**，尚未開始。**Phase 1.4（legal-debate orchestrator skill，四階段 prompt 模板）尚未開始**——這是唯一需要 Claude Code subagent 實際扮演原告/被告/法官角色的部分。
@@ -143,7 +143,7 @@
 
 ### 推薦執行步驟
 
-> **完整版本見已核准之實作規劃** `C:\Users\user\.claude\plans\noble-dancing-duckling.md`，此處僅列摘要，細節（DB schema、CLI 命令、orchestrator skill 步驟）以該文件為準。
+> **完整版本見已核准之實作規劃** 內部實作規劃文件(未隨本 repo 發布)，此處僅列摘要，細節（DB schema、CLI 命令、orchestrator skill 步驟）以該文件為準。
 
 ```
 [ Phase 0：語料與範圍啟動（阻塞項，人脈/取得管道問題，非工程問題） ]
