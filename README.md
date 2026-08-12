@@ -120,6 +120,12 @@ not whether it impresses investors.
 [**docs/**](docs/README.md) is the index. Everything exists in English (`docs/en/`) and
 Traditional Chinese (`docs/zh/`), with the Chinese originals authoritative where they differ.
 
+Start with [the architecture document](docs/en/architecture.md). The
+[end-to-end test reports](docs/README.md#testing-and-evaluation) are the honest record of what
+the pipeline actually did on real fact patterns, including the bugs those runs exposed.
+
+Commercial planning material is deliberately not part of this repository.
+
 ## Corpus and licensing
 
 `corpus/` contains Taiwanese government legal materials, which are **not covered by this
