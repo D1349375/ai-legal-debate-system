@@ -1,0 +1,26 @@
+{
+ "_meta": {
+  "format": "legaldebate-recorded-live-checks/1",
+  "recorded_at": "2026-09-21T20:47:39Z",
+  "note": "對 DB 中無 published 紀錄之引用，於 recorded_at 實際連線查證的原始結果。"
+ },
+ "checks": [
+  {
+   "citation_text": "最高法院105年度台簡上字第33號",
+   "status": "not_found",
+   "checked_at": "2026-09-21T20:47:38Z",
+   "source_type": "judgment",
+   "note": "FJUD 即時查證查無此裁判字號，可能字號有誤，或非最高法院裁判(本查證僅涵蓋TPSV前綴/最高法院)",
+   "verified_via": "fjud_live",
+   "fjud_query": "105年度台簡上字第33號",
+   "fjud_hit_count": 20
+  },
+  {
+   "citation_text": "民法第197條",
+   "status": "published",
+   "checked_at": "2026-09-21T20:47:39Z",
+   "source_type": "statute",
+   "note": null
+  }
+ ]
+}

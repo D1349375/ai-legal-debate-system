@@ -10,6 +10,8 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
   python main.py pleading --case-id X --draft-file <file> --citations <file>  落地訴狀草稿
+  python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例 + 真實執行機械環節)
+  python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
 """
 import argparse
 import json
@@ -109,6 +111,37 @@ def cmd_pleading(args):
     return 0
 
 
+def cmd_serve(args):
+    import threading
+    import webbrowser
+
+    import uvicorn
+    from server.app import create_app
+
+    app = create_app()
+    url = f"http://{args.host}:{args.port}/"
+    if app.state.seeded:
+        print(f"資料庫原本沒有案件，已由 demo/recorded_cases.json 匯入錄製紀錄:{app.state.seeded}")
+    print(f"LegalDebate UI:{url}(Ctrl+C 結束)")
+    if not args.no_browser:
+        threading.Timer(1.2, lambda: webbrowser.open(url)).start()
+    uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+    return 0
+
+
+def cmd_export_demo(args):
+    from server import seed
+    session = get_session()
+    counts = seed.write_fixture(session)
+    print(f"已匯出 {seed.FIXTURE_PATH}:{counts}")
+    if args.live_checks:
+        checks = seed.write_live_checks(session)
+        print(f"已記錄 {len(checks)} 筆即時查證結果到 {seed.LIVE_CHECKS_PATH}")
+        for c in checks:
+            print(f"  {c['citation_text']} → {c['status']}")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="LegalDebate 落地 CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -139,6 +172,17 @@ def main():
     p.add_argument("--draft-file", required=True)
     p.add_argument("--citations", required=True, help="JSON 檔:此份訴狀引用的 citation_text 陣列")
     p.set_defaults(fn=cmd_pleading)
+
+    p = sub.add_parser("serve", help="啟動 UI 後端(預設只綁本機 127.0.0.1)")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("--no-browser", action="store_true", help="不自動開啟瀏覽器")
+    p.set_defaults(fn=cmd_serve)
+
+    p = sub.add_parser("export-demo", help="匯出錄製紀錄 fixture 到 demo/")
+    p.add_argument("--live-checks", action="store_true",
+                   help="另對 DB 中無 published 紀錄的引用實際連線查證並記錄(需要網路)")
+    p.set_defaults(fn=cmd_export_demo)
 
     args = parser.parse_args()
     sys.exit(args.fn(args))

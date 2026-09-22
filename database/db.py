@@ -39,11 +39,20 @@ def _sync_schema(engine):
                 print(f"[自動遷移] {table.name} 新增欄位 {col.name} ({col_type})")
 
 
-def get_session(db_url=None):
+def default_db_path():
+    return _DB_FILE
+
+
+def make_session_factory(db_url=None):
+    """建立一次 engine、之後重複取 session(長駐程序用,如 server/;CLI 仍用 get_session)。"""
     engine = create_engine(db_url or f"sqlite:///{_DB_FILE}")
     Base.metadata.create_all(engine)
     _sync_schema(engine)
-    return sessionmaker(bind=engine)()
+    return sessionmaker(bind=engine)
+
+
+def get_session(db_url=None):
+    return make_session_factory(db_url)()
 
 
 def _now_iso():

@@ -76,10 +76,13 @@ def parse_citation(citation_text):
     return {"type": "unknown"}
 
 
-def _fetch_single_article(pcode, article_no):
+DEFAULT_TIMEOUT = 20
+
+
+def _fetch_single_article(pcode, article_no, timeout=DEFAULT_TIMEOUT):
     url = f"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode={pcode}&flno={article_no}"
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=20) as resp:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         html = resp.read().decode("utf-8")
     if "查無資料" in html:
         return None, url
@@ -98,13 +101,13 @@ def _fetch_single_article(pcode, article_no):
     return text, url
 
 
-def verify_statute_citation(law_name, article_no):
+def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT):
     pcode = STATUTE_PCODES.get(law_name)
     if pcode is None:
         return {"status": "unknown_law", "law_name": law_name, "article_no": article_no}
     try:
-        live_text, url = _fetch_single_article(pcode, article_no)
-    except (urllib.error.URLError, urllib.error.HTTPError) as e:
+        live_text, url = _fetch_single_article(pcode, article_no, timeout=timeout)
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
         return {"status": "verification_failed", "reason": str(e), "law_name": law_name,
                 "article_no": article_no}
     if live_text is None:
@@ -126,11 +129,11 @@ def _fjud_extract_hidden_fields(html):
     }
 
 
-def _fjud_search(citation_query):
+def _fjud_search(citation_query, timeout=DEFAULT_TIMEOUT):
     """搜尋 FJUD，回傳命中的 JID 清單(可能為空、一筆、或多筆)。"""
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
     req = urllib.request.Request(f"{FJUD_BASE}/default.aspx", headers=_FJUD_HEADERS)
-    with opener.open(req, timeout=20) as resp:
+    with opener.open(req, timeout=timeout) as resp:
         home_html = resp.read().decode("utf-8")
     hidden = _fjud_extract_hidden_fields(home_html)
     data = dict(hidden)
@@ -148,7 +151,7 @@ def _fjud_search(citation_query):
         "Origin": "https://judgment.judicial.gov.tw",
     })
     req2 = urllib.request.Request(f"{FJUD_BASE}/default.aspx", data=body, headers=headers2)
-    with opener.open(req2, timeout=20) as resp2:
+    with opener.open(req2, timeout=timeout) as resp2:
         search_html = resp2.read().decode("utf-8")
     m = re.search(r'qryresultlst\.aspx\?ty=JUDBOOK&(?:amp;)?q=([0-9a-f]+)', search_html)
     if not m:
@@ -159,7 +162,7 @@ def _fjud_search(citation_query):
     headers3 = dict(_FJUD_HEADERS)
     headers3["Referer"] = f"{FJUD_BASE}/default.aspx"
     req3 = urllib.request.Request(list_url, headers=headers3)
-    with opener.open(req3, timeout=20) as resp3:
+    with opener.open(req3, timeout=timeout) as resp3:
         list_html = resp3.read().decode("utf-8")
     raw_ids = re.findall(r'data\.aspx\?ty=JD&(?:amp;)?id=([^"&]+)', list_html)
     return [urllib.parse.unquote(raw_id) for raw_id in raw_ids]
@@ -170,7 +173,7 @@ def _jid_matches(jid, jyear, jcase, jno):
     return len(parts) >= 4 and parts[0] == "TPSV" and parts[1] == jyear and parts[2] == jcase and parts[3] == jno
 
 
-def verify_judgment_citation(jyear, jcase, jno):
+def verify_judgment_citation(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT):
     prefix = f"TPSV,{jyear},{jcase},{jno},"
     if not os.path.isdir(JUDGMENTS_DIR):
         candidates = []
@@ -186,7 +189,7 @@ def verify_judgment_citation(jyear, jcase, jno):
     # 本地語料庫未命中，退而求其次即時查證 FJUD(不再直接回報 not_in_phase1_seed_corpus 了事)。
     citation_query = f"{jyear}年度{jcase}字第{jno}號"
     try:
-        jids = _fjud_search(citation_query)
+        jids = _fjud_search(citation_query, timeout=timeout)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
         return {"status": "verification_failed", "jyear": jyear, "jcase": jcase, "jno": jno,
                 "reason": str(e), "note": "FJUD 即時查證連線失敗，非查無此判決，屬暫時性錯誤，可重試"}
@@ -203,14 +206,14 @@ def verify_judgment_citation(jyear, jcase, jno):
             "note": "僅確認裁判字號存在且可由律師自行點開原文核對，未涵蓋裁判全文之實質內容比對"}
 
 
-def verify_citations(citation_texts):
+def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT):
     results = []
     for citation_text in citation_texts:
         parsed = parse_citation(citation_text)
         if parsed["type"] == "statute":
-            result = verify_statute_citation(parsed["law_name"], parsed["article_no"])
+            result = verify_statute_citation(parsed["law_name"], parsed["article_no"], timeout=timeout)
         elif parsed["type"] == "judgment":
-            result = verify_judgment_citation(parsed["jyear"], parsed["jcase"], parsed["jno"])
+            result = verify_judgment_citation(parsed["jyear"], parsed["jcase"], parsed["jno"], timeout=timeout)
         else:
             result = {"status": "unparseable"}
         result["citation_text"] = citation_text
