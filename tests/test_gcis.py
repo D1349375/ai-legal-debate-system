@@ -181,10 +181,12 @@ def test_dissolved_liquidators_depend_on_company_form():
     for item in (stock_warning, limited_warning):
         assert "登記資料已不顯示董事與清算人" in item["message"]
         assert "清算人有數人而未推定代表者" in item["message"]
-        assert "由監察人代表公司" in item["message"]
-        assert {"公司法第85條", "公司法第213條"} <= set(item["legal_basis"])
+        assert "公司法第85條" in item["legal_basis"]
+    # 公司與董事間訴訟由監察人代表(第213條)屬股份有限公司章；有限公司不設監察人，不得套用。
+    assert "由監察人代表公司" in stock_warning["message"]
+    assert "監察人" not in limited_warning["message"]
     assert stock_warning["legal_basis"] == ["公司法第24條", "公司法第25條", "公司法第8條", "公司法第322條", "公司法第85條", "公司法第213條"]
-    assert limited_warning["legal_basis"] == ["公司法第24條", "公司法第25條", "公司法第8條", "公司法第113條", "公司法第79條", "公司法第85條", "公司法第213條"]
+    assert limited_warning["legal_basis"] == ["公司法第24條", "公司法第25條", "公司法第8條", "公司法第113條", "公司法第79條", "公司法第85條"]
     assert "公司法第26條之1" not in limited_warning["legal_basis"]
     revoked = summary("撤銷", name="甲有限公司", rep="")
     assert "公司法第26條之1" in warning(revoked, "dissolved")["legal_basis"]
