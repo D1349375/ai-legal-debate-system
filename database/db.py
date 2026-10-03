@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
 from database.schema import (
-    Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft,
+    Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck,
 )
 from engine.aggregate import compile_weak_points, disagreement, VALID_SIDES
 from engine.verify import parse_citation
@@ -218,3 +218,28 @@ def upsert_citation(session, *, citation_text, source_type, status='draft',
     row.verified_at = _now_iso() if status in ('fact_checked', 'published') else None
     session.commit()
     return row
+
+
+def record_party_check(session, *, case_id=None, role=None, query_ban, input_name=None,
+                       result, raw, via="gcis_live", fetched_at=None):
+    if role not in (None, "plaintiff", "defendant"):
+        raise ValueError(f"非法 role: {role}")
+    if via not in ("gcis_live", "recorded"):
+        raise ValueError(f"非法 via: {via}")
+    row = PartyCheck(case_id=case_id, role=role, query_ban=query_ban, input_name=input_name,
+                     entity_type=result["entity_type"], status_text=result.get("status_text"),
+                     result_json=json.dumps(result, ensure_ascii=False), raw_json=json.dumps(raw, ensure_ascii=False),
+                     via=via, fetched_at=fetched_at, created_at=_now_iso())
+    session.add(row)
+    session.commit()
+    return row
+
+
+def latest_party_checks(session, case_id):
+    out = {"plaintiff": None, "defendant": None}
+    for row in (session.query(PartyCheck).filter_by(case_id=case_id)
+                .order_by(PartyCheck.id.desc()).all()):
+        if row.role in out and out[row.role] is None:
+            out[row.role] = {**json.loads(row.result_json), "via": row.via,
+                             "fetched_at": row.fetched_at, "created_at": row.created_at}
+    return out

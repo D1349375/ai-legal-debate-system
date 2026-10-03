@@ -8,7 +8,7 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 ```
 
 選項:`--port 8080`、`--no-browser`、`--host 0.0.0.0`(預設只綁本機)。網址列 `#/<案件ID>/<分頁>` 可直接連到某案件的某分頁
-(分頁:`overview` `debate` `aggregate` `verify` `verdict` `pleading`)。
+(分頁:`overview` `parties` `debate` `aggregate` `verify` `verdict` `pleading`)。
 
 ## 這個 UI 做什麼、不做什麼
 
@@ -17,6 +17,7 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 | 案件總覽、攻防過程、爭點評估、訴狀骨架 | **錄製紀錄重播** | 資料庫已落地的內容。論證由 Claude Code subagent 產生後經 `main.py record` 寫入,**不是即時生成** |
 | 機械彙整 | **即時執行** | 按鈕觸發後端當場呼叫 `engine/aggregate.py`(唯讀,不寫 DB) |
 | 引用查證 | **即時執行** | 按鈕觸發後端當場查證(見下),通過者寫入 `citation_verifications`(同 CLI `verify`,可取消勾選) |
+| 當事人查核 | **即時執行** | 依統編查經濟部商工開放資料；名稱搜尋只提供候選，須由使用者選定統編。每次查詢追加至 `party_checks`，不更動錄製論證或書狀本文 |
 
 第一階段**不會**呼叫任何 LLM;引擎本身不含 LLM 推理。「＋建立新案件」為停用狀態(需 LLM,第二階段)。
 
@@ -36,6 +37,7 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 - 案件/論證/判決/訴狀:`database/legal_debate.db`(本機 SQLite,被 `.gitignore` 排除)。
 - **資料庫是空的時**(如剛 clone),`serve` 會自動由 `demo/recorded_cases.json` 匯入錄製紀錄(保留原始時間戳)。
 - 重新匯出 fixture:`python main.py export-demo`;加 `--live-checks` 會另對「DB 無 published 紀錄」的引用實際連線查證並記錄(需網路)。
+- `python main.py export-demo --party-checks` 只匯出先前成功的商工實際查詢至 `demo/recorded_party_checks.json`。即時查詢完全失敗時若有同統編錄製資料，UI 會清楚標示錄製時間與「非本次即時查詢」，不冒充即時結果。
 - UI 不載入任何外部資源(無 CDN、無 Web Font),離線可完整運作;字型使用系統中文字型。
 
 ## 深/淺色模式
@@ -46,7 +48,7 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 
 ## API(`/api/docs` 有互動文件)
 
-`GET /api/health` · `GET /api/cases` · `GET /api/cases/{id}` · `POST /api/cases/{id}/finalize` · `POST /api/verify`
+`GET /api/health` · `GET /api/cases` · `GET /api/cases/{id}` · `POST /api/cases/{id}/finalize` · `POST /api/verify` · `POST /api/party-check` · `GET /api/party-search`
 
 刻意**沒有**任何寫入論證/判決的端點。
 

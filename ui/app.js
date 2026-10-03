@@ -14,6 +14,7 @@
 
   var TABS = [
     { key: "overview", label: "案件總覽" },
+    { key: "parties", label: "當事人查核" },
     { key: "debate", label: "攻防過程" },
     { key: "aggregate", label: "機械彙整" },
     { key: "verify", label: "引用查證" },
@@ -55,6 +56,7 @@
   var state = {
     cases: [], caseId: null, detail: null, tab: "overview", loading: false, error: null,
     health: null, runs: {}, verifyOpts: { mode: "auto", timeout: 6, persist: true },
+    parties: {},
   };
 
   // ───────────── 小工具 ─────────────
@@ -144,6 +146,11 @@
     if (!state.runs[caseId]) state.runs[caseId] = { finalize: null, finalizing: false, verify: { results: {}, busy: false, pending: null, notice: null } };
     return state.runs[caseId];
   }
+  function partyState(caseId, role) {
+    var key = caseId + ":" + role;
+    if (!state.parties[key]) state.parties[key] = { ban: "", inputName: "", searchOpen: false, query: "", search: null, busy: false, searching: false, error: null, result: null };
+    return state.parties[key];
+  }
   function citeIndex(d) {
     var idx = {};
     d.citations.forEach(function (c) { idx[c.citation_text] = c; });
@@ -215,7 +222,7 @@
       return banner("rec", "⏺", [
         h("strong", { text: "錄製紀錄重播" }),
         "：本案原告、被告、法官的論證由 AI 產生於 " + fmtTime(p.first_recorded_at) + " ～ " + fmtTime(p.last_recorded_at) +
-        "，事後寫入系統紀錄；此處是重播記錄內容，不是即時生成。「機械彙整」與「引用查證」兩個分頁則是點擊按鈕後，系統當場計算／查詢。",
+        "，事後寫入系統紀錄；此處是重播記錄內容，不是即時生成。「當事人查核」、「機械彙整」與「引用查證」分頁則是點擊按鈕後，系統當場計算／查詢。",
       ]);
     }
     return banner("warn", "!", [
@@ -229,6 +236,7 @@
     return [
       panelHead("案件總覽", d.case.source === "database" ? recChip() : null),
       provenanceBanner(d),
+      h("p", { class: "detail-note", text: partySummary(d) }),
       card("案件事實(原始輸入全文)", paragraphs(d.case.facts_summary),
         chip("neutral", d.case.case_type || "未填案由")),
       card("請求／訴之聲明(原始輸入全文)", paragraphs(d.case.claims)),
@@ -246,6 +254,174 @@
   }
   function stat(num, label, cls) {
     return h("div", { class: "stat " + (cls || "") }, h("div", { class: "stat-num", text: num }), h("div", { class: "stat-label", text: label }));
+  }
+
+  // ───────────── 分頁：商工登記當事人查核 ─────────────
+  function partySummary(d) {
+    var checks = d.party_checks || {}, items = SIDES.map(function (side) { return checks[side]; }).filter(Boolean);
+    if (!items.length) return "當事人查核：尚未查核";
+    var completed = items.filter(function (item) { return item.query_status !== "failed"; }).length;
+    var warnings = items.reduce(function (n, item) { return n + (item.warnings || []).length; }, 0);
+    return "當事人查核：已查 " + completed + "/2，警示 " + warnings + " 項";
+  }
+  function partyRepresentativeText(result) {
+    if (result.entity_type === "branch") return "本功能未查詢分公司登記資料";
+    if (result.query_status === "failed") return "查核未完成，未自動帶入";
+    if (result.basic_data_available === false) return "基本資料未取得，未自動帶入";
+    var rep = result.legal_representative;
+    if (rep) return rep.title + " " + rep.name;
+    if ((result.warnings || []).some(function (w) { return w.code === "foreign_branch"; }))
+      return "待確認(在臺負責人:" + (result.registered_responsible_name || "官方登記未提供") + ")";
+    if ((result.warnings || []).some(function (w) { return w.code === "foreign_dissolved"; }))
+      return "待確認(清算人)";
+    if ((result.warnings || []).some(function (w) { return w.code === "dissolved"; })) return "待確認（清算人）";
+    if (result.company_form === "股份有限公司" && (result.sources || []).some(function (s) {
+      return s.dataset === "公司登記董監事資料" && !s.ok;
+    })) return "董監事資料查詢失敗，未自動帶入";
+    return "官方未提供／未自動帶入";
+  }
+  function partySourceFooter(result) {
+    if (!result || !result.attribution) return null;
+    return h("div", { class: "party-source" },
+      h("div", { text: result.attribution }),
+      h("div", { text: "查詢時間：" + fmtTime(result.fetched_at) }),
+      h("a", { href: "https://data.gov.tw/license", target: "_blank", rel: "noopener noreferrer", text: "依政府資料開放授權條款第1版" }));
+  }
+  function partyFact(label, value) {
+    return h("div", { class: "party-fact" }, h("span", { class: "field-label", text: label }),
+      h("span", { text: value == null || value === "" ? "官方未提供" : String(value) }));
+  }
+  function partyMoney(value) { return value == null ? null : Number(value).toLocaleString("zh-TW") + " 元"; }
+  function partyErrorList(result) {
+    return (result.errors || []).map(function (e) {
+      return banner("warn", "⏱", [h("strong", { text: e.dataset + (e.error.indexOf("類型資料顯示") >= 0 ? " 資料不完整" : " 查詢失敗") }), "：" + e.error]);
+    });
+  }
+  function partyWarnings(result, d) {
+    var items = result.warnings || [];
+    if (!items.length) return result.query_status === "failed" ? null : banner("ok", "✓", "目前無規則警示；仍須由律師核對案件時點與書狀內容。");
+    var v = runsFor(d.case.case_id).verify;
+    var cites = Array.from(new Set(items.reduce(function (all, w) { return all.concat(w.legal_basis || []); }, [])));
+    return h("div", { class: "party-warnings" },
+      h("div", { class: "party-warning-head" }, h("span", { class: "section-title", text: "程序警示（" + items.length + "）" }),
+        cites.length ? h("button", { class: "btn small", type: "button", disabled: v.busy ? true : null,
+          onclick: function () { runVerify(cites); }, text: v.busy ? "查證中…" : "查證這些法條" }) : null),
+      items.map(function (w) {
+        return h("div", { class: "party-warning " + w.level },
+          h("div", { class: "party-warning-title" }, chip(w.level, w.level === "bad" ? "✗ 需處理" : "! 請確認"), w.message),
+          h("div", { class: "chip-row" }, (w.legal_basis || []).map(function (basis) {
+            var check = v.results[basis], meta = check && !check.error ? statusMeta(check.status) : null;
+            return chip(meta ? meta.cls : "neutral", (meta ? meta.icon + " " : "? ") + basis,
+              { title: meta ? meta.label : "尚未執行本次法條查證" });
+          })));
+      }));
+  }
+  function partyJurisdiction(result, role) {
+    var j = result.jurisdiction || {};
+    return card(SIDE[role].label + "管轄法院建議", [
+      j.primary ? partyFact("主事務所", j.primary.court + "（" + j.primary.basis + "）") :
+        partyFact("主事務所", j.primary_candidates && j.primary_candidates.length ? j.primary_candidates.join("、") + "；需依行政區確認" : j.note || "無法確認"),
+      j.alternatives && j.alternatives.length ? h("div", { class: "party-alt-list" },
+        h("div", { class: "field-label", text: "分公司所在地候選法院" }),
+        j.alternatives.map(function (a) { return h("div", { text: a.court + "（" + a.basis + "；" + a.condition + "）" }); })) : null,
+      h("p", { class: "detail-note", text: j.notice || "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。" }),
+      j.source_url ? h("a", { href: j.source_url, target: "_blank", rel: "noopener noreferrer", text: "司法院管轄區域來源" }) : null,
+      partySourceFooter(result)]);
+  }
+  function partyResultBlock(result, d) {
+    if (!result) return emptyState("尚未查核。請輸入統一編號，或用名稱搜尋後點選候選公司。");
+    var isBranch = result.entity_type === "branch";
+    var noData = result.query_status === "failed" || result.entity_type === "not_found" || isBranch ||
+      ((result.entity_type === "company" || result.entity_type === "business") && result.basic_data_available === false);
+    var pieces = [
+      h("div", { class: "party-result-title" }, h("strong", { text: isBranch ? "分公司統編" : result.name ||
+        (result.query_status === "failed" ? "查核未完成" : noData ? "未取得登記名稱" : "官方未提供名稱") }),
+        chip(result.status_level || "warn", isBranch ? "分公司" : result.query_status === "failed" ? "查核未完成" :
+          result.basic_data_available === false && result.entity_type !== "not_found" ? "基本資料未取得" :
+          result.status_text || (result.entity_type === "not_found" ? "查無" : "狀態未提供"))),
+      result.via === "recorded" ? chip("rec", "⏺ 錄製的查詢結果（查詢時間 " + fmtTime(result.fetched_at) + "），非本次即時查詢") : null,
+      result.via === "recorded" ? banner("warn", "⏱", "本次即時查詢失敗：" + (result.live_attempt && result.live_attempt.error || "無法連線") + "；下列資料為過去錄製結果。") : null,
+      result.query_status === "failed" ? banner("bad", "✗", "本次商工查詢未完成，無法認定為查無；請重試。") : null,
+      result.query_status === "partial" ? banner("warn", "!", "部分資料集查詢失敗，下列缺少的欄位不得視為查無。") : null,
+      result.entity_type === "not_found" ? banner("bad", "✗", "商工登記查無此統編。") : null,
+      isBranch ? banner("warn", "!", "此統編為分公司；本功能未查詢分公司登記資料，請改以總公司統編查核。") : null,
+      partyErrorList(result),
+    ];
+    if (!noData) {
+      pieces.push(h("div", { class: "party-facts" },
+        partyFact("類型", ({ company: "公司", branch: "分公司", business: "商號" })[result.entity_type] || "未判定"),
+        partyFact("法定代理人", partyRepresentativeText(result)),
+        partyFact("主事務所／營業地址", result.address),
+        partyFact("資本總額", result.capital && partyMoney(result.capital.registered)),
+        partyFact("實收資本額", result.capital && partyMoney(result.capital.paid_in)),
+        partyFact("核准設立日", result.setup_date), partyFact("最後異動日", result.last_change_date)));
+      pieces.push(result.directors && result.directors.length ? fold("董監事（" + result.directors.length + " 人）",
+        result.directors.map(function (x) { return h("div", { class: "party-list-row", text: [x.title, x.name, x.juristic_person ? "代表法人：" + x.juristic_person : ""].filter(Boolean).join("　") }); })) : null);
+      pieces.push(result.branches && result.branches.count ? fold("分公司（" + result.branches.count + " 筆" + (result.branches.truncated ? "；僅顯示前 50 筆" : "") + "）",
+        result.branches.items.map(function (x) { return h("div", { class: "party-list-row", text: [x.name, x.ban, x.address].filter(Boolean).join("　") }); })) : null);
+    }
+    pieces.push(partyWarnings(result, d));
+    pieces.push(result.query_status !== "failed" && result.always_notes ?
+      h("p", { class: "detail-note", text: result.always_notes.join("；") }) : null);
+    pieces.push(partySourceFooter(result));
+    return h("div", { class: "party-result" }, pieces);
+  }
+  async function searchParty(role) {
+    var d = state.detail, p = partyState(d.case.case_id, role);
+    if (p.query.trim().length < 2) { p.error = "公司名稱關鍵字至少 2 個字"; renderPanel(); return; }
+    p.searching = true; p.error = null; p.search = null; renderPanel();
+    try { p.search = await api("/api/party-search?q=" + encodeURIComponent(p.query.trim())); }
+    catch (e) { p.error = e.message; }
+    p.searching = false;
+    if (state.detail === d) renderPanel();
+  }
+  async function checkParty(role) {
+    var d = state.detail, p = partyState(d.case.case_id, role);
+    p.busy = true; p.error = null; renderPanel();
+    try {
+      p.result = await api("/api/party-check", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ban: p.ban, input_name: p.inputName || null, case_id: d.case.case_id, role: role }) });
+      await reloadDetailQuietly();
+    } catch (e) { p.error = e.message; }
+    p.busy = false;
+    if (state.caseId === d.case.case_id) { renderDetail(); renderPanel(); }
+  }
+  function partyCard(d, role) {
+    var p = partyState(d.case.case_id, role), saved = d.party_checks && d.party_checks[role], result = p.result || saved;
+    return card(SIDE[role].label + "查核", [
+      h("div", { class: "party-controls" },
+        h("label", null, "統一編號", h("input", { type: "text", inputmode: "numeric", maxlength: "12", value: p.ban,
+          placeholder: "8 位數字", oninput: function (e) { p.ban = e.target.value; } })),
+        h("label", null, "預期名稱（選填）", h("input", { type: "text", value: p.inputName,
+          oninput: function (e) { p.inputName = e.target.value; } })),
+        h("button", { class: "btn primary", type: "button", disabled: p.busy ? true : null,
+          onclick: function () { checkParty(role); }, text: p.busy ? "查詢中…" : p.error ? "重試查核" : "查核" })),
+      h("button", { class: "party-search-toggle", type: "button", onclick: function () { p.searchOpen = !p.searchOpen; renderPanel(); },
+        text: p.searchOpen ? "收合名稱搜尋" : "用名稱搜尋" }),
+      p.searchOpen ? h("div", { class: "party-search" },
+        h("div", { class: "party-search-line" }, h("input", { type: "text", value: p.query,
+          placeholder: "公司名稱關鍵字", oninput: function (e) { p.query = e.target.value; } }),
+          h("button", { class: "btn", type: "button", disabled: p.searching ? true : null,
+            onclick: function () { searchParty(role); }, text: p.searching ? "搜尋中…" : "搜尋候選" })),
+        p.search && !p.search.ok ? banner("bad", "✗", "搜尋失敗：" + p.search.error) : null,
+        p.search && p.search.ok ? [
+          p.search.candidates.length ? p.search.candidates.map(function (c) { return h("button", {
+            class: "party-candidate", type: "button", onclick: function () { p.ban = c.ban; p.searchOpen = false; renderPanel(); },
+          }, h("strong", { text: c.name || "未提供名稱" }), h("span", { text: "統編 " + c.ban + "　" + (c.status_text || "狀態未提供") }),
+          h("span", { text: c.address || "地址未提供" })); }) : h("p", { class: "detail-note", text: "沒有候選公司；請改用統編查核。" }),
+          partySourceFooter(p.search)] : null) : null,
+      p.error ? banner("bad", "✗", ["查詢失敗：" + p.error, h("button", { class: "btn small", type: "button", onclick: function () { checkParty(role); }, text: "重試" })]) : null,
+      p.busy ? banner("warn", "⏱", "查詢中…") : null,
+      partyResultBlock(result, d)]);
+  }
+  function partiesPanel(d) {
+    var checks = d.party_checks || {};
+    return [panelHead("當事人查核", chip("ok", "⚡ 即時執行"),
+      "以統一編號查詢經濟部商工登記，確認當事人名稱、法定代理人、公司狀態與管轄法院。本分頁為即時查詢，不呼叫 AI。"),
+      banner("warn", "!", "查核結果僅反映商工登記公示資料，不代表該公司涉入本案；登記為查詢當下的狀態。"),
+      h("div", { class: "party-grid" }, SIDES.map(function (side) { return partyCard(d, side); })),
+      SIDES.map(function (side) { var r = partyState(d.case.case_id, side).result || checks[side];
+        return r && r.query_status !== "failed" && r.entity_type !== "not_found" && r.entity_type !== "branch" && r.address ? partyJurisdiction(r, side) : null; })];
   }
 
   // ───────────── 分頁：攻防過程 ─────────────
@@ -614,7 +790,7 @@
     var p = d.pleading;
     var head = panelHead("訴狀骨架初稿", recChip(),
       "骨架版：僅套用司法院官方起訴狀結構，直接帶入系統攻防結果原文，尚未經法律用語潤飾。須由執業律師審核修訂、補正當事人資訊與證物清單後方可使用，不得逕行送出。");
-    if (!p) return [head, emptyState("此案件尚未落地訴狀草稿。")];
+    if (!p) return [head, partyPleadingCard(d), emptyState("此案件尚未落地訴狀草稿。")];
     var text = p.draft_text;
     var noteIdx = text.search(/-{2,}\s*\n\s*(?=【)|【(?:骨架版聲明|本稿產出說明)/);
     var note = noteIdx >= 0 ? cleanDraftNote(text.slice(noteIdx)) : null;
@@ -645,6 +821,7 @@
     return [head,
       banner("rec", "⏺", [h("strong", { text: "錄製紀錄" }), "：草稿產生於 " + fmtTime(p.generated_at) +
         (p.draft_count > 1 ? "；此案件共有 " + p.draft_count + " 份草稿，此處顯示最新一份" : "") + "。"]),
+      partyPleadingCard(d),
       doc,
       note ? card("系統補充說明(供律師參考，非訴狀正文)", paragraphs(note)) : null,
       card("草稿內引用的查證狀態", [
@@ -652,6 +829,35 @@
         rows,
         h("p", { class: "detail-note", text: "由草稿文字重新找出其中的法條與裁判字號，對照目前的查證紀錄。" })]),
     ];
+  }
+
+  function partyPleadingCard(d) {
+    var checks = d.party_checks || {}, items = SIDES.filter(function (side) { return checks[side]; });
+    if (!items.length) return null;
+    var bad = items.reduce(function (all, side) {
+      return all.concat((checks[side].warnings || []).filter(function (w) { return w.level === "bad"; }).map(function (w) {
+        var sentence = w.message.match(/^[^。！？]*[。！？]/);
+        return SIDE[side].label + "：" + (sentence ? sentence[0] : w.message);
+      }));
+    }, []);
+    return card("當事人資料（依商工登記帶入）", [
+      bad.length ? banner("bad", "✗", "尚有 " + bad.length + " 項重大程序警示，正式列載前請先處理：" + bad.join("；")) : null,
+      items.map(function (side) {
+        var r = checks[side];
+        if (r.entity_type === "branch" || r.query_status === "failed" || r.basic_data_available === false) return h("div", { class: "party-pleading-row" },
+          h("strong", { text: SIDE[side].label }),
+          h("p", { class: "detail-note", text: r.entity_type === "branch" ?
+            "此統編為分公司；本功能未查詢分公司登記資料，請改以總公司統編查核。" :
+            "商工基本資料未取得，當事人欄位未自動帶入。" }), partySourceFooter(r));
+        return h("div", { class: "party-pleading-row" },
+          h("strong", { text: SIDE[side].label }),
+          partyFact("名稱", r.name), partyFact("統編", r.ban),
+          partyFact("法定代理人", partyRepresentativeText(r)),
+          partyFact("地址", r.address),
+          chip(r.query_status === "ok" ? "ok" : "warn", (r.query_status === "ok" ? "✓ 已比對商工登記" : r.via === "recorded" ? "⏺ 錄製的查詢結果，非本次即時查詢" : "◐ 查核未完整") + "（查詢時間 " + fmtTime(r.fetched_at) + "）"),
+          partySourceFooter(r));
+      }),
+      h("p", { class: "detail-note", text: "錄製的書狀本文未變更；正式書狀請以本卡資料填寫當事人欄。" })]);
   }
 
   // ───────────── 右側資訊欄 ─────────────
@@ -671,7 +877,8 @@
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "案件摘要" }),
         meta("案件 ID", d.case.case_id), meta("案由", d.case.case_type || "—"),
         meta("落地時間", fmtTime(d.case.created_at)), meta("論證／訊問", d.stats.arguments + " 筆／" + d.stats.questions + " 則"),
-        meta("引用查證", d.stats.citations ? d.stats.citations_published + "/" + d.stats.citations + " 已查證通過" : "—")),
+        meta("引用查證", d.stats.citations ? d.stats.citations_published + "/" + d.stats.citations + " 已查證通過" : "—"),
+        h("p", { class: "detail-note", text: partySummary(d) })),
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "資料來源" }),
         h("p", { class: "detail-note", text: "案件與論證：本機資料庫。" +
           (hl && hl.database.seeded_from_fixture ? "本次啟動時資料庫為空，已自動匯入示範案例存檔。" : "") }),
@@ -695,7 +902,7 @@
     }
     if (state.loading || !d) { panel.append(emptyState("載入中…")); return; }
     try {
-      var view = { overview: overviewPanel, debate: debatePanel, aggregate: aggregatePanel, verify: verifyPanel, verdict: verdictPanel, pleading: pleadingPanel }[state.tab];
+      var view = { overview: overviewPanel, parties: partiesPanel, debate: debatePanel, aggregate: aggregatePanel, verify: verifyPanel, verdict: verdictPanel, pleading: pleadingPanel }[state.tab];
       add(panel, view(d));
     } catch (e) {
       panel.append(banner("bad", "✗", [h("strong", { text: "畫面繪製失敗" }), "：" + e.message]));

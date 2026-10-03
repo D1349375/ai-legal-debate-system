@@ -12,6 +12,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py pleading --case-id X --draft-file <file> --citations <file>  落地訴狀草稿
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例 + 真實執行機械環節)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
+  python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
 """
 import argparse
 import json
@@ -132,14 +133,85 @@ def cmd_serve(args):
 def cmd_export_demo(args):
     from server import seed
     session = get_session()
-    counts = seed.write_fixture(session)
-    print(f"已匯出 {seed.FIXTURE_PATH}:{counts}")
+    # 維持既有 --live-checks 同時匯出案件 fixture 的行為；僅單獨 --party-checks 略過。
+    if not args.party_checks or args.live_checks:
+        counts = seed.write_fixture(session)
+        print(f"已匯出 {seed.FIXTURE_PATH}:{counts}")
     if args.live_checks:
         checks = seed.write_live_checks(session)
         print(f"已記錄 {len(checks)} 筆即時查證結果到 {seed.LIVE_CHECKS_PATH}")
         for c in checks:
             print(f"  {c['citation_text']} → {c['status']}")
+    if args.party_checks:
+        checks = seed.write_party_checks(session)
+        print(f"已匯出 {len(checks)} 筆過去實際商工查詢到 {seed.PARTY_CHECKS_PATH}")
     return 0
+
+
+def cmd_party(args):
+    from engine.gcis import validate_ban
+    from server.services import party_check_one
+    from server.seed import load_recorded_party_checks
+    ban = validate_ban(args.ban)
+    if ban is None:
+        print("統一編號須為 8 位數字", file=sys.stderr)
+        return 2
+    if args.case_id and not args.role:
+        print("指定案件時須同時指定 --role", file=sys.stderr)
+        return 2
+    session = get_session()
+    try:
+        r = party_check_one(session, ban, case_id=args.case_id, role=args.role,
+                            input_name=args.name, persist=not args.no_persist,
+                            recorded_party_checks=load_recorded_party_checks())
+    finally:
+        session.close()
+    is_branch = r["entity_type"] == "branch"
+    is_not_found = r["entity_type"] == "not_found"
+    failed = r["query_status"] == "failed"
+    basic_missing = r["entity_type"] in ("company", "business") and r.get("basic_data_available") is False
+    name = ("分公司統編" if is_branch else "商工登記查無此統編" if is_not_found
+            else r.get("name") or ("查核未完成" if failed else "基本資料未取得" if basic_missing else "未取得登記名稱"))
+    status = ("未查詢分公司登記" if is_branch else "查無" if is_not_found
+              else r.get("status_text") or ("查核未完成" if failed else "基本資料未取得" if basic_missing else "未提供"))
+    print(f"當事人查核：{name}（統編 {ban}）")
+    print(f"查詢狀態：{r['query_status']}；類型：{r['entity_type']}；登記狀態：{status}")
+    if r["via"] == "recorded":
+        print(f"錄製的查詢結果（查詢時間 {r['fetched_at']}），非本次即時查詢；本次失敗：{r['live_attempt']['error']}")
+    if is_branch:
+        print("此統編為分公司；本功能未查詢分公司登記資料，請改以總公司統編查核。")
+    elif not is_not_found and not basic_missing:
+        representative = r.get("legal_representative")
+        directors_failed = r.get("company_form") == "股份有限公司" and any(
+            source["dataset"] == "公司登記董監事資料" and not source["ok"] for source in r["sources"])
+        rep_text = (f"{representative['title']} {representative['name']}" if representative
+                    else "查核未完成，未自動帶入" if failed
+                    else f"待確認(在臺負責人:{r.get('registered_responsible_name') or '官方登記未提供'})" if any(w["code"] == "foreign_branch" for w in r["warnings"])
+                    else "待確認(清算人)" if any(w["code"] == "foreign_dissolved" for w in r["warnings"])
+                    else "董監事資料查詢失敗，未自動帶入" if directors_failed
+                    else "待確認（清算人）" if any(w["code"] == "dissolved" for w in r["warnings"])
+                    else "官方未提供／未自動帶入")
+        print(f"法定代理人：{rep_text}")
+        print(f"地址：{r.get('address') or ('查核未完成' if failed else '官方未提供')}")
+    for warning in r["warnings"]:
+        basis = f"（{'、'.join(warning['legal_basis'])}）" if warning["legal_basis"] else ""
+        print(f"警示〔{warning['level']}〕{warning['message']}{basis}")
+    j = r["jurisdiction"]
+    primary = j["primary"]
+    print("主要管轄：" + ("未查詢分公司登記資料，無法建議" if is_branch
+                         else "商工查詢未完成，無法建議" if failed
+                         else "基本資料未取得，無法建議" if basic_missing or is_not_found
+                         else f"{primary['court']}（{primary['basis']}）" if primary else "未能確定"))
+    if not is_branch and not failed and not basic_missing and not is_not_found and j.get("primary_candidates"):
+        print("候選法院：" + "、".join(j["primary_candidates"]) + "；需依行政區確認")
+    for alternative in ([] if is_branch or failed or basic_missing or is_not_found else j["alternatives"]):
+        print(f"分公司候選：{alternative['court']}（{alternative['basis']}；{alternative['condition']}）")
+    for failure in r["errors"]:
+        print(f"查詢失敗：{failure['dataset']}：{failure['error']}")
+    if r["attribution"]:
+        print(r["attribution"])
+    print(f"查詢時間：{r.get('fetched_at') or '無成功回應'}；資料授權：https://data.gov.tw/license")
+    return 1 if r["query_status"] == "failed" else 0
 
 
 def main():
@@ -182,7 +254,16 @@ def main():
     p = sub.add_parser("export-demo", help="匯出錄製紀錄 fixture 到 demo/")
     p.add_argument("--live-checks", action="store_true",
                    help="另對 DB 中無 published 紀錄的引用實際連線查證並記錄(需要網路)")
+    p.add_argument("--party-checks", action="store_true", help="匯出既有商工實際查詢結果供離線重播")
     p.set_defaults(fn=cmd_export_demo)
+
+    p = sub.add_parser("party", help="依統編即時查核商工登記當事人")
+    p.add_argument("--ban", required=True)
+    p.add_argument("--case-id")
+    p.add_argument("--role", choices=("plaintiff", "defendant"))
+    p.add_argument("--name", help="選填的預期名稱，供比對登記名稱")
+    p.add_argument("--no-persist", action="store_true")
+    p.set_defaults(fn=cmd_party)
 
     args = parser.parse_args()
     sys.exit(args.fn(args))

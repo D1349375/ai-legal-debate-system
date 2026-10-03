@@ -70,6 +70,22 @@ class PleadingDraft(Base):
     citation_verification_status = Column(String, nullable=False)  # 彙總所有引用的最低狀態
     generated_at = Column(String, nullable=False)
 
+
+class PartyCheck(Base):
+    __tablename__ = 'party_checks'
+    id = Column(Integer, primary_key=True)
+    case_id = Column(String, nullable=True)
+    role = Column(String, nullable=True)
+    query_ban = Column(String, nullable=False)
+    input_name = Column(String, nullable=True)
+    entity_type = Column(String, nullable=False)
+    status_text = Column(String, nullable=True)
+    result_json = Column(Text, nullable=False)
+    raw_json = Column(Text, nullable=False)
+    via = Column(String, nullable=False)
+    fetched_at = Column(String, nullable=True)
+    created_at = Column(String, nullable=False)
+
 def init_db(db_path='sqlite:///database/legal_debate.db'):
     engine = create_engine(db_path)
     Base.metadata.create_all(engine)

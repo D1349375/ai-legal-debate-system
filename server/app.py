@@ -10,7 +10,7 @@ import os
 import time
 from typing import Literal
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 from database.db import default_db_path, make_session_factory
 from database.schema import Case
 from engine.verify import JUDGMENTS_DIR, STATUTES_DIR
+from engine.gcis import validate_ban
 from server import seed, services
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,6 +44,15 @@ class VerifyRequest(BaseModel):
     skip_live: bool = False
 
 
+class PartyCheckRequest(BaseModel):
+    ban: str
+    role: Literal["plaintiff", "defendant"] | None = None
+    case_id: str | None = None
+    input_name: str | None = None
+    timeout_sec: float = Field(default=6.0, ge=1.0, le=30.0)
+    persist: bool = True
+
+
 def _count_files(folder, suffix):
     try:
         return sum(1 for n in os.listdir(folder) if n.endswith(suffix))
@@ -51,7 +61,8 @@ def _count_files(folder, suffix):
 
 
 def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
-               live_checks_path=seed.LIVE_CHECKS_PATH, seed_on_empty=True):
+               live_checks_path=seed.LIVE_CHECKS_PATH, party_checks_path=seed.PARTY_CHECKS_PATH,
+               seed_on_empty=True):
     app = FastAPI(title="LegalDebate UI API", docs_url="/api/docs", redoc_url=None, openapi_url="/api/openapi.json")
     factory = make_session_factory(db_url)
     app.state.seeded = None
@@ -59,6 +70,7 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         with factory() as s:
             app.state.seeded = seed.seed_if_empty(s, fixture_path)
     app.state.recorded_checks = seed.load_recorded_checks(live_checks_path)
+    app.state.recorded_party_checks = seed.load_recorded_party_checks(party_checks_path)
 
     def get_db():
         session = factory()
@@ -111,6 +123,21 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         ]
         return {"results": results, "mode": req.mode, "timeout_sec": req.timeout_sec,
                 "elapsed_ms": round((time.perf_counter() - started) * 1000)}
+
+    @app.post("/api/party-check")
+    def party_check(req: PartyCheckRequest, db=Depends(get_db)):
+        ban = validate_ban(req.ban)
+        if ban is None:
+            raise HTTPException(422, "統一編號須為 8 位數字")
+        return services.party_check_one(db, ban, role=req.role, case_id=req.case_id,
+                                        input_name=req.input_name, timeout=req.timeout_sec,
+                                        persist=req.persist, recorded_party_checks=app.state.recorded_party_checks)
+
+    @app.get("/api/party-search")
+    def party_search(q: str = Query(...), db=Depends(get_db)):
+        if len(q.strip()) < 2:
+            raise HTTPException(422, "公司名稱關鍵字至少 2 個字")
+        return services.party_search(q.strip())
 
     @app.get("/", include_in_schema=False)
     def index():

@@ -8,7 +8,7 @@ import json
 import os
 
 from database.schema import (
-    Case, CitationVerification, CourtQuestion, DebateArgument, PleadingDraft, Verdict,
+    Case, CitationVerification, CourtQuestion, DebateArgument, PleadingDraft, Verdict, PartyCheck,
 )
 from engine.verify import verify_citations
 from database.db import _citation_key
@@ -17,6 +17,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEMO_DIR = os.path.join(ROOT, "demo")
 FIXTURE_PATH = os.path.join(DEMO_DIR, "recorded_cases.json")
 LIVE_CHECKS_PATH = os.path.join(DEMO_DIR, "recorded_live_checks.json")
+PARTY_CHECKS_PATH = os.path.join(DEMO_DIR, "recorded_party_checks.json")
 
 # 匯出/匯入順序即資料表順序；court_questions 依原始 id 排序以保留訊問先後
 _TABLES = (
@@ -116,3 +117,30 @@ def load_recorded_checks(path=LIVE_CHECKS_PATH):
     return {_citation_key(c["citation_text"]): {**c, "recorded_at": data["_meta"]["recorded_at"],
                                                   "source": "demo/recorded_live_checks.json"}
             for c in data.get("checks", [])}
+
+
+def write_party_checks(session, path=PARTY_CHECKS_PATH):
+    """僅匯出實際成功的 GCIS 查詢；保留當時回應與原始 fetched_at。"""
+    rows = []
+    for row in session.query(PartyCheck).filter_by(via="gcis_live").order_by(PartyCheck.id).all():
+        result = json.loads(row.result_json)
+        if result.get("query_status") not in ("ok", "not_found"):
+            continue
+        rows.append({"ban": row.query_ban, "fetched_at": row.fetched_at,
+                     "result": result, "raw": json.loads(row.raw_json)})
+    data = {"_meta": {"format": "legaldebate-recorded-party-checks/1", "recorded_at": _now_iso(),
+                      "note": "過去對經濟部商工開放資料的實際查詢結果；離線呈現時非本次即時查詢。"},
+            "checks": rows}
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(data, f, ensure_ascii=False, indent=1)
+        f.write("\n")
+    return rows
+
+
+def load_recorded_party_checks(path=PARTY_CHECKS_PATH):
+    if not os.path.isfile(path):
+        return {}
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    return {entry["ban"]: entry for entry in data.get("checks", [])}

@@ -13,11 +13,12 @@ import os
 import re
 import time
 
-from database.db import _citation_key, _find_citation_row, finalize_case, upsert_citation
+from database.db import _citation_key, _find_citation_row, finalize_case, upsert_citation, record_party_check, latest_party_checks
 from database.schema import (
     Case, CitationVerification, CourtQuestion, DebateArgument, PleadingDraft, Verdict,
 )
 from engine import verify as engine_verify
+from engine import gcis, party_rules
 from engine.aggregate import VALID_SIDES, disagreement
 from engine.verify import (
     JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES, STATUTES_DIR,
@@ -291,6 +292,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "citation_changes": [], "drift_detail": None,
             "progress": _progress(None, [], [], None, None, []),
             "stats": {"arguments": 0, "questions": 0, "citations": 0, "citations_published": 0},
+            "party_checks": latest_party_checks(session, case_id),
         }
 
     lookup = _citation_lookup(session)
@@ -343,7 +345,85 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
         "stats": {"arguments": len(arguments), "questions": len(questions), "citations": len(citations),
                   "citations_published": sum(1 for c in citations if c["db_record"]
                                              and c["db_record"]["status"] == "published")},
+        "party_checks": latest_party_checks(session, case_id),
     }
+
+
+# ───────────────────────── 商工登記當事人查核 ─────────────────────────
+
+def party_check_one(session, ban, *, role=None, case_id=None, input_name=None, timeout=6.0,
+                    persist=True, recorded_party_checks=None):
+    started = time.perf_counter()
+    calls = {}
+    type_result = gcis.entity_type(ban, timeout=timeout)
+    calls["entity_type"] = type_result
+    if not type_result["ok"]:
+        kind = "unresolved"  # 連線失敗絕不能當成「查無」
+    else:
+        types = {str(row.get("TYPE", "")).strip(): str(row.get("exist", "")).upper() == "Y"
+                 for row in type_result["rows"]}
+        kind = ("company" if types.get("公司") else "branch" if types.get("分公司")
+                else "business" if types.get("商業") else "not_found")
+    if kind == "company":
+        calls["company"] = gcis.company_basic(ban, timeout=timeout)
+        # 基本資料失敗時仍嘗試獨立資料集；成功時也保留各自的錯誤狀態。
+        calls["directors"] = gcis.directors(ban, timeout=timeout)
+        calls["branches"] = gcis.branches(ban, timeout=timeout)
+    elif kind == "business":
+        calls["business"] = gcis.business_basic(ban, timeout=timeout)
+    result = party_rules.summarize(ban, kind, calls, input_name=input_name)
+    api_failures = [{"dataset": gcis.DATASETS[key][1], "error": call["error"]}
+                    for key, call in calls.items() if not call["ok"]]
+    failures = api_failures.copy()
+    missing_basic = kind in ("company", "business") and calls[kind]["ok"] and not calls[kind]["rows"]
+    if missing_basic:
+        failures.append({"dataset": gcis.DATASETS[kind][1],
+                         "error": "類型資料顯示統編存在，但基本資料集查無此統編；無法完成欄位核對"})
+    critical_failure = kind == "unresolved" or (kind in ("company", "business") and not calls[kind]["ok"])
+    result["query_status"] = "failed" if critical_failure else "partial" if failures else "not_found" if kind == "not_found" else "ok"
+    result["errors"] = failures
+    result["live_attempt"] = {"tried": True,
+                               "outcome": _classify_live_failure(api_failures[0]["error"]) if api_failures else "ok",
+                               "error": api_failures[0]["error"] if api_failures else None}
+    result["via"] = "gcis_live"
+    result["fetched_at"] = max((call["fetched_at"] for call in calls.values() if call["fetched_at"]), default=None)
+    result["elapsed_ms"] = round((time.perf_counter() - started) * 1000)
+    result["persisted"] = False
+    if calls and all(not value["ok"] for value in calls.values()) and ban in (recorded_party_checks or {}):
+        entry = recorded_party_checks[ban]
+        original = entry["result"]
+        historic_calls = {key: {**value, "dataset": key, "fetched_at": entry["fetched_at"] if value["ok"] else None}
+                          for key, value in entry["raw"].items()}
+        replay = party_rules.summarize(ban, original["entity_type"], historic_calls, input_name=input_name)
+        replay.update(query_status="recorded", via="recorded", fetched_at=entry["fetched_at"],
+                      live_attempt=result["live_attempt"], live_errors=failures,
+                      elapsed_ms=result["elapsed_ms"], persisted=False)
+        if persist:
+            replay["persisted"] = True
+            record_party_check(session, case_id=case_id, role=role, query_ban=ban, input_name=input_name,
+                               result=replay, raw={"recorded": entry["raw"], "failed_live_attempt": calls},
+                               via="recorded", fetched_at=entry["fetched_at"])
+        return replay
+    if persist:
+        result["persisted"] = True
+        record_party_check(session, case_id=case_id, role=role, query_ban=ban, input_name=input_name,
+                           result=result, raw={key: {"rows": value["rows"], "url": value["url"],
+                                                  "ok": value["ok"], "error": value["error"]}
+                                               for key, value in calls.items()},
+                           fetched_at=result["fetched_at"])
+    return result
+
+
+def party_search(keyword, *, timeout=6.0):
+    fetched = gcis.search_companies(keyword, timeout=timeout)
+    return {"ok": fetched["ok"], "error": fetched["error"], "fetched_at": fetched["fetched_at"],
+            "source": {"dataset": gcis.DATASETS["keyword"][1], "url": fetched["url"],
+                       "fetched_at": fetched["fetched_at"]},
+            "attribution": f"{gcis.ATTRIBUTION} [{gcis.DATASETS['keyword'][1]}]" if fetched["ok"] else None,
+            "candidates": [{"ban": str(row.get("Business_Accounting_NO", "")), "name": row.get("Company_Name"),
+                            "status_text": row.get("Company_Status_Desc"),
+                            "address": row.get("Company_Location"), "responsible_name": row.get("Responsible_Name")}
+                           for row in fetched["rows"]]}
 
 
 # ───────────────────────── finalize ─────────────────────────
