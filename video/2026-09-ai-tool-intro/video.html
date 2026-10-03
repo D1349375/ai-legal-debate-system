@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>LegalDebate 作品影片</title>
+<style>
+  :root {
+    --bg: #0a0c11; --bg2: #121620; --ink: #eef1f6; --dim: #6b7383; --mid: #a9b0bf; --faint: #2a303c;
+    --gold: #e0b769; --red: #ff5d5d; --green: #4fd18b; --blue: #6aa8ff; --orange: #f2a45f;
+    --font: "Microsoft JhengHei", "Noto Sans TC", "PingFang TC", sans-serif;
+  }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; flex: none;
+    background: radial-gradient(1400px 900px at 50% 40%, var(--bg2), var(--bg) 70%);
+    color: var(--ink); font-family: var(--font); transform-origin: center; }
+  #grid { position: absolute; inset: -80px;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 80px 80px; }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .abs { position: absolute; }
+  .center-x { left: 0; right: 0; text-align: center; }
+  .src { position: absolute; left: 80px; bottom: 44px; font-size: 22px; color: var(--dim); letter-spacing: .02em; }
+
+  /* ---------- scene 1-3 (opening, unchanged from approved sample) ---------- */
+  #s1-label { top: 150px; font-size: 40px; color: var(--dim); letter-spacing: .3em; }
+  #s1-big { top: 205px; font-size: 180px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+  #s1-big small { font-size: 72px; font-weight: 400; margin-left: 16px; color: var(--dim); }
+  #blocks { top: 450px; left: 0; right: 0; display: flex; justify-content: center; gap: 18px; }
+  .blk { width: 170px; height: 104px; border-radius: 14px; background: var(--faint); position: relative; overflow: hidden; }
+  .blk i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(135deg, #f3cf86, var(--gold)); }
+  .blk b { position: absolute; left: 14px; bottom: 10px; font-size: 22px; font-weight: 400; color: rgba(255,255,255,.35); }
+  #bill { top: 590px; font-size: 40px; color: var(--gold); font-weight: 700; }
+  #bill span { color: var(--dim); font-weight: 400; font-size: 30px; margin-left: 14px; }
+  #chips { top: 770px; left: 0; right: 0; display: flex; justify-content: center; gap: 30px; }
+  .chip { font-size: 44px; padding: 22px 40px; border-radius: 18px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); white-space: nowrap; }
+  #loopbox { border: 3px dashed var(--gold); border-radius: 30px; }
+  #looplabel { font-size: 34px; color: var(--gold); white-space: nowrap; }
+  #casectr { font-size: 30px; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #s2-intro { top: 440px; font-size: 96px; font-weight: 700; }
+  #s2-intro em { font-style: normal; color: var(--gold); }
+  .year { font-size: 230px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
+  .court { font-size: 34px; color: var(--dim); margin-top: 18px; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 34px; font-size: 40px; font-weight: 700; color: var(--red); border: 3px solid var(--red); border-radius: 12px; padding: 8px 26px; }
+  #headline { top: 130px; left: 820px; font-size: 64px; font-weight: 700; white-space: nowrap; }
+  #headline em { font-style: normal; color: var(--red); }
+  #docs { top: 260px; left: 820px; display: grid; grid-template-columns: repeat(3, 280px); gap: 30px; }
+  .doc { height: 250px; border-radius: 16px; background: #1a1f2b; border: 2px solid #2c3342; position: relative; overflow: hidden; }
+  .doc .ln { position: absolute; left: 28px; height: 14px; border-radius: 7px; background: #2e3545; }
+  .stamp { position: absolute; left: 50%; top: 50%; font-size: 46px; font-weight: 700; color: var(--red); border: 5px solid var(--red); border-radius: 10px; padding: 6px 18px; white-space: nowrap; background: rgba(10,12,17,.55); }
+  #dots { top: 230px; left: 820px; display: grid; grid-template-columns: repeat(6, 120px); gap: 26px; }
+  .dot { width: 120px; height: 120px; border-radius: 50%; background: #2b3242; position: relative; display: flex; align-items: center; justify-content: center; font-size: 60px; font-weight: 700; color: transparent; }
+  #ratio { top: 640px; left: 130px; font-size: 56px; font-weight: 700; white-space: nowrap; }
+  #ratio em { font-style: normal; color: var(--red); font-size: 84px; }
+  #cards { top: 190px; left: 0; right: 0; display: flex; justify-content: center; gap: 48px; }
+  .card { width: 500px; height: 380px; border-radius: 28px; background: #151a24; border: 2px solid #283040; position: relative; padding: 50px 48px; box-sizing: border-box; overflow: hidden; }
+  .card .n { font-size: 30px; color: var(--gold); letter-spacing: .1em; }
+  .card .t { font-size: 60px; font-weight: 700; margin-top: 24px; }
+  .card .d { font-size: 34px; color: var(--mid); margin-top: 22px; line-height: 1.45; }
+  .xmark { position: absolute; inset: 0; }
+  .xmark::before, .xmark::after { content: ""; position: absolute; left: 50%; top: 50%; width: 560px; height: 14px; border-radius: 7px; background: var(--red); transform-origin: center; transform: translate(-50%, -50%) rotate(var(--r)) scaleX(var(--s, 0)); }
+  .xmark::before { --r: 34deg; } .xmark::after { --r: -34deg; }
+  #final { top: 650px; font-size: 104px; font-weight: 700; letter-spacing: .04em; }
+  #final em { font-style: normal; color: var(--red); }
+
+  /* ---------- scene 4: solution ---------- */
+  #logo { top: 330px; font-size: 150px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+  #logo b { color: var(--gold); font-weight: 700; }
+  #logosub { top: 520px; font-size: 44px; color: var(--mid); letter-spacing: .12em; }
+  #roles { top: 300px; left: 0; right: 0; display: flex; justify-content: center; gap: 60px; }
+  .role { width: 400px; height: 210px; border-radius: 26px; background: #151a24; border: 2px solid #283040; position: relative; text-align: center; box-sizing: border-box; padding-top: 40px; }
+  .role .rn { font-size: 54px; font-weight: 700; }
+  .role .rs { font-size: 28px; color: var(--mid); margin-top: 16px; }
+  .role .llm { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 22px; padding: 4px 14px; border-radius: 999px; background: #232a38; color: var(--mid); letter-spacing: .08em; }
+  .role.p { border-color: rgba(106,168,255,.55); } .role.p .rn { color: var(--blue); }
+  .role.j { border-color: rgba(224,183,105,.7); } .role.j .rn { color: var(--gold); }
+  .role.d { border-color: rgba(242,164,95,.55); } .role.d .rn { color: var(--orange); }
+  #pipe { top: 610px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 0; }
+  .step { font-size: 40px; padding: 20px 34px; border-radius: 16px; border: 2px solid #2c3342; background: #141922; color: var(--dim); white-space: nowrap; position: relative; }
+  .step.on { color: var(--ink); border-color: rgba(224,183,105,.8); background: rgba(224,183,105,.1); }
+  .arrow { width: 70px; height: 4px; background: #2c3342; position: relative; }
+  .arrow i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); width: 0; }
+  #onego { top: 740px; font-size: 38px; color: var(--gold); font-weight: 700; }
+  #gate4 { top: 800px; left: 0; right: 0; display: flex; justify-content: center; gap: 40px; align-items: center; }
+  .pill { font-size: 36px; padding: 14px 30px; border-radius: 999px; white-space: nowrap; }
+  .pill.ok { background: rgba(79,209,139,.12); border: 2px solid rgba(79,209,139,.7); color: var(--green); }
+  .pill.no { background: rgba(255,255,255,.04); border: 2px solid #3a4150; color: var(--dim); position: relative; }
+  .pill.no s { text-decoration: none; }
+  .pill.no::after { content: ""; position: absolute; left: 18px; right: 18px; top: 50%; height: 4px; background: var(--red); transform: scaleX(var(--k, 0)); transform-origin: left; }
+
+  /* ---------- scene 5: architecture (SVG) ---------- */
+  #arch { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  #archTitle { top: 62px; left: 80px; font-size: 40px; color: var(--dim); letter-spacing: .2em; }
+  #archKey { top: 110px; left: 80px; font-size: 58px; font-weight: 700; white-space: nowrap; }
+  #archKey em { font-style: normal; color: var(--gold); margin-right: 18px; }
+  .node rect { fill: #151a24; stroke: #313a4b; stroke-width: 2.5; }
+  .node .t1 { fill: var(--ink); font-size: 34px; font-weight: 700; }
+  .node .t2 { fill: var(--mid); font-size: 23px; }
+  .node.hot rect { stroke: var(--gold); }
+  .band { fill: rgba(106,168,255,.05); stroke: rgba(106,168,255,.35); stroke-width: 2; stroke-dasharray: 10 8; }
+  .band.det { fill: rgba(79,209,139,.05); stroke: rgba(79,209,139,.4); }
+  .bandlbl { font-size: 24px; letter-spacing: .06em; }
+  .edge { fill: none; stroke: #4a5468; stroke-width: 3; }
+  .flow { fill: var(--gold); }
+
+  /* ---------- scene 6: demo ---------- */
+  #demoBox { position: absolute; left: 96px; top: 76px; width: 1728px; height: 972px; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.08); background: #000; }
+  #cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+  #demoImg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  #hl { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+  #hl rect { fill: none; stroke: var(--gold); stroke-width: 5; }
+  #hl rect.red { stroke: var(--red); }
+  #demoBadge { top: 22px; left: 0; right: 0; text-align: center; }
+  #demoBadge span { display: inline-block; font-size: 24px; padding: 6px 20px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--mid); border: 1px solid rgba(255,255,255,.12); }
+  #demoBadge b { color: var(--gold); font-weight: 700; }
+  .callout { position: absolute; font-size: 34px; font-weight: 700; padding: 12px 24px; border-radius: 12px; white-space: nowrap;
+    background: rgba(12,14,19,.92); border: 2px solid var(--gold); color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  .callout.red { border-color: var(--red); } .callout em { font-style: normal; color: var(--gold); } .callout.red em { color: var(--red); }
+  #timer { position: absolute; right: 150px; top: 120px; font-size: 32px; padding: 14px 26px; border-radius: 14px;
+    background: rgba(12,14,19,.92); border: 2px solid rgba(224,183,105,.7); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #timer b { color: var(--gold); font-size: 44px; }
+  #tl43 { position: absolute; left: 50%; top: 360px; transform: translateX(-50%); width: 1300px; padding: 40px 50px; border-radius: 22px;
+    background: rgba(12,14,19,.95); border: 2px solid rgba(224,183,105,.7); box-shadow: 0 30px 80px rgba(0,0,0,.6); box-sizing: border-box; }
+  #tl43 .row { display: flex; justify-content: space-between; align-items: flex-start; position: relative; }
+  #tl43 .pt { text-align: center; width: 300px; position: relative; z-index: 1; }
+  #tl43 .pt b { display: block; font-size: 46px; color: var(--gold); font-variant-numeric: tabular-nums; }
+  #tl43 .pt span { font-size: 28px; color: var(--mid); }
+  #tl43 .line { position: absolute; left: 150px; right: 150px; top: 28px; height: 4px; background: #3a4254; }
+  #tl43 .line i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); width: 0; }
+  #tl43 .sum { margin-top: 30px; text-align: center; font-size: 40px; font-weight: 700; }
+  #tl43 .sum em { font-style: normal; color: var(--gold); font-size: 60px; }
+  #tl43 .note { margin-top: 10px; text-align: center; font-size: 24px; color: var(--dim); }
+
+  /* ---------- scene 7: closing ---------- */
+  #stats { top: 150px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+  .stat { display: flex; align-items: baseline; gap: 36px; width: 1300px; padding: 26px 50px; border-radius: 22px; background: #141922; border: 2px solid #283040; box-sizing: border-box; }
+  .stat b { font-size: 92px; font-weight: 700; color: var(--gold); width: 430px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .stat b small { font-size: 46px; margin-left: 8px; }
+  .stat span { font-size: 42px; color: var(--ink); }
+  .stat.red b { color: var(--red); }
+  #b2b { top: 760px; font-size: 34px; color: var(--mid); }
+  #tagline { top: 360px; font-size: 96px; font-weight: 700; letter-spacing: .04em; }
+  #tagline em { font-style: normal; color: var(--gold); }
+  #endlogo { top: 540px; font-size: 64px; font-weight: 700; color: var(--mid); }
+  #endlogo b { color: var(--gold); }
+  #endnote { top: 660px; font-size: 28px; color: var(--dim); line-height: 1.7; }
+
+  /* ---------- subtitles ---------- */
+  #sub { position: absolute; left: 0; right: 0; bottom: 110px; text-align: center; pointer-events: none; z-index: 20; }
+  #sub span { display: inline-block; font-size: 46px; line-height: 1.3; padding: 10px 30px; border-radius: 10px; background: rgba(0,0,0,.66); color: #fff; letter-spacing: .03em; }
+  #fade { position: absolute; inset: 0; background: #000; pointer-events: none; z-index: 30; }
+  #ctrl { position: fixed; left: 12px; bottom: 10px; z-index: 50; font: 14px var(--font); color: #aaa; }
+  #ctrl button { font: inherit; padding: 6px 14px; margin-right: 8px; cursor: pointer; }
+  body.capture #ctrl { display: none; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <div id="grid"></div>
+
+  <div class="scene" id="scene1">
+    <div class="abs center-x" id="s1-label">律師的一天</div>
+    <div class="abs center-x" id="s1-big"><span id="hrs">0</span><small>小時</small></div>
+    <div class="abs" id="blocks"></div>
+    <div class="abs center-x" id="bill">可計費 2.3–3.0 小時<span>／ 8 小時工作日</span></div>
+    <div class="abs" id="loopbox"></div>
+    <div class="abs" id="chips"><div class="chip">檢索判決</div><div class="chip">盤點爭點</div><div class="chip">推演對造攻防</div><div class="chip">草擬書狀初稿</div></div>
+    <div class="abs" id="looplabel">↻ 每個案子都要重來一次</div>
+    <div class="abs" id="casectr"></div>
+    <div class="src" id="src1">資料來源：Clio《Legal Trends Report》（國際調查數據）</div>
+  </div>
+
+  <div class="scene" id="scene2">
+    <div class="abs center-x" id="s2-intro">生成式 <em>AI</em> 看似能分擔</div>
+    <div class="abs" id="caseA" style="left:130px; top:300px;"><div class="year">2023</div><div class="court">美國紐約南區聯邦法院<br>Mata v. Avianca</div><div class="tag" id="tagA">遭法院裁罰</div></div>
+    <div class="abs" id="headline">六件判決，<em>全都不存在</em></div>
+    <div class="abs" id="docs"></div>
+    <div class="abs" id="caseB" style="left:130px; top:250px;"><div class="year">2025</div><div class="court">美國加州上訴法院<br>Noland v. Land of the Free</div></div>
+    <div class="abs" id="dots"></div>
+    <div class="abs" id="ratio"><em id="rnum">0</em> / 23 段引文查無原文</div>
+    <div class="src" id="src2">Mata v. Avianca, Inc., No. 22-cv-1461 (S.D.N.Y. 2023)；Noland v. Land of the Free, L.P. (Cal. Ct. App. 2025)</div>
+  </div>
+
+  <div class="scene" id="scene3">
+    <div class="abs" id="cards">
+      <div class="card"><div class="n">01</div><div class="t">引用</div><div class="d">AI 寫的東西<br>仍須逐條手動查證</div><div class="xmark"></div></div>
+      <div class="card"><div class="n">02</div><div class="t">立場</div><div class="d">單一模型<br>只站一個立場</div><div class="xmark"></div></div>
+      <div class="card"><div class="n">03</div><div class="t">攻防</div><div class="d">對造怎麼攻擊<br>還是得自己想</div><div class="xmark"></div></div>
+    </div>
+    <div class="abs center-x" id="final">時間，<em>根本沒省下來。</em></div>
+  </div>
+
+  <div class="scene" id="scene4">
+    <div class="abs center-x" id="logo">Legal<b>Debate</b></div>
+    <div class="abs center-x" id="logosub">律師事務所內部的 AI 模擬法庭</div>
+    <div class="abs" id="roles">
+      <div class="role p"><div class="llm">LLM</div><div class="rn">原告代理人</div><div class="rs">主張・請求權基礎</div></div>
+      <div class="role j"><div class="llm">LLM</div><div class="rn">法官</div><div class="rs">整理爭點・實質訊問</div></div>
+      <div class="role d"><div class="llm">LLM</div><div class="rn">被告代理人</div><div class="rs">抗辯・對造視角</div></div>
+    </div>
+    <div class="abs" id="pipe">
+      <div class="step">檢索</div><div class="arrow"><i></i></div>
+      <div class="step">盤點爭點</div><div class="arrow"><i></i></div>
+      <div class="step">攻防推演</div><div class="arrow"><i></i></div>
+      <div class="step">訴狀骨架</div>
+    </div>
+    <div class="abs center-x" id="onego">✓ 一次跑完</div>
+    <div class="abs" id="gate4"><div class="pill ok">✓ 每條引用自動比對官方來源</div><div class="pill no" id="manual">律師逐條手查</div></div>
+  </div>
+
+  <div class="scene" id="scene5">
+    <div class="abs" id="archTitle">技術架構</div>
+    <div class="abs" id="archKey"><em id="archNum">①</em><span id="archTxt">真對抗，而非換人設</span></div>
+    <svg id="arch" viewBox="0 0 1920 1080">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7383"/></marker>
+      </defs>
+      <g id="bands">
+        <rect class="band" id="bandLLM" x="275" y="215" width="960" height="600" rx="26"/>
+        <text class="bandlbl" x="300" y="252" fill="#6aa8ff">LLM 層（Claude・Anthropic）</text>
+        <rect class="band det" id="bandDet" x="1260" y="215" width="610" height="600" rx="26"/>
+        <text class="bandlbl" x="1285" y="252" fill="#4fd18b">確定性程式層（不經 LLM）</text>
+      </g>
+      <g id="edges">
+        <path class="edge" id="e1" d="M240,515 C270,515 270,370 300,370" marker-end="url(#ah)"/>
+        <path class="edge" id="e2" d="M240,515 C270,515 270,660 300,660" marker-end="url(#ah)"/>
+        <path class="edge" id="e3" d="M610,370 C650,370 650,500 690,500" marker-end="url(#ah)"/>
+        <path class="edge" id="e4" d="M610,660 C650,660 650,530 690,530" marker-end="url(#ah)"/>
+        <path class="edge" id="e5" d="M960,515 L1000,515" marker-end="url(#ah)"/>
+        <path class="edge" id="e6" d="M1210,515 L1290,515" marker-end="url(#ah)"/>
+        <path class="edge" id="e7" d="M1545,515 L1580,515" marker-end="url(#ah)"/>
+      </g>
+      <g id="wall"><line x1="310" y1="515" x2="600" y2="515" stroke="#e0b769" stroke-width="3" stroke-dasharray="12 10"/>
+        <rect x="320" y="494" width="270" height="42" rx="21" fill="#0f1218" stroke="#e0b769" stroke-width="2"/>
+        <text x="455" y="523" text-anchor="middle" fill="#e0b769" font-size="22">Stage 1 盲測・互不可見</text></g>
+      <g class="node" id="nIn"><rect x="70" y="460" width="170" height="110" rx="18"/><text class="t1" x="155" y="510" text-anchor="middle">案件輸入</text><text class="t2" x="155" y="545" text-anchor="middle">雙方主張</text></g>
+      <g class="node" id="nP"><rect x="300" y="305" width="310" height="130" rx="18"/><text class="t1" x="325" y="352" fill="#6aa8ff" style="fill:#6aa8ff">原告代理人</text><text class="t2" x="325" y="390">立場檢索詞「請求權成立」</text><text class="t2" x="325" y="420">各自獨立檢索</text></g>
+      <g class="node" id="nD"><rect x="300" y="595" width="310" height="130" rx="18"/><text class="t1" x="325" y="642" style="fill:#f2a45f">被告代理人</text><text class="t2" x="325" y="680">立場檢索詞「罹於時效」</text><text class="t2" x="325" y="710">各自獨立檢索</text></g>
+      <g class="node" id="nJ"><rect x="690" y="450" width="270" height="130" rx="18"/><text class="t1" x="715" y="497" style="fill:#e0b769">法官訊問</text><text class="t2" x="715" y="535">每題須標註依據</text><text class="t2" x="715" y="565">（based_on）</text></g>
+      <g class="node" id="nS"><rect x="1000" y="450" width="210" height="130" rx="18"/><text class="t1" x="1025" y="497">Stage 2・3</text><text class="t2" x="1025" y="535">訊問攻防</text><text class="t2" x="1025" y="565">→ 辯論終結</text></g>
+      <g class="node" id="nA"><rect x="1290" y="430" width="255" height="170" rx="18"/><text class="t1" x="1315" y="477">機械彙整</text><text class="t2" x="1315" y="515">雙方弱點</text><text class="t2" x="1315" y="545">立場漂移（Jaccard）</text><text class="t2" x="1315" y="578" id="fml" style="fill:#e0b769;opacity:0">1 − |交集| ÷ |聯集|</text></g>
+      <g class="node" id="nG"><rect x="1580" y="330" width="270" height="290" rx="18"/><text class="t1" x="1605" y="377">引用查證閘門</text><text class="t2" x="1605" y="410">引用預設「不存在」</text>
+        <g id="srcs"><g id="src_a"><rect x="1600" y="430" width="230" height="50" rx="10" style="fill:#1b2130;stroke:#3a4356"/><text class="t2" x="1612" y="462" style="font-size:20px">全國法規資料庫</text></g>
+        <g id="src_b"><rect x="1600" y="490" width="230" height="50" rx="10" style="fill:#1b2130;stroke:#3a4356"/><text class="t2" x="1612" y="522" style="font-size:20px">1,088 份最高法院判決</text></g>
+        <g id="src_c"><rect x="1600" y="550" width="230" height="50" rx="10" style="fill:#1b2130;stroke:#3a4356"/><text class="t2" x="1612" y="582" style="font-size:20px">司法院即時查詢</text></g></g></g>
+      <g id="outOk"><rect x="1580" y="650" width="270" height="60" rx="12" fill="rgba(79,209,139,.12)" stroke="#4fd18b" stroke-width="2.5"/><text x="1715" y="690" text-anchor="middle" fill="#4fd18b" font-size="26">✓ 通過 → 寫入訴狀</text></g>
+      <g id="outNo"><rect x="1580" y="725" width="270" height="60" rx="12" fill="rgba(255,93,93,.12)" stroke="#ff5d5d" stroke-width="2.5"/><text x="1715" y="765" text-anchor="middle" fill="#ff5d5d" font-size="26">✕ 未通過 → 拒絕寫入</text></g>
+      <g id="flows"></g>
+    </svg>
+  </div>
+
+  <div class="scene" id="scene6">
+    <div class="abs" id="demoBadge"><span><b>實機畫面</b>　攻防內容為錄製紀錄重播｜查證與彙整為當場執行</span></div>
+    <div id="demoBox"><div id="cam"><img id="demoImg" alt=""><svg id="hl" viewBox="0 0 1920 1080"></svg></div></div>
+    <div id="callouts"></div>
+    <div id="timer" style="opacity:0">即時查證中　<b id="tsec">0.0</b> 秒</div>
+    <div id="tl43" style="opacity:0">
+      <div class="row"><div class="line"><i></i></div>
+        <div class="pt"><b>07:53</b><span>案件建立</span></div><div class="pt"><b>08:19</b><span>三階段攻防落地</span></div><div class="pt"><b>08:36</b><span>訴狀骨架產出</span></div></div>
+      <div class="sum">完整流程　約 <em>43</em> 分鐘</div>
+      <div class="note">2026-08-09 實測，資料庫落地時間（UTC）</div>
+    </div>
+  </div>
+
+  <div class="scene" id="scene7">
+    <div class="abs" id="stats">
+      <div class="stat"><b>43<small>分鐘</small></b><span>完整三方攻防 → 訴狀骨架</span></div>
+      <div class="stat"><b id="vsecStat">12<small>秒</small></b><span>25 條引用逐條比對官方來源</span></div>
+      <div class="stat red"><b>1<small>筆</small></b><span>捏造的判決字號，當場攔截</span></div>
+    </div>
+    <div class="abs center-x" id="b2b">產出為供律師審核的草稿・依律師法第 127 條，僅作事務所內部工具</div>
+    <div class="abs center-x" id="tagline">讓 AI 扛下繁瑣，<em>律師專心判斷。</em></div>
+    <div class="abs center-x" id="endlogo">Legal<b>Debate</b></div>
+    <div class="abs center-x" id="endnote">研究原型・尚未經執業律師實測<br>下一步：Anthropic API 即時生成・邀請律師共同驗證</div>
+  </div>
+
+  <div id="sub"><span></span></div>
+  <div id="fade"></div>
+</div></div>
+<div id="ctrl"><button id="play">▶ 播放（含旁白）</button><span id="clock">0.00s</span></div>
+
+<script src="data.js"></script>
+<script src="demo/log.js"></script>
+<script>
+const D = window.DATA, L = window.LOG;
+const ORDER = ["s1","s2","s3","s4","s5","s6","s7","s8a","s8b","s9","s10","s11"];
+const LEAD = 0.4, G1 = 0.35, TAIL = 1.0;
+const START = {};
+START.s1 = LEAD;
+for (const [a, b] of [["s1","s2"],["s2","s3"],["s3","s4"],["s4","s5"]]) START[b] = START[a] + D[a].dur + G1;
+START.s6 = START.s5 + D.s5.dur + 0.6;
+const DS0 = START.s6 - L.seg.s6;                       // global time of demo recording t=0
+for (const k of ["s7","s8a","s8b","s9","s10"]) START[k] = DS0 + L.seg[k];
+const DEMO_END = DS0 + L.seg.end;
+START.s11 = START.s10 + D.s10.dur + 0.35;
+const TOTAL = START.s11 + D.s11.dur + TAIL;
+Object.assign(window, { START, TOTAL, DS0 });
+
+function Tpos(seg, pos) {
+  const text = D[seg].text; let cur = 0, best = D[seg].words[0].t;
+  for (const w of D[seg].words) { const p = text.indexOf(w.w, cur); if (p < 0) continue; if (p <= pos) best = w.t; else break; cur = p + w.w.length; }
+  return START[seg] + best;
+}
+function T(seg, sub) { const pos = D[seg].text.indexOf(sub); if (pos < 0) throw new Error("missing " + seg + ":" + sub); return Tpos(seg, pos); }
+const END = seg => START[seg] + D[seg].dur;
+
+// ---------- subtitles ----------
+const SUBS = [];
+for (const seg of ORDER) {
+  const text = D[seg].text;
+  const parts = text.split(/(?<=[，。；：？])/).filter(Boolean), merged = [];
+  for (const p of parts) {
+    const last = merged[merged.length - 1];
+    if (last && (last.replace(/[，。；：？]/g, "").length + p.length <= 19) && !/[。；：？]$/.test(last)) merged[merged.length - 1] = last + p; else merged.push(p);
+  }
+  let off = 0; const items = [];
+  for (const m of merged) { const at = text.indexOf(m, off); off = at + m.length; items.push({ pos: at, txt: m.replace(/[，。；：]$/, "") }); }
+  const words = D[seg].words, lastW = words[words.length - 1];
+  items.forEach((it, i) => {
+    const t0 = Tpos(seg, it.pos);
+    const t1 = i + 1 < items.length ? Tpos(seg, items[i + 1].pos) - 0.05 : START[seg] + lastW.t + lastW.d + 0.35;
+    SUBS.push({ t0, t1, txt: it.txt });
+  });
+}
+window.SUBS = SUBS;
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, d = 0.6) => clamp((t - a) / d);
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+function show(el, p, dy = 30, sc = null) { el.style.opacity = p; el.style.transform = `translateY(${(1 - eo(p)) * dy}px)` + (sc != null ? ` scale(${sc})` : ""); }
+const win = (t, a, b, fi = 0.4, fo = 0.4) => P(t, a, fi) * (1 - P(t, b - fo, fo));   // visible window with fades
+
+// ---------- static DOM ----------
+for (let i = 0; i < 8; i++) $("#blocks").insertAdjacentHTML("beforeend", `<div class="blk"><i></i><b>${i + 1}</b></div>`);
+const LN = [[40, 60], [80, 75], [120, 50], [160, 68], [200, 40]];
+for (let i = 0; i < 6; i++) $("#docs").insertAdjacentHTML("beforeend", `<div class="doc">${LN.map(([y, w]) => `<div class="ln" style="top:${y}px;width:${w}%"></div>`).join("")}<div class="stamp">查無此案</div></div>`);
+for (let i = 0; i < 23; i++) $("#dots").insertAdjacentHTML("beforeend", `<div class="dot">✕</div>`);
+const REAL = new Set([4, 15]);
+const vsec = (L.events.verify_elapsed).toFixed(1);
+$("#vsecStat").innerHTML = `${Math.round(L.events.verify_elapsed)}<small>秒</small>`;
+
+// arch: edge lengths for draw-on
+const EDGES = $$("#edges path").map(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return { p, l }; });
+// flow dots along paths
+const FLOWS = [["e1", "e3"], ["e2", "e4"]];
+for (let i = 0; i < 6; i++) $("#flows").insertAdjacentHTML("beforeend", `<circle class="flow" r="7" cx="-50" cy="-50"/>`);
+
+// ---------- key times ----------
+const K = {
+  hrs: T("s1", "八"), bill: T("s1", "真正"), billLbl: T("s1", "只有"),
+  c: [T("s1", "檢索"), T("s1", "盤點"), T("s1", "推演"), T("s1", "草擬")], tedious: T("s1", "繁瑣"), loop: T("s1", "每個"),
+  s2in: START.s2, but: T("s2", "但"), six: T("s2", "六"), docStamp: T("s2", "判決"), fine: T("s2", "遭"),
+  y25: T("s2", "2025"), d23: T("s2", "23段"), r21: T("s2", "21"),
+  c1: T("s3", "律師"), c2: T("s3", "單一"), c3: T("s3", "對"), x: T("s3", "時間"), fin: T("s3", "根本"),
+  // s4
+  roles: T("s4", "大型"), rP: T("s4", "原告"), rD: T("s4", "被告"), rJ: T("s4", "法官"),
+  st: [T("s4", "檢索"), T("s4", "盤點"), T("s4", "攻防"), T("s4", "訴狀")], onego: T("s4", "一次"), gate: T("s4", "每條"), manual: T("s4", "不必"),
+  // s5
+  k1: T("s5", "第一"), lanes: T("s5", "立場驅動"), blind: T("s5", "盲測"), judge: T("s5", "法官每題"),
+  k2: T("s5", "第二"), algo: T("s5", "確定性"), k3: T("s5", "第三"), preset: T("s5", "引用預設"),
+  sa: T("s5", "法條比對"), sb: T("s5", "判決比對"), sc: T("s5", "即時查詢"), reject: T("s5", "未通過"),
+  // demo
+  s6banner: T("s6", "畫面是"), q4: T("s7", "每坪"), q4core: T("s7", "這正是"),
+  vclick: DS0 + L.events.verify_click, vdone: DS0 + L.events.verify_done,
+  v24: T("s8b", "24條"), vrow: T("s8b", "原告引用的"), vwith: T("s8b", "而原告"),
+  fdrift: T("s9", "原告"), claims: T("s10", "訴之聲明"), m43: T("s10", "這次實測"),
+  // s11
+  paper: START.s11, review: T("s11", "產出"), law: T("s11", "依律師法"), tag: T("s11", "讓AI"),
+};
+
+// ---------- demo highlight plan (rects are recording CSS px @1280x720 → ×1.5 in frame) ----------
+const R = n => { const r = L.rects[n]; return r ? { x: r.x * 1.5, y: r.y * 1.5, w: r.w * 1.5, h: r.h * 1.5 } : null; };
+const expand = (r, px, py = px) => ({ x: r.x - px, y: r.y - py, w: r.w + 2 * px, h: r.h + 2 * py });
+const claimsR = (() => { const h = R("claims_head"); return h ? { x: h.x - 16, y: h.y - 12, w: h.w + 32, h: h.h * 5.6 } : null; })();
+const HL = [   // [t0, t1, rect, color, label, zoom, labelSide]
+  [START.s6 + 0.3, K.s6banner - 0.2, expand(R("facts"), 10), "gold", "取材自最高法院 114 年度台上字第 1547 號・只取雙方主張", 1.0, "above"],
+  [K.s6banner, END("s6") - 0.1, expand(R("banner"), 10), "gold", "明確標示：錄製紀錄重播，非即時生成", 1.18, "below"],
+  [K.q4 - 0.1, END("s7") + 0.2, expand(R("q4"), 12), "gold", "第 4 則：每坪 75 萬元是否經兩造合意？", 1.28, "above"],
+  [K.q4core, END("s7") + 0.2, expand(R("q4basis"), 8, 6), "gold", null, 1.28, null],
+  [K.v24, K.vrow - 0.15, expand(R("vsummary") || R("vbtn"), 10), "gold", "24 / 25 通過", 1.1, "below"],
+  [K.vrow, K.vwith - 0.15, expand(R("vrow"), 10), "red", "查無此案號 → <em>直接攔截</em>", 1.3, "above"],
+  [K.vwith, END("s8b") + 0.2, expand(R("vusedby"), 10, 8), "gold", "只出現在 Stage 1・2，辯論終結時已撤回", 1.3, "below"],
+  [K.fdrift, END("s9") + 0.2, expand(R("drift_p"), 10), "gold", "原告立場漂移 <em>0.3158</em>・不再引用 105 台簡上 33", 1.12, "below"],
+  [K.claims, K.m43 - 0.1, claimsR, "gold", "訴之聲明：金額、利息已帶入", 1.12, "right"],
+];
+
+function camFor(t) {
+  // camera zoom follows the active highlight's zoom, eased in/out
+  let z = 1, cx = 960, cy = 540, best = 0;
+  for (const [a, b, r, , , zoom] of HL) {
+    if (!r || zoom <= 1) continue;
+    const w = P(t, a - 0.1, 0.6) * (1 - P(t, b, 0.6));
+    if (w > best) { best = w; z = 1 + (zoom - 1) * eio(w); cx = r.x + r.w / 2; cy = r.y + r.h / 2; }
+  }
+  // keep inside frame
+  const tx = clamp(960 - cx * z, 1920 - 1920 * z, 0), ty = clamp(540 - cy * z, 1080 - 1080 * z, 0);
+  return { z, tx, ty };
+}
+
+// ---------- render ----------
+let lastSrc = "";
+async function render(t) {
+  const sc = {
+    1: P(t, 0.1, 0.5) * (1 - P(t, START.s2 - 0.45, 0.45)),
+    2: P(t, START.s2 - 0.2, 0.4) * (1 - P(t, START.s3 - 0.45, 0.45)),
+    3: P(t, START.s3 - 0.2, 0.4) * (1 - P(t, START.s4 - 0.35, 0.35)),
+    4: P(t, START.s4 - 0.15, 0.4) * (1 - P(t, START.s5 - 0.35, 0.35)),
+    5: P(t, START.s5 - 0.15, 0.4) * (1 - P(t, START.s6 - 0.55, 0.45)),
+    6: P(t, START.s6 - 0.45, 0.5) * (1 - P(t, START.s11 - 0.3, 0.4)),
+    7: P(t, START.s11 - 0.2, 0.4),
+  };
+  for (const k in sc) $("#scene" + k).style.opacity = sc[k];
+  $("#grid").style.transform = `translate(${-(t * 6) % 80}px, ${-(t * 3) % 80}px)`;
+
+  if (sc[1] > 0) scene1(t);
+  if (sc[2] > 0) scene2(t);
+  if (sc[3] > 0) scene3(t);
+  if (sc[4] > 0) scene4(t);
+  if (sc[5] > 0) scene5(t);
+  let wait = null;
+  if (sc[6] > 0) wait = scene6(t, sc[6]);
+  if (sc[7] > 0) scene7(t);
+
+  const s = SUBS.find(x => t >= x.t0 && t < x.t1);
+  const span = $("#sub span");
+  if (s) { span.textContent = s.txt; span.style.opacity = 1; } else span.style.opacity = 0;
+  $("#fade").style.opacity = 1 - P(t, 0, 0.4) + P(t, TOTAL - 0.8, 0.8);
+  $("#clock").textContent = t.toFixed(2) + "s / " + TOTAL.toFixed(1) + "s";
+  if (wait) await wait;
+}
+window.render = render;
+
+function scene1(t) {
+  show($("#s1-label"), P(t, 0.3, 0.6));
+  $("#hrs").textContent = Math.round(eo(P(t, K.hrs - 0.5, 0.9)) * 8);
+  show($("#s1-big"), P(t, 0.4, 0.6), 40);
+  const up = eio(P(t, K.c[0] - 0.4, 0.8)), topShift = -95 * up, topScale = 1 - 0.18 * up;
+  for (const id of ["#s1-label", "#s1-big"]) $(id).style.transform += ` translateY(${topShift}px) scale(${topScale})`;
+  $$(".blk").forEach((b, i) => {
+    const p = back(P(t, K.hrs - 0.2 + i * 0.07, 0.45));
+    b.style.transform = `translateY(${topShift * 1.35}px) scale(${Math.max(0, p) * topScale})`;
+    b.querySelector("i").style.width = (clamp(2.65 - i) * eo(P(t, K.bill + i * 0.25, 0.5)) * 100) + "%";
+    b.style.opacity = clamp(p) * (i >= 3 ? 1 - 0.45 * P(t, K.billLbl, 0.6) : 1);
+  });
+  const bl = $("#bill"); show(bl, P(t, K.billLbl, 0.5), 20); bl.style.transform += ` translateY(${topShift * 1.45}px) scale(${topScale})`;
+  $$("#chips .chip").forEach((c, i) => {
+    const p = P(t, K.c[i] - 0.1, 0.5); c.style.opacity = p;
+    c.style.transform = `translateY(${(1 - back(p)) * 60 - 110 * up}px) scale(${0.8 + 0.2 * back(p)})`;
+    const hot = P(t, K.tedious, 0.5);
+    c.style.borderColor = `rgba(224,183,105,${0.14 + 0.7 * hot})`; c.style.background = `rgba(224,183,105,${0.04 + 0.1 * hot})`;
+  });
+  const stR = $("#stage").getBoundingClientRect(), s = stR.width / 1920, cs = $$("#chips .chip").map(c => c.getBoundingClientRect());
+  const x0 = (cs[0].left - stR.left) / s - 36, x1 = (cs[3].right - stR.left) / s + 36, y0 = (cs[0].top - stR.top) / s - 30, y1 = (cs[0].bottom - stR.top) / s + 30;
+  const lb = $("#loopbox"), lp = P(t, K.loop - 0.2, 0.5);
+  Object.assign(lb.style, { left: x0 + "px", top: y0 + "px", width: (x1 - x0) + "px", height: (y1 - y0) + "px", opacity: lp, transform: `scale(${1.06 - 0.06 * eo(lp)})` });
+  const ll = $("#looplabel"); ll.style.left = x0 + "px"; ll.style.top = (y1 + 26) + "px"; show(ll, lp, 16);
+  const cc = $("#casectr"); cc.style.left = (x1 - 290) + "px"; cc.style.top = (y1 + 30) + "px"; cc.style.opacity = lp;
+  cc.textContent = "案件 #" + String(1 + Math.floor(Math.max(0, t - K.loop) * 9)).padStart(4, "0");
+  $("#src1").style.opacity = P(t, K.billLbl + 0.3, 0.6) * 0.9;
+}
+
+function scene2(t) {
+  show($("#s2-intro"), P(t, K.s2in + 0.05, 0.5) * (1 - P(t, K.but - 0.3, 0.3)), 30, 1 + 0.04 * clamp((t - K.s2in) / 3));
+  const A = P(t, K.but - 0.05, 0.35) * (1 - P(t, K.y25 - 0.5, 0.4));
+  const ca = $("#caseA"); ca.style.opacity = A; ca.style.transform = `translateX(${(1 - eo(P(t, K.but - 0.05, 0.5))) * -60}px)`;
+  const tg = $("#tagA"), tp = P(t, K.fine, 0.35); tg.style.opacity = tp; tg.style.transform = `scale(${1.6 - 0.6 * eo(tp)}) rotate(${-4 * tp}deg)`;
+  show($("#headline"), P(t, K.six - 0.1, 0.5) * (1 - P(t, K.y25 - 0.5, 0.4)), 24);
+  $$(".doc").forEach((d, i) => {
+    const p = P(t, K.but + 0.9 + i * 0.12, 0.5);
+    d.style.opacity = p * (1 - P(t, K.y25 - 0.5, 0.4)); d.style.transform = `translateY(${(1 - eo(p)) * 40}px)`;
+    const st = d.querySelector(".stamp"), sp = P(t, K.docStamp + i * 0.13, 0.28);
+    st.style.opacity = sp; st.style.transform = `translate(-50%,-50%) rotate(-14deg) scale(${2.2 - 1.2 * eo(sp)})`;
+    d.style.borderColor = sp > 0.5 ? "rgba(255,93,93,.55)" : "#2c3342";
+    d.querySelectorAll(".ln").forEach(l => l.style.opacity = 1 - 0.6 * sp);
+  });
+  const B = P(t, K.y25 - 0.1, 0.4);
+  const cb = $("#caseB"); cb.style.opacity = B; cb.style.transform = `translateX(${(1 - eo(B)) * -60}px)`;
+  let fake = 0;
+  $$(".dot").forEach((d, i) => {
+    const p = back(P(t, K.d23 - 0.35 + i * 0.035, 0.35));
+    d.style.opacity = clamp(p) * B; d.style.transform = `scale(${Math.max(0, p)})`;
+    if (!REAL.has(i)) { const rp = P(t, K.r21 - 0.1 + (fake++) * 0.045, 0.2); d.style.background = rp > 0 ? `rgba(255,93,93,${0.18 + 0.82 * rp})` : "#2b3242"; d.style.color = `rgba(255,255,255,${rp})`; }
+    else { d.style.background = P(t, K.r21 + 1.0, 0.3) > 0 ? "#3a4254" : "#2b3242"; d.style.color = "transparent"; }
+  });
+  show($("#ratio"), P(t, K.d23, 0.5) * B, 20);
+  $("#rnum").textContent = Math.round(eo(P(t, K.r21 - 0.1, 1.0)) * 21);
+  $("#src2").style.opacity = P(t, K.but + 0.4, 0.6) * 0.9;
+}
+
+function scene3(t) {
+  const ct = [K.c1, K.c2, K.c3];
+  $$("#cards .card").forEach((c, i) => {
+    const p = P(t, ct[i] - 0.25, 0.55), x = P(t, K.x - 0.05 + i * 0.16, 0.3);
+    c.style.opacity = p * (1 - 0.45 * P(t, K.fin + 0.3, 0.6));
+    c.style.transform = `translateY(${(1 - back(p)) * 70}px) scale(${1 - 0.04 * x})`;
+    c.style.borderColor = x > 0 ? `rgba(255,93,93,${0.25 + 0.5 * x})` : "#283040";
+    c.querySelector(".xmark").style.setProperty("--s", eo(x)); c.querySelector(".xmark").style.opacity = x > 0 ? 1 : 0;
+  });
+  const fp = P(t, K.fin - 0.25, 0.6); show($("#final"), fp, 40, 1.08 - 0.08 * eo(fp));
+}
+
+function scene4(t) {
+  const s = START.s4;
+  // logo: reveal then lift away when roles arrive
+  const lg = P(t, s - 0.1, 0.7), away = eio(P(t, K.roles - 0.5, 0.7));
+  const logo = $("#logo");
+  logo.style.opacity = lg * (1 - 0.0 * away);
+  logo.style.letterSpacing = (0.12 - 0.13 * eo(lg)) + "em";
+  logo.style.transform = `translateY(${-230 * away}px) scale(${1 - 0.52 * away})`;
+  const sub = $("#logosub"); sub.style.opacity = P(t, s + 0.6, 0.6) * (1 - away);
+  sub.style.transform = `translateY(${(1 - eo(P(t, s + 0.6, 0.6))) * 20}px)`;
+  const rt = [K.rP, K.rJ, K.rD];
+  $$(".role").forEach((r, i) => {
+    const p = P(t, Math.max(K.roles + 0.15, rt[i] - 0.15), 0.5);
+    r.style.opacity = p; r.style.transform = `translateY(${(1 - back(p)) * 60}px) scale(${0.9 + 0.1 * eo(p)})`;
+  });
+  const steps = $$("#pipe .step"), arrows = $$("#pipe .arrow i");
+  const pipeIn = P(t, K.st[0] - 0.35, 0.4);
+  $("#pipe").style.opacity = pipeIn; $("#pipe").style.transform = `translateY(${(1 - eo(pipeIn)) * 30}px)`;
+  steps.forEach((st, i) => { const on = t >= K.st[i] - 0.05; st.classList.toggle("on", on); st.style.transform = `scale(${1 + 0.06 * (1 - P(t, K.st[i], 0.3)) * (on ? 1 : 0)})`; });
+  arrows.forEach((a, i) => a.style.width = (eo(P(t, K.st[i], (K.st[i + 1] - K.st[i]) * 0.9)) * 100) + "%");
+  const og = P(t, K.onego - 0.1, 0.4); show($("#onego"), og, 16, 1.2 - 0.2 * eo(og));
+  const g = P(t, K.gate - 0.1, 0.45); const gate = $("#gate4"); gate.style.opacity = g; gate.style.transform = `translateY(${(1 - eo(g)) * 30}px)`;
+  const m = $("#manual"); m.style.opacity = P(t, K.manual - 0.2, 0.4); m.style.setProperty("--k", eo(P(t, K.manual + 0.4, 0.4)));
+}
+
+function scene5(t) {
+  const s = START.s5;
+  $("#archTitle").style.opacity = P(t, s, 0.5);
+  // key label
+  const key = t >= K.k3 - 0.1 ? 3 : t >= K.k2 - 0.1 ? 2 : 1;
+  const txt = { 1: "真對抗，而非換人設", 2: "彙整不交給 AI", 3: "零容忍引用閘門" }[key];
+  $("#archNum").textContent = "①②③"[key - 1];
+  if ($("#archTxt").textContent !== txt) $("#archTxt").textContent = txt;
+  const kt = { 1: K.k1, 2: K.k2, 3: K.k3 }[key];
+  const kp = P(t, kt - 0.1, 0.45); show($("#archKey"), t < K.k1 - 0.1 ? 0 : kp, 20);
+  // build diagram during the intro sentence
+  const build = s + 0.2;
+  $("#bands").style.opacity = P(t, build, 0.6);
+  const nodes = ["#nIn", "#nP", "#nD", "#nJ", "#nS", "#nA", "#nG", "#outOk", "#outNo"];
+  nodes.forEach((n, i) => { const p = P(t, build + 0.15 + i * 0.16, 0.45); const el = $(n); el.style.opacity = p; el.style.transform = `translateY(${(1 - eo(p)) * 18}px)`; });
+  EDGES.forEach(({ p, l }, i) => { p.style.strokeDashoffset = l * (1 - eo(P(t, build + 0.5 + i * 0.16, 0.5))); });
+  $("#wall").style.opacity = P(t, build + 1.2, 0.4);
+  // group focus
+  const G = { 1: ["#nIn", "#nP", "#nD", "#nJ", "#nS", "#wall"], 2: ["#nA"], 3: ["#nG", "#outOk", "#outNo"] };
+  const focus = t < K.k1 - 0.2 ? 0 : key;
+  const dimK = focus ? P(t, kt - 0.2, 0.4) : 0;
+  const all = [...nodes, "#wall"];
+  for (const n of all) {
+    const inG = focus && G[focus].includes(n);
+    const base = parseFloat($(n).style.opacity || 1);
+    $(n).style.filter = `brightness(${inG ? 1 : 1 - 0.55 * dimK})`;
+    $(n).classList.toggle("hot", !!inG);
+  }
+  $("#bandLLM").style.opacity = 1 - (focus && focus !== 1 ? 0.6 * dimK : 0);
+  $("#bandDet").style.opacity = 1 - (focus === 1 ? 0.6 * dimK : 0);
+  // sub-highlights
+  const pulse = (a) => { const q = P(t, a, 0.25) * (1 - P(t, a + 1.2, 0.5)); return q; };
+  for (const n of ["#nP", "#nD"]) $(n + " rect").style.strokeWidth = 2.5 + 3 * pulse(K.lanes);
+  $("#wall line").style.strokeWidth = 3 + 4 * pulse(K.blind);
+  $("#nJ rect").style.strokeWidth = 2.5 + 3 * pulse(K.judge);
+  $("#fml").style.opacity = P(t, K.algo, 0.5);
+  $("#nA rect").style.strokeWidth = 2.5 + 3 * pulse(K.algo);
+  [["#src_a", K.sa], ["#src_b", K.sb], ["#src_c", K.sc]].forEach(([id, a]) => {
+    const on = P(t, a - 0.1, 0.3); $(id + " rect").style.stroke = on > 0 ? `rgba(224,183,105,${0.4 + 0.6 * on})` : "#3a4356";
+    $(id + " rect").style.fill = on > 0 ? `rgba(224,183,105,${0.1 * on})` : "#1b2130";
+  });
+  $("#nG rect").style.strokeWidth = 2.5 + 3 * pulse(K.preset);
+  const rj = P(t, K.reject, 0.3); $("#outNo rect").style.strokeWidth = 2.5 + 4 * rj * (1 - P(t, K.reject + 2.5, 0.6));
+  $("#outNo").style.transform = `scale(${1 + 0.05 * rj * (1 - P(t, K.reject + 0.6, 0.4))})`; $("#outNo").style.transformOrigin = "1715px 755px";
+  // flow dots: input → lanes → judge, looping while group 1 is in focus
+  const dots = $$("#flows circle");
+  const fOn = P(t, K.k1, 0.4) * (1 - P(t, K.k2 - 0.3, 0.3));
+  dots.forEach((c, i) => {
+    const pair = FLOWS[i % 2], ph = ((t - K.k1) * 0.55 + i * 0.33) % 1;
+    const p1 = $("#" + pair[0]), p2 = $("#" + pair[1]);
+    const l1 = p1.getTotalLength(), l2 = p2.getTotalLength(), d = ph * (l1 + l2 + 290);
+    let pt;
+    if (d < l1) pt = p1.getPointAtLength(d);
+    else if (d < l1 + 290) { const a = p1.getPointAtLength(l1); pt = { x: a.x + 0, y: a.y }; pt.x = 300 + (d - l1); }
+    else pt = p2.getPointAtLength(Math.min(l2, d - l1 - 290));
+    c.setAttribute("cx", pt.x); c.setAttribute("cy", pt.y); c.style.opacity = fOn * (ph < 0.05 ? ph / 0.05 : ph > 0.95 ? (1 - ph) / 0.05 : 1);
+  });
+}
+
+function scene6(t, vis) {
+  // frame from the real recording
+  const r = t - DS0;
+  const fi = clamp(Math.floor(r * L.fps), 0, L.frames - 1);
+  const src = `demo/frames/${String(fi).padStart(5, "0")}.jpg`;
+  let wait = null;
+  const img = $("#demoImg");
+  if (src !== lastSrc) { lastSrc = src; img.src = src; wait = img.decode().catch(() => {}); }
+  // entrance
+  const e = eo(P(t, START.s6 - 0.45, 0.7));
+  $("#demoBox").style.transform = `scale(${0.94 + 0.06 * e})`;
+  $("#demoBadge").style.opacity = P(t, START.s6 - 0.2, 0.5);
+  // camera + highlights (frame space 1920x1080, displayed at 0.9)
+  const cam = camFor(t);
+  $("#cam").style.transform = `scale(0.9) translate(${cam.tx}px, ${cam.ty}px) scale(${cam.z})`;
+  const svg = $("#hl"); let html = ""; const labels = [];
+  for (const [a, b, rc, col, label, zoom, side] of HL) {
+    if (!rc) continue;
+    const w = P(t, a, 0.35) * (1 - P(t, b, 0.35)); if (w <= 0) continue;
+    const per = 2 * (rc.w + rc.h), dash = per * eo(P(t, a, 0.5));
+    html += `<rect class="${col === "red" ? "red" : ""}" x="${rc.x}" y="${rc.y}" width="${rc.w}" height="${rc.h}" rx="12" style="opacity:${w};stroke-dasharray:${dash} ${per}"/>`;
+    if (label) labels.push({ rc, label, side, col, w });
+  }
+  svg.innerHTML = html;
+  // callouts positioned in stage space: map frame coords through camera and demoBox
+  const co = $("#callouts"); co.innerHTML = "";
+  const map = (x, y) => ({ x: 96 + 0.9 * (cam.tx + x * cam.z), y: 76 + 0.9 * (cam.ty + y * cam.z) });
+  for (const { rc, label, side, col, w } of labels) {
+    const tl = map(rc.x, rc.y), br = map(rc.x + rc.w, rc.y + rc.h);
+    const el = document.createElement("div"); el.className = "callout" + (col === "red" ? " red" : ""); el.innerHTML = label;
+    co.appendChild(el);
+    const bw = el.offsetWidth, bh = el.offsetHeight;
+    let x = clamp((tl.x + br.x) / 2 - bw / 2, 110, 1810 - bw), y;
+    if (side === "above") y = tl.y - bh - 16; else if (side === "right") { x = Math.min(br.x + 20, 1810 - bw); y = tl.y; } else y = br.y + 16;
+    y = clamp(y, 90, 880 - bh);
+    el.style.left = x + "px"; el.style.top = y + "px"; el.style.opacity = w;
+    el.style.transform = `translateY(${(1 - eo(w)) * 10}px)`;
+  }
+  // verification timer (real elapsed)
+  const tm = $("#timer"); const tw = P(t, K.vclick, 0.2) * (1 - P(t, K.vrow - 0.3, 0.4));
+  tm.style.opacity = tw;
+  const el = clamp(t - K.vclick, 0, L.events.verify_elapsed);
+  $("#tsec").textContent = el.toFixed(1);
+  tm.firstChild.textContent = t >= K.vdone ? "25 條查證完成　" : "即時查證中　";
+  tm.style.borderColor = t >= K.vdone ? "rgba(79,209,139,.8)" : "rgba(224,183,105,.7)";
+  // 43-minute timeline card
+  const c43 = $("#tl43"); const cw = P(t, K.m43 - 0.1, 0.45) * (1 - P(t, START.s11 - 0.35, 0.3));
+  c43.style.opacity = cw; c43.style.transform = `translateX(-50%) translateY(${(1 - eo(cw)) * 30}px) scale(${0.96 + 0.04 * eo(cw)})`;
+  $("#tl43 .line i").style.width = (eo(P(t, K.m43 + 0.2, 1.4)) * 100) + "%";
+  return wait;
+}
+
+function scene7(t) {
+  const s = START.s11;
+  $$(".stat").forEach((st, i) => { const p = P(t, s + 0.1 + i * 0.35, 0.5) * (1 - P(t, K.tag - 0.5, 0.5)); st.style.opacity = p; st.style.transform = `translateX(${(1 - eo(p)) * -50}px)`; });
+  show($("#b2b"), P(t, K.law - 0.2, 0.5) * (1 - P(t, K.tag - 0.5, 0.5)), 16);
+  const tg = P(t, K.tag - 0.15, 0.6); show($("#tagline"), tg, 36, 1.06 - 0.06 * eo(tg));
+  show($("#endlogo"), P(t, K.tag + 1.0, 0.6), 20);
+  show($("#endnote"), P(t, K.tag + 1.4, 0.6), 16);
+}
+
+function fit() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); $("#stage").style.transform = `scale(${s})`; }
+addEventListener("resize", fit); fit();
+if (location.hash === "#capture") document.body.classList.add("capture");
+render(0);
+
+// preview playback with narration
+let raf = null;
+$("#play").onclick = () => {
+  cancelAnimationFrame(raf);
+  const auds = ORDER.map(k => { const a = new Audio(k + ".mp3"); return [k, a]; });
+  const fired = new Set(); const t0 = performance.now() - (parseFloat(location.search.slice(1)) || 0) * 1000;
+  const loop = () => {
+    const t = (performance.now() - t0) / 1000;
+    for (const [k, a] of auds) if (!fired.has(k) && t >= START[k]) { fired.add(k); if (t - START[k] < 0.5) a.play(); }
+    render(Math.min(t, TOTAL));
+    if (t < TOTAL) raf = requestAnimationFrame(loop);
+  };
+  loop();
+};
+</script>
+</body>
+</html>
