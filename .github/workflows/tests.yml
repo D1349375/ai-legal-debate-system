@@ -29,5 +29,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Tests marked `network` query law.moj.gov.tw and the Judicial Yuan's
+      # FJUD service, which GitHub's overseas runners cannot reach reliably.
+      # Run them locally with: python -m pytest tests/ -m network
       - name: Run the test suite
-        run: python -m pytest tests/ -v
+        run: python -m pytest tests/ -v -m "not network"
