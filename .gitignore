@@ -32,7 +32,11 @@ venv.bak/
 .pytest_cache/
 .coverage
 htmlcov/
-.claude/
+# Claude Code: keep the project skill (legal-debate orchestrator and its prompt templates)
+# and the preview launch config; ignore local state such as lock files and settings.
+.claude/*
+!.claude/skills/
+!.claude/launch.json
 .vscode/
 
 # Commercial & Internal Strategy Notes
