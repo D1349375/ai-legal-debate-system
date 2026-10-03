@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>LegalDebate 商業治理組影片</title>
+<style>
+  :root {
+    --bg: #0a0c11; --bg2: #121620; --ink: #eef1f6; --dim: #6b7383; --mid: #a9b0bf; --faint: #2a303c;
+    --gold: #e0b769; --red: #ff5d5d; --green: #4fd18b; --blue: #6aa8ff; --orange: #f2a45f;
+    --font: "Microsoft JhengHei", "Noto Sans TC", "PingFang TC", sans-serif;
+  }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; flex: none;
+    background: radial-gradient(1400px 900px at 50% 40%, var(--bg2), var(--bg) 70%);
+    color: var(--ink); font-family: var(--font); transform-origin: center; }
+  #grid { position: absolute; inset: -80px;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 80px 80px; }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .abs { position: absolute; }
+  .center-x { left: 0; right: 0; text-align: center; }
+  .src { position: absolute; left: 80px; bottom: 44px; font-size: 22px; color: var(--dim); letter-spacing: .02em; }
+
+  /* ---------- title ---------- */
+  #t-logo { top: 400px; font-size: 120px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+  #t-logo b { color: var(--gold); }
+  #t-logo span { font-size: 64px; font-weight: 400; color: var(--mid); margin-left: 28px; letter-spacing: .08em; }
+  #t-sub { top: 580px; font-size: 46px; color: var(--mid); letter-spacing: .16em; }
+  #t-sub em { font-style: normal; color: var(--gold); margin: 0 .3em; }
+
+  /* ---------- s1 (from the 2026-09 video) ---------- */
+  #s1-label { top: 150px; font-size: 40px; color: var(--dim); letter-spacing: .3em; }
+  #s1-big { top: 205px; font-size: 180px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+  #s1-big small { font-size: 72px; font-weight: 400; margin-left: 16px; color: var(--dim); }
+  #blocks { top: 450px; left: 0; right: 0; display: flex; justify-content: center; gap: 18px; }
+  .blk { width: 170px; height: 104px; border-radius: 14px; background: var(--faint); position: relative; overflow: hidden; }
+  .blk i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(135deg, #f3cf86, var(--gold)); }
+  .blk b { position: absolute; left: 14px; bottom: 10px; font-size: 22px; font-weight: 400; color: rgba(255,255,255,.35); }
+  #bill { top: 590px; font-size: 40px; color: var(--gold); font-weight: 700; }
+  #bill span { color: var(--dim); font-weight: 400; font-size: 30px; margin-left: 14px; }
+  #chips { top: 770px; left: 0; right: 0; display: flex; justify-content: center; gap: 30px; }
+  .chip { font-size: 44px; padding: 22px 40px; border-radius: 18px; border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); white-space: nowrap; }
+  #loopbox { border: 3px dashed var(--gold); border-radius: 30px; }
+  #looplabel { font-size: 34px; color: var(--gold); white-space: nowrap; }
+  #casectr { font-size: 30px; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- s2 ---------- */
+  #s2-intro { top: 440px; font-size: 96px; font-weight: 700; }
+  #s2-intro em { font-style: normal; color: var(--gold); }
+  .year { font-size: 230px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
+  .court { font-size: 34px; color: var(--dim); margin-top: 18px; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 34px; font-size: 40px; font-weight: 700; color: var(--red); border: 3px solid var(--red); border-radius: 12px; padding: 8px 26px; }
+  #headline { top: 130px; left: 820px; font-size: 60px; font-weight: 700; white-space: nowrap; }
+  #headline em { font-style: normal; color: var(--red); }
+  #docs { top: 260px; left: 820px; display: grid; grid-template-columns: repeat(3, 280px); gap: 30px; }
+  .doc { height: 250px; border-radius: 16px; background: #1a1f2b; border: 2px solid #2c3342; position: relative; overflow: hidden; }
+  .doc .ln { position: absolute; left: 28px; height: 14px; border-radius: 7px; background: #2e3545; }
+  .stamp { position: absolute; left: 50%; top: 50%; font-size: 46px; font-weight: 700; color: var(--red); border: 5px solid var(--red); border-radius: 10px; padding: 6px 18px; white-space: nowrap; background: rgba(10,12,17,.55); }
+  #bizHead { top: 120px; font-size: 60px; font-weight: 700; }
+  #bizHead em { font-style: normal; color: var(--gold); }
+  #regcard { left: 50%; top: 250px; width: 820px; margin-left: -410px; border-radius: 26px; background: #151a24; border: 2px solid #283040; padding: 34px 48px 26px; box-sizing: border-box; }
+  #regcard .rh { font-size: 26px; color: var(--dim); letter-spacing: .08em; display: flex; justify-content: space-between; }
+  #regcard .rr { display: flex; align-items: center; border-top: 1px solid #262d3a; padding: 18px 0; font-size: 38px; }
+  #regcard .rr:first-of-type { margin-top: 16px; }
+  #regcard .rk { width: 230px; color: var(--mid); font-size: 32px; }
+  #regcard .empty { display: inline-block; width: 300px; height: 46px; border: 3px dashed #4a5468; border-radius: 10px; vertical-align: middle; position: relative; }
+  .rpill { display: inline-block; font-size: 34px; font-weight: 700; padding: 4px 22px; border-radius: 999px; color: var(--red); border: 3px solid var(--red); background: rgba(255,93,93,.1); }
+  #regq { top: 720px; font-size: 76px; font-weight: 700; }
+  #regq em { font-style: normal; color: var(--gold); }
+  #regq small { display: block; margin-top: 14px; font-size: 32px; font-weight: 400; color: var(--mid); }
+
+  /* ---------- s3: solution ---------- */
+  #logo { top: 330px; font-size: 150px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+  #logo b { color: var(--gold); font-weight: 700; }
+  #logosub { top: 520px; font-size: 44px; color: var(--mid); letter-spacing: .12em; }
+  #roles { top: 215px; left: 0; right: 0; display: flex; justify-content: center; gap: 60px; }
+  .role { width: 380px; height: 180px; border-radius: 26px; background: #151a24; border: 2px solid #283040; position: relative; text-align: center; box-sizing: border-box; padding-top: 34px; }
+  .role .rn { font-size: 52px; font-weight: 700; }
+  .role .rs { font-size: 28px; color: var(--mid); margin-top: 14px; }
+  .role .llm { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 22px; padding: 4px 14px; border-radius: 999px; background: #232a38; color: var(--mid); letter-spacing: .08em; white-space: nowrap; }
+  .role.p { border-color: rgba(106,168,255,.55); } .role.p .rn { color: var(--blue); }
+  .role.j { border-color: rgba(224,183,105,.7); } .role.j .rn { color: var(--gold); }
+  .role.d { border-color: rgba(242,164,95,.55); } .role.d .rn { color: var(--orange); }
+  #pipe { top: 465px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; }
+  .step { font-size: 40px; padding: 20px 34px; border-radius: 16px; border: 2px solid #2c3342; background: #141922; color: var(--dim); white-space: nowrap; position: relative; }
+  .step.on { color: var(--ink); border-color: rgba(224,183,105,.8); background: rgba(224,183,105,.1); }
+  .arrow { width: 70px; height: 4px; background: #2c3342; position: relative; }
+  .arrow i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); width: 0; }
+  #onego { top: 600px; font-size: 38px; color: var(--gold); font-weight: 700; white-space: nowrap; }
+  #partyBox { top: 640px; width: 480px; padding: 18px 26px; border-radius: 16px; border: 2px solid rgba(79,209,139,.7); background: rgba(79,209,139,.08); box-sizing: border-box; }
+  #partyBox b { display: block; font-size: 36px; color: var(--green); }
+  #partyBox span { font-size: 24px; color: var(--mid); }
+  #partyArrow { width: 4px; background: var(--green); }
+  #partyArrow::before { content: ""; position: absolute; left: -9px; top: -2px; border: 11px solid transparent; border-bottom: 14px solid var(--green); border-top: 0; }
+  #srcRow { top: 812px; left: 0; right: 0; display: flex; justify-content: center; gap: 34px; }
+  .src3 { display: flex; align-items: center; gap: 18px; font-size: 32px; padding: 14px 30px 14px 22px; border-radius: 999px; border: 2px solid #313a4b; background: #141922; color: var(--mid); white-space: nowrap; }
+  .src3 svg { width: 42px; height: 42px; flex: none; }
+  .src3 .ck { color: var(--green); font-weight: 700; opacity: 0; }
+
+  /* ---------- s4–s7: architecture (SVG) ---------- */
+  #arch { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  #archTitle { top: 62px; left: 80px; font-size: 40px; color: var(--dim); letter-spacing: .2em; }
+  #archKey { top: 110px; left: 80px; font-size: 58px; font-weight: 700; white-space: nowrap; }
+  #archKey em { font-style: normal; color: var(--gold); margin-right: 18px; }
+  .node rect.box { fill: #151a24; stroke: #313a4b; stroke-width: 2.5; }
+  .node .t1 { fill: var(--ink); font-size: 34px; font-weight: 700; }
+  .node .t2 { fill: var(--mid); font-size: 22px; }
+  .node.hot rect.box { stroke: var(--gold); }
+  .band { fill: rgba(106,168,255,.05); stroke: rgba(106,168,255,.35); stroke-width: 2; stroke-dasharray: 10 8; }
+  .band.det { fill: rgba(79,209,139,.05); stroke: rgba(79,209,139,.4); }
+  .bandlbl { font-size: 24px; letter-spacing: .06em; }
+  .edge { fill: none; stroke: #4a5468; stroke-width: 3; }
+  .flow { fill: var(--gold); }
+  .sub rect { fill: #1b2130; stroke: #3a4356; stroke-width: 2; }
+
+  /* ---------- demo ---------- */
+  #demoBox { position: absolute; left: 96px; top: 76px; width: 1728px; height: 972px; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.08); background: #000; }
+  #cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+  #demoImg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  #hl { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+  #hl rect { fill: none; stroke: var(--gold); stroke-width: 5; }
+  #hl rect.red { stroke: var(--red); }
+  #demoBadge { top: 22px; left: 0; right: 0; text-align: center; }
+  #demoBadge span { display: inline-block; font-size: 24px; padding: 6px 20px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--mid); border: 1px solid rgba(255,255,255,.12); }
+  #demoBadge b { color: var(--gold); font-weight: 700; }
+  .callout { position: absolute; font-size: 34px; font-weight: 700; padding: 12px 24px; border-radius: 12px; white-space: nowrap;
+    background: rgba(12,14,19,.92); border: 2px solid var(--gold); color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  .callout.red { border-color: var(--red); } .callout em { font-style: normal; color: var(--gold); } .callout.red em { color: var(--red); }
+  #timer { position: absolute; right: 150px; top: 112px; font-size: 32px; padding: 14px 26px; border-radius: 14px;
+    background: rgba(12,14,19,.92); border: 2px solid rgba(224,183,105,.7); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #timer b { color: var(--gold); font-size: 44px; }
+  #cutTag { position: absolute; right: 150px; top: 196px; font-size: 28px; padding: 10px 22px; border-radius: 12px; background: rgba(12,14,19,.92); border: 2px solid var(--orange); color: var(--orange); white-space: nowrap; }
+  .ov { position: absolute; left: 126px; font-weight: 700; white-space: nowrap; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.55); }
+  #recTag { top: 104px; font-size: 32px; padding: 14px 26px; background: rgba(40,14,14,.94); border: 3px solid var(--red); color: #ffd6d6; }
+  #recTag i { font-style: normal; color: var(--red); margin-right: 10px; }
+  #demoTag { top: 104px; font-size: 30px; padding: 12px 24px; background: rgba(12,14,19,.94); border: 3px solid var(--orange); color: var(--orange); }
+  #tsmcTag { top: 176px; font-size: 26px; font-weight: 400; padding: 12px 22px; background: rgba(12,14,19,.94); border: 2px solid rgba(255,255,255,.25); color: var(--ink); }
+  #tsmcTag b { color: var(--gold); }
+  #caseCard { left: 50%; top: 100px; transform: translateX(-50%); padding: 22px 40px; border-radius: 18px; background: rgba(12,14,19,.95); border: 2px solid var(--gold); box-shadow: 0 20px 60px rgba(0,0,0,.6); text-align: center; white-space: nowrap; }
+  #caseCard .k { font-size: 24px; color: var(--gold); letter-spacing: .12em; }
+  #caseCard .n { font-size: 44px; font-weight: 700; margin-top: 6px; }
+  #caseCard .d { font-size: 26px; color: var(--mid); margin-top: 8px; }
+
+  /* ---------- s12: numbers ---------- */
+  #numCards { top: 120px; left: 0; right: 0; display: flex; justify-content: center; gap: 40px; }
+  .ncard { width: 840px; border-radius: 28px; background: #141922; border: 2px solid #283040; padding: 34px 46px 30px; box-sizing: border-box; }
+  .ncard .nh { font-size: 28px; color: var(--mid); letter-spacing: .06em; }
+  .ncard .big { font-size: 128px; font-weight: 700; color: var(--gold); line-height: 1.05; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .ncard .big small { font-size: 40px; font-weight: 400; color: var(--mid); margin-left: 14px; }
+  .nrow { display: flex; align-items: baseline; gap: 22px; margin-top: 18px; padding: 14px 22px; border-radius: 14px; background: rgba(255,255,255,.03); border: 2px solid transparent; }
+  .nrow b { font-size: 56px; font-weight: 700; width: 170px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .nrow span { font-size: 28px; color: var(--ink); line-height: 1.35; }
+  .nrow.ok b { color: var(--green); } .nrow.bad b { color: var(--red); } .nrow.warn b { color: var(--orange); }
+  #numChips { top: 680px; left: 0; right: 0; display: flex; justify-content: center; gap: 26px; }
+  .nchip { font-size: 30px; padding: 14px 28px; border-radius: 999px; border: 2px solid rgba(79,209,139,.55); background: rgba(79,209,139,.08); color: var(--ink); white-space: nowrap; }
+  .nchip b { color: var(--green); margin-right: 10px; }
+  #numNote { top: 772px; font-size: 24px; color: var(--dim); }
+
+  /* ---------- s13: closing ---------- */
+  #paper { left: 50%; top: 150px; width: 400px; height: 520px; margin-left: -200px; border-radius: 14px; background: #f3f0e8; box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; }
+  #paper .ln { position: absolute; left: 44px; height: 14px; border-radius: 7px; background: #c9c3b5; }
+  .pstamp { position: absolute; font-size: 40px; font-weight: 700; padding: 6px 18px; border: 5px solid; border-radius: 10px; white-space: nowrap; background: rgba(243,240,232,.6); }
+  #ps1 { left: 40px; top: 300px; color: #1f8f57; border-color: #1f8f57; }
+  #ps2 { left: 170px; top: 400px; color: #1f6fc4; border-color: #1f6fc4; }
+  #b2b { top: 720px; font-size: 34px; color: var(--mid); }
+  #b2b em { font-style: normal; color: var(--gold); }
+  #tagline { top: 330px; font-size: 76px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+  #tagline em { font-style: normal; color: var(--gold); }
+  #endlogo { top: 490px; font-size: 64px; font-weight: 700; color: var(--mid); }
+  #endlogo b { color: var(--gold); }
+  #roadmap { top: 610px; left: 0; right: 0; display: flex; justify-content: center; gap: 24px; }
+  .rm { font-size: 28px; padding: 12px 26px; border-radius: 14px; border: 2px dashed #3a4356; color: var(--mid); white-space: nowrap; }
+  .rm b { color: var(--gold); font-weight: 400; margin-right: 10px; }
+  #endnote { top: 700px; font-size: 26px; color: var(--dim); line-height: 1.7; }
+
+  /* ---------- subtitles ---------- */
+  #sub { position: absolute; left: 0; right: 0; bottom: 110px; text-align: center; pointer-events: none; z-index: 20; }
+  #sub span { display: inline-block; font-size: 46px; line-height: 1.3; padding: 10px 30px; border-radius: 10px; background: rgba(0,0,0,.66); color: #fff; letter-spacing: .03em; }
+  #fade { position: absolute; inset: 0; background: #000; pointer-events: none; z-index: 30; }
+  #ctrl { position: fixed; left: 12px; bottom: 10px; z-index: 50; font: 14px var(--font); color: #aaa; }
+  #ctrl button { font: inherit; padding: 6px 14px; margin-right: 8px; cursor: pointer; }
+  body.capture #ctrl { display: none; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <div id="grid"></div>
+
+  <div class="scene" id="scene0">
+    <div class="abs center-x" id="t-logo">Legal<b>Debate</b><span>法律辯論系統</span></div>
+    <div class="abs center-x" id="t-sub">商工登記<em>×</em>當事人查核</div>
+  </div>
+
+  <div class="scene" id="scene1">
+    <div class="abs center-x" id="s1-label">律師的一天</div>
+    <div class="abs center-x" id="s1-big"><span id="hrs">0</span><small>小時</small></div>
+    <div class="abs" id="blocks"></div>
+    <div class="abs center-x" id="bill">可計費 2.3–3.0 小時<span>／ 8 小時工作日</span></div>
+    <div class="abs" id="loopbox"></div>
+    <div class="abs" id="chips"><div class="chip">檢索判決</div><div class="chip">盤點爭點</div><div class="chip">推演對造攻防</div><div class="chip">草擬書狀</div></div>
+    <div class="abs" id="looplabel">↻ 每個案子都要重來一次</div>
+    <div class="abs" id="casectr"></div>
+    <div class="src" id="src1">資料來源：Clio《Legal Trends Report》（國際調查數據）</div>
+  </div>
+
+  <div class="scene" id="scene2">
+    <div class="abs center-x" id="s2-intro">生成式 <em>AI</em> 看似能分擔</div>
+    <div class="abs" id="caseA" style="left:130px; top:300px;"><div class="year">2023</div><div class="court">美國紐約南區聯邦法院<br>Mata v. Avianca</div><div class="tag" id="tagA">遭法院裁罰</div></div>
+    <div class="abs" id="headline">ChatGPT 捏造的 6 件判決，<em>全都不存在</em></div>
+    <div class="abs" id="docs"></div>
+    <div class="src" id="src2">Mata v. Avianca, Inc., No. 22-cv-1461 (S.D.N.Y. 2023)：律所把 ChatGPT 捏造的 6 件判決寫進書狀，遭法院裁罰</div>
+    <div class="abs center-x" id="bizHead">企業案件，<em>還多一道關卡</em></div>
+    <div class="abs" id="regcard">
+      <div class="rh"><span>公司登記資料</span><span>虛構示意</span></div>
+      <div class="rr"><span class="rk">公司名稱</span>○○○有限公司</div>
+      <div class="rr"><span class="rk">公司狀態</span><span class="rpill" id="regStatus">解散</span></div>
+      <div class="rr"><span class="rk">代表人姓名</span><span class="empty" id="regEmpty"></span></div>
+      <div class="rr"><span class="rk">清算人</span><span style="color:var(--dim)">（公示資料未顯示）</span></div>
+    </div>
+    <div class="abs center-x" id="regq">對造已解散，<em>該列誰代表公司？</em></div>
+  </div>
+
+  <div class="scene" id="scene3">
+    <div class="abs center-x" id="logo">Legal<b>Debate</b></div>
+    <div class="abs center-x" id="logosub">律師事務所內部的多代理人法律辯論系統</div>
+    <div class="abs" id="roles">
+      <div class="role p"><div class="llm">大型語言模型</div><div class="rn">原告代理人</div><div class="rs">主張・請求權基礎</div></div>
+      <div class="role j"><div class="llm">大型語言模型</div><div class="rn">法官</div><div class="rs">整理爭點・實質訊問</div></div>
+      <div class="role d"><div class="llm">大型語言模型</div><div class="rn">被告代理人</div><div class="rs">抗辯・對造視角</div></div>
+    </div>
+    <div class="abs" id="pipe">
+      <div class="step">檢索</div><div class="arrow"><i></i></div>
+      <div class="step">攻防推演</div><div class="arrow"><i></i></div>
+      <div class="step">引用查證</div><div class="arrow"><i></i></div>
+      <div class="step">訴狀骨架</div>
+    </div>
+    <div class="abs" id="onego">✓ 一次跑完</div>
+    <div class="abs" id="partyArrow"></div>
+    <div class="abs" id="partyBox"><b>當事人查核</b><span>統編 → 商工登記・確定性規則</span></div>
+    <div class="abs" id="srcRow">
+      <div class="src3" id="srcG"><svg viewBox="0 0 24 24" fill="none" stroke="#4fd18b" stroke-width="1.7" stroke-linejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6M8 11h.01M12 11h.01M16 11h.01"/></svg>經濟部商工登記<span class="ck">✓</span></div>
+      <div class="src3" id="srcL"><svg viewBox="0 0 24 24" fill="none" stroke="#e0b769" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM4 19a2 2 0 0 1 2-2h13M8 7h7M8 10h5"/></svg>全國法規資料庫<span class="ck">✓</span></div>
+      <div class="src3" id="srcJ"><svg viewBox="0 0 24 24" fill="none" stroke="#6aa8ff" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M7 21h10M5 7h14M5 7l-3 7a3 3 0 0 0 6 0L5 7zM19 7l-3 7a3 3 0 0 0 6 0l-3-7"/></svg>司法院裁判書<span class="ck">✓</span></div>
+    </div>
+  </div>
+
+  <div class="scene" id="scene5">
+    <div class="abs" id="archTitle">技術架構</div>
+    <div class="abs" id="archKey"><em id="archNum">①</em><span id="archTxt">真對抗，而非換人設</span></div>
+    <svg id="arch" viewBox="0 0 1920 1080">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7383"/></marker>
+        <marker id="ahg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4fd18b"/></marker>
+      </defs>
+      <g id="bands">
+        <rect class="band" id="bandLLM" x="235" y="205" width="860" height="630" rx="26"/>
+        <text class="bandlbl" x="260" y="243" fill="#6aa8ff">LLM 層（Claude・Anthropic）</text>
+        <rect class="band det" id="bandDet" x="1120" y="205" width="760" height="630" rx="26"/>
+        <text class="bandlbl" x="1145" y="243" fill="#4fd18b">確定性程式層（不經 LLM）</text>
+      </g>
+      <g id="edges">
+        <path class="edge" id="e1" d="M210,480 C235,480 235,340 256,340" marker-end="url(#ah)"/>
+        <path class="edge" id="e2" d="M210,480 C235,480 235,620 256,620" marker-end="url(#ah)"/>
+        <path class="edge" id="e3" d="M540,340 C575,340 575,465 606,465" marker-end="url(#ah)"/>
+        <path class="edge" id="e4" d="M540,620 C575,620 575,495 606,495" marker-end="url(#ah)"/>
+        <path class="edge" id="e5" d="M850,480 L881,480" marker-end="url(#ah)"/>
+        <path class="edge" id="e6" d="M1065,480 C1105,480 1105,367 1141,367" marker-end="url(#ah)"/>
+        <path class="edge" id="e7" d="M1445,367 C1505,367 1505,385 1566,385" marker-end="url(#ah)"/>
+        <path class="edge" id="e8" d="M1712,642 L1712,686" marker-end="url(#ah)"/>
+      </g>
+      <path class="edge" id="e9" d="M1535,745 L1566,745" marker-end="url(#ahg)" style="stroke:#4fd18b"/>
+      <g id="wall"><line x1="270" y1="480" x2="530" y2="480" stroke="#e0b769" stroke-width="3" stroke-dasharray="12 10"/>
+        <rect x="272" y="459" width="256" height="42" rx="21" fill="#0f1218" stroke="#e0b769" stroke-width="2"/>
+        <text x="400" y="487" text-anchor="middle" fill="#e0b769" font-size="20">Stage 1 盲測・互不可見</text></g>
+      <g class="node" id="nIn"><rect class="box" x="60" y="425" width="150" height="110" rx="18"/><text class="t1" x="135" y="475" text-anchor="middle">案件輸入</text><text class="t2" x="135" y="510" text-anchor="middle">雙方主張</text></g>
+      <g class="node" id="nP"><rect class="box" x="260" y="275" width="280" height="130" rx="18"/><text class="t1" x="283" y="322" style="fill:#6aa8ff">原告代理人</text><text class="t2" x="283" y="358" style="font-size:21px">立場檢索詞「請求權成立」</text><text class="t2" x="283" y="388">各自獨立檢索</text></g>
+      <g class="node" id="nD"><rect class="box" x="260" y="555" width="280" height="130" rx="18"/><text class="t1" x="283" y="602" style="fill:#f2a45f">被告代理人</text><text class="t2" x="283" y="638" style="font-size:21px">立場檢索詞「罹於時效」</text><text class="t2" x="283" y="668">各自獨立檢索</text></g>
+      <g class="node" id="nJ"><rect class="box" x="610" y="415" width="240" height="130" rx="18"/><text class="t1" x="633" y="462" style="fill:#e0b769">法官訊問</text><text class="t2" x="633" y="500">每題須標註依據</text><text class="t2" x="633" y="530">（based_on）</text></g>
+      <g class="node" id="nS"><rect class="box" x="885" y="415" width="180" height="130" rx="18"/><text class="t1" x="903" y="462" style="font-size:30px">Stage 2・3</text><text class="t2" x="903" y="500">訊問攻防</text><text class="t2" x="903" y="530">→ 辯論終結</text></g>
+      <g class="node" id="nA"><rect class="box" x="1145" y="285" width="300" height="165" rx="18"/><text class="t1" x="1170" y="332">機械彙整</text><text class="t2" x="1170" y="370">雙方弱點</text><text class="t2" x="1170" y="402">立場漂移（Jaccard）</text><text class="t2" x="1170" y="435" id="fml" style="fill:#e0b769;opacity:0">1 − |交集| ÷ |聯集|</text></g>
+      <g class="node" id="nG"><rect class="box" x="1570" y="235" width="285" height="275" rx="18"/><text class="t1" x="1592" y="282">引用查證閘門</text><text class="t2" x="1592" y="315">引用預設「不存在」</text>
+        <g class="sub" id="src_a"><rect x="1588" y="335" width="250" height="46" rx="10"/><text class="t2" x="1602" y="366" style="font-size:20px">全國法規資料庫</text></g>
+        <g class="sub" id="src_b"><rect x="1588" y="391" width="250" height="46" rx="10"/><text class="t2" x="1602" y="422" style="font-size:20px">1,088 份最高法院判決</text></g>
+        <g class="sub" id="src_c"><rect x="1588" y="447" width="250" height="46" rx="10"/><text class="t2" x="1602" y="478" style="font-size:20px">司法院即時查詢</text></g></g>
+      <g id="outNo"><rect x="1570" y="525" width="285" height="52" rx="12" fill="rgba(255,93,93,.12)" stroke="#ff5d5d" stroke-width="2.5"/><text x="1712" y="560" text-anchor="middle" fill="#ff5d5d" font-size="25">✕ 未通過 → 拒絕寫入</text></g>
+      <g id="outOk"><rect x="1570" y="590" width="285" height="52" rx="12" fill="rgba(79,209,139,.12)" stroke="#4fd18b" stroke-width="2.5"/><text x="1712" y="625" text-anchor="middle" fill="#4fd18b" font-size="25">✓ 通過 → 寫入訴狀</text></g>
+      <g class="node" id="nPl"><rect class="box" x="1570" y="690" width="285" height="100" rx="18"/><text class="t1" x="1712" y="735" text-anchor="middle">訴狀骨架</text><text class="t2" x="1712" y="770" text-anchor="middle">供律師審核的草稿</text></g>
+      <g class="node" id="nF"><rect class="box" x="1145" y="500" width="390" height="300" rx="18" style="stroke:#4fd18b"/>
+        <text class="t1" x="1168" y="545" style="font-size:30px;fill:#4fd18b">官方事實層：當事人查核</text>
+        <g class="sub" id="f_l1"><rect x="1162" y="562" width="356" height="66" rx="10"/><text class="t2" x="1176" y="590">統編 → 商工登記開放資料</text><text class="t2" x="1176" y="618" style="font-size:19px;fill:#6b7383">（經濟部商業發展署）</text></g>
+        <g class="sub" id="f_l2"><rect x="1162" y="638" width="356" height="66" rx="10"/><text class="t2" x="1176" y="666">規則表：登記狀態 → 程序警示</text><text class="t2" x="1176" y="694" style="font-size:19px;fill:#6b7383">（確定性規則，不經 LLM）</text></g>
+        <g class="sub" id="f_l3"><rect x="1162" y="714" width="356" height="66" rx="10"/><text class="t2" x="1176" y="742">警示所附法條</text><text class="t2" x="1176" y="770">→ 送進引用查證閘門</text></g>
+        <g id="newTag"><rect x="1455" y="464" width="70" height="32" rx="16" fill="#4fd18b"/><text x="1490" y="487" text-anchor="middle" font-size="20" font-weight="700" fill="#0a0c11">新增</text></g></g>
+      <g id="flows"></g>
+    </svg>
+  </div>
+
+  <div class="scene" id="scene6">
+    <div class="abs" id="demoBadge"><span><b>實機畫面</b>　攻防內容為錄製紀錄重播｜引用查證與當事人查核為當場執行</span></div>
+    <div id="demoBox"><div id="cam"><img id="demoImg" alt=""><svg id="hl" viewBox="0 0 1920 1080"></svg></div></div>
+    <div id="callouts"></div>
+    <div class="ov" id="recTag"><i>⏺</i>錄製紀錄重播：先前由大型語言模型產生</div>
+    <div class="ov" id="demoTag">示範查詢・與本案無關</div>
+    <div class="ov" id="tsmcTag">原告欄（台積電）<b>以大型上市公司示範正常狀態，非本案當事人</b></div>
+    <div class="abs" id="caseCard"><div class="k">實務案例</div><div class="n">新北地院 113 年度聲字第 26 號裁定</div><div class="d">誤認已廢止公司無法定代理人 → 廢止前董事依法即為清算人，聲請遭駁回</div></div>
+    <div id="timer" style="opacity:0"><span id="tlabel">即時查證中　</span><b id="tsec">0.0</b> 秒</div>
+    <div id="cutTag" style="opacity:0"></div>
+  </div>
+
+  <div class="scene" id="scene7">
+    <div class="abs" id="numCards">
+      <div class="ncard" id="ncA"><div class="nh">四件測試案件・引用查證</div><div class="big"><span id="n74">0</span><small>筆引用</small></div>
+        <div class="nrow ok" id="r73"><b>✓ 73</b><span>筆通過官方查證</span></div>
+        <div class="nrow bad" id="r1"><b>✗ 1</b><span>筆捏造字號，當場攔截</span></div></div>
+      <div class="ncard" id="ncB"><div class="nh">1,088 份最高法院判決的當事人公司 × 商工登記</div><div class="big"><span id="n300">0</span><small>家公司</small></div>
+        <div class="nrow ok" id="r987"><b>98.7%</b><span>可對應唯一統編</span></div>
+        <div class="nrow warn" id="r30"><b>3.0%</b><span>已解散、廢止、撤銷、合併或清算完結</span></div></div>
+    </div>
+    <div class="abs" id="numChips">
+      <div class="nchip"><b>110 / 110</b>規則驗證與設計一致</div>
+      <div class="nchip"><b>117 + 8</b>單元測試・連網整合測試</div>
+      <div class="nchip"><b>28 條</b>規則表法條全數通過官方查證</div>
+    </div>
+    <div class="abs center-x" id="numNote">判決與查詢時點不同，僅反映查詢當下；不點名任何公司</div>
+  </div>
+
+  <div class="scene" id="scene8">
+    <div class="abs" id="paper"><div class="pstamp" id="ps1">✓ 攻防過</div><div class="pstamp" id="ps2">✓ 查證過</div></div>
+    <div class="abs center-x" id="b2b">產出為供<em>律師審核</em>的草稿・依律師法第 127 條，僅作律師事務所內部工具</div>
+    <div class="abs center-x" id="tagline">讓每一筆引用、每一個當事人，<em>都經得起查證。</em></div>
+    <div class="abs center-x" id="endlogo">Legal<b>Debate</b></div>
+    <div class="abs" id="roadmap"><div class="rm"><b>下一步</b>查核結果進入攻防推演</div><div class="rm"><b>下一步</b>當事人狀態監控</div></div>
+    <div class="abs center-x" id="endnote">研究原型・尚未經執業律師實測</div>
+  </div>
+
+  <div id="sub"><span></span></div>
+  <div id="fade"></div>
+</div></div>
+<div id="ctrl"><button id="play">▶ 播放（含旁白）</button><span id="clock">0.00s</span></div>
+
+<script src="data.js"></script>
+<script src="demo/log.js"></script>
+<script>
+const D = window.DATA, L = window.LOG;
+const ORDER = ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","s12","s13"];
+const LEAD = 1.5, G1 = 0.35, TAIL = 1.0;
+const START = {};
+START.s1 = LEAD;
+for (const [a, b] of [["s1","s2"],["s2","s3"],["s3","s4"],["s4","s5"],["s5","s6"],["s6","s7"]]) START[b] = START[a] + D[a].dur + G1;
+START.s8 = START.s7 + D.s7.dur + 0.6;
+const DS0 = START.s8 - L.seg.s8;                       // global time of demo recording t=0
+for (const k of ["s9","s10","s11"]) START[k] = DS0 + L.seg[k];
+START.s12 = START.s11 + D.s11.dur + 0.5;
+START.s13 = START.s12 + D.s12.dur + G1;
+const TOTAL = START.s13 + D.s13.dur + TAIL;
+Object.assign(window, { START, TOTAL, DS0 });
+
+function Tpos(seg, pos) {
+  const text = D[seg].text; let cur = 0, best = D[seg].words[0].t;
+  for (const w of D[seg].words) { const p = text.indexOf(w.w, cur); if (p < 0) continue; if (p <= pos) best = w.t; else break; cur = p + w.w.length; }
+  return START[seg] + best;
+}
+function T(seg, sub) { const pos = D[seg].text.indexOf(sub); if (pos < 0) throw new Error("missing " + seg + ":" + sub); return Tpos(seg, pos); }
+const END = seg => START[seg] + D[seg].dur;
+
+// ---------- subtitles ----------
+const SUBS = [];
+for (const seg of ORDER) {
+  const text = D[seg].text;
+  const parts = text.split(/(?<=[，。；：？])/).filter(Boolean), merged = [];
+  for (const p of parts) {
+    const last = merged[merged.length - 1];
+    if (last && (last.replace(/[，。；：？]/g, "").length + p.length <= 19) && !/[。；：？]$/.test(last)) merged[merged.length - 1] = last + p; else merged.push(p);
+  }
+  let off = 0; const items = [];
+  for (const m of merged) { const at = text.indexOf(m, off); off = at + m.length; items.push({ pos: at, txt: m.replace(/[，。；：]$/, "") }); }
+  const words = D[seg].words, lastW = words[words.length - 1];
+  items.forEach((it, i) => {
+    const t0 = Tpos(seg, it.pos);
+    const t1 = i + 1 < items.length ? Tpos(seg, items[i + 1].pos) - 0.05 : START[seg] + lastW.t + lastW.d + 0.35;
+    SUBS.push({ t0, t1, txt: it.txt });
+  });
+}
+window.SUBS = SUBS;
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, d = 0.6) => clamp((t - a) / d);
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+function show(el, p, dy = 30, sc = null) { el.style.opacity = p; el.style.transform = `translateY(${(1 - eo(p)) * dy}px)` + (sc != null ? ` scale(${sc})` : ""); }
+const pulse = (t, a) => P(t, a, 0.25) * (1 - P(t, a + 1.2, 0.5));
+
+// ---------- static DOM ----------
+for (let i = 0; i < 8; i++) $("#blocks").insertAdjacentHTML("beforeend", `<div class="blk"><i></i><b>${i + 1}</b></div>`);
+const LN = [[40, 60], [80, 75], [120, 50], [160, 68], [200, 40]];
+for (let i = 0; i < 6; i++) $("#docs").insertAdjacentHTML("beforeend", `<div class="doc">${LN.map(([y, w]) => `<div class="ln" style="top:${y}px;width:${w}%"></div>`).join("")}<div class="stamp">查無此案</div></div>`);
+const PLN = [[60, 50], [100, 80], [140, 72], [180, 78], [220, 64], [260, 76], [300, 70], [340, 80], [380, 58], [420, 74], [460, 40]];
+PLN.forEach(([y, w]) => $("#paper").insertAdjacentHTML("afterbegin", `<div class="ln" style="top:${y}px;width:${w}%"></div>`));
+
+const EDGES = $$("#edges path").map(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return { p, l }; });
+const E9 = (() => { const p = $("#e9"), l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return { p, l }; })();
+const FLOWS = [["e1", "e3"], ["e2", "e4"]];
+for (let i = 0; i < 6; i++) $("#flows").insertAdjacentHTML("beforeend", `<circle class="flow" r="7" cx="-50" cy="-50"/>`);
+
+// ---------- key times ----------
+const K = {
+  hrs: T("s1", "八"), bill: T("s1", "真正"), billLbl: T("s1", "只有"),
+  c: [T("s1", "檢索"), T("s1", "盤點"), T("s1", "推演"), T("s1", "草擬")], loop: T("s1", "每個"),
+  // s2
+  s2in: START.s2, but: T("s2", "但"), fab: T("s2", "捏造"), docStamp: T("s2", "判決"), fine: T("s2", "遭"),
+  biz: T("s2", "企業"), reg: T("s2", "對造"), who: T("s2", "該列"), pub: T("s2", "公示"),
+  // s3
+  roles: T("s3", "大型"), rP: T("s3", "原告"), rD: T("s3", "被告"), rJ: T("s3", "法官"),
+  st: [T("s3", "檢索"), T("s3", "攻防"), T("s3", "訴狀"), T("s3", "訴狀")], onego: T("s3", "一次"), party: T("s3", "當事人另以"),
+  eachCite: T("s3", "每筆"), eachParty: T("s3", "每個當事人"), official: T("s3", "官方"),
+  // s4–s7
+  k1: T("s4", "第一"), lanes: T("s4", "立場驅動"), blind: T("s4", "盲測"), judge: T("s4", "法官每題"),
+  k2: T("s5", "第二"), algo: T("s5", "確定性"),
+  k3: T("s6", "第三"), preset: T("s6", "零容忍"), sa: T("s6", "法條比對"), sb: T("s6", "判決比對"), sc: T("s6", "即時查詢"), reject: T("s6", "未通過"),
+  k4: T("s7", "第四"), f1: T("s7", "統編"), f2: T("s7", "確定性"), f3: T("s7", "程序警示"),
+  // demo
+  s8banner: T("s8", "畫面是"),
+  vclick: DS0 + L.events.verify_click, vdone: DS0 + L.events.verify_done,
+  pclick: DS0 + L.events.party_click, pdone: DS0 + L.events.party_done,
+  vall: T("s9", "全數"), claims: T("s10", "訴之聲明"), facts: T("s10", "事實"), upper: T("s10", "上方"),
+  practice: T("s11", "實務上"),
+  // s12–s13
+  n74: T("s12", "四件"), n73: T("s12", "73筆"), n1: T("s12", "1筆"), n300: T("s12", "判決中"), n3: T("s12", "有3%"),
+  paper: START.s13, notBlank: T("s13", "而是"), atk: T("s13", "攻防過"), chk: T("s13", "查證過"), review: T("s13", "產出"), tag: T("s13", "LegalDebate"),
+};
+
+// ---------- demo highlight plan (rects are recording CSS px @1280x720 → ×1.5 in frame) ----------
+const VIS = { y0: 160, y1: 1076 };   // panel area in frame px (below the tab bar)
+const R = n => { const r = L.rects[n]; if (!r) return null; let y = r.y * 1.5, h = r.h * 1.5;
+  const y2 = Math.min(y + h, VIS.y1); y = Math.max(y, VIS.y0); return { x: r.x * 1.5, y, w: r.w * 1.5, h: Math.max(10, y2 - y) }; };
+const RT = n => DS0 + L.rects[n].t;
+const expand = (r, px, py = px) => r && ({ x: r.x - px, y: r.y - py, w: r.w + 2 * px, h: r.h + 2 * py });
+const claimsR = (() => { const h = R("claims_head"); return h ? { x: h.x - 16, y: h.y - 12, w: h.w + 32, h: h.h * 5.6 } : null; })();
+const factsR = (() => { const h = R("facts_head"); return h ? { x: h.x - 16, y: h.y - 12, w: h.w + 32, h: h.h * 5.6 } : null; })();
+const tabDebate = DS0 + L.events["tab_攻防過程"];
+const HL = [   // [t0, t1, rect, color, label, zoom, labelSide]
+  [START.s8 + 0.3, K.s8banner - 0.2, expand(R("facts"), 10), "gold", "示範案件：200 萬元貨款未付（契約不履行）", 1.0, "inside"],
+  [K.s8banner, tabDebate - 0.45, expand(R("banner"), 10), "gold", "明確標示：錄製紀錄重播，非即時生成", 1.18, "below"],
+  [RT("q1"), END("s8") + 0.3, expand(R("q1"), 12), "gold", "法官追問被告：短少何種品項、數量？", 1.22, "above"],
+  [Math.max(K.vall, K.vdone + 0.1), END("s9") + 0.35, expand(R("vtiles"), 10), "gold", "16 / 16 全數通過官方查證", 1.12, "below"],
+  [K.claims + 0.1, K.facts - 0.65, claimsR, "gold", "訴之聲明", 1.08, "right"],
+  [RT("facts_head"), K.upper - 0.85, factsR, "gold", "事實及理由", 1.08, "right"],
+  [RT("pcard"), END("s10") + 0.25, expand(R("pcard"), 8), "gold", "當事人資料：依商工登記即時查核帶入", 1.0, "inside"],
+  [RT("dtitle"), RT("drep") - 1.55, expand(R("dtitle"), 10), "red", "實際已解散的有限公司・名稱已遮蔽", 1.2, "below"],
+  [RT("drep"), RT("dwarn") - 1.45, expand(R("drep"), 10), "gold", "法定代理人：待確認（清算人）", 1.25, "below"],
+  [RT("dwarn"), RT("jcard") - 1.65, expand(R("dwarn"), 8), "red", "<em>✗ 需處理</em>：應列清算人・有限公司原則上為全體股東", 1.12, "above"],
+  [RT("dwarn") + 1.4, RT("jcard") - 1.65, expand(R("dwarn_chips"), 6), "gold", null, 1.12, null],
+  [RT("jcard"), END("s11") + 0.35, expand(R("jcard"), 8), "gold", "被告管轄法院建議（民事訴訟法第 2 條）", 1.0, "above"],
+];
+
+function camFor(t) {
+  let z = 1, cx = 960, cy = 540, best = 0;
+  for (const [a, b, r, , , zoom] of HL) {
+    if (!r || zoom <= 1) continue;
+    const w = P(t, a - 0.1, 0.6) * (1 - P(t, b, 0.6));
+    if (w > best) { best = w; z = 1 + (zoom - 1) * eio(w); cx = r.x + r.w / 2; cy = r.y + r.h / 2; }
+  }
+  const tx = clamp(960 - cx * z, 1920 - 1920 * z, 0), ty = clamp(540 - cy * z, 1080 - 1080 * z, 0);
+  return { z, tx, ty };
+}
+
+// ---------- render ----------
+let lastSrc = "";
+async function render(t) {
+  const sc = {
+    0: P(t, 0.05, 0.3) * (1 - P(t, LEAD - 0.4, 0.3)),
+    1: P(t, START.s1 - 0.15, 0.4) * (1 - P(t, START.s2 - 0.45, 0.45)),
+    2: P(t, START.s2 - 0.2, 0.4) * (1 - P(t, START.s3 - 0.45, 0.45)),
+    3: P(t, START.s3 - 0.2, 0.4) * (1 - P(t, START.s4 - 0.35, 0.35)),
+    5: P(t, START.s4 - 0.15, 0.4) * (1 - P(t, START.s8 - 0.55, 0.45)),
+    6: P(t, START.s8 - 0.45, 0.5) * (1 - P(t, START.s12 - 0.35, 0.4)),
+    7: P(t, START.s12 - 0.2, 0.4) * (1 - P(t, START.s13 - 0.35, 0.35)),
+    8: P(t, START.s13 - 0.15, 0.4),
+  };
+  for (const k in sc) $("#scene" + k).style.opacity = sc[k];
+  $("#grid").style.transform = `translate(${-(t * 6) % 80}px, ${-(t * 3) % 80}px)`;
+
+  if (sc[0] > 0) scene0(t);
+  if (sc[1] > 0) scene1(t);
+  if (sc[2] > 0) scene2(t);
+  if (sc[3] > 0) scene3(t);
+  if (sc[5] > 0) scene5(t);
+  let wait = null;
+  if (sc[6] > 0) wait = scene6(t);
+  if (sc[7] > 0) scene7(t);
+  if (sc[8] > 0) scene8(t);
+
+  const s = SUBS.find(x => t >= x.t0 && t < x.t1);
+  const span = $("#sub span");
+  if (s) { span.textContent = s.txt; span.style.opacity = 1; } else span.style.opacity = 0;
+  $("#fade").style.opacity = 1 - P(t, 0, 0.25) + P(t, TOTAL - 0.8, 0.8);
+  $("#clock").textContent = t.toFixed(2) + "s / " + TOTAL.toFixed(1) + "s";
+  if (wait) await wait;
+}
+window.render = render;
+
+function scene0(t) {
+  const p = P(t, 0.05, 0.5);
+  const lg = $("#t-logo"); lg.style.opacity = p; lg.style.transform = `scale(${1.04 - 0.04 * eo(p)})`; lg.style.letterSpacing = (0.06 - 0.07 * eo(p)) + "em";
+  show($("#t-sub"), P(t, 0.3, 0.5), 18);
+}
+
+function scene1(t) {
+  show($("#s1-label"), P(t, START.s1 - 0.1, 0.6));
+  $("#hrs").textContent = Math.round(eo(P(t, K.hrs - 0.5, 0.9)) * 8);
+  show($("#s1-big"), P(t, START.s1, 0.6), 40);
+  const up = eio(P(t, K.c[0] - 0.4, 0.8)), topShift = -95 * up, topScale = 1 - 0.18 * up;
+  for (const id of ["#s1-label", "#s1-big"]) $(id).style.transform += ` translateY(${topShift}px) scale(${topScale})`;
+  $$(".blk").forEach((b, i) => {
+    const p = back(P(t, K.hrs - 0.2 + i * 0.07, 0.45));
+    b.style.transform = `translateY(${topShift * 1.35}px) scale(${Math.max(0, p) * topScale})`;
+    b.querySelector("i").style.width = (clamp(2.65 - i) * eo(P(t, K.bill + i * 0.25, 0.5)) * 100) + "%";
+    b.style.opacity = clamp(p) * (i >= 3 ? 1 - 0.45 * P(t, K.billLbl, 0.6) : 1);
+  });
+  const bl = $("#bill"); show(bl, P(t, K.billLbl, 0.5), 20); bl.style.transform += ` translateY(${topShift * 1.45}px) scale(${topScale})`;
+  $$("#chips .chip").forEach((c, i) => {
+    const p = P(t, K.c[i] - 0.1, 0.5); c.style.opacity = p;
+    c.style.transform = `translateY(${(1 - back(p)) * 60 - 110 * up}px) scale(${0.8 + 0.2 * back(p)})`;
+    const hot = P(t, K.loop - 0.3, 0.5);
+    c.style.borderColor = `rgba(224,183,105,${0.14 + 0.7 * hot})`; c.style.background = `rgba(224,183,105,${0.04 + 0.1 * hot})`;
+  });
+  const stR = $("#stage").getBoundingClientRect(), s = stR.width / 1920, cs = $$("#chips .chip").map(c => c.getBoundingClientRect());
+  const x0 = (cs[0].left - stR.left) / s - 36, x1 = (cs[3].right - stR.left) / s + 36, y0 = (cs[0].top - stR.top) / s - 30, y1 = (cs[0].bottom - stR.top) / s + 30;
+  const lb = $("#loopbox"), lp = P(t, K.loop - 0.2, 0.5);
+  Object.assign(lb.style, { left: x0 + "px", top: y0 + "px", width: (x1 - x0) + "px", height: (y1 - y0) + "px", opacity: lp, transform: `scale(${1.06 - 0.06 * eo(lp)})` });
+  const ll = $("#looplabel"); ll.style.left = x0 + "px"; ll.style.top = (y1 + 26) + "px"; show(ll, lp, 16);
+  const cc = $("#casectr"); cc.style.left = (x1 - 290) + "px"; cc.style.top = (y1 + 30) + "px"; cc.style.opacity = lp;
+  cc.textContent = "案件 #" + String(1 + Math.floor(Math.max(0, t - K.loop) * 9)).padStart(4, "0");
+  $("#src1").style.opacity = P(t, K.billLbl + 0.3, 0.6) * 0.9;
+}
+
+function scene2(t) {
+  show($("#s2-intro"), P(t, K.s2in + 0.05, 0.5) * (1 - P(t, K.but - 0.3, 0.3)), 30, 1 + 0.04 * clamp((t - K.s2in) / 3));
+  const outA = 1 - P(t, K.biz - 0.35, 0.35);
+  const A = P(t, K.but - 0.05, 0.35) * outA;
+  const ca = $("#caseA"); ca.style.opacity = A; ca.style.transform = `translateX(${(1 - eo(P(t, K.but - 0.05, 0.5))) * -60}px)`;
+  const tg = $("#tagA"), tp = P(t, K.fine, 0.35); tg.style.opacity = tp; tg.style.transform = `scale(${1.6 - 0.6 * eo(tp)}) rotate(${-4 * tp}deg)`;
+  show($("#headline"), P(t, K.fab - 0.1, 0.5) * outA, 24);
+  $$(".doc").forEach((d, i) => {
+    const p = P(t, K.but + 0.5 + i * 0.12, 0.5);
+    d.style.opacity = p * outA; d.style.transform = `translateY(${(1 - eo(p)) * 40}px)`;
+    const st = d.querySelector(".stamp"), sp = P(t, K.docStamp + i * 0.13, 0.28);
+    st.style.opacity = sp; st.style.transform = `translate(-50%,-50%) rotate(-14deg) scale(${2.2 - 1.2 * eo(sp)})`;
+    d.style.borderColor = sp > 0.5 ? "rgba(255,93,93,.55)" : "#2c3342";
+    d.querySelectorAll(".ln").forEach(l => l.style.opacity = 1 - 0.6 * sp);
+  });
+  $("#src2").style.opacity = P(t, K.but + 0.4, 0.6) * 0.9 * outA;
+  // part B: enterprise cases
+  show($("#bizHead"), P(t, K.biz - 0.1, 0.5), 24);
+  const rc = P(t, K.reg - 0.15, 0.55); const card = $("#regcard");
+  card.style.opacity = rc; card.style.transform = `translateY(${(1 - eo(rc)) * 50}px) scale(${0.96 + 0.04 * eo(rc)})`;
+  const rs = P(t, K.reg + 0.5, 0.3); $("#regStatus").style.transform = `scale(${1 + 0.35 * (1 - eo(rs)) * (rs > 0 ? 1 : 0)})`;
+  const em = $("#regEmpty"), ep = pulse(t, K.who - 0.2);
+  em.style.borderColor = `rgba(${Math.round(74 + 181 * ep)},${Math.round(84 + 9 * ep)},${Math.round(104 - 11 * ep)},1)`;
+  em.style.boxShadow = ep > 0 ? `0 0 ${24 * ep}px rgba(255,93,93,${0.5 * ep})` : "none";
+  const q = P(t, K.who - 0.1, 0.5); show($("#regq"), q, 30, 1.05 - 0.05 * eo(q));
+}
+
+let partyPlaced = false;
+function placeParty() {
+  // put the party-check box under the last pipeline step, with an arrow up into it
+  const stR = $("#stage").getBoundingClientRect(), s = stR.width / 1920;
+  const last = $$("#pipe .step")[3].getBoundingClientRect(), first = $$("#pipe .step")[0].getBoundingClientRect();
+  const cx = (last.left + last.width / 2 - stR.left) / s, bottom = (last.bottom - stR.top) / s;
+  const box = $("#partyBox"); box.style.left = (cx - 240) + "px"; box.style.top = (bottom + 64) + "px";
+  const ar = $("#partyArrow"); Object.assign(ar.style, { left: (cx - 2) + "px", top: (bottom + 8) + "px", height: "54px" });
+  $("#onego").style.left = ((first.left - stR.left) / s) + "px"; $("#onego").style.top = (bottom + 40) + "px";
+}
+
+function scene3(t) {
+  const s = START.s3;
+  const lg = P(t, s - 0.1, 0.7), away = eio(P(t, K.roles - 0.5, 0.7));
+  const logo = $("#logo");
+  logo.style.opacity = lg * (1 - away);
+  logo.style.letterSpacing = (0.12 - 0.13 * eo(lg)) + "em";
+  logo.style.transform = `translateY(${-160 * away}px) scale(${1 - 0.3 * away})`;
+  const sub = $("#logosub"); sub.style.opacity = P(t, s + 0.4, 0.5) * (1 - away);
+  sub.style.transform = `translateY(${(1 - eo(P(t, s + 0.4, 0.5))) * 20}px)`;
+  const rt = [K.rP, K.rJ, K.rD];
+  $$(".role").forEach((r, i) => {
+    const p = P(t, Math.max(K.roles + 0.15, rt[i] - 0.15), 0.5);
+    r.style.opacity = p; r.style.transform = `translateY(${(1 - back(p)) * 60}px) scale(${0.9 + 0.1 * eo(p)})`;
+  });
+  const steps = $$("#pipe .step"), arrows = $$("#pipe .arrow i");
+  const pipeIn = P(t, K.st[0] - 0.35, 0.4);
+  $("#pipe").style.opacity = pipeIn; $("#pipe").style.transform = `translateY(${(1 - eo(pipeIn)) * 30}px)`;
+  if (!partyPlaced && pipeIn > 0) { $("#pipe").style.transform = "none"; placeParty(); partyPlaced = true; }
+  const lit = [K.st[0], K.st[1], K.st[2] - 0.25, K.st[2]];
+  steps.forEach((st, i) => { const on = t >= lit[i] - 0.05; st.classList.toggle("on", on); st.style.transform = `scale(${1 + 0.06 * (1 - P(t, lit[i], 0.3)) * (on ? 1 : 0)})`; });
+  arrows.forEach((a, i) => a.style.width = (eo(P(t, lit[i], Math.max(0.2, (lit[i + 1] - lit[i]) * 0.9))) * 100) + "%");
+  const og = P(t, K.onego - 0.1, 0.4); show($("#onego"), og, 16, 1.2 - 0.2 * eo(og));
+  const pb = P(t, K.party - 0.15, 0.5);
+  show($("#partyBox"), pb, 24, 0.94 + 0.06 * eo(pb));
+  const pa = $("#partyArrow"); pa.style.opacity = P(t, K.party + 0.25, 0.3); pa.style.transformOrigin = "bottom"; pa.style.transform = `scaleY(${eo(P(t, K.party + 0.25, 0.4))})`;
+  const sr = P(t, K.eachCite - 0.2, 0.45); $("#srcRow").style.opacity = sr; $("#srcRow").style.transform = `translateY(${(1 - eo(sr)) * 24}px)`;
+  const lightSrc = (id, a) => { const on = P(t, a, 0.3), el = $(id);
+    el.style.borderColor = on > 0 ? `rgba(224,183,105,${0.35 + 0.6 * on})` : "#313a4b"; el.style.color = on > 0 ? "#eef1f6" : "#a9b0bf";
+    el.style.background = on > 0 ? `rgba(224,183,105,${0.08 * on})` : "#141922"; };
+  lightSrc("#srcL", K.eachCite); lightSrc("#srcJ", K.eachCite + 0.15); lightSrc("#srcG", K.eachParty);
+  $$("#srcRow .ck").forEach((c, i) => c.style.opacity = P(t, K.official + i * 0.15, 0.3));
+}
+
+function scene5(t) {
+  const s = START.s4;
+  $("#archTitle").style.opacity = P(t, s, 0.5);
+  const key = t >= K.k4 - 0.1 ? 4 : t >= K.k3 - 0.1 ? 3 : t >= K.k2 - 0.1 ? 2 : 1;
+  const txt = { 1: "真對抗，而非換人設", 2: "彙整不交給 AI", 3: "零容忍引用閘門", 4: "官方事實層：當事人查核" }[key];
+  $("#archNum").textContent = "①②③④"[key - 1];
+  if ($("#archTxt").textContent !== txt) $("#archTxt").textContent = txt;
+  const kt = { 1: K.k1, 2: K.k2, 3: K.k3, 4: K.k4 }[key];
+  const kp = P(t, kt - 0.1, 0.45); show($("#archKey"), t < K.k1 - 0.1 ? 0 : kp, 20);
+  const build = s + 0.1;
+  $("#bands").style.opacity = P(t, build, 0.6);
+  const nodes = ["#nIn", "#nP", "#nD", "#nJ", "#nS", "#nA", "#nG", "#outNo", "#outOk", "#nPl"];
+  nodes.forEach((n, i) => { const p = P(t, build + 0.12 + i * 0.13, 0.45); const el = $(n); el.style.opacity = p; el.style.transform = `translateY(${(1 - eo(p)) * 18}px)`; });
+  EDGES.forEach(({ p, l }, i) => { p.style.strokeDashoffset = l * (1 - eo(P(t, build + 0.45 + i * 0.13, 0.5))); });
+  $("#wall").style.opacity = P(t, build + 1.0, 0.4);
+  // the new fourth key slides in at "第四"
+  const nf = P(t, K.k4 - 0.05, 0.6), nfe = $("#nF");
+  nfe.style.opacity = nf; nfe.style.transform = `translate(${(1 - eo(nf)) * 40}px, 0)`;
+  E9.p.style.strokeDashoffset = E9.l * (1 - eo(P(t, K.f3, 0.5)));
+  $("#newTag").style.opacity = P(t, K.k4 + 0.3, 0.3);
+  const G = { 1: ["#nIn", "#nP", "#nD", "#nJ", "#nS", "#wall"], 2: ["#nA"], 3: ["#nG", "#outOk", "#outNo", "#nPl"], 4: ["#nF", "#nPl"] };
+  const focus = t < K.k1 - 0.2 ? 0 : key;
+  const dimK = focus ? P(t, kt - 0.2, 0.4) : 0;
+  for (const n of [...nodes, "#wall", "#nF"]) {
+    const inG = focus && G[focus].includes(n);
+    $(n).style.filter = `brightness(${inG ? 1 : 1 - 0.55 * dimK})`;
+    $(n).classList.toggle("hot", !!inG && n !== "#nF");
+  }
+  $("#e9").style.filter = `brightness(${focus === 4 ? 1 : 1 - 0.55 * dimK})`;
+  $("#bandLLM").style.opacity = 1 - (focus && focus !== 1 ? 0.6 * dimK : 0);
+  $("#bandDet").style.opacity = 1 - (focus === 1 ? 0.6 * dimK : 0);
+  for (const n of ["#nP", "#nD"]) $(n + " rect.box").style.strokeWidth = 2.5 + 3 * pulse(t, K.lanes);
+  $("#wall line").style.strokeWidth = 3 + 4 * pulse(t, K.blind);
+  $("#nJ rect.box").style.strokeWidth = 2.5 + 3 * pulse(t, K.judge);
+  $("#fml").style.opacity = P(t, K.algo, 0.5);
+  $("#nA rect.box").style.strokeWidth = 2.5 + 3 * pulse(t, K.algo);
+  const lightSub = (id, a) => { const on = P(t, a - 0.1, 0.3); $(id + " rect").style.stroke = on > 0 ? `rgba(224,183,105,${0.4 + 0.6 * on})` : "#3a4356";
+    $(id + " rect").style.fill = on > 0 ? `rgba(224,183,105,${0.1 * on})` : "#1b2130"; };
+  [["#src_a", K.sa], ["#src_b", K.sb], ["#src_c", K.sc], ["#f_l1", K.f1], ["#f_l2", K.f2], ["#f_l3", K.f3 + 0.4]].forEach(([id, a]) => lightSub(id, a));
+  $("#nG rect.box").style.strokeWidth = 2.5 + 3 * pulse(t, K.preset);
+  const rj = P(t, K.reject, 0.3); $("#outNo rect").style.strokeWidth = 2.5 + 4 * rj * (1 - P(t, K.reject + 2.5, 0.6));
+  $("#outNo").style.transform = `scale(${1 + 0.05 * rj * (1 - P(t, K.reject + 0.6, 0.4))})`; $("#outNo").style.transformOrigin = "1712px 551px";
+  $("#nPl rect.box").style.strokeWidth = 2.5 + 3 * pulse(t, K.f3 + 0.3);
+  const dots = $$("#flows circle");
+  const fOn = P(t, K.k1, 0.4) * (1 - P(t, K.k2 - 0.3, 0.3));
+  dots.forEach((c, i) => {
+    const pair = FLOWS[i % 2], ph = (((t - K.k1) * 0.55 + i * 0.33) % 1 + 1) % 1;
+    const p1 = $("#" + pair[0]), p2 = $("#" + pair[1]);
+    const l1 = p1.getTotalLength(), l2 = p2.getTotalLength(), span = 284, d = ph * (l1 + l2 + span);
+    let pt;
+    if (d < l1) pt = p1.getPointAtLength(d);
+    else if (d < l1 + span) { const a = p1.getPointAtLength(l1); pt = { x: 256 + (d - l1), y: a.y }; }
+    else pt = p2.getPointAtLength(Math.min(l2, d - l1 - span));
+    c.setAttribute("cx", pt.x); c.setAttribute("cy", pt.y); c.style.opacity = fOn * (ph < 0.05 ? ph / 0.05 : ph > 0.95 ? (1 - ph) / 0.05 : 1);
+  });
+}
+
+function scene6(t) {
+  const r = t - DS0;
+  const fi = clamp(Math.floor(r * L.fps), 0, L.frames - 1);
+  const src = `demo/frames/${String(fi).padStart(5, "0")}.jpg`;
+  let wait = null;
+  const img = $("#demoImg");
+  if (src !== lastSrc) { lastSrc = src; img.src = src; wait = img.decode().catch(() => {}); }
+  const e = eo(P(t, START.s8 - 0.45, 0.7));
+  $("#demoBox").style.transform = `scale(${0.94 + 0.06 * e})`;
+  $("#demoBadge").style.opacity = P(t, START.s8 - 0.2, 0.5);
+  const cam = camFor(t);
+  $("#cam").style.transform = `scale(0.9) translate(${cam.tx}px, ${cam.ty}px) scale(${cam.z})`;
+  const svg = $("#hl"); let html = ""; const labels = [];
+  for (const [a, b, rc, col, label, zoom, side] of HL) {
+    if (!rc) continue;
+    const w = P(t, a, 0.35) * (1 - P(t, b, 0.35)); if (w <= 0) continue;
+    const per = 2 * (rc.w + rc.h), dash = per * eo(P(t, a, 0.5));
+    html += `<rect class="${col === "red" ? "red" : ""}" x="${rc.x}" y="${rc.y}" width="${rc.w}" height="${rc.h}" rx="12" style="opacity:${w};stroke-dasharray:${dash} ${per}"/>`;
+    if (label) labels.push({ rc, label, side, col, w });
+  }
+  svg.innerHTML = html;
+  const co = $("#callouts"); co.innerHTML = "";
+  const map = (x, y) => ({ x: 96 + 0.9 * (cam.tx + x * cam.z), y: 76 + 0.9 * (cam.ty + y * cam.z) });
+  for (const { rc, label, side, col, w } of labels) {
+    const tl = map(rc.x, rc.y), br = map(rc.x + rc.w, rc.y + rc.h);
+    const el = document.createElement("div"); el.className = "callout" + (col === "red" ? " red" : ""); el.innerHTML = label;
+    co.appendChild(el);
+    const bw = el.offsetWidth, bh = el.offsetHeight;
+    let x = clamp((tl.x + br.x) / 2 - bw / 2, 110, 1810 - bw), y;
+    if (side === "above") y = tl.y - bh - 16;
+    else if (side === "right") { x = Math.min(br.x + 20, 1810 - bw); y = tl.y; }
+    else if (side === "inside") { x = clamp(br.x - bw - 20, 110, 1810 - bw); y = tl.y + 16; }
+    else y = br.y + 16;
+    y = clamp(y, 90, 860 - bh);
+    el.style.left = x + "px"; el.style.top = y + "px"; el.style.opacity = w;
+    el.style.transform = `translateY(${(1 - eo(w)) * 10}px)`;
+  }
+  // fixed overlays
+  show($("#recTag"), P(t, START.s8 - 0.1, 0.4) * (1 - P(t, START.s9 - 0.6, 0.3)), 12);
+  $("#demoTag").style.opacity = P(t, START.s10 - 0.4, 0.4) * (1 - P(t, START.s12 - 0.4, 0.3));
+  $("#tsmcTag").style.opacity = P(t, START.s10 - 0.2, 0.4) * (1 - P(t, START.s11 - 0.45, 0.3));
+  const cc = P(t, K.practice - 0.1, 0.45) * (1 - P(t, START.s12 - 0.45, 0.3)); const cce = $("#caseCard");
+  cce.style.opacity = cc; cce.style.transform = `translateX(-50%) translateY(${(1 - eo(cc)) * 20}px)`;
+  // live timers (real elapsed)
+  const tm = $("#timer"), ev = L.events;
+  const vw = P(t, K.vclick, 0.2) * (1 - P(t, Math.max(K.vdone + 1.4, K.vall + 0.4), 0.4));
+  const pw = P(t, K.pclick, 0.2) * (1 - P(t, K.pdone + 1.6, 0.4));
+  const cut = ev.verify_cut;
+  if (vw > 0) {
+    tm.style.opacity = vw;
+    let el = clamp(t - K.vclick, 0, ev.verify_elapsed);
+    if (cut && t - K.vclick > cut.cut_r - ev.verify_click) el = Math.min(ev.verify_elapsed, cut.tail_from + (t - DS0 - cut.cut_r));
+    $("#tsec").textContent = el.toFixed(1);
+    $("#tlabel").textContent = t >= K.vdone ? "16 條查證完成　" : "即時查證中　";
+    tm.style.borderColor = t >= K.vdone ? "rgba(79,209,139,.8)" : "rgba(224,183,105,.7)";
+  } else if (pw > 0) {
+    tm.style.opacity = pw;
+    $("#tsec").textContent = clamp(t - K.pclick, 0, ev.party_elapsed).toFixed(1);
+    $("#tlabel").textContent = t >= K.pdone ? "商工登記即時查詢完成　" : "即時查詢商工登記　";
+    tm.style.borderColor = t >= K.pdone ? "rgba(79,209,139,.8)" : "rgba(224,183,105,.7)";
+  } else tm.style.opacity = 0;
+  const ct = $("#cutTag");
+  if (cut) { ct.textContent = `⏩ 已略過等待 ${Math.round(cut.skipped)} 秒`; ct.style.opacity = P(t, DS0 + cut.cut_r - 0.05, 0.2) * (1 - P(t, END("s9") + 0.2, 0.3)); }
+  return wait;
+}
+
+function countUp(el, t, a, d, to, fmt = v => Math.round(v)) { el.textContent = fmt(eo(P(t, a, d)) * to); }
+function scene7(t) {
+  const s = START.s12;
+  const A = P(t, K.n74 - 0.2, 0.5), B = P(t, K.n300 - 0.2, 0.5);
+  [["#ncA", A], ["#ncB", B]].forEach(([id, p]) => { const el = $(id); el.style.opacity = 0.15 + 0.85 * p; el.style.transform = `translateY(${(1 - eo(p)) * 40}px)`; });
+  countUp($("#n74"), t, K.n74 - 0.1, 0.9, 74); countUp($("#n300"), t, K.n300, 0.9, 300);
+  const row = (id, a) => { const p = P(t, a - 0.1, 0.4), el = $(id); el.style.opacity = p; el.style.transform = `translateX(${(1 - eo(p)) * -30}px)`;
+    const h = pulse(t, a); el.style.borderColor = h > 0 ? `rgba(255,255,255,${0.3 * h})` : "transparent"; };
+  row("#r73", K.n73); row("#r1", K.n1); row("#r987", K.n300 + 0.9); row("#r30", K.n3);
+  $("#r1").style.borderColor = `rgba(255,93,93,${0.7 * P(t, K.n1, 0.3)})`;
+  $("#r30").style.borderColor = `rgba(242,164,95,${0.7 * P(t, K.n3, 0.3)})`;
+  $$(".nchip").forEach((c, i) => show(c, P(t, K.n3 + 1.0 + i * 0.25, 0.45), 20));
+  $("#numNote").style.opacity = P(t, K.n3 + 0.4, 0.5);
+}
+
+function scene8(t) {
+  const out1 = 1 - P(t, K.tag - 0.45, 0.4);
+  const pp = P(t, K.paper - 0.1, 0.6); const paper = $("#paper");
+  paper.style.opacity = pp * out1; paper.style.transform = `translateY(${(1 - eo(pp)) * 40}px) rotate(${-2 + 2 * eo(pp)}deg)`;
+  $$("#paper .ln").forEach((l, i) => { l.style.opacity = P(t, K.notBlank + i * 0.06, 0.25); });
+  [["#ps1", K.atk], ["#ps2", K.chk]].forEach(([id, a]) => { const sp = P(t, a, 0.28), el = $(id);
+    el.style.opacity = sp; el.style.transform = `rotate(-10deg) scale(${2 - eo(sp)})`; });
+  show($("#b2b"), P(t, K.review - 0.15, 0.5) * out1, 16);
+  const tg = P(t, K.tag - 0.15, 0.6); show($("#tagline"), tg, 36, 1.05 - 0.05 * eo(tg));
+  show($("#endlogo"), P(t, K.tag + 0.6, 0.6), 20);
+  show($("#roadmap"), P(t, K.tag + 1.4, 0.6), 16);
+  show($("#endnote"), P(t, K.tag + 2.0, 0.6), 16);
+}
+
+function fit() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); $("#stage").style.transform = `scale(${s})`; }
+addEventListener("resize", fit); fit();
+if (location.hash === "#capture") document.body.classList.add("capture");
+render(0);
+
+let raf = null;
+$("#play").onclick = () => {
+  cancelAnimationFrame(raf);
+  const auds = ORDER.map(k => [k, new Audio(k + ".mp3")]);
+  const fired = new Set(); const t0 = performance.now() - (parseFloat(location.search.slice(1)) || 0) * 1000;
+  const loop = () => {
+    const t = (performance.now() - t0) / 1000;
+    for (const [k, a] of auds) if (!fired.has(k) && t >= START[k]) { fired.add(k); if (t - START[k] < 0.5) a.play(); }
+    render(Math.min(t, TOTAL));
+    if (t < TOTAL) raf = requestAnimationFrame(loop);
+  };
+  loop();
+};
+</script>
+</body>
+</html>
