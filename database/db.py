@@ -17,6 +17,7 @@ from database.schema import (
     Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck,
 )
 from engine.aggregate import compile_weak_points, disagreement, VALID_SIDES
+from engine.party_issues import procedural_issues
 from engine.verify import parse_citation
 
 _DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'legal_debate.db')
@@ -128,6 +129,8 @@ def finalize_case(session, *, case_id):
     return {
         "weak_points": compile_weak_points(stage3),
         "position_drift": disagreement(stage1, stage3),
+        # 官方事實層:依商工查核轉成的程序事項，法官評估須先處理，不得以實體理由略過
+        "procedural_issues": procedural_issues(latest_party_checks(session, case_id)),
     }
 
 

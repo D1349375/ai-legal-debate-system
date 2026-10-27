@@ -14,12 +14,15 @@ import re
 import time
 
 from database.db import _citation_key, _find_citation_row, finalize_case, upsert_citation, record_party_check, latest_party_checks
+from sqlalchemy import func
+
 from database.schema import (
-    Case, CitationVerification, CourtQuestion, DebateArgument, PleadingDraft, Verdict,
+    Case, CitationVerification, CourtQuestion, DebateArgument, PartyCheck, PleadingDraft, Verdict,
 )
 from engine import verify as engine_verify
 from engine import gcis, party_rules
 from engine.aggregate import VALID_SIDES, disagreement
+from engine.party_issues import cured_in, procedural_issues
 from engine.verify import (
     JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES, STATUTES_DIR,
     parse_citation,
@@ -276,6 +279,42 @@ def _progress(case_row, arguments, questions, verdict, pleading, citations):
     ]
 
 
+def procedural_view(session, case_id, party_checks, arguments, questions, last_recorded_at, verdict):
+    """起訴審查的程序事項 + 「錄製的攻防／評估是否真的處理過這些事項」的機械比對。
+
+    只看標記，不做語意判斷：原告 Stage 1 有沒有「程序補正(<id>)」段落(cured_in)、法官追問的
+    based_on 有沒有寫入該 id。沒有就如實標為未回應，並區分「攻防錄製時根本還沒查核」與「查核後仍未回應」。
+    補正是否「足夠」屬法官判斷，這裡不評。
+    """
+    view = procedural_issues(party_checks)
+    plaintiff_s1 = next((a for a in arguments if a["side"] == "plaintiff" and a["stage"] == 1), None)
+    s1_text = f"{plaintiff_s1['position']}\n{plaintiff_s1['reasoning']}" if plaintiff_s1 else ""
+    for issue in view["issues"]:
+        issue["cured_in_stage1"] = cured_in(s1_text, issue["id"])
+        issue["followed_up_in"] = [q["seq"] for q in questions if issue["id"] in (q["based_on"] or "")]
+    required = [i for i in view["issues"] if i["ex_officio"]]
+    first_checked = (session.query(func.min(PartyCheck.created_at))
+                     .filter(PartyCheck.case_id == case_id).scalar())
+    if not required:
+        debate = "no_issues"
+    elif all(i["cured_in_stage1"] for i in required):
+        debate = "answered"
+    elif any(i["cured_in_stage1"] for i in required):
+        debate = "partial"
+    elif plaintiff_s1 is None:
+        debate = "no_debate"
+    elif first_checked and last_recorded_at and first_checked > last_recorded_at:
+        debate = "predates_check"
+    else:
+        debate = "not_answered"
+    view["coverage"] = {
+        "debate": debate, "first_checked_at": first_checked, "debate_last_recorded_at": last_recorded_at,
+        "verdict": None if verdict is None else
+        ("included" if "procedural_issues" in (verdict["mechanical_anchor"] or {}) else "not_included"),
+    }
+    return view
+
+
 def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     recorded_checks = recorded_checks or {}
     case_row = session.query(Case).filter_by(case_id=case_id).one_or_none()
@@ -283,6 +322,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
         payload = _load_input_cases(cases_dir).get(case_id)
         if payload is None:
             return None
+        party_checks = latest_party_checks(session, case_id)
         return {
             "case": {"case_id": case_id, "case_type": payload.get("case_type", ""),
                      "facts_summary": payload.get("facts_summary", ""), "claims": payload.get("claims", ""),
@@ -292,7 +332,8 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "citation_changes": [], "drift_detail": None,
             "progress": _progress(None, [], [], None, None, []),
             "stats": {"arguments": 0, "questions": 0, "citations": 0, "citations_published": 0},
-            "party_checks": latest_party_checks(session, case_id),
+            "party_checks": party_checks,
+            "procedural_issues": procedural_view(session, case_id, party_checks, [], [], None, None),
         }
 
     lookup = _citation_lookup(session)
@@ -330,6 +371,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
 
     citations = _collect_citations(arguments, lookup, recorded_checks)
     stamps = sorted([a["created_at"] for a in arguments] + [q["created_at"] for q in questions])
+    party_checks = latest_party_checks(session, case_id)
     return {
         "case": {"case_id": case_row.case_id, "case_type": case_row.case_type,
                  "facts_summary": case_row.facts_summary, "claims": case_row.claims,
@@ -345,7 +387,9 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
         "stats": {"arguments": len(arguments), "questions": len(questions), "citations": len(citations),
                   "citations_published": sum(1 for c in citations if c["db_record"]
                                              and c["db_record"]["status"] == "published")},
-        "party_checks": latest_party_checks(session, case_id),
+        "party_checks": party_checks,
+        "procedural_issues": procedural_view(session, case_id, party_checks, arguments, questions,
+                                             stamps[-1] if stamps else None, verdict),
     }
 
 

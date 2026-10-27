@@ -6,7 +6,8 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 用法:
   python main.py case     --json <file>                 案件輸入
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
-  python main.py finalize --case-id X                    機械死穴彙整+分歧統計，印出判決錨點
+  python main.py finalize --case-id X                    機械死穴彙整+分歧統計+程序事項，印出判決錨點
+  python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
   python main.py pleading --case-id X --draft-file <file> --citations <file>  落地訴狀草稿
@@ -64,6 +65,15 @@ def cmd_finalize(args):
     session = get_session()
     result = finalize_case(session, case_id=args.case_id)
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def cmd_issues(args):
+    from database.db import latest_party_checks
+    from engine.party_issues import procedural_issues
+    session = get_session()
+    result = procedural_issues(latest_party_checks(session, args.case_id))
+    print(json.dumps({"case_id": args.case_id, **result}, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -229,6 +239,10 @@ def main():
     p = sub.add_parser("finalize", help="機械死穴彙整+分歧統計，印出判決錨點")
     p.add_argument("--case-id", required=True)
     p.set_defaults(fn=cmd_finalize)
+
+    p = sub.add_parser("issues", help="依案件的商工查核結果印出法官應依職權調查的程序事項")
+    p.add_argument("--case-id", required=True)
+    p.set_defaults(fn=cmd_issues)
 
     p = sub.add_parser("verify", help="引用查證")
     p.add_argument("citations", nargs="+")

@@ -34,7 +34,7 @@ RULES = [
     *[
         {"code": "dissolved", "level": "bad",
          "when": lambda c, form=form, statuses=statuses: c["basic_ok"] and c["form"] == form and c["status"] in statuses,
-         "message": "對造已{status}。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。" + detail,
+         "message": "此公司已{status}。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。" + detail,
          "legal_basis": basis + (["公司法第26條之1"] if form != "其他" and statuses == {"廢止", "廢止登記", "撤銷"} else [])}
         for form, detail, basis in [
             ("股份有限公司", "股份有限公司原則上以解散前全體董事為清算人；章程另有規定或股東會另選者，從其選任；無法依此決定時，得聲請法院選派。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。例外：公司與董事（含身兼清算人之前董事）間的訴訟，由監察人代表公司。",
