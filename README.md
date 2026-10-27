@@ -1,5 +1,9 @@
 # ai-legal-debate-system
 
+## 團隊入門
+
+新加入組員請先閱讀[專案詳細規劃書](docs/LegalDebate_專案詳細規劃書.md)，了解產品構想、現行模組與展示方式、商工開放資料、技術限制、後續攻防整合及分期驗收。規劃書依 2026-10-27 核對的程式與紀錄區分現況和規劃；較早概述與目前功能有差異時，請先核對規劃書的版本說明。
+
 **A research prototype that makes two opposing AI counsel argue a civil dispute before an AI judge — then refuses to let any of them cite a statute or precedent that does not verifiably exist.**
 
 [![tests](https://github.com/D1349375/ai-legal-debate-system/actions/workflows/tests.yml/badge.svg)](https://github.com/D1349375/ai-legal-debate-system/actions/workflows/tests.yml)
