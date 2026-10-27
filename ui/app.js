@@ -262,7 +262,8 @@
     if (!items.length) return "當事人查核：尚未查核";
     var completed = items.filter(function (item) { return item.query_status !== "failed"; }).length;
     var warnings = items.reduce(function (n, item) { return n + (item.warnings || []).length; }, 0);
-    return "當事人查核：已查 " + completed + "/2，警示 " + warnings + " 項";
+    var issues = d.procedural_issues ? d.procedural_issues.issues.length : 0;
+    return "當事人查核：已查 " + completed + "/2，警示 " + warnings + " 項" + (issues ? "，轉成起訴審查事項 " + issues + " 項" : "");
   }
   function partyRepresentativeText(result) {
     if (result.entity_type === "branch") return "本功能未查詢分公司登記資料";
@@ -297,23 +298,32 @@
       return banner("warn", "⏱", [h("strong", { text: e.dataset + (e.error.indexOf("類型資料顯示") >= 0 ? " 資料不完整" : " 查詢失敗") }), "：" + e.error]);
     });
   }
+  function basisChips(list, d) {
+    var v = runsFor(d.case.case_id).verify;
+    return h("div", { class: "chip-row" }, (list || []).map(function (basis) {
+      var check = v.results[basis], meta = check && !check.error ? statusMeta(check.status) : null;
+      return chip(meta ? meta.cls : "neutral", (meta ? meta.icon + " " : "? ") + basis,
+        { title: meta ? meta.label : "尚未執行本次法條查證" });
+    }));
+  }
+  function verifyBasisButton(cites, d) {
+    var v = runsFor(d.case.case_id).verify;
+    return cites.length ? h("button", { class: "btn small", type: "button", disabled: v.busy ? true : null,
+      onclick: function () { runVerify(cites); }, text: v.busy ? "查證中…" : "查證這些法條" }) : null;
+  }
+  function uniqueBasis(items) {
+    return Array.from(new Set(items.reduce(function (all, w) { return all.concat(w.legal_basis || []); }, [])));
+  }
   function partyWarnings(result, d) {
     var items = result.warnings || [];
     if (!items.length) return result.query_status === "failed" ? null : banner("ok", "✓", "目前無規則警示；仍須由律師核對案件時點與書狀內容。");
-    var v = runsFor(d.case.case_id).verify;
-    var cites = Array.from(new Set(items.reduce(function (all, w) { return all.concat(w.legal_basis || []); }, [])));
     return h("div", { class: "party-warnings" },
       h("div", { class: "party-warning-head" }, h("span", { class: "section-title", text: "程序警示（" + items.length + "）" }),
-        cites.length ? h("button", { class: "btn small", type: "button", disabled: v.busy ? true : null,
-          onclick: function () { runVerify(cites); }, text: v.busy ? "查證中…" : "查證這些法條" }) : null),
+        verifyBasisButton(uniqueBasis(items), d)),
       items.map(function (w) {
         return h("div", { class: "party-warning " + w.level },
           h("div", { class: "party-warning-title" }, chip(w.level, w.level === "bad" ? "✗ 需處理" : "! 請確認"), w.message),
-          h("div", { class: "chip-row" }, (w.legal_basis || []).map(function (basis) {
-            var check = v.results[basis], meta = check && !check.error ? statusMeta(check.status) : null;
-            return chip(meta ? meta.cls : "neutral", (meta ? meta.icon + " " : "? ") + basis,
-              { title: meta ? meta.label : "尚未執行本次法條查證" });
-          })));
+          basisChips(w.legal_basis, d));
       }));
   }
   function partyJurisdiction(result, role) {
@@ -420,6 +430,10 @@
       "以統一編號查詢經濟部商工登記，確認當事人名稱、法定代理人、公司狀態與管轄法院。本分頁為即時查詢，不呼叫 AI。"),
       banner("warn", "!", "查核結果僅反映商工登記公示資料，不代表該公司涉入本案；登記為查詢當下的狀態。"),
       h("div", { class: "party-grid" }, SIDES.map(function (side) { return partyCard(d, side); })),
+      d.procedural_issues && d.procedural_issues.issues.length ? banner("rec", "→", [
+        h("strong", { text: "這些警示已轉成 " + d.procedural_issues.issues.length + " 項起訴審查命補正事項" }),
+        "：當事人能力與法定代理屬法院應依職權調查的事項，系統依固定規則把警示轉成命補正事項，在 Stage 1 之前交給雙方，並寫入爭點評估的機械錨點。 ",
+        h("button", { class: "btn small", type: "button", onclick: function () { switchTab("debate"); }, text: "到攻防過程查看" })]) : null,
       SIDES.map(function (side) { var r = partyState(d.case.case_id, side).result || checks[side];
         return r && r.query_status !== "failed" && r.entity_type !== "not_found" && r.entity_type !== "branch" && r.address ? partyJurisdiction(r, side) : null; })];
   }
@@ -471,10 +485,55 @@
       d.questions.map(function (q) {
         return h("div", { class: "judge-q" },
           h("div", { class: "judge-q-head" }, sideChip(q.target_side, "問" + SIDE[q.target_side].label + "(第 " + q.seq + " 則)"),
+            /^官方事實層/.test(q.based_on || "") ? chip("judge", "補正追問・依商工登記") : null,
             h("span", { class: "arg-time", text: "落地 " + fmtTime(q.created_at) })),
           h("div", { class: "judge-q-text prewrap", text: q.question_text }),
           h("div", { class: "judge-q-basis" }, h("b", { text: "訊問依據(based_on，須回溯至具體論點)：" }), q.based_on));
       }));
+  }
+
+  // ───────────── 官方事實層 → 起訴審查命補正事項 ─────────────
+  // 事項本身由後端規則依最新商工查核產生(非錄製內容)；錄製的攻防有沒有回應，只看原告 Stage 1 的
+  // 「程序補正(<id>)」標記與法官追問 based_on 的事項代號，不判斷補正內容是否足夠。
+  function proceduralCoverageBanner(p) {
+    var c = p.coverage;
+    if (c.debate === "answered") return banner("ok", "✓", [h("strong", { text: "原告已在 Stage 1 回應全部補正事項" }),
+      "：系統以補正段落的事項代號機械比對；補正是否足夠由法官判斷，不足者會在 Stage 1 之後追問。"]);
+    if (c.debate === "partial") return banner("warn", "!", [h("strong", { text: "原告 Stage 1 只回應部分補正事項" }), "：未回應者標示於下方。"]);
+    if (c.debate === "predates_check") return banner("warn", "!", [h("strong", { text: "本案攻防錄製於當事人查核之前" }),
+      "：攻防最後落地於 " + fmtTime(c.debate_last_recorded_at) + "，首次商工查核於 " + fmtTime(c.first_checked_at) +
+      "。錄製當時還沒有起訴審查這一步，所以下方錄製的攻防沒有回應這些事項；重新執行完整流程時，原告會在 Stage 1 先行補正。"]);
+    if (c.debate === "not_answered") return banner("bad", "✗", [h("strong", { text: "錄製的原告 Stage 1 未回應下列補正事項" }),
+      "：商工查核早於攻防錄製，但原告 Stage 1 沒有對應的補正段落。"]);
+    return null;
+  }
+  function procIssueItem(issue, d, withCoverage) {
+    var followed = issue.followed_up_in || [];
+    return h("div", { class: "party-warning " + issue.level },
+      h("div", { class: "party-warning-title" },
+        chip(issue.level, issue.level === "bad" ? "✗ 需處理" : "! 請確認"), chip("neutral", issue.kind),
+        !issue.ex_officio ? chip("neutral", "非命補正事項・供原告策略參考") : !withCoverage ? null :
+          issue.cured_in_stage1 ? chip("ok", "✓ 原告 Stage 1 已回應補正") : chip("warn", "錄製的 Stage 1 未回應"),
+        withCoverage && followed.length ? chip("judge", "法官第 " + followed.join("、") + " 則訊問追問") : null),
+      h("div", { class: "proc-q prewrap" }, h("b", { text: (issue.ex_officio ? "命" + SIDE[issue.target_side].label + "補正／說明" : "提醒" + SIDE[issue.target_side].label) + "：" }), issue.question_text),
+      issue.procedure ? h("div", { class: "proc-meta" }, h("b", { text: "程序效果：" }), issue.procedure) : null,
+      basisChips(issue.legal_basis, d),
+      h("div", { style: "margin-top:6px" }, fold("商工查核警示原文", h("p", { class: "proc-meta", text: issue.warning }))));
+  }
+  function proceduralBlock(d) {
+    var p = d.procedural_issues;
+    if (!p) return null;
+    if (!SIDES.some(function (s) { return p.parties[s]; })) {
+      return h("p", { class: "detail-note", text: "起訴審查(官方事實層)：本案尚未查核當事人商工登記，沒有命補正事項(不代表沒有程序問題)。可到「當事人查核」分頁以統一編號查核。" });
+    }
+    return h("section", { class: "judge-band" },
+      h("div", { class: "judge-band-title" }, chip("judge", "審判長"), "起訴審查 — 依商工登記命補正(官方事實層)，共 " + p.issues.length + " 項",
+        chip("ok", "⚙ 規則產生，非 AI", { title: p.source }), verifyBasisButton(uniqueBasis(p.issues), d)),
+      h("p", { class: "detail-note", text: "實務上法院收狀後先審查當事人能力與法定代理權，有欠缺而可以補正者，審判長定期間命補正，逾期未補正以裁定駁回(民事訴訟法第249條第1項)；但法院須依職權調查實際代表權，不得僅憑登記認定(參最高法院115年度台抗字第105號裁定)。系統依「當事人查核」分頁的最新結果，以固定規則產生下列事項，在 Stage 1 之前交給雙方；原告在 Stage 1 補正，法官只就補正不足者追問。本區文字由規則即時產生，不是錄製的 AI 內容。" }),
+      proceduralCoverageBanner(p),
+      p.issues.length ? p.issues.map(function (i) { return procIssueItem(i, d, true); })
+        : banner("ok", "✓", "已查核的當事人沒有觸發程序規則；仍須由律師核對案件時點。"),
+      p.notes.map(function (n) { return h("p", { class: "detail-note", text: n }); }));
   }
 
   function changesCard(d) {
@@ -497,7 +556,8 @@
     var idx = citeIndex(d);
     return [
       panelHead("攻防過程", recChip(),
-        "協議：Stage 1 雙方獨立盲判 → 法官依 Stage 1 訊問 → Stage 2 訊問攻防 → Stage 3 辯論終結。以下皆為資料庫已落地的原文。"),
+        "協議：起訴審查(依商工登記命補正) → Stage 1 雙方獨立盲判(原告一併補正) → 法官依 Stage 1 訊問(含補正不足之追問) → Stage 2 訊問攻防 → Stage 3 辯論終結。除標示「規則產生」的起訴審查事項外，以下皆為資料庫已落地的原文。"),
+      proceduralBlock(d),
       stageGroup(d, 1, "Stage 1 — 爭點整理(雙方獨立盲判，互相看不到對方輸出)", idx),
       questionsBlock(d),
       stageGroup(d, 2, "Stage 2 — 訊問攻防(回應法官訊問)", idx),
@@ -565,6 +625,13 @@
     out.push(card("立場位移", [
       driftRow("plaintiff", r.drift_detail.plaintiff), driftRow("defendant", r.drift_detail.defendant),
       h("p", { class: "detail-note", text: "0 = 兩階段引用集合完全相同，1 = 完全不重疊。以引用的法條/判例集合為代理指標，不代表論述語意的變化幅度。" })]));
+    var pi = r.procedural_issues;
+    if (pi) out.push(card("程序事項(官方事實層)", [
+      h("p", { class: "detail-note", text: "依案件最新的商工查核結果，以固定規則轉換，與弱點、立場位移一起寫入評估錨點；法官評估須先處理 ✗ 等級的程序事項。" }),
+      pi.issues.length ? h("div", { class: "chip-row" }, pi.issues.map(function (i) {
+        return chip(i.level, (i.level === "bad" ? "✗ " : "! ") + SIDE[i.party_role].label + "・" + i.kind);
+      })) : h("div", { class: "detail-note", text: "已查核的當事人沒有觸發程序規則。" }),
+      pi.notes.map(function (n) { return h("p", { class: "detail-note", text: n }); })]));
     out.push(anchorBanner(d.verdict && d.verdict.anchor_check));
     return out;
   }
@@ -722,12 +789,24 @@
     var out = [head,
       card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "落地 " + fmtTime(v.created_at))),
       card("評估理由", paragraphs(delabelJargon(v.verdict_reasoning))),
+      proceduralRiskCard(d),
       h("div", { class: "risk-grid" },
         card("對原告不利之處", list(risk["對原告不利之處"]), sideChip("plaintiff")),
         card("對被告不利之處", list(risk["對被告不利之處"]), sideChip("defendant"))),
       card("建議補強證據", list(risk["建議補強證據"]))];
     out.push(anchorBanner(v.anchor_check));
     return out;
+  }
+
+  function proceduralRiskCard(d) {
+    var p = d.procedural_issues;
+    if (!p || !p.issues.length) return null;
+    var c = p.coverage.verdict;
+    return card("程序風險(官方事實層，規則產生)", [
+      c === "included" ? banner("ok", "✓", "本評估落地時，機械錨點已含下列程序事項，法官角色須先處理程序再談實體。")
+        : c === "not_included" ? banner("warn", "!", [h("strong", { text: "本評估錄製於程序事項串接之前" }),
+          "：落地時的機械錨點沒有程序事項，上方評估文字未處理下列風險。下列內容由規則依最新商工查核即時產生，不是法官角色的評估。"]) : null,
+      p.issues.map(function (i) { return procIssueItem(i, d, false); })]);
   }
 
   function anchorBanner(a) {

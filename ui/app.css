@@ -414,3 +414,8 @@ pre.raw { font-family: var(--font-mono); font-size: 11px; color: var(--text-seco
   .pleading-doc { padding: 24px 20px; }
 }
 @media (max-width: 580px) { .party-facts { grid-template-columns: 1fr; } }
+
+/* 官方事實層 → 法官職權調查事項 */
+.proc-q { font-size: 13px; line-height: 1.75; margin: 2px 0 6px; color: var(--text-primary); }
+.proc-q b, .proc-meta b { font-weight: 600; color: var(--text-primary); }
+.proc-meta { font-size: 12px; line-height: 1.7; color: var(--text-secondary); margin-bottom: 6px; }
