@@ -48,6 +48,9 @@ class TestParseCitation:
         assert parse_citation("最高法院114年度台聲字第1號") == {
             "type": "judgment", "jyear": "114", "jcase": "台聲", "jno": "1"}
 
+    def test_business_mergers_act(self):
+        assert parse_citation("企業併購法第24條") == {"type": "statute", "law_name": "企業併購法", "article_no": "24"}
+
     def test_unparseable_text(self):
         assert parse_citation("被告顯係推諉卸責之詞") == {"type": "unknown"}
 

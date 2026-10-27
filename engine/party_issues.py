@@ -29,6 +29,11 @@ KINDS = {
     "strategy": ("執行風險", None, []),
 }
 
+# 被告法人欠缺法定代理人時，原告除補正外的程序途徑(民訴§52 準用§51Ⅰ；Ⅳ 限制其權限)；條文已於 2026-10-28 經全國法規資料庫查證。
+DEFENDANT_SPECIAL_AGENT = ("被告法人無法定代理人或其法定代理人不能行代理權，恐致久延而受損害者，原告得聲請受訴法院之審判長選任特別代理人；"
+                           "特別代理人於法定代理人承當訴訟以前代理被告為一切訴訟行為，但不得為捨棄、認諾、撤回或和解。",
+                           ["民事訴訟法第51條"])
+
 # 警示代碼 → (程序類別, 是否屬法院應依職權調查的事項, 命原告補正／說明的內容)。
 # 當事人與法定代理人由原告於起訴狀列載，因此一律對原告；被告方在 Stage 1 也拿到同一份事項，可自行據以抗辯。
 ASKS = {
@@ -40,6 +45,9 @@ ASKS = {
     "no_rep": ("representation", True, "官方登記未提供{party}負責人，原告列載之法定代理人依何資料認定？"),
     "rep_mismatch": ("representation", True, "原告列載{party}之法定代理人依何資料認定？"),
     "foreign_branch": ("representation", True, "原告列載{party}之法定代理人為何人（在臺負責人或外國公司之代表人）？"),
+    "reorganization": ("representation", True, "原告列載{party}之法定代理人是否為重整人？本件是否屬裁定重整後當然停止之因財產關係所生訴訟，"
+                                               "或所涉債權是否屬非依重整程序不得行使之重整債權？"),
+    "interim_manager": ("representation", True, "原告列載{party}之法定代理人是否為登記之臨時管理人？"),
     # 因合併而解散者不經清算、法人格消滅，告它是「無當事人能力」，不是當事人不適格
     "merged": ("capacity", True, "原告是否改列存續或新設公司為當事人？"),
     "bankrupt": ("standing", True, "本件請求是否屬破產財團之訴訟？如是，原告是否改以破產管理人為當事人？"),
@@ -51,7 +59,8 @@ ASKS = {
 }
 
 # 這些狀態的警示已說明法定代理人應如何列載，同一當事人的「未提供負責人」不再另成一則訊問。
-SUBSUMES_NO_REP = {"dissolved", "foreign_dissolved", "ordered_dissolve", "liquidated", "withdrawn", "merged", "bankrupt"}
+SUBSUMES_NO_REP = {"dissolved", "foreign_dissolved", "ordered_dissolve", "liquidated", "withdrawn", "merged", "bankrupt",
+                   "reorganization", "interim_manager"}
 
 _RULE_ORDER = {rule["code"]: i for i, rule in enumerate(party_rules.RULES)}
 
@@ -105,6 +114,9 @@ def procedural_issues(party_checks):
                 continue
             kind, ex_officio, ask = ASKS[w["code"]]
             kind_label, procedure, procedure_basis = KINDS[kind]
+            if role == "defendant" and kind == "representation":
+                procedure = procedure + DEFENDANT_SPECIAL_AGENT[0]
+                procedure_basis = procedure_basis + DEFENDANT_SPECIAL_AGENT[1]
             issues.append({
                 "id": f"{role}:{w['code']}", "party_role": role, "warning_code": w["code"], "level": w["level"],
                 "kind": kind_label, "ex_officio": ex_officio, "target_side": "plaintiff",

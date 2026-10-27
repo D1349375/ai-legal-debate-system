@@ -74,7 +74,7 @@ def test_suspension_is_strategy_not_ex_officio():
 
 @pytest.mark.parametrize("status,code,kind", [
     ("合併解散", "merged", "當事人能力"), ("破產", "bankrupt", "當事人適格"),
-    ("解散已清算完結", "liquidated", "法定代理"),
+    ("解散已清算完結", "liquidated", "法定代理"), ("重整", "reorganization", "法定代理"),
 ])
 def test_status_rules_map_to_procedural_kind(status, code, kind):
     view = party_issues.procedural_issues({"defendant": check(status, rep="")})
@@ -93,7 +93,7 @@ def test_bad_issues_sort_first_and_plaintiff_wording_names_plaintiff():
 def test_every_rule_with_a_level_is_mapped_and_all_bases_are_verifiable():
     leveled = {rule["code"] for rule in party_rules.RULES if rule["level"]}
     assert leveled <= set(party_issues.ASKS)
-    for _, _, basis in party_issues.KINDS.values():
+    for _, _, basis in [*party_issues.KINDS.values(), (None, None, party_issues.DEFENDANT_SPECIAL_AGENT[1])]:
         for text in basis:
             parsed = parse_citation(text)
             assert parsed["type"] in ("statute", "judgment"), text
@@ -107,6 +107,17 @@ def test_representation_procedure_cites_the_supreme_court_ruling_on_registration
     assert "最高法院115年度台抗字第105號" in issue["legal_basis"] and "公司法第12條" in issue["legal_basis"]
     assert "對抗第三人" in issue["procedure"] and "逾期未補正" in issue["procedure"]
     assert view["stage"].startswith("起訴審查")
+
+
+def test_special_agent_route_only_for_defendant_representation():
+    defendant = party_issues.procedural_issues({"defendant": check("解散", rep="")})["issues"][0]
+    assert "選任特別代理人" in defendant["procedure"] and "不得為捨棄、認諾、撤回或和解" in defendant["procedure"]
+    assert {"民事訴訟法第51條", "民事訴訟法第52條"} <= set(defendant["legal_basis"])
+    # 原告自身欠缺代表權時是原告應補正，不是原告聲請特別代理人
+    plaintiff = party_issues.procedural_issues({"plaintiff": check("解散", rep="")})["issues"][0]
+    assert "特別代理人" not in plaintiff["procedure"] and "民事訴訟法第51條" not in plaintiff["legal_basis"]
+    merged = party_issues.procedural_issues({"defendant": check("合併解散", rep="")})["issues"][0]
+    assert "特別代理人" not in merged["procedure"]
 
 
 def test_cure_marker_accepts_full_and_half_width_brackets_only_for_the_same_id():

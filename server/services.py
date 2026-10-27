@@ -45,7 +45,7 @@ _ALLOWED_SOURCE_HOSTS = ("https://law.moj.gov.tw/", "https://judgment.judicial.g
 _STATUTE_FILES = {
     "民法": "民法.txt", "公司法": "公司法.txt", "勞動基準法": "勞動基準法.txt",
     "勞基法": "勞動基準法.txt", "消費者保護法": "消費者保護法.txt", "刑法": "刑法.txt",
-}  # 民事訴訟法無本地快取，只能走官網即時查證
+}  # 民事訴訟法、企業併購法無本地快取，只能走官網即時查證
 
 
 def _rel_corpus_path(path):

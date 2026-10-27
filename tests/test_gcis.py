@@ -158,7 +158,7 @@ def test_rep_mismatch():
     ("解散", "dissolved"), ("廢止", "dissolved"), ("撤銷", "dissolved"),
     ("核准設立，但已命令解散", "ordered_dissolve"), ("合併解散", "merged"),
     ("破產", "bankrupt"), ("解散已清算完結", "liquidated"),
-    ("撤回登記", "withdrawn"),
+    ("重整", "reorganization"), ("撤回登記", "withdrawn"),
 ])
 def test_abnormal_rules(status, expected):
     result = summary(status, rep="")
@@ -198,7 +198,8 @@ def test_dissolved_liquidators_depend_on_company_form():
 def test_other_abnormal_rules_keep_required_procedure_details():
     merged = warning(summary("合併解散", rep=""), "merged")
     assert "存續或新設公司" in merged["message"] and "有訴訟代理人時不當然停止" in merged["message"]
-    assert merged["legal_basis"] == ["公司法第75條", "公司法第319條", "民事訴訟法第169條", "民事訴訟法第173條"]
+    assert "承受其當事人地位" in merged["message"]
+    assert merged["legal_basis"] == ["公司法第75條", "公司法第319條", "企業併購法第24條", "民事訴訟法第169條", "民事訴訟法第173條"]
     bankrupt = warning(summary("破產", rep=""), "bankrupt")
     assert "破產管理人" in bankrupt["message"] and "有訴訟代理人亦同" in bankrupt["message"]
     assert "破產法第75條" in bankrupt["message"] and bankrupt["legal_basis"] == ["民事訴訟法第174條"]
@@ -206,6 +207,46 @@ def test_other_abnormal_rules_keep_required_procedure_details():
     assert liquidated["level"] == "warn" and "聲報備查不等於法人格消滅" in liquidated["message"]
     assert "最高法院114年度台聲字第397號" in liquidated["message"]
     assert liquidated["legal_basis"] == ["公司法第25條", "民法第40條"]
+
+
+# 22100398：勝華科技；2026-10-28 官方 API 實測狀態「重整」，負責人欄為三位重整人，董監事資料另列重整監督人與原董事長。
+def test_real_reorganization_row_lists_reorganizers_not_chairman():
+    data = company("重整", name="勝華科技股份有限公司", rep="林建男,潘正雄,曹永仁")
+    data["directors"] = response("directors", [
+        {"Person_Position_Name": "重整人", "Person_Name": "林建男"},
+        {"Person_Position_Name": "重整人", "Person_Name": "潘正雄"},
+        {"Person_Position_Name": "重整人", "Person_Name": "曹永仁"},
+        {"Person_Position_Name": "重整監督人", "Person_Name": "臺灣銀行股份有限公司"},
+        {"Person_Position_Name": "董事長", "Person_Name": "黃顯雄"},
+        {"Person_Position_Name": "監察人", "Person_Name": "黃顯明"}])
+    result = party_rules.summarize("22100398", "company", data)
+    assert codes(result) == {"reorganization"}
+    assert result["status_level"] == "bad" and result["legal_representative"] is None
+    reorganization = warning(result, "reorganization")
+    assert "登記之重整人：林建男、潘正雄、曹永仁" in reorganization["message"]
+    assert "不可照列董事長" in reorganization["message"] and "重整監督人許可" in reorganization["message"]
+    assert "非依重整程序不得行使權利" in reorganization["message"]
+    assert reorganization["legal_basis"] == ["公司法第282條", "公司法第293條", "公司法第8條", "公司法第290條", "公司法第294條", "公司法第296條"]
+
+
+def test_interim_manager_replaces_chairman_as_representative():
+    # 未找到登記有臨時管理人的實例；職稱字串依公司法第208條之1第2項推定，故以包含比對
+    data = company()
+    data["directors"]["rows"].append({"Person_Position_Name": "臨時管理人", "Person_Name": "陳律師"})
+    result = party_rules.summarize("22099131", "company", data)
+    assert codes(result) == {"interim_manager"}
+    assert result["legal_representative"] is None and result["status_level"] == "bad"
+    stock = warning(result, "interim_manager")
+    assert "臨時管理人（陳律師）" in stock["message"] and "不得為不利於公司之行為" in stock["message"]
+    assert stock["legal_basis"] == ["公司法第208條之1", "公司法第8條"]
+    limited = company(name="甲有限公司")
+    limited["directors"]["rows"].append({"Person_Position_Name": "臨時管理人", "Person_Name": "陳律師"})
+    limited_warning = warning(party_rules.summarize("22099131", "company", limited), "interim_manager")
+    assert "有限公司之董事準用" in limited_warning["message"]
+    assert limited_warning["legal_basis"] == ["公司法第108條", "公司法第208條之1", "公司法第8條"]
+    # 董事長與負責人不一致是臨時管理人的常態，不再另報 rep_mismatch
+    data["directors"]["rows"][0]["Person_Name"] = "李小明"
+    assert codes(party_rules.summarize("22099131", "company", data)) == {"interim_manager"}
 
 
 def test_suspension_and_name_mismatch():
