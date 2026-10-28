@@ -426,6 +426,19 @@ pre.raw { font-family: var(--font-mono); font-size: 11px; color: var(--text-seco
 }
 @media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } }
 
+/* ===== 即時執行 ===== */
+.run-view { display: flex; flex-direction: column; gap: 10px; }
+.run-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.run-log { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-input); padding: 8px 10px;
+  max-height: 320px; overflow-y: auto; font-size: 12px; line-height: 1.6; }
+.run-event { display: flex; gap: 6px; align-items: baseline; padding: 2px 0; color: var(--text-secondary); }
+.run-event .run-mark { width: 1em; flex-shrink: 0; font-weight: 700; text-align: center; }
+.run-event .run-text { min-width: 0; overflow-wrap: anywhere; }
+.run-event.landed .run-mark, .run-event.result .run-mark { color: var(--ok-fg); }
+.run-event.warn .run-mark { color: var(--warn-fg); }
+.run-event.error .run-mark, .run-event.error .run-text { color: var(--bad-fg); }
+.run-event.text .run-text { color: var(--text-primary); }
+
 /* 官方事實層 → 法官職權調查事項 */
 .proc-q { font-size: 13px; line-height: 1.75; margin: 2px 0 6px; color: var(--text-primary); }
 .proc-q b, .proc-meta b { font-weight: 600; color: var(--text-primary); }

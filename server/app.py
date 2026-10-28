@@ -21,6 +21,7 @@ from database.schema import Case
 from engine.verify import JUDGMENTS_DIR, STATUTES_DIR
 from engine.gcis import validate_ban
 from server import seed, services
+from server.live_run import LiveRunManager
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UI_DIR = os.path.join(ROOT, "ui")
@@ -88,7 +89,8 @@ def _count_files(folder, suffix):
 
 def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
                live_checks_path=seed.LIVE_CHECKS_PATH, party_checks_path=seed.PARTY_CHECKS_PATH,
-               seed_on_empty=True, local_clients=LOOPBACK_CLIENTS):
+               seed_on_empty=True, local_clients=LOOPBACK_CLIENTS, live=None):
+    """live:即時執行設定(dict,見 LiveRunManager 參數)。預設停用；main.py serve 只在綁本機位址時啟用。"""
     app = FastAPI(title="LegalDebate UI API", docs_url="/api/docs", redoc_url=None, openapi_url="/api/openapi.json")
     factory = make_session_factory(db_url)
     app.state.seeded = None
@@ -97,6 +99,9 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
             app.state.seeded = seed.seed_if_empty(s, fixture_path)
     app.state.recorded_checks = seed.load_recorded_checks(live_checks_path)
     app.state.recorded_party_checks = seed.load_recorded_party_checks(party_checks_path)
+    live_opts = dict(live or {"enabled": False, "reason": "即時執行未啟用(只在以 python main.py serve 綁定本機位址時啟用)"})
+    runner = app.state.live = LiveRunManager(factory, root=ROOT, db_url=db_url, **live_opts)
+    app.router.on_shutdown.append(runner.shutdown)
 
     def get_db():
         session = factory()
@@ -128,8 +133,7 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
                          "seeded_from_fixture": app.state.seeded},
             "corpus": {"judgments": _count_files(JUDGMENTS_DIR, ".txt"),
                        "statutes": _count_files(STATUTES_DIR, ".txt")},
-            "live_generation": {"enabled": False,
-                                "note": "第一階段：UI 重播已錄製案例並真實執行機械環節；即時生成辯論屬第二階段，尚未啟用。"},
+            "live_generation": runner.availability(),
             "default_db_file": os.path.basename(default_db_path()),
         }
 
@@ -162,6 +166,29 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         except ValueError as e:
             raise HTTPException(409, str(e))
         return {"case_id": case_id, "parties": parties}
+
+    @app.post("/api/cases/{case_id}/runs", status_code=201, dependencies=[Depends(local_only)])
+    def start_run(case_id: str):
+        try:
+            return runner.start(case_id)
+        except PermissionError as e:
+            raise HTTPException(403, f"即時執行未啟用:{e}")
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+
+    @app.get("/api/runs/{run_id}")
+    def run_status(run_id: int, since: int = Query(0, ge=0)):
+        r = runner.get(run_id, since=since)
+        if r is None:
+            raise HTTPException(404, f"找不到執行 #{run_id}")
+        return r
+
+    @app.post("/api/runs/{run_id}/cancel", dependencies=[Depends(local_only)])
+    def cancel_run(run_id: int):
+        try:
+            return runner.cancel(run_id)
+        except ValueError as e:
+            raise HTTPException(409, str(e))
 
     @app.post("/api/cases/{case_id}/finalize")
     def finalize(case_id: str, db=Depends(get_db)):

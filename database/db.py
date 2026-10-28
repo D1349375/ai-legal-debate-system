@@ -14,13 +14,16 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
 from database.schema import (
-    Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck,
+    Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck, LiveRun,
 )
 from engine.aggregate import compile_weak_points, disagreement, VALID_SIDES
 from engine.party_issues import procedural_issues
 from engine.verify import parse_citation
 
 _DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'legal_debate.db')
+# UI 觸發即時執行時，後端以此環境變數把自己使用的資料庫交給 Claude Code 子程序，
+# 確保 subagent 經 main.py 落地的紀錄寫進同一顆資料庫(測試時則是暫存資料庫)。
+DB_URL_ENV = 'LEGALDEBATE_DB_URL'
 
 
 def _sync_schema(engine):
@@ -46,7 +49,7 @@ def default_db_path():
 
 def make_session_factory(db_url=None):
     """建立一次 engine、之後重複取 session(長駐程序用,如 server/;CLI 仍用 get_session)。"""
-    engine = create_engine(db_url or f"sqlite:///{_DB_FILE}")
+    engine = create_engine(db_url or os.environ.get(DB_URL_ENV) or f"sqlite:///{_DB_FILE}")
     Base.metadata.create_all(engine)
     _sync_schema(engine)
     return sessionmaker(bind=engine)

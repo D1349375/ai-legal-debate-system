@@ -89,6 +89,23 @@ class PartyCheck(Base):
     fetched_at = Column(String, nullable=True)
     created_at = Column(String, nullable=False)
 
+class LiveRun(Base):
+    """UI 觸發的 Claude Code 即時執行。論證本身仍由 subagent 經 main.py record 落地到既有資料表，
+    這裡只記錄執行的起訖與結果，讓 UI 能分辨哪些紀錄是「本次即時生成」、哪些是過去的錄製紀錄。"""
+    __tablename__ = 'live_runs'
+    id = Column(Integer, primary_key=True)
+    case_id = Column(String, nullable=False)
+    status = Column(String, nullable=False)  # running / succeeded / incomplete / failed / cancelled / interrupted
+    started_at = Column(String, nullable=False)
+    ended_at = Column(String, nullable=True)
+    model = Column(String, nullable=True)
+    budget_usd = Column(String, nullable=True)
+    cost_usd = Column(String, nullable=True)  # Claude Code result 事件回報的估算值
+    exit_code = Column(Integer, nullable=True)
+    error = Column(Text, nullable=True)
+    log_path = Column(String, nullable=True)  # 相對專案根目錄的 stream-json 執行紀錄
+
+
 def init_db(db_path='sqlite:///database/legal_debate.db'):
     engine = create_engine(db_path)
     Base.metadata.create_all(engine)

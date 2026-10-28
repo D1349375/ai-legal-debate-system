@@ -48,6 +48,8 @@ htmlcov/
 *.sqlite3
 *.db
 *.log
+# UI 即時執行的 Claude Code 執行紀錄與暫存檔
+database/live_runs/
 _tmp/
 tmp/
 

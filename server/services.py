@@ -20,12 +20,13 @@ from database.db import (
 from sqlalchemy import func
 
 from database.schema import (
-    Case, CitationVerification, CourtQuestion, DebateArgument, PartyCheck, PleadingDraft, Verdict,
+    Case, CitationVerification, CourtQuestion, DebateArgument, LiveRun, PartyCheck, PleadingDraft, Verdict,
 )
 from engine import verify as engine_verify
 from engine import gcis, party_rules
 from engine.aggregate import VALID_SIDES, disagreement
 from engine.party_issues import cured_in, procedural_issues
+from server.live_run import run_to_dict
 from engine.verify import (
     JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES, STATUTES_DIR,
     parse_citation,
@@ -124,6 +125,9 @@ def _case_counts(session):
 def list_cases(session, cases_dir=None):
     counts = _case_counts(session)
     verdict_ids = {c for c, in session.query(Verdict.case_id).all()}
+    run_status = {}
+    for cid, status in session.query(LiveRun.case_id, LiveRun.status).order_by(LiveRun.id).all():
+        run_status[cid] = status
     pleading_ids = {c for c, in session.query(PleadingDraft.case_id).all()}
     items = []
     db_ids = set()
@@ -141,7 +145,7 @@ def list_cases(session, cases_dir=None):
             "facts_excerpt": row.facts_summary[:60], "source": "database", "status": status,
             "arguments": c["arguments"], "questions": c["questions"],
             "has_verdict": row.case_id in verdict_ids, "has_pleading": row.case_id in pleading_ids,
-            "created_via": row.created_via,
+            "created_via": row.created_via, "last_run_status": run_status.get(row.case_id),
         })
     for cid, payload in _load_input_cases(cases_dir).items():
         if cid in db_ids:
@@ -268,6 +272,13 @@ def _anchor_check(stored_anchor, arguments):
             "recomputed": {"position_drift": {s: now[s]["ratio"] for s in VALID_SIDES}}}
 
 
+def _provenance_kind(arguments):
+    if not arguments:
+        return "case_only"
+    live = sum(1 for a in arguments if a["origin"]["kind"] == "live")
+    return "live_generated" if live == len(arguments) else "mixed" if live else "recorded_replay"
+
+
 def _strip_parens(text):
     """去掉括號及其內容與空白，只用來判斷兩段文字是否僅差在括號補充語。"""
     return re.sub(r"[\s]+", "", re.sub(r"[（(][^）)]*[）)]", "", text or ""))
@@ -346,6 +357,21 @@ def procedural_view(session, case_id, party_checks, arguments, questions, last_r
     return view
 
 
+def _origin_resolver(runs):
+    """依 UI 即時執行的起訖時間判斷一筆落地紀錄的來源。落在某次執行期間 = 該次即時生成；
+    其餘一律視為錄製紀錄(過去在 Claude Code 對話中產生後經 CLI 落地)。"""
+    def origin(created_at):
+        for r in runs:
+            if created_at and created_at >= r["started_at"] and (r["ended_at"] is None or created_at <= r["ended_at"]):
+                return {"kind": "live", "run_id": r["id"], "run_status": r["status"]}
+        return {"kind": "recorded"}
+    return origin
+
+
+def _runs_for(session, case_id):
+    return [run_to_dict(r) for r in session.query(LiveRun).filter_by(case_id=case_id).order_by(LiveRun.id).all()]
+
+
 def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     recorded_checks = recorded_checks or {}
     case_row = session.query(Case).filter_by(case_id=case_id).one_or_none()
@@ -363,16 +389,19 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "citation_changes": [], "drift_detail": None,
             "progress": _progress(None, [], [], None, None, []),
             "stats": {"arguments": 0, "questions": 0, "citations": 0, "citations_published": 0},
-            "party_checks": party_checks,
+            "party_checks": party_checks, "live_runs": [],
             "procedural_issues": procedural_view(session, case_id, party_checks, [], [], None, None),
         }
 
     lookup = _citation_lookup(session)
-    arguments = [_arg_to_api(r) for r in session.query(DebateArgument).filter_by(case_id=case_id).all()]
+    runs = _runs_for(session, case_id)
+    origin = _origin_resolver(runs)
+    arguments = [{**_arg_to_api(r), "origin": origin(r.created_at)}
+                 for r in session.query(DebateArgument).filter_by(case_id=case_id).all()]
     arguments.sort(key=lambda a: (a["stage"], SIDE_ORDER.get(a["side"], 9)))
     questions = [
         {"seq": i + 1, "target_side": q.target_side, "question_text": q.question_text,
-         "based_on": q.based_on, "created_at": q.created_at}
+         "based_on": q.based_on, "created_at": q.created_at, "origin": origin(q.created_at)}
         for i, q in enumerate(session.query(CourtQuestion).filter_by(case_id=case_id)
                               .order_by(CourtQuestion.id).all())
     ]
@@ -386,6 +415,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "verdict_reasoning": verdict_row.verdict_reasoning,
             "risk_map": json.loads(verdict_row.risk_map), "mechanical_anchor": anchor,
             "protocol_version": verdict_row.protocol_version, "created_at": verdict_row.created_at,
+            "origin": origin(verdict_row.created_at),
             "anchor_check": _anchor_check(anchor, arguments),
         }
 
@@ -395,6 +425,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     if pleading_row is not None:
         pleading = {
             "draft_text": pleading_row.draft_text, "generated_at": pleading_row.generated_at,
+            "origin": origin(pleading_row.generated_at),
             "citation_verification_status": pleading_row.citation_verification_status,
             "draft_count": session.query(PleadingDraft).filter_by(case_id=case_id).count(),
             "citation_check": _pleading_citation_check(pleading_row.draft_text, lookup),
@@ -409,7 +440,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                  "created_at": case_row.created_at, "source": "database",
                  "created_via": case_row.created_via,
                  "parties": json.loads(case_row.parties_json) if case_row.parties_json else None},
-        "provenance": {"kind": "recorded_replay" if arguments else "case_only",
+        "provenance": {"kind": _provenance_kind(arguments),
                        "model_ids": sorted({a["model_id"] for a in arguments if a["model_id"]}),
                        "first_recorded_at": stamps[0] if stamps else None,
                        "last_recorded_at": stamps[-1] if stamps else None},
@@ -421,6 +452,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                   "citations_published": sum(1 for c in citations if c["db_record"]
                                              and c["db_record"]["status"] == "published")},
         "party_checks": party_checks,
+        "live_runs": runs,
         "procedural_issues": procedural_view(session, case_id, party_checks, arguments, questions,
                                              stamps[-1] if stamps else None, verdict),
     }

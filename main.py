@@ -11,7 +11,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
   python main.py pleading --case-id X --draft-file <file> --citations <file>  落地訴狀草稿
-  python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例 + 真實執行機械環節)
+  python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
 """
@@ -129,11 +129,15 @@ def cmd_serve(args):
     import uvicorn
     from server.app import create_app
 
-    app = create_app()
+    from server.live_run import options_for_host
+    app = create_app(live=options_for_host(args.host, model=args.model, budget_usd=args.budget_usd))
     url = f"http://{args.host}:{args.port}/"
     if app.state.seeded:
         print(f"資料庫原本沒有案件，已由 demo/recorded_cases.json 匯入錄製紀錄:{app.state.seeded}")
     print(f"LegalDebate UI:{url}(Ctrl+C 結束)")
+    avail = app.state.live.availability()
+    print("即時執行:" + (f"已啟用(模型 {avail['model']},每次花費上限 {avail['budget_usd']:g} 美元)" if avail["enabled"]
+                        else f"停用——{avail['reason']}"))
     if not args.no_browser:
         threading.Timer(1.2, lambda: webbrowser.open(url)).start()
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
@@ -263,6 +267,8 @@ def main():
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)
     p.add_argument("--no-browser", action="store_true", help="不自動開啟瀏覽器")
+    p.add_argument("--model", help="即時執行使用的 Claude 模型(預設 claude-sonnet-5-5,主 agent 與 subagent 相同)")
+    p.add_argument("--budget-usd", type=float, help="即時執行每次的花費上限(美元，預設 15)")
     p.set_defaults(fn=cmd_serve)
 
     p = sub.add_parser("export-demo", help="匯出錄製紀錄 fixture 到 demo/")
