@@ -11,6 +11,9 @@ class Case(Base):
     facts_summary = Column(Text, nullable=False)
     claims = Column(Text, nullable=False)
     created_at = Column(String, nullable=False)
+    # UI 建立案件時才有:雙方當事人名稱/統編(JSON)與建立途徑。CLI 落地的舊案件為 NULL。
+    parties_json = Column(Text, nullable=True)
+    created_via = Column(String, nullable=True)  # NULL=CLI(main.py case) / 'ui'
 
 class DebateArgument(Base):
     __tablename__ = 'debate_arguments'

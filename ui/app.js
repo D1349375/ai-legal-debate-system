@@ -56,7 +56,7 @@
   var state = {
     cases: [], caseId: null, detail: null, tab: "overview", loading: false, error: null,
     health: null, runs: {}, verifyOpts: { mode: "auto", timeout: 6, persist: true },
-    parties: {},
+    parties: {}, creating: null, caseNotices: {},
   };
 
   // ───────────── 小工具 ─────────────
@@ -190,12 +190,20 @@
         h("div", { class: "case-item-id", text: c.case_id }),
         h("div", { class: "case-item-title", text: c.case_type || "(未填案由)" }),
         h("div", { class: "case-item-meta" }, chip(st.cls, st.label),
-          c.arguments ? chip("neutral", "論證 " + c.arguments) : null)));
+          c.arguments ? chip("neutral", "論證 " + c.arguments) : null,
+          c.created_via === "ui" ? chip("neutral", "UI 建立") : null)));
     });
   }
 
   function renderTopbar() {
     var d = state.detail;
+    if (state.creating) {
+      document.getElementById("topbar-id").textContent = "新案件";
+      document.getElementById("topbar-title").textContent = "建立新案件";
+      document.getElementById("topbar-sub").textContent = "輸入案件事實與雙方當事人，寫入本機資料庫";
+      document.getElementById("export-btn").disabled = true;
+      return;
+    }
     document.getElementById("topbar-id").textContent = d ? d.case.case_id : "—";
     document.getElementById("topbar-title").textContent = d ? (d.case.case_type || "案件") : "LegalDebate AI";
     document.getElementById("topbar-sub").textContent = !d ? "" :
@@ -207,6 +215,7 @@
   function renderTabs() {
     var nav = document.getElementById("tabs");
     nav.replaceChildren();
+    if (state.creating) return;
     TABS.forEach(function (t, i) {
       nav.append(h("button", {
         class: "stage-tab", type: "button", role: "tab", "aria-selected": String(t.key === state.tab),
@@ -236,7 +245,13 @@
     return [
       panelHead("案件總覽", d.case.source === "database" ? recChip() : null),
       provenanceBanner(d),
+      (state.caseNotices[d.case.case_id] || []).map(function (n) { return banner(n.cls, n.icon, n.text); }),
       h("p", { class: "detail-note", text: partySummary(d) }),
+      d.case.parties ? card("雙方當事人(使用者輸入)", SIDES.map(function (side) {
+        var p = d.case.parties[side];
+        return h("div", { class: "meta-row" }, h("span", { class: "meta-key", text: SIDE[side].label }),
+          h("span", { class: "meta-val", text: p.name + (p.ban ? "(統編 " + p.ban + ")" : "(未提供統編，不查核)") }));
+      })) : null,
       card("案件事實(原始輸入全文)", paragraphs(d.case.facts_summary),
         chip("neutral", d.case.case_type || "未填案由")),
       card("請求／訴之聲明(原始輸入全文)", paragraphs(d.case.claims)),
@@ -939,11 +954,99 @@
       h("p", { class: "detail-note", text: "錄製的書狀本文未變更；正式書狀請以本卡資料填寫當事人欄。" })]);
   }
 
+  // ───────────── 建立新案件 ─────────────
+  function openCreate(prefill) {
+    state.creating = Object.assign({ case_id: "", case_type: "", facts_summary: "", claims: "",
+      p_name: "", p_ban: "", d_name: "", d_ban: "", busy: false, error: null, step: null }, prefill || {});
+    state.caseId = null; state.detail = null;
+    try { history.replaceState(null, "", "#/new"); } catch (e) { /* file:// 等環境略過 */ }
+    renderAll();
+  }
+  function formField(f, key, label, opts) {
+    var o = opts || {};
+    var input = h(o.multiline ? "textarea" : "input", { id: "f-" + key, rows: o.rows, maxlength: o.max, placeholder: o.placeholder,
+      inputmode: o.inputmode, value: o.multiline ? null : f[key], disabled: f.busy ? true : null,
+      oninput: function (e) { f[key] = e.target.value; } });
+    if (o.multiline) input.value = f[key];
+    return h("label", { class: "form-field" + (o.wide ? " wide" : ""), for: "f-" + key },
+      h("span", { class: "field-label", text: label + (o.optional ? "(選填)" : "") }), input,
+      o.hint ? h("span", { class: "detail-note", text: o.hint }) : null);
+  }
+  function createPanel(f) {
+    return [
+      panelHead("建立新案件", null, "輸入的文字原樣寫入本機資料庫，作為三角色攻防的唯一案件輸入。系統不會補寫案情；正式使用時請以律師掌握的完整卷證為準。"),
+      h("form", { class: "card form-card", onsubmit: function (e) { e.preventDefault(); submitCreate(f); } },
+        h("div", { class: "form-grid" },
+          formField(f, "case_type", "案由", { max: 60, placeholder: "例：買賣價金、侵權行為損害賠償" }),
+          formField(f, "case_id", "案件 ID", { optional: true, max: 64, placeholder: "留空自動產生(ui-日期-序號)",
+            hint: "只能用英數字、點、底線、連字號" }),
+          formField(f, "facts_summary", "案件事實", { multiline: true, rows: 9, max: 20000, wide: true,
+            hint: "時間、金額、契約與往來經過等，以你實際掌握者為限" }),
+          formField(f, "claims", "請求／訴之聲明", { multiline: true, rows: 3, max: 5000, wide: true }),
+          formField(f, "p_name", "原告名稱", { max: 100 }),
+          formField(f, "p_ban", "原告統一編號", { optional: true, max: 12, inputmode: "numeric", placeholder: "8 位數字" }),
+          formField(f, "d_name", "被告名稱", { max: 100 }),
+          formField(f, "d_ban", "被告統一編號", { optional: true, max: 12, inputmode: "numeric", placeholder: "8 位數字" })),
+        f.error ? banner("bad", "✗", "建立失敗：" + f.error) : null,
+        f.step ? banner("warn", "⏱", f.step) : null,
+        h("div", { class: "controls" },
+          h("button", { class: "btn primary", type: "submit", disabled: f.busy ? true : null, text: f.busy ? "處理中…" : "建立案件" }),
+          h("button", { class: "btn", type: "button", disabled: f.busy ? true : null, text: "取消",
+            onclick: function () {
+              state.creating = null;
+              if (state.cases.length) selectCase(state.cases[0].case_id, "overview"); else renderAll();
+            } }))),
+    ];
+  }
+  async function submitCreate(f) {
+    var missing = [["case_type", "案由"], ["facts_summary", "案件事實"], ["claims", "請求"], ["p_name", "原告名稱"], ["d_name", "被告名稱"]]
+      .filter(function (k) { return !f[k[0]].trim(); }).map(function (k) { return k[1]; });
+    if (missing.length) { f.error = "請填寫：" + missing.join("、"); renderPanel(); return; }
+    f.busy = true; f.error = null; f.step = "寫入資料庫…"; renderPanel();
+    var created;
+    try {
+      created = await api("/api/cases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        case_id: f.case_id.trim() || null, case_type: f.case_type, facts_summary: f.facts_summary, claims: f.claims,
+        plaintiff: { name: f.p_name, ban: f.p_ban.trim() || null }, defendant: { name: f.d_name, ban: f.d_ban.trim() || null } }) });
+    } catch (e) {
+      f.busy = false; f.step = null; f.error = e.message; renderPanel(); return;
+    }
+    var notices = [{ cls: "ok", icon: "✓", text: "案件 " + created.case_id + " 已建立並寫入資料庫。" }];
+    for (var i = 0; i < SIDES.length; i++) {
+      var role = SIDES[i], p = created.parties[role];
+      if (!p.ban) continue;
+      f.step = "查核" + SIDE[role].label + "商工登記(統編 " + p.ban + ")…"; renderPanel();
+      try {
+        var r = await api("/api/party-check", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ban: p.ban, input_name: p.name, case_id: created.case_id, role: role }) });
+        notices.push(r.query_status === "failed"
+          ? { cls: "bad", icon: "✗", text: SIDE[role].label + "商工查核未完成(" + ((r.errors[0] || {}).error || "連線失敗") + ")；可到「當事人查核」分頁重試。" }
+          : { cls: (r.warnings || []).length ? "warn" : "ok", icon: (r.warnings || []).length ? "!" : "✓",
+            text: SIDE[role].label + "商工查核：" + (r.name || "已查詢") + (r.via === "recorded" ? "(本次即時查詢失敗，顯示錄製的查詢結果)" : "") +
+              ((r.warnings || []).length ? "，警示 " + r.warnings.length + " 項，已轉成起訴審查事項" : "，無規則警示") });
+      } catch (e) {
+        notices.push({ cls: "bad", icon: "✗", text: SIDE[role].label + "商工查核失敗：" + e.message + "；可到「當事人查核」分頁重試。" });
+      }
+    }
+    state.caseNotices[created.case_id] = notices;
+    await refreshCases();
+    await selectCase(created.case_id, "overview");
+  }
+  async function refreshCases() {
+    try { state.cases = (await api("/api/cases")).cases; renderCaseList(); } catch (e) { /* 保留舊清單 */ }
+  }
+
   // ───────────── 右側資訊欄 ─────────────
   function renderDetail() {
     var box = document.getElementById("detail");
     box.replaceChildren();
     var d = state.detail;
+    if (state.creating) {
+      box.append(h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "建立案件須知" }),
+        h("p", { class: "detail-note", text: "案件事實只寫你實際掌握的內容；系統與 AI 都不會替你補寫案情。" }),
+        h("p", { class: "detail-note", text: "統一編號選填。填了會在建立後立即查核經濟部商工登記，查核結果轉成起訴審查補正事項，在 Stage 1 之前交給雙方。自然人或沒有統編的一方不查。" })));
+      return;
+    }
     if (!d) return;
     var hl = state.health;
     var mark = { done: "✓", partial: "◐", ready: "▶", pending: "·" };
@@ -979,6 +1082,7 @@
         "請確認後端已啟動：在專案目錄執行 ", h("code", { text: "python main.py serve" })]));
       return;
     }
+    if (state.creating) { add(panel, createPanel(state.creating)); return; }
     if (state.loading || !d) { panel.append(emptyState("載入中…")); return; }
     try {
       var view = { overview: overviewPanel, parties: partiesPanel, debate: debatePanel, aggregate: aggregatePanel, verify: verifyPanel, verdict: verdictPanel, pleading: pleadingPanel }[state.tab];
@@ -997,6 +1101,7 @@
 
   async function selectCase(caseId, tab) {
     state.caseId = caseId; state.tab = tab || state.tab; state.loading = true; state.error = null; state.detail = null;
+    state.creating = null;
     setHash(); renderAll();
     try {
       var d = await api("/api/cases/" + encodeURIComponent(caseId));
@@ -1032,6 +1137,7 @@
 
   // 瀏覽器上一頁/下一頁只改變網址片段(不會整頁重新載入)，需另外監聽並同步畫面。
   window.addEventListener("hashchange", function () {
+    if (location.hash === "#/new") { if (!state.creating) openCreate(); return; }
     var h = parseHash();
     if (!h.caseId || h.caseId === state.caseId) { if (h.tab !== state.tab) switchTab(h.tab); return; }
     selectCase(h.caseId, h.tab);
@@ -1041,6 +1147,7 @@
     updateThemeBtn();
     document.getElementById("theme-toggle").addEventListener("click", function () { setTheme(currentTheme() === "light" ? "dark" : "light"); });
     document.getElementById("export-btn").addEventListener("click", exportCase);
+    document.getElementById("new-case-btn").addEventListener("click", function () { openCreate(); });
     renderTabs();
     try {
       state.health = await api("/api/health");
@@ -1050,9 +1157,10 @@
       renderAll();
       return;
     }
+    if (location.hash === "#/new") { openCreate(); return; }
     var h = parseHash();
     var pick = state.cases.some(function (c) { return c.case_id === h.caseId; }) ? h.caseId : (state.cases[0] && state.cases[0].case_id);
-    if (!pick) { state.error = "資料庫中沒有任何案件"; renderAll(); return; }
+    if (!pick) { openCreate(); return; }
     await selectCase(pick, h.tab);
   }
 

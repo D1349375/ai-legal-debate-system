@@ -415,6 +415,17 @@ pre.raw { font-family: var(--font-mono); font-size: 11px; color: var(--text-seco
 }
 @media (max-width: 580px) { .party-facts { grid-template-columns: 1fr; } }
 
+/* ===== 建立新案件 ===== */
+.form-card { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.form-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.form-field.wide { grid-column: 1 / -1; }
+.form-field input, .form-field textarea {
+  width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+  background: var(--bg-input); color: var(--text-primary); font: inherit; font-size: 13px; line-height: 1.7; resize: vertical;
+}
+@media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } }
+
 /* 官方事實層 → 法官職權調查事項 */
 .proc-q { font-size: 13px; line-height: 1.75; margin: 2px 0 6px; color: var(--text-primary); }
 .proc-q b, .proc-meta b { font-weight: 600; color: var(--text-primary); }

@@ -9,8 +9,9 @@ UI 只重播這些錄製紀錄，並真實執行機械環節(finalize / verify)�
 import os
 import time
 from typing import Literal
+from urllib.parse import urlsplit
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -44,6 +45,20 @@ class VerifyRequest(BaseModel):
     skip_live: bool = False
 
 
+class PartyInput(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    ban: str | None = Field(default=None, max_length=12)
+
+
+class CreateCaseRequest(BaseModel):
+    case_id: str | None = Field(default=None, max_length=64)
+    case_type: str = Field(min_length=1, max_length=60)
+    facts_summary: str = Field(min_length=10, max_length=20000)
+    claims: str = Field(min_length=2, max_length=5000)
+    plaintiff: PartyInput
+    defendant: PartyInput
+
+
 class PartyCheckRequest(BaseModel):
     ban: str
     role: Literal["plaintiff", "defendant"] | None = None
@@ -51,6 +66,17 @@ class PartyCheckRequest(BaseModel):
     input_name: str | None = None
     timeout_sec: float = Field(default=6.0, ge=1.0, le=30.0)
     persist: bool = True
+
+
+LOOPBACK_CLIENTS = ("127.0.0.1", "::1")
+LOOPBACK_HOSTNAMES = ("127.0.0.1", "localhost", "::1")
+
+
+def _hostname(value):
+    try:
+        return urlsplit("//" + value).hostname if value else None
+    except ValueError:
+        return None
 
 
 def _count_files(folder, suffix):
@@ -62,7 +88,7 @@ def _count_files(folder, suffix):
 
 def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
                live_checks_path=seed.LIVE_CHECKS_PATH, party_checks_path=seed.PARTY_CHECKS_PATH,
-               seed_on_empty=True):
+               seed_on_empty=True, local_clients=LOOPBACK_CLIENTS):
     app = FastAPI(title="LegalDebate UI API", docs_url="/api/docs", redoc_url=None, openapi_url="/api/openapi.json")
     factory = make_session_factory(db_url)
     app.state.seeded = None
@@ -78,6 +104,20 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
             yield session
         finally:
             session.close()
+
+    def local_only(request: Request):
+        """新增的寫入端點(建立案件、即時執行、存訴狀版本)只接受本機瀏覽器。
+
+        本服務沒有登入驗證：以 --host 0.0.0.0 啟動時，區網其他裝置只能看重播。另外檢查 Host 與 Origin，
+        避免使用者瀏覽的其他網站(或 DNS rebinding)透過瀏覽器對本機 API 發出寫入請求。"""
+        client = request.client.host if request.client else None
+        if client not in local_clients:
+            raise HTTPException(403, "此操作只接受本機(127.0.0.1)連線；其他裝置只能檢視")
+        if _hostname(request.headers.get("host")) not in LOOPBACK_HOSTNAMES:
+            raise HTTPException(403, "請以 http://127.0.0.1 或 http://localhost 開啟本頁後再操作")
+        origin = request.headers.get("origin")
+        if origin and origin != "null" and _hostname(urlsplit(origin).netloc) not in LOOPBACK_HOSTNAMES:
+            raise HTTPException(403, "拒絕來自其他網站的請求")
 
     @app.get("/api/health")
     def health(db=Depends(get_db)):
@@ -103,6 +143,25 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         if detail is None:
             raise HTTPException(404, f"找不到案件:{case_id}")
         return detail
+
+    @app.post("/api/cases", status_code=201, dependencies=[Depends(local_only)])
+    def create_case(req: CreateCaseRequest, db=Depends(get_db)):
+        parties = {}
+        for role in ("plaintiff", "defendant"):
+            p = getattr(req, role)
+            ban = None
+            if p.ban and p.ban.strip():
+                ban = validate_ban(p.ban)
+                if ban is None:
+                    raise HTTPException(422, f"{'原告' if role == 'plaintiff' else '被告'}統一編號須為 8 位數字")
+            parties[role] = {"name": p.name.strip(), "ban": ban}
+        try:
+            case_id = services.create_case(db, case_type=req.case_type, facts_summary=req.facts_summary,
+                                           claims=req.claims, parties=parties,
+                                           case_id=(req.case_id or "").strip() or None, cases_dir=cases_dir)
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+        return {"case_id": case_id, "parties": parties}
 
     @app.post("/api/cases/{case_id}/finalize")
     def finalize(case_id: str, db=Depends(get_db)):

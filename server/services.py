@@ -13,7 +13,10 @@ import os
 import re
 import time
 
-from database.db import _citation_key, _find_citation_row, finalize_case, upsert_citation, record_party_check, latest_party_checks
+from database.db import (
+    _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
+    latest_party_checks,
+)
 from sqlalchemy import func
 
 from database.schema import (
@@ -61,6 +64,33 @@ def _safe_url(url):
 
 def _json_list(raw):
     return json.loads(raw) if raw else []
+
+
+# ───────────────────────── 建立案件(UI) ─────────────────────────
+
+CASE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,63}$")
+
+
+def _next_case_id(session):
+    """ui-YYYYMMDD-NNN:只含英數與連字號，可安全放進檔名與 Claude Code 指令。"""
+    prefix = "ui-" + _now_iso()[:10].replace("-", "") + "-"
+    taken = {cid for cid, in session.query(Case.case_id).filter(Case.case_id.like(prefix + "%")).all()}
+    n = 1
+    while f"{prefix}{n:03d}" in taken:
+        n += 1
+    return f"{prefix}{n:03d}"
+
+
+def create_case(session, *, case_type, facts_summary, claims, parties, case_id=None, cases_dir=None):
+    """UI 建立案件:只落地使用者輸入的文字，不補寫任何案情。統編查核由呼叫端另以 party_check_one 進行。"""
+    case_id = case_id or _next_case_id(session)
+    if not CASE_ID_RE.match(case_id):
+        raise ValueError("案件 ID 只能使用英數字、點、底線、連字號(3–64 字，首字為英數字)")
+    if case_id in _load_input_cases(cases_dir):
+        raise ValueError(f"{case_id} 已是 data/cases 中的案件輸入，請換一個 ID")
+    row = record_case(session, case_id=case_id, case_type=case_type.strip(), facts_summary=facts_summary.strip(),
+                      claims=claims.strip(), parties=parties, created_via="ui")
+    return row.case_id
 
 
 # ───────────────────────── 案件讀取 ─────────────────────────
@@ -111,6 +141,7 @@ def list_cases(session, cases_dir=None):
             "facts_excerpt": row.facts_summary[:60], "source": "database", "status": status,
             "arguments": c["arguments"], "questions": c["questions"],
             "has_verdict": row.case_id in verdict_ids, "has_pleading": row.case_id in pleading_ids,
+            "created_via": row.created_via,
         })
     for cid, payload in _load_input_cases(cases_dir).items():
         if cid in db_ids:
@@ -375,7 +406,9 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     return {
         "case": {"case_id": case_row.case_id, "case_type": case_row.case_type,
                  "facts_summary": case_row.facts_summary, "claims": case_row.claims,
-                 "created_at": case_row.created_at, "source": "database"},
+                 "created_at": case_row.created_at, "source": "database",
+                 "created_via": case_row.created_via,
+                 "parties": json.loads(case_row.parties_json) if case_row.parties_json else None},
         "provenance": {"kind": "recorded_replay" if arguments else "case_only",
                        "model_ids": sorted({a["model_id"] for a in arguments if a["model_id"]}),
                        "first_recorded_at": stamps[0] if stamps else None,

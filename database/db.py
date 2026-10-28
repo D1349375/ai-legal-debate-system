@@ -60,11 +60,12 @@ def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def record_case(session, *, case_id, case_type, facts_summary, claims):
+def record_case(session, *, case_id, case_type, facts_summary, claims, parties=None, created_via=None):
     if session.query(Case).filter_by(case_id=case_id).one_or_none():
         raise ValueError(f"{case_id} 已存在，不可覆寫")
     row = Case(case_id=case_id, case_type=case_type, facts_summary=facts_summary,
-               claims=claims, created_at=_now_iso())
+               claims=claims, created_at=_now_iso(), created_via=created_via,
+               parties_json=json.dumps(parties, ensure_ascii=False) if parties else None)
     session.add(row)
     session.commit()
     return row
