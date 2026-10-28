@@ -70,8 +70,13 @@ class PleadingDraft(Base):
     id = Column(Integer, primary_key=True)
     case_id = Column(String, nullable=False)
     draft_text = Column(Text, nullable=False)
-    citation_verification_status = Column(String, nullable=False)  # 彙總所有引用的最低狀態
+    citation_verification_status = Column(String, nullable=False)  # published / blocked(律師編輯版有引用未通過)
     generated_at = Column(String, nullable=False)
+    # 版本:NULL/'system' 為流程產生的原稿(經查證閘門落地,不可改寫);'lawyer_edit' 為律師在 UI 另存的新版本,
+    # 原稿保留不動。律師版的引用逐條重新查證,未通過者照實存為 blocked,不得匯出。
+    source = Column(String, nullable=True)
+    parent_id = Column(Integer, nullable=True)
+    citation_check_json = Column(Text, nullable=True)  # 存檔當下逐條查證結果(律師版才有)
 
 
 class PartyCheck(Base):

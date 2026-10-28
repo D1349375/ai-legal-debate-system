@@ -67,6 +67,7 @@
     cases: [], caseId: null, detail: null, tab: "overview", loading: false, error: null,
     health: null, runs: {}, verifyOpts: { mode: "auto", timeout: 6, persist: true },
     parties: {}, creating: null, caseNotices: {}, liveLogs: {}, liveBusy: {}, pollTimer: null,
+    pleadingSel: {}, pleadingEdit: {}, pleadingBusy: {}, pleadingNotice: {},
   };
 
   // ───────────── 小工具 ─────────────
@@ -929,51 +930,167 @@
       .join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  function pleadingPanel(d) {
-    var p = d.pleading;
-    var head = panelHead("訴狀骨架初稿", p ? originChip(p.origin) : null,
-      "骨架版：僅套用司法院官方起訴狀結構，直接帶入系統攻防結果原文，尚未經法律用語潤飾。須由執業律師審核修訂、補正當事人資訊與證物清單後方可使用，不得逕行送出。");
-    if (!p) return [head, partyPleadingCard(d), emptyState("此案件尚未落地訴狀草稿。")];
-    var text = p.draft_text;
+  // 版本：系統產生版(流程經查證閘門落地，原稿不改寫)與律師編輯版(UI 另存的新版本)。
+  // 預設顯示最新的系統產生版，錄製案件的重播畫面因此不受律師編輯影響。
+  function selectedVersion(d) {
+    var vs = d.pleading_versions || [];
+    var sel = vs.filter(function (v) { return v.id === state.pleadingSel[d.case.case_id]; })[0];
+    if (sel) return sel;
+    var sys = vs.filter(function (v) { return v.source === "system"; });
+    return sys[sys.length - 1] || vs[vs.length - 1];
+  }
+  function versionChip(v) {
+    return v.source === "lawyer_edit" ? chip("judge", "✎ 律師編輯版", { title: "律師在 UI 編輯後另存的版本" }) : originChip(v.origin);
+  }
+  function splitDraftNote(text) {
     var noteIdx = text.search(/-{2,}\s*\n\s*(?=【)|【(?:骨架版聲明|本稿產出說明)/);
-    var note = noteIdx >= 0 ? cleanDraftNote(text.slice(noteIdx)) : null;
-    if (noteIdx >= 0) text = text.slice(0, noteIdx);
-    var lines = delabelJargon(text).replace(/\s+$/, "").split("\n");
-    var doc = h("div", { class: "pleading-doc" },
+    return noteIdx >= 0 ? { body: text.slice(0, noteIdx), note: cleanDraftNote(text.slice(noteIdx)) } : { body: text, note: null };
+  }
+  function editableText(v) {
+    return v.source === "system" ? delabelJargon(splitDraftNote(v.draft_text).body).trim() : v.draft_text;
+  }
+  function pleadingDoc(v) {
+    var system = v.source === "system";
+    var lines = (system ? delabelJargon(splitDraftNote(v.draft_text).body) : v.draft_text).replace(/\s+$/, "").split("\n");
+    return h("div", { class: "pleading-doc" },
       lines.map(function (ln, i) {
         if (i === 0) return [
           h("div", { class: "pl-title", text: ln.replace(/[（(][\s\S]*[）)]\s*$/, "").trim() || "民事起訴狀" }),
-          h("div", { class: "pl-subtitle", text: "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" }),
+          h("div", { class: "pl-subtitle", text: system ? "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" : "律師編輯版．須經律師審核後使用" }),
         ];
         var headLine = /^(訴之聲明|事實及理由|證物名稱及件數|為.*事：)/.test(ln);
         if (!ln.trim()) return h("div", { class: "pl-gap", "aria-hidden": "true" });
         return h("div", { class: "pl-line" + (headLine ? " pl-head" : ""), text: ln });
       }));
+  }
+  function versionBanner(v, d) {
+    if (v.source === "lawyer_edit") {
+      return banner("rec", "✎", [h("strong", { text: "律師編輯版" }), "：於 " + fmtTime(v.generated_at) + " 存檔，基於 #" + v.parent_id +
+        "。原稿 #" + v.parent_id + " 保留不動；本版的引用在存檔時逐條查證，結果列於下方。"]);
+    }
+    var live = v.origin && v.origin.kind === "live";
+    var sysCount = (d.pleading_versions || []).filter(function (x) { return x.source === "system"; }).length;
+    return banner(live ? "ok" : "rec", live ? "⚡" : "⏺", [h("strong", { text: live ? "系統產生版・本次即時生成" : "系統產生版・錄製紀錄" }),
+      "：草稿產生於 " + fmtTime(v.generated_at) + (live ? "(UI 執行 #" + v.origin.run_id + ")" : "") +
+      (sysCount > 1 ? "；此案件共有 " + sysCount + " 份系統草稿" : "") + "。"]);
+  }
+  function pleadingCiteRow(c, lawyer) {
+    var ok = c.gate === "pass";
+    var meta = c.status === "no_record" ? { cls: "bad", icon: "✗", label: "尚無查證通過紀錄" } : statusMeta(c.status);
+    var lines = [];
+    if (c.note) lines.push(h("div", null, h("span", { class: "k", text: "說明：" }), c.note));
+    if (c.verified_via && c.verified_via !== "previous_record") lines.push(h("div", null, h("span", { class: "k", text: "來源：" }), VIA[c.verified_via] || c.verified_via));
+    if (c.live_attempt && c.live_attempt.tried) lines.push(h("div", null, h("span", { class: "k", text: "即時查詢：" }),
+      (LIVE_OUTCOME[c.live_attempt.outcome] || c.live_attempt.outcome) + (c.live_attempt.error ? "(" + c.live_attempt.error + ")" : "")));
+    if (c.primary_source_url) lines.push(h("div", null, h("span", { class: "k", text: "原文：" }),
+      h("a", { href: c.primary_source_url, target: "_blank", rel: "noopener noreferrer", text: "開啟官方頁面" })));
+    if (!lawyer && c.db_record) lines.push(h("div", null, h("span", { class: "k", text: "查證紀錄：" }),
+      statusLabel(c.db_record.status) + "(" + fmtTime(c.db_record.verified_at) + ")" +
+      (c.db_record.matched_by === "normalized" ? "；以同條文比對，對應紀錄「" + c.db_record.db_citation_text + "」" : "")));
+    return h("div", { class: "vrow" + (ok ? "" : " blocked") },
+      h("div", null, h("span", { class: "pill " + (ok ? "ok" : meta.cls === "bad" ? "bad" : "warn") },
+        h("span", { "aria-hidden": "true", text: ok ? "✓" : meta.icon }), ok ? "已查證通過" : meta.label)),
+      h("div", null, h("div", { class: "vrow-cite", text: c.citation_text }),
+        lawyer ? h("div", { class: "vrow-meta" }, chip("neutral", c.change === "added" ? "新增或改動的引用" : "沿用原稿引用"),
+          chip(c.verified_now ? "ok" : "neutral", c.verified_now ? "存檔時重新查證" : "沿用查證紀錄"),
+          ok ? chip("ok", "✓ 放行") : chip("bad", "✗ 未放行")) : null,
+        h("div", { class: "vrow-lines" }, lines)),
+      h("div"));
+  }
+  async function savePleadingEdit(d, ed) {
+    var id = d.case.case_id;
+    ed.busy = true; ed.error = null; renderPanel();
+    try {
+      var v = await api("/api/cases/" + encodeURIComponent(id) + "/pleadings", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parent_id: ed.parentId, draft_text: ed.text, mode: state.verifyOpts.mode, timeout_sec: state.verifyOpts.timeout }) });
+      var added = v.citation_check.filter(function (c) { return c.change === "added"; }).length;
+      state.pleadingNotice[id] = banner(v.exportable ? "ok" : "bad", v.exportable ? "✓" : "✗", [
+        h("strong", { text: "已另存 " + v.label }), "：共 " + v.citation_check.length + " 條引用(新增或改動 " + added + " 條)" +
+          (v.exportable ? "，全部通過查證，可以匯出。" : "，其中 " + v.blocked_count + " 條未通過查證，此版本未放行、不能匯出。") +
+          (v.removed_citations.length ? "相較原稿移除：" + v.removed_citations.join("、") + "。" : "")]);
+      state.pleadingSel[id] = v.id;
+      delete state.pleadingEdit[id];
+      await reloadDetailQuietly();
+    } catch (e) {
+      ed.error = e.message;
+    }
+    ed.busy = false;
+    if (state.caseId === id) renderPanel();
+  }
+  async function reverifyVersion(d, v) {
+    var id = d.case.case_id;
+    state.pleadingBusy[id] = true; renderPanel();
+    try {
+      var r = await api("/api/cases/" + encodeURIComponent(id) + "/pleadings/" + v.id + "/reverify", { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: state.verifyOpts.mode, timeout_sec: state.verifyOpts.timeout }) });
+      state.pleadingNotice[id] = banner(r.exportable ? "ok" : "warn", r.exportable ? "✓" : "!", r.exportable
+        ? r.label + " 重新查證後全部通過，可以匯出。" : r.label + " 重新查證後仍有 " + r.blocked_count + " 條未通過，未放行。");
+      await reloadDetailQuietly();
+    } catch (e) {
+      state.pleadingNotice[id] = banner("bad", "✗", "重新查證失敗：" + e.message);
+    }
+    state.pleadingBusy[id] = false;
+    if (state.caseId === id) renderPanel();
+  }
+  function pleadingEditor(d, ed) {
+    return card("編輯為新版本(基於 #" + ed.parentId + ")", [
+      h("p", { class: "detail-note", text: "存檔時原稿保留不動，另存為「律師編輯版」新版本。新增或改動的引用會當場重新查證(判例先比對本地語料庫再查司法院；法條查全國法規資料庫)；未通過者照實標示，該版本不能匯出。" }),
+      h("p", { class: "detail-note", text: "系統只辨識「法規名第N條」與「最高法院N年度台X字第N號」寫法；其他看起來像引用的文字(如其他法規、下級審字號)會標為無法查證、不放行。" }),
+      h("label", { class: "pleading-editor", for: "pleading-text" },
+        h("span", { class: "field-label", text: "訴狀內容" }),
+        (function () {
+          var ta = h("textarea", { id: "pleading-text", rows: "24", disabled: ed.busy ? true : null,
+            oninput: function (e) { ed.text = e.target.value; } });
+          ta.value = ed.text;
+          return ta;
+        })()),
+      ed.error ? banner("bad", "✗", "存檔失敗：" + ed.error) : null,
+      h("div", { class: "controls" },
+        h("button", { class: "btn primary", type: "button", disabled: ed.busy ? true : null, onclick: function () { savePleadingEdit(d, ed); },
+          text: ed.busy ? "查證中…" : "另存新版本並查證" }),
+        h("button", { class: "btn", type: "button", disabled: ed.busy ? true : null, text: "取消",
+          onclick: function () { delete state.pleadingEdit[d.case.case_id]; renderPanel(); } }))]);
+  }
 
-    var checks = p.citation_check;
-    var okN = checks.filter(function (c) { return c.db_record && c.db_record.status === "published"; }).length;
-    var rows = checks.map(function (c) {
-      var ok = c.db_record && c.db_record.status === "published";
-      return h("div", { class: "vrow" + (ok ? "" : " blocked") },
-        h("div", null, h("span", { class: "pill " + (ok ? "ok" : "bad") }, h("span", { "aria-hidden": "true", text: ok ? "✓" : "✗" }), ok ? "已查證通過" : "尚無查證通過紀錄")),
-        h("div", null, h("div", { class: "vrow-cite", text: c.citation_text }),
-          h("div", { class: "vrow-lines" }, c.db_record ? h("div", null, h("span", { class: "k", text: "查證紀錄：" }), statusLabel(c.db_record.status) + "(" + fmtTime(c.db_record.verified_at) + ")" +
-            (c.db_record.matched_by === "normalized" ? "；以同條文比對，對應紀錄「" + c.db_record.db_citation_text + "」" : "")) : null)),
-        h("div"));
-    });
-    var live = p.origin && p.origin.kind === "live";
-    return [head,
-      banner(live ? "ok" : "rec", live ? "⚡" : "⏺", [h("strong", { text: live ? "本次即時生成" : "錄製紀錄" }),
-        "：草稿產生於 " + fmtTime(p.generated_at) + (live ? "(UI 執行 #" + p.origin.run_id + ")" : "") +
-        (p.draft_count > 1 ? "；此案件共有 " + p.draft_count + " 份草稿，此處顯示最新一份" : "") + "。"]),
-      partyPleadingCard(d),
-      doc,
-      note ? card("系統補充說明(供律師參考，非訴狀正文)", paragraphs(note)) : null,
-      card("草稿內引用的查證狀態", [
-        h("div", { style: "margin-bottom:10px" }, okN === checks.length && checks.length ? chip("ok", "✓ " + okN + " / " + checks.length + " 條已查證通過") : chip("bad", "✗ " + okN + " / " + checks.length + " 條已查證通過")),
-        rows,
-        h("p", { class: "detail-note", text: "由草稿文字重新找出其中的法條與裁判字號，對照目前的查證紀錄。" })]),
+  function pleadingPanel(d) {
+    var vs = d.pleading_versions || [], id = d.case.case_id;
+    var lede = "骨架版：僅套用司法院官方起訴狀結構，直接帶入系統攻防結果原文，尚未經法律用語潤飾。可編輯為律師版本(原稿保留)，須由執業律師審核修訂、補正當事人資訊與證物清單後方可使用，不得逕行送出。";
+    if (!vs.length) return [panelHead("訴狀骨架初稿", null, lede), partyPleadingCard(d), emptyState("此案件尚未落地訴狀草稿。")];
+    var v = selectedVersion(d), ed = state.pleadingEdit[id], busy = state.pleadingBusy[id];
+    var exportUrl = API_BASE + "/api/cases/" + encodeURIComponent(id) + "/pleadings/" + v.id + "/export";
+    var out = [
+      panelHead("訴狀骨架初稿", versionChip(v), lede),
+      h("div", { class: "version-bar", role: "group", "aria-label": "訴狀版本" }, vs.map(function (x) {
+        return h("button", { class: "btn small", type: "button", "aria-pressed": String(x.id === v.id), disabled: ed ? true : null,
+          onclick: function () { state.pleadingSel[id] = x.id; renderPanel(); } },
+          x.label + (x.source === "system" ? (x.origin.kind === "live" ? "・⚡即時生成" : "・⏺錄製") : "・基於 #" + x.parent_id) +
+          (x.exportable ? "・✓" : "・✗ 未放行"));
+      })),
+      state.pleadingNotice[id] || null,
     ];
+    if (ed) { out.push(pleadingEditor(d, ed)); return out; }
+    var note = v.source === "system" ? splitDraftNote(v.draft_text).note : null;
+    out.push(versionBanner(v, d),
+      h("div", { class: "controls" },
+        h("button", { class: "btn", type: "button", disabled: busy ? true : null, text: "✎ 編輯為新版本",
+          onclick: function () { delete state.pleadingNotice[id]; state.pleadingEdit[id] = { parentId: v.id, text: editableText(v), busy: false, error: null }; renderPanel(); } }),
+        v.blocked_count ? h("button", { class: "btn", type: "button", disabled: busy ? true : null, onclick: function () { reverifyVersion(d, v); },
+          text: busy ? "查證中…" : "重新查證未通過的引用(" + v.blocked_count + " 條)" }) : null,
+        v.exportable ? h("a", { class: "btn primary", href: exportUrl, download: "" }, "匯出 .txt")
+          : h("button", { class: "btn primary", type: "button", disabled: true, text: "匯出 .txt" }),
+        v.exportable ? null : h("span", { class: "detail-note", text: "有 " + v.blocked_count + " 條引用未通過查證，未放行，不能匯出。" })),
+      partyPleadingCard(d),
+      pleadingDoc(v),
+      note ? card("系統補充說明(供律師參考，非訴狀正文)", paragraphs(note)) : null);
+    var okN = v.citation_check.length - v.blocked_count;
+    out.push(card("此版本的引用查證狀態", [
+      h("div", { style: "margin-bottom:10px" }, chip(v.blocked_count || !v.citation_check.length ? (v.blocked_count ? "bad" : "neutral") : "ok",
+        (v.blocked_count ? "✗ " : "✓ ") + okN + " / " + v.citation_check.length + " 條已查證通過")),
+      v.citation_check.map(function (c) { return pleadingCiteRow(c, v.source === "lawyer_edit"); }),
+      h("p", { class: "detail-note", text: v.source === "lawyer_edit"
+        ? "存檔時由版本文字重新找出引用並逐條查證；重新查證只處理未通過者。"
+        : "由草稿文字重新找出其中的法條與裁判字號，對照目前的查證紀錄。" })]));
+    return out;
   }
 
   function partyPleadingCard(d) {

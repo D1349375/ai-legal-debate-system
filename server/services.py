@@ -15,7 +15,7 @@ import time
 
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
-    latest_party_checks,
+    record_pleading_edit, latest_party_checks,
 )
 from sqlalchemy import func
 
@@ -298,6 +298,172 @@ def _pleading_citation_check(draft_text, lookup):
     return result
 
 
+# ───────────────────────── 訴狀版本(系統產生版 / 律師編輯版) ─────────────────────────
+
+# 嚴格規則(STATUTE_CITATION_RE / JUDGMENT_CITATION_RE)只認得查證引擎範圍內的寫法。律師自由編輯時可能寫其他法規、
+# 中文數字或下級審字號——這些「看起來像引用、但系統認不得」的文字不能因為認不得就默默放行，一律列為無法查證。
+_LOOSE_STATUTE_RE = re.compile(r"[一-鿿]{1,15}法第\s*[0-9０-９一二三四五六七八九十百千零〇]+\s*條"
+                               r"(?:\s*之\s*[0-9０-９一二三四五六七八九十]+)?")
+_LOOSE_JUDGMENT_RE = re.compile(r"[0-9０-９一二三四五六七八九十百]+\s*年度?\s*[一-鿿]{1,4}\s*字\s*第\s*"
+                                r"[0-9０-９一二三四五六七八九十百千]+\s*號")
+_CUT_CHARS = "依按據及與並且另又同如即參照見項款目之第、，,"  # 法規名之前常見的連接字，截在最後一個之後
+UNRECOGNIZED_NOTE = ("系統無法辨識此引用寫法，無法查證；請改寫為「法規名第N條」或「最高法院N年度台X字第N號」"
+                     "(查證範圍限民法、民事訴訟法等 8 部法規與最高法院裁判)")
+
+
+def extract_citations(text):
+    """依出現順序列出草稿中的引用(同一法條/判決只列一次)。recognized=False 表示看起來像引用但查證引擎認不得。"""
+    found, spans = [], []
+    for rx in (STATUTE_CITATION_RE, JUDGMENT_CITATION_RE):
+        for m in rx.finditer(text):
+            found.append((m.start(), m.group(0).strip(), True))
+            spans.append(m.span())
+    for rx in (_LOOSE_STATUTE_RE, _LOOSE_JUDGMENT_RE):
+        for m in rx.finditer(text):
+            if any(m.start() < e and s < m.end() for s, e in spans):
+                continue
+            t = m.group(0)
+            head = t.split("法第", 1)[0] if "法第" in t else ""
+            cut = max((head.rfind(ch) for ch in _CUT_CHARS), default=-1)
+            if 0 <= cut < len(head) - 1:
+                t = t[cut + 1:]
+            found.append((m.start(), t, False))
+            spans.append(m.span())
+    out, seen = [], set()
+    for _, t, ok in sorted(found):
+        key = _citation_key(t) if ok else ("unrecognized", t)
+        if key not in seen:
+            seen.add(key)
+            out.append({"citation_text": t, "recognized": ok, "key": key})
+    return out
+
+
+def _is_system(row):
+    return row.source in (None, "system")
+
+
+def _db_check(citations, lookup):
+    """依資料庫現有查證紀錄判定每條引用是否放行(系統產生版用；不連網)。"""
+    out = []
+    for c in citations:
+        rec = _db_record(lookup.get(c["key"]), c["citation_text"]) if c["recognized"] else None
+        status = rec["status"] if rec else ("unparseable" if not c["recognized"] else "no_record")
+        out.append({"citation_text": c["citation_text"], "recognized": c["recognized"], "status": status,
+                    "gate": "pass" if status == "published" else "blocked", "db_record": rec,
+                    "note": None if c["recognized"] else UNRECOGNIZED_NOTE})
+    return out
+
+
+def pleading_version(row, lookup, origin):
+    if _is_system(row):
+        check = _db_check(extract_citations(row.draft_text), lookup)
+        blocked = [c for c in check if c["gate"] != "pass"]
+        status = "published" if not blocked else "blocked"
+        version_origin = origin(row.generated_at)
+    else:
+        check = json.loads(row.citation_check_json or "[]")
+        blocked = [c for c in check if c["gate"] != "pass"]
+        status = row.citation_verification_status
+        version_origin = {"kind": "lawyer_edit"}
+    return {"id": row.id, "source": "system" if _is_system(row) else "lawyer_edit", "parent_id": row.parent_id,
+            "label": ("系統產生版" if _is_system(row) else "律師編輯版") + f" #{row.id}",
+            "generated_at": row.generated_at, "draft_text": row.draft_text, "origin": version_origin,
+            "status": status, "citation_check": check, "blocked_count": len(blocked),
+            "exportable": status == "published" and not blocked}
+
+
+def _verify_entries(session, citations, *, parent_keys, mode, timeout, recorded_checks, lookup):
+    entries, skip_live = [], False
+    for c in citations:
+        change = "unchanged" if c["key"] in parent_keys else "added"
+        rec = _db_record(lookup.get(c["key"]), c["citation_text"]) if c["recognized"] else None
+        if change == "unchanged" and rec and rec["status"] == "published":
+            entries.append({"citation_text": c["citation_text"], "recognized": True, "change": change,
+                            "status": "published", "gate": "pass", "verified_now": False,
+                            "verified_via": "previous_record", "db_record": rec,
+                            "note": f"沿用原稿引用，查證紀錄已通過({rec['verified_at']})"})
+            continue
+        r = verify_one(session, c["citation_text"], mode=mode, timeout=timeout, persist=True,
+                       skip_live=skip_live, recorded_checks=recorded_checks)
+        if r["live_attempt"]["outcome"] in ("timeout", "network_error"):
+            skip_live = True  # 同 UI 批次查證：網路不通後其餘改走本地，不逐條等逾時
+        entries.append({"citation_text": c["citation_text"], "recognized": c["recognized"], "change": change,
+                        "status": r["status"], "gate": r["gate"], "verified_now": True,
+                        "verified_via": r["verified_via"], "primary_source_url": r["primary_source_url"],
+                        "live_attempt": r["live_attempt"],
+                        "note": r["note"] if c["recognized"] else UNRECOGNIZED_NOTE})
+    return entries
+
+
+def save_pleading_edit(session, case_id, parent_id, draft_text, *, mode="auto", timeout=6.0, recorded_checks=None):
+    """律師編輯版另存新版本。新增或改動的引用(及原本就未通過者)當場重新查證；未通過者照實標示，該版本不得匯出。"""
+    parent = session.get(PleadingDraft, parent_id)
+    if parent is None or parent.case_id != case_id:
+        raise ValueError(f"{case_id} 找不到要編輯的訴狀版本 #{parent_id}")
+    parent_citations = extract_citations(parent.draft_text)
+    citations = extract_citations(draft_text)
+    entries = _verify_entries(session, citations, parent_keys={c["key"] for c in parent_citations}, mode=mode,
+                              timeout=timeout, recorded_checks=recorded_checks, lookup=_citation_lookup(session))
+    new_keys = {c["key"] for c in citations}
+    row = record_pleading_edit(session, case_id=case_id, parent_id=parent_id, draft_text=draft_text,
+                               citation_check=entries)
+    version = pleading_version(row, _citation_lookup(session), None)
+    version["removed_citations"] = [c["citation_text"] for c in parent_citations if c["key"] not in new_keys]
+    return version
+
+
+def reverify_pleading(session, case_id, version_id, *, mode="auto", timeout=6.0, recorded_checks=None):
+    """對某版本中尚未放行的引用重新查證(例如上次網路不通)。內文不變；律師版更新它存下的查證結果，
+    系統版的結果寫入 citation_verifications(同 CLI verify),原稿列本身不改寫。"""
+    row = session.get(PleadingDraft, version_id)
+    if row is None or row.case_id != case_id:
+        return None
+    lookup = _citation_lookup(session)
+    citations = extract_citations(row.draft_text)
+    if _is_system(row):
+        pending = [c for c, chk in zip(citations, _db_check(citations, lookup)) if chk["gate"] != "pass"]
+        _verify_entries(session, pending, parent_keys=set(), mode=mode, timeout=timeout,
+                        recorded_checks=recorded_checks, lookup=lookup)
+    else:
+        old = {e["citation_text"]: e for e in json.loads(row.citation_check_json or "[]")}
+        keep = [old[c["citation_text"]] for c in citations if old.get(c["citation_text"], {}).get("gate") == "pass"]
+        redo = [c for c in citations if old.get(c["citation_text"], {}).get("gate") != "pass"]
+        fresh = _verify_entries(session, redo, parent_keys=set(), mode=mode, timeout=timeout,
+                                recorded_checks=recorded_checks, lookup=lookup)
+        for e in fresh:
+            e["change"] = old.get(e["citation_text"], {}).get("change", e["change"])
+        order = {c["citation_text"]: i for i, c in enumerate(citations)}
+        entries = sorted(keep + fresh, key=lambda e: order[e["citation_text"]])
+        row.citation_check_json = json.dumps(entries, ensure_ascii=False)
+        row.citation_verification_status = "published" if all(e["gate"] == "pass" for e in entries) else "blocked"
+        session.commit()
+    return find_pleading_version(session, case_id, version_id)
+
+
+def find_pleading_version(session, case_id, version_id):
+    row = session.get(PleadingDraft, version_id)
+    if row is None or row.case_id != case_id:
+        return None
+    return pleading_version(row, _citation_lookup(session), _origin_resolver(_runs_for(session, case_id)))
+
+
+def export_pleading_text(case_id, version):
+    """匯出純文字。端點只對全部引用放行的版本呼叫；檔尾附版本、來源與查證資訊，與正文分開。"""
+    o = version["origin"]
+    source = ("律師在 UI 編輯後另存" + (f"(基於 #{version['parent_id']})" if version["parent_id"] else "")
+              if o["kind"] == "lawyer_edit" else
+              f"本次即時生成(UI 執行 #{o['run_id']},本機 Claude Code)" if o["kind"] == "live" else
+              "錄製紀錄(過去由 Claude Code subagent 產生後落地)")
+    lines = [version["draft_text"].rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
+             f"案件:{case_id}", f"版本:{version['label']}", f"來源:{source}",
+             f"產生／存檔時間:{version['generated_at']}", f"匯出時間:{_now_iso()}",
+             f"引用查證:{len(version['citation_check'])} 條，全部已查證通過"]
+    lines += [f"  - {c['citation_text']}:已查證通過" for c in version["citation_check"]]
+    lines += ["聲明：本稿為爭點分析後的訴狀骨架或其編輯稿，非法律意見，須經執業律師審核後方可使用。",
+              "查證僅確認條文／裁判字號存在，未比對判決全文是否支持該論點。"]
+    return "\n".join(lines) + "\n"
+
+
 def _progress(case_row, arguments, questions, verdict, pleading, citations):
     sides = lambda stage: len({a["side"] for a in arguments if a["stage"] == stage})  # noqa: E731
     published = sum(1 for c in citations if c["db_record"] and c["db_record"]["status"] == "published")
@@ -385,7 +551,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                      "facts_summary": payload.get("facts_summary", ""), "claims": payload.get("claims", ""),
                      "created_at": None, "source": "input_only"},
             "provenance": {"kind": "input_only", "model_ids": [], "first_recorded_at": None, "last_recorded_at": None},
-            "arguments": [], "questions": [], "verdict": None, "pleading": None, "citations": [],
+            "arguments": [], "questions": [], "verdict": None, "pleading": None, "pleading_versions": [], "citations": [],
             "citation_changes": [], "drift_detail": None,
             "progress": _progress(None, [], [], None, None, []),
             "stats": {"arguments": 0, "questions": 0, "citations": 0, "citations_published": 0},
@@ -419,17 +585,20 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "anchor_check": _anchor_check(anchor, arguments),
         }
 
-    pleading_row = (session.query(PleadingDraft).filter_by(case_id=case_id)
-                    .order_by(PleadingDraft.id.desc()).first())
+    pleading_rows = session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
+    system_rows = [r for r in pleading_rows if _is_system(r)]
     pleading = None
-    if pleading_row is not None:
+    if system_rows:
+        pleading_row = system_rows[-1]
         pleading = {
+            "id": pleading_row.id,
             "draft_text": pleading_row.draft_text, "generated_at": pleading_row.generated_at,
             "origin": origin(pleading_row.generated_at),
             "citation_verification_status": pleading_row.citation_verification_status,
-            "draft_count": session.query(PleadingDraft).filter_by(case_id=case_id).count(),
+            "draft_count": len(system_rows),
             "citation_check": _pleading_citation_check(pleading_row.draft_text, lookup),
         }
+    pleading_versions = [pleading_version(r, lookup, origin) for r in pleading_rows]
 
     citations = _collect_citations(arguments, lookup, recorded_checks)
     stamps = sorted([a["created_at"] for a in arguments] + [q["created_at"] for q in questions])
@@ -445,6 +614,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                        "first_recorded_at": stamps[0] if stamps else None,
                        "last_recorded_at": stamps[-1] if stamps else None},
         "arguments": arguments, "questions": questions, "verdict": verdict, "pleading": pleading,
+        "pleading_versions": pleading_versions,
         "citations": citations, "citation_changes": citation_changes(arguments),
         "drift_detail": drift_detail(arguments) if any(a["stage"] == 3 for a in arguments) else None,
         "progress": _progress(case_row, arguments, questions, verdict, pleading, citations),

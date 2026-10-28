@@ -9,10 +9,10 @@ UI 只重播這些錄製紀錄，並真實執行機械環節(finalize / verify)�
 import os
 import time
 from typing import Literal
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -58,6 +58,18 @@ class CreateCaseRequest(BaseModel):
     claims: str = Field(min_length=2, max_length=5000)
     plaintiff: PartyInput
     defendant: PartyInput
+
+
+class PleadingEditRequest(BaseModel):
+    parent_id: int
+    draft_text: str = Field(min_length=1, max_length=100000)
+    mode: Literal["auto", "offline"] = "auto"
+    timeout_sec: float = Field(default=6.0, ge=1.0, le=30.0)
+
+
+class ReverifyRequest(BaseModel):
+    mode: Literal["auto", "offline"] = "auto"
+    timeout_sec: float = Field(default=6.0, ge=1.0, le=30.0)
 
 
 class PartyCheckRequest(BaseModel):
@@ -189,6 +201,37 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
             return runner.cancel(run_id)
         except ValueError as e:
             raise HTTPException(409, str(e))
+
+    @app.post("/api/cases/{case_id}/pleadings", status_code=201, dependencies=[Depends(local_only)])
+    def save_pleading(case_id: str, req: PleadingEditRequest, db=Depends(get_db)):
+        if not req.draft_text.strip():
+            raise HTTPException(422, "訴狀內容不可為空白")
+        try:
+            return services.save_pleading_edit(db, case_id, req.parent_id, req.draft_text, mode=req.mode,
+                                               timeout=req.timeout_sec, recorded_checks=app.state.recorded_checks)
+        except ValueError as e:
+            raise HTTPException(404, str(e))
+
+    @app.post("/api/cases/{case_id}/pleadings/{version_id}/reverify", dependencies=[Depends(local_only)])
+    def reverify_pleading(case_id: str, version_id: int, req: ReverifyRequest, db=Depends(get_db)):
+        v = services.reverify_pleading(db, case_id, version_id, mode=req.mode, timeout=req.timeout_sec,
+                                       recorded_checks=app.state.recorded_checks)
+        if v is None:
+            raise HTTPException(404, f"找不到訴狀版本 #{version_id}")
+        return v
+
+    @app.get("/api/cases/{case_id}/pleadings/{version_id}/export")
+    def export_pleading(case_id: str, version_id: int, db=Depends(get_db)):
+        v = services.find_pleading_version(db, case_id, version_id)
+        if v is None:
+            raise HTTPException(404, f"找不到訴狀版本 #{version_id}")
+        if not v["exportable"]:
+            raise HTTPException(409, f"{v['label']} 有 {v['blocked_count']} 條引用未通過查證，未放行，不能匯出")
+        kind = "lawyer" if v["source"] == "lawyer_edit" else "system"
+        name = f"{case_id}_v{version_id}_{kind}.txt"
+        body = "\ufeff" + services.export_pleading_text(case_id, v)  # BOM:Windows 記事本正確辨識 UTF-8
+        return Response(body.encode("utf-8"), media_type="text/plain; charset=utf-8",
+                        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(name)}"})
 
     @app.post("/api/cases/{case_id}/finalize")
     def finalize(case_id: str, db=Depends(get_db)):

@@ -163,6 +163,27 @@ def record_pleading(session, *, case_id, draft_text, citations_used):
     return row
 
 
+def record_pleading_edit(session, *, case_id, parent_id, draft_text, citation_check):
+    """律師編輯版:另存一列新版本，原稿不動。
+
+    與 record_pleading 不同，這裡不以例外擋下未通過的引用——律師的編輯不能因網路逾時就消失——
+    而是照實把逐條查證結果存下來，有任何一條未通過即標為 blocked；匯出端點只放行 published。
+    citation_check 由呼叫端(server/services.py)逐條實際查證後產生，這裡不做任何「假設通過」。
+    """
+    parent = session.get(PleadingDraft, parent_id)
+    if parent is None or parent.case_id != case_id:
+        raise ValueError(f"{case_id} 找不到要編輯的訴狀版本 #{parent_id}")
+    if not draft_text.strip():
+        raise ValueError("訴狀內容不可為空白")
+    status = 'published' if all(c.get("gate") == "pass" for c in citation_check) else 'blocked'
+    row = PleadingDraft(case_id=case_id, draft_text=draft_text, citation_verification_status=status,
+                        generated_at=_now_iso(), source='lawyer_edit', parent_id=parent_id,
+                        citation_check_json=json.dumps(citation_check, ensure_ascii=False))
+    session.add(row)
+    session.commit()
+    return row
+
+
 def _citation_key(citation_text):
     """正規化引用字串為可比對的 identity tuple，供判斷「是否為同一法規/判決」。
 
