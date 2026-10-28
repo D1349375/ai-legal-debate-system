@@ -1,7 +1,7 @@
 """即時執行(server/live_run.py)的測試。
 
 不呼叫真的 Claude Code:以 tests/fake_claude.py 模擬 `claude -p --output-format stream-json` 的輸出，
-並把內容寫進後端交給子程序的同一顆暫存資料庫。真實執行(約 42 分鐘、數美元)不在自動測試範圍。
+並把內容寫進後端交給子程序的同一顆暫存資料庫。真實執行(2026-10-28 實測約 11 分鐘、估算 2.5 美元)不在自動測試範圍。
 """
 import os
 import sys
@@ -70,6 +70,12 @@ class TestLiveRun:
         assert r["run"]["cost_usd"] == 3.21 and r["active"] is False
         kinds = [e["kind"] for e in r["events"]]
         assert "landed" in kinds and "result" in kinds
+        texts = [e["text"] for e in r["events"]]
+        # 讀到 main.py 原始碼不算落地;多筆 result 只摘要一次，權限拒絕跨輪加總
+        assert not any("print(" in t for t in texts if t)
+        assert sum(1 for e in r["events"] if e["text"].startswith("Claude Code 回報完成")) == 1
+        assert any("共 2 輪" in t for t in texts) and any("1 次工具呼叫因權限不足被拒" in t for t in texts)
+        assert "全部完成" in texts and "Stage 1 已派出，等待完成" not in texts
         d = c.get(f"/api/cases/{case_id}").json()
         assert d["provenance"]["kind"] == "live_generated"
         assert {a["origin"]["kind"] for a in d["arguments"]} == {"live"}
@@ -91,10 +97,12 @@ class TestLiveRun:
         again = c2.get(f"/api/runs/{r['run']['id']}").json()
         assert again["events"] == r["events"] and again["event_count"] == r["event_count"]
         assert c2.get(f"/api/runs/{r['run']['id']}?since=3").json()["events"][0]["seq"] == 4
-        # 沒有事件摘要檔的舊執行：從 stream-json 重建(沒有時間)
+        # 沒有事件摘要檔的舊執行：從 stream-json 重建(沒有時間),result 一樣只摘要一次
         os.remove(run_dir / "events.jsonl")
         old = c2.get(f"/api/runs/{r['run']['id']}").json()
         assert any(e["kind"] == "landed" for e in old["events"]) and old["events"][0]["at"] is None
+        assert sum(1 for e in old["events"] if e["kind"] == "result") == 1
+        assert any("1 次工具呼叫因權限不足被拒" in e["text"] for e in old["events"])
 
     def test_cannot_rerun_case_with_landed_records(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch)
@@ -197,6 +205,12 @@ class TestCommandAndStream:
         read_source = {"type": "user", "message": {"content": [
             {"type": "tool_result", "content": [{"type": "text", "text": 'print(f"拒絕落地:{e}", file=sys.stderr)'}]}]}}
         assert live_run.summarize_event(read_source) == []
+        read_landed_source = {"type": "user", "message": {"content": [
+            {"type": "tool_result", "content": '    60\t    print(f"已落地論證 {row.case_id}")'}]}}
+        assert live_run.summarize_event(read_landed_source) == []
+        ok = {"type": "user", "message": {"content": [
+            {"type": "tool_result", "content": "已落地論證 c1 plaintiff stage1\n已落地論證 c1 defendant stage1"}]}}
+        assert live_run.summarize_event(ok)[0]["kind"] == "landed"
         res = live_run.summarize_event({"type": "result", "subtype": "error_max_turns", "is_error": True,
                                         "total_cost_usd": 2, "permission_denials": [{}, {}]})
         assert "回合上限" in res[0]["text"] and "2 次" in res[-1]["text"]

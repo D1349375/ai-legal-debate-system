@@ -46,17 +46,21 @@ def cmd_record(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
-    if "question_text" in payload:
-        row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
-                               target_side=payload["target_side"], based_on=payload["based_on"])
-        print(f"已落地訊問 {row.case_id} -> {row.target_side}")
-        return 0
-    row = record_argument(
-        session, case_id=payload["case_id"], side=payload["side"], stage=int(payload["stage"]),
-        position=payload["position"], reasoning=payload["reasoning"],
-        cited_statutes=payload.get("cited_statutes"), cited_precedents=payload.get("cited_precedents"),
-        falsifier=payload.get("falsifier"), model_id=payload.get("model_id"),
-    )
+    try:
+        if "question_text" in payload:
+            row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
+                                   target_side=payload["target_side"], based_on=payload["based_on"])
+            print(f"已落地訊問 {row.case_id} -> {row.target_side}")
+            return 0
+        row = record_argument(
+            session, case_id=payload["case_id"], side=payload["side"], stage=int(payload["stage"]),
+            position=payload["position"], reasoning=payload["reasoning"],
+            cited_statutes=payload.get("cited_statutes"), cited_precedents=payload.get("cited_precedents"),
+            falsifier=payload.get("falsifier"), model_id=payload.get("model_id"),
+        )
+    except ValueError as e:  # 如重複落地(不可覆寫):與 verdict/pleading 一致，印原因而非 traceback
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
     print(f"已落地論證 {row.case_id} {row.side} stage{row.stage}")
     return 0
 

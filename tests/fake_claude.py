@@ -87,7 +87,14 @@ def main():
                    mechanical_anchor_json=anchor, protocol_version="test", citations_used=[])
     record_pleading(s, case_id=case_id, draft_text="民事起訴狀\n訴之聲明\n一、被告應給付原告。", citations_used=[])
     landed(f"已落地訴狀草稿 {case_id}")
-    emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 3.21, "result": "全部完成"})
+    # 實測(2026-10-28):主 agent 會讀 main.py 原始碼(含「已落地」字樣,前有行號);
+    # subagent 在背景執行時，stream 結尾連續出現多筆 result,花費為累計值、權限拒絕只記在當輪
+    tool("Read", {"file_path": os.path.join(ROOT, "main.py")})
+    landed('    60\t    print(f"已落地論證 {row.case_id} {row.side} stage{row.stage}")')
+    emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 3.21, "result": "Stage 1 已派出，等待完成",
+          "permission_denials": [{"tool_name": "Bash", "tool_input": {"command": "for i in 1 2; do python main.py record; done"}}]})
+    emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 3.21, "result": "全部完成",
+          "permission_denials": []})
     return 0
 
 

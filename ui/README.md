@@ -32,14 +32,21 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
    落地紀錄不可覆寫,所以跑過(含失敗或取消)的案件不能重跑,請用「以此案件內容建立新案件」再建一件。
 2. 後端以無互動模式啟動 Claude Code(在專案目錄執行 `claude -p "/legal-debate <案件ID> …"`),權限只開到流程需要的範圍:
    `--permission-mode dontAsk`,允許 `Bash(python main.py *)`、`Skill(legal-debate *)`、Read、Grep、Glob、Agent,
-   寫檔只限 `database/live_runs/` 之下;其他工具呼叫一律自動拒絕,不會停下來等人核准。另加
+   寫檔只限 `database/live_runs/` 之下;其他工具呼叫一律自動拒絕,不會停下來等人核准。
+   Bash 的實際邊界(2026-10-28 以 Claude Code 2.1.312 實測):除 `python main.py …` 外,Claude Code 內建視為唯讀的指令(如 `ls`)也會放行,
+   把輸出導向 `database/live_runs/` 之下的檔案(`python main.py finalize … > database/live_runs/run-N/anchor.json`)也會放行;
+   shell 迴圈(`for … do python main.py …`)、`cd` 串接會被拒。導向寫到 `database/live_runs/` 以外會不會被拒沒有實測。另加
    `--setting-sources project --strict-mcp-config`,不載入使用者層設定與 MCP 伺服器。主 agent 與 subagent 都用 `--model` 指定的模型
    (subagent 以 `CLAUDE_CODE_SUBAGENT_MODEL` 指定),每次以 `--max-budget-usd` 限制花費。
-3. 同一時間只跑一件。實測一件約 40 分鐘、花費數美元。進度依「資料庫已落地的階段」計算,另顯示 Claude Code 的步驟紀錄;
+3. 同一時間只跑一件。2026-10-28 實測(Pro 訂閱帳號)一件約 11 分鐘、Claude Code 估算約 2.5 美元,
+   Claude 5 小時用量額度約用掉三成;此額度與同帳號其他 Claude Code 使用共用,用完時執行會以 HTTP 429 失敗(畫面會寫明)。
+   進度依「資料庫已落地的階段」計算,另顯示 Claude Code 的步驟紀錄;
    各階段落地後畫面自動更新。執行中可取消(終止整個程序樹),已落地的階段保留。
 4. 結束時依 Claude Code 的結果事件與資料庫實況判定:全部落地為「執行完成」;Claude Code 回報完成但資料庫仍缺階段為「流程不完整」;
    超過花費上限、程序異常結束、逾 120 分鐘為「執行失敗」,並寫出原因(含錯誤輸出末段);後端在執行途中重啟則標為「執行中斷」。
-5. 每次執行的完整原始輸出(stream-json)與暫存檔存在 `database/live_runs/run-<N>/`(已列入 `.gitignore`)。
+5. 每次執行的完整原始輸出(`stream.jsonl`)、畫面上的步驟紀錄(`events.jsonl`,結束或重啟後照原序號與時間重播)與暫存檔
+   存在 `database/live_runs/run-<N>/`(已列入 `.gitignore`)。subagent 在背景執行時,主 agent 會分成多輪、stream 結尾有多筆結果事件;
+   花費與 token 用量取最後一筆的累計值,權限拒絕次數則逐輪加總。
 6. 已知限制:`--max-budget-usd` 是 Claude Code 用戶端的估算值,可能略為超出;官方文件沒有說明訂閱(OAuth)帳號是否同樣適用。
    Windows 上透過 `taskkill /T /F` 終止程序樹。
 
@@ -102,4 +109,4 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 python -m pytest -q -m "not network"
 ```
 
-即時執行的測試以 `tests/fake_claude.py` 模擬 Claude Code 的 stream-json 輸出,不呼叫任何模型、不花費;真實執行(約 40 分鐘、數美元)不在自動測試範圍。
+即時執行的測試以 `tests/fake_claude.py` 模擬 Claude Code 的 stream-json 輸出,不呼叫任何模型、不花費;真實執行(實測約 11 分鐘、估算 2.5 美元)不在自動測試範圍。

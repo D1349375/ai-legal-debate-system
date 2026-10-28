@@ -12,6 +12,7 @@
 import datetime
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -26,6 +27,7 @@ DEFAULT_BUDGET_USD = 15.0
 DEFAULT_MAX_MINUTES = 120
 RUNS_DIR_REL = "database/live_runs"
 EVENTS_FILE = "events.jsonl"
+LANDED_LINE = re.compile(r"(?m)^\s*已落地")
 MEMORY_EVENTS = 400
 
 # --allowedTools:Bash 規則會把 && ; | 等複合指令拆開逐段比對，任何一段不是 `python main.py` 即被拒。
@@ -154,7 +156,7 @@ def summarize_event(obj, root="."):
                 out.append(("error", _short(text, 300)))
             elif block.get("is_error"):
                 out.append(("warn", f"工具回報錯誤:{_short(text, 240)}"))
-            elif "已落地" in text:
+            elif LANDED_LINE.search(text):  # main.py 的輸出以「已落地」開頭；讀到原始碼時前面有行號，不算
                 out.append(("landed", _short(text, 200)))
     elif kind == "result":
         cost = obj.get("total_cost_usd")
@@ -169,6 +171,21 @@ def summarize_event(obj, root="."):
         if denials:
             out.append(("warn", f"本次共有 {len(denials)} 次工具呼叫因權限不足被拒"))
     return [{"kind": k, "text": t, "subagent": sub} for k, t in out]
+
+
+def summarize_results(results):
+    """整次執行的 result 事件摘要。subagent 在背景執行時(實測 CLI 2.1.312),主 agent 每等一批就結束一輪，
+    stream 結尾會連續出現多筆 result:花費與 modelUsage 是累計值，權限拒絕只記在當輪。所以只摘要最後一筆，
+    權限拒絕次數全部加總。"""
+    if not results:
+        return []
+    merged = dict(results[-1])
+    merged["permission_denials"] = [d for r in results for d in (r.get("permission_denials") or [])]
+    events = summarize_event(merged)
+    if len(results) > 1:
+        events.insert(1, {"kind": "info", "subagent": False,
+                          "text": f"主 agent 共 {len(results)} 輪(subagent 在背景執行，每批完成後再開一輪);以下為最後一輪的回覆"})
+    return events
 
 
 def result_error(obj):
@@ -244,7 +261,8 @@ class _Active:
         self.seq = 0
         self.cancel_requested = False
         self.timed_out = False
-        self.result = None
+        self.result = None  # 最後一筆 result 事件
+        self.results = []
         self.lock = threading.Lock()
         self.thread = None
 
@@ -395,10 +413,14 @@ class LiveRunManager:
                         obj = json.loads(raw.decode("utf-8", "replace"))
                     except ValueError:
                         continue
-                    if obj.get("type") == "result":
+                    if obj.get("type") == "result":  # 可能有多筆，結束後一起摘要(見 summarize_results)
+                        active.results.append(obj)
                         active.result = obj
+                        continue
                     for ev in summarize_event(obj, self.root):
                         self._append(active, ev["kind"], ev["text"], ev["subagent"])
+            for ev in summarize_results(active.results):
+                self._append(active, ev["kind"], ev["text"], ev["subagent"])
             code = active.proc.wait()
         finally:
             watchdog.cancel()
@@ -501,6 +523,7 @@ class LiveRunManager:
             if events:
                 total = events[-1]["seq"]
                 return [e for e in events if e["seq"] > since][-MEMORY_EVENTS:], total
+        results = []
         try:
             with open(self._log_abs(log_rel), "rb") as f:
                 for raw in f:
@@ -508,10 +531,15 @@ class LiveRunManager:
                         obj = json.loads(raw.decode("utf-8", "replace"))
                     except ValueError:
                         continue
+                    if obj.get("type") == "result":
+                        results.append(obj)
+                        continue
                     for ev in summarize_event(obj, self.root):
                         events.append({"seq": len(events) + 1, "at": None, **ev})
         except OSError:
             return events, 0
+        for ev in summarize_results(results):
+            events.append({"seq": len(events) + 1, "at": None, **ev})
         total = len(events)
         return [e for e in events if e["seq"] > since][-MEMORY_EVENTS:], total
 

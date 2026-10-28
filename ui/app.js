@@ -899,8 +899,8 @@
   // (Skill 名稱、Phase 編號、weak_points/position_drift/falsifier 等)，這裡只做
   // 「代換為中性中文說法／移除純內部備註」的顯示層清理，不更動實質法律內容或數值。
   // 順序有意義：先代換較長的複合代號，再代換其後可能單獨殘留的字詞(如「該 Skill」)。
+  // 【…】不在此清理：錄製評估用它標爭點標題，即時生成的訴狀用它寫舉證缺口與待調閱證據(含引用)，都是實質內容。
   var TEXT_JARGON = [
-    [/【[^】]*】/g, ""],
     [/taiwan-legal-pleading(\s*Skill)?/gi, "系統潤飾規則"],
     [/legal-debate\s*skill/gi, "系統流程"],
     [/engine\/verify\.py/gi, "查證程式"],
@@ -924,6 +924,7 @@
   }
   function cleanDraftNote(raw) {
     return delabelJargon(raw)
+      .replace(/【(?:骨架版聲明|本稿產出說明)[^】]*】/g, "")  // 附註區塊的標頭，畫面另有標題
       .replace(/^-{2,}\s*$/gm, "")
       .split("\n").map(function (l) { return l.replace(/^[-•]\s*/, "").trim(); })
       .filter(function (l) { return l && l !== "。" && !/^骨架版[,，]?.*潤飾[。.]?$/.test(l); })
@@ -951,10 +952,14 @@
   }
   function pleadingDoc(v) {
     var system = v.source === "system";
-    var lines = (system ? delabelJargon(splitDraftNote(v.draft_text).body) : v.draft_text).replace(/\s+$/, "").split("\n");
+    var lines = (system ? delabelJargon(splitDraftNote(v.draft_text).body) : v.draft_text).replace(/^\s+|\s+$/g, "").split("\n");
+    // 標題是第一個不是整行【…】的行；之前的整行【…】(如即時生成稿開頭的骨架版說明)照原文列在標題上方
+    var titleIdx = 0;
+    while (titleIdx < lines.length - 1 && (!lines[titleIdx].trim() || /^【[^】]*】$/.test(lines[titleIdx].trim()))) titleIdx++;
     return h("div", { class: "pleading-doc" },
       lines.map(function (ln, i) {
-        if (i === 0) return [
+        if (i < titleIdx) return ln.trim() ? h("div", { class: "pl-line", text: ln }) : null;
+        if (i === titleIdx) return [
           h("div", { class: "pl-title", text: ln.replace(/[（(][\s\S]*[）)]\s*$/, "").trim() || "民事起訴狀" }),
           h("div", { class: "pl-subtitle", text: system ? "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" : "律師編輯版．須經律師審核後使用" }),
         ];
@@ -1248,7 +1253,7 @@
   async function startRun(d) {
     var hl = liveInfo(), id = d.case.case_id;
     var ok = window.confirm("即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程。\n\n" +
-      "・實測一件約 40 分鐘、花費數美元；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
+      "・實測一件約 11 分鐘、估算約 2.5 美元(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
       "・執行中可取消；已落地的階段會保留，同一案件之後不能重跑。\n\n確定開始？");
     if (!ok) return;
     state.liveBusy[id] = true; delete state.caseNotices[id]; renderPanel();
@@ -1325,7 +1330,7 @@
       } else {
         body.push(h("p", { class: "detail-note", text: "按下後，後端在這台電腦以你的 Claude 帳號啟動 Claude Code(無互動模式，模型 " + hl.model +
             ")，依 legal-debate 流程跑完：起訴審查 → Stage 1 → 法官訊問 → Stage 2 → Stage 3 → 機械彙整 → 爭點評估 → 引用查證 → 訴狀骨架。" +
-            "只允許它執行 python main.py 指令、讀取專案檔案、派出 subagent。實測一件約 40 分鐘、花費數美元，每次上限 " + hl.budget_usd + " 美元。" }),
+            "只允許它執行 python main.py 指令、讀取專案檔案、派出 subagent。實測一件約 11 分鐘、估算約 2.5 美元(訂閱帳號會占用用量額度)，每次上限 " + hl.budget_usd + " 美元。" }),
           h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] ? true : null,
             onclick: function () { startRun(d); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
             state.liveBusy[d.case.case_id] ? "啟動中…" : "開始即時執行"));
