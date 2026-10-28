@@ -25,6 +25,7 @@ DEFAULT_MODEL = "claude-sonnet-5-5"
 DEFAULT_BUDGET_USD = 15.0
 DEFAULT_MAX_MINUTES = 120
 RUNS_DIR_REL = "database/live_runs"
+EVENTS_FILE = "events.jsonl"
 MEMORY_EVENTS = 400
 
 # --allowedTools:Bash 規則會把 && ; | 等複合指令拆開逐段比對，任何一段不是 `python main.py` 即被拒。
@@ -148,7 +149,8 @@ def summarize_event(obj, root="."):
             if not isinstance(block, dict) or block.get("type") != "tool_result":
                 continue
             text = _tool_result_text(block)
-            if "拒絕落地" in text:
+            # main.py 拒絕落地時 exit 1,工具結果必為 is_error;只看字樣會把讀到 main.py 原始碼誤判成錯誤
+            if block.get("is_error") and "拒絕落地" in text:
                 out.append(("error", _short(text, 300)))
             elif block.get("is_error"):
                 out.append(("warn", f"工具回報錯誤:{_short(text, 240)}"))
@@ -174,6 +176,10 @@ def result_error(obj):
     if obj.get("subtype") in RESULT_ERRORS:
         return RESULT_ERRORS[obj["subtype"]]
     detail = _short(obj.get("result"), 300) or obj.get("terminal_reason") or obj.get("subtype") or "未說明"
+    if obj.get("api_error_status") == 429:
+        # 實測訂閱帳號用完 session 額度時:is_error + api_error_status 429,result 為 "You've hit your session limit · resets …"
+        return (f"Claude 帳號已達用量上限或速率限制(HTTP 429):{detail}。此額度與同一帳號的其他 Claude Code 使用共用;"
+                "已落地的階段保留，額度重置後請以「以此案件內容建立新案件」重跑")
     return f"Claude Code 回報錯誤:{detail}"
 
 
@@ -231,8 +237,9 @@ def _kill_tree(proc):
 
 
 class _Active:
-    def __init__(self, run_id, case_id, proc):
+    def __init__(self, run_id, case_id, proc, events_path=None):
         self.run_id, self.case_id, self.proc = run_id, case_id, proc
+        self.events_path = events_path
         self.events = []
         self.seq = 0
         self.cancel_requested = False
@@ -354,7 +361,7 @@ class LiveRunManager:
                 stderr_file.close()
                 self._finish(run_id, "failed", error=f"無法啟動 Claude Code:{e}")
                 raise ValueError(f"無法啟動 Claude Code:{e}")
-            active = _Active(run_id, case_id, proc)
+            active = _Active(run_id, case_id, proc, events_path=os.path.join(abs_dir, EVENTS_FILE))
             self._active = active
             self._append(active, "info", f"已啟動執行 #{run_id}(模型 {self.model},花費上限 {self.budget_usd:g} 美元)")
             active.thread = threading.Thread(target=self._pump, args=(active, stderr_file, abs_dir), daemon=True)
@@ -364,8 +371,16 @@ class LiveRunManager:
     def _append(self, active, kind, text, subagent=False):
         with active.lock:
             active.seq += 1
-            active.events.append({"seq": active.seq, "at": _now_iso(), "kind": kind, "text": text, "subagent": subagent})
+            ev = {"seq": active.seq, "at": _now_iso(), "kind": kind, "text": text, "subagent": subagent}
+            active.events.append(ev)
             del active.events[:-MEMORY_EVENTS]
+            if active.events_path:
+                # 另存摘要：結束後(含重啟後)照原序號與時間重播，並保留啟動與結論兩則 stream-json 沒有的事件
+                try:
+                    with open(active.events_path, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(ev, ensure_ascii=False) + "\n")
+                except OSError:
+                    pass
 
     def _pump(self, active, stderr_file, abs_dir):
         watchdog = threading.Timer(self.max_minutes * 60, self._timeout, args=(active,))
@@ -471,10 +486,21 @@ class LiveRunManager:
         return {"run": run, "events": events, "event_count": total, "active": run["status"] == "running"}
 
     def _events_from_log(self, log_rel, since):
-        """已結束的執行：從存檔的 stream-json 重建摘要(重啟後仍看得到失敗原因與過程)。"""
+        """已結束的執行：讀執行期間另存的事件摘要(重啟後仍看得到失敗原因與過程);
+        沒有該檔的舊執行才從 stream-json 重建(沒有時間，也沒有啟動與結論兩則)。"""
         events = []
         if not log_rel:
             return events, 0
+        events_path = os.path.join(os.path.dirname(self._log_abs(log_rel)), EVENTS_FILE)
+        if os.path.exists(events_path):
+            try:
+                with open(events_path, encoding="utf-8") as f:
+                    events = [json.loads(line) for line in f if line.strip()]
+            except (OSError, ValueError):
+                events = []
+            if events:
+                total = events[-1]["seq"]
+                return [e for e in events if e["seq"] > since][-MEMORY_EVENTS:], total
         try:
             with open(self._log_abs(log_rel), "rb") as f:
                 for raw in f:

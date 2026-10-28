@@ -95,7 +95,7 @@ def procedural_issues(party_checks):
         result = (party_checks or {}).get(role)
         if not result:
             parties[role] = None
-            notes.append(f"{label}尚未查核商工登記（自然人當事人無統編，不適用）；不得據此推定{label}無當事人能力或法定代理問題。")
+            notes.append(f"{label}尚未查核商工登記（未提供統一編號；自然人無統編，不適用查核）；不得據此推定{label}無當事人能力或法定代理問題。")
             continue
         parties[role] = {"ban": result.get("ban"), "name": result.get("name"), "status_text": result.get("status_text"),
                          "query_status": result.get("query_status"), "via": result.get("via"),

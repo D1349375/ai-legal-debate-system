@@ -80,11 +80,21 @@ class TestLiveRun:
         assert c.get("/api/cases/rec1").json()["provenance"]["kind"] == "recorded_replay"
         listed = {x["case_id"]: x for x in c.get("/api/cases").json()["cases"]}
         assert listed[case_id]["last_run_status"] == "succeeded" and listed["rec1"]["last_run_status"] is None
-        # 執行紀錄存檔：重新啟動後仍能從 stream-json 重建過程
-        assert os.path.isfile(tmp_path / "runs" / f"run-{r['run']['id']}" / "stream.jsonl")
+        # 結束後的事件照原序號與時間，含啟動與結論兩則(stream-json 沒有)
+        assert [e["seq"] for e in r["events"]] == list(range(1, r["event_count"] + 1))
+        assert all(e["at"] for e in r["events"])
+        assert r["events"][0]["text"].startswith("已啟動執行") and r["events"][-1]["text"].startswith("執行完成")
+        # 執行紀錄存檔：重新啟動後仍看得到同樣的過程
+        run_dir = tmp_path / "runs" / f"run-{r['run']['id']}"
+        assert os.path.isfile(run_dir / "stream.jsonl")
         c2 = make_client(db_url, tmp_path, monkeypatch)
         again = c2.get(f"/api/runs/{r['run']['id']}").json()
-        assert any(e["kind"] == "landed" for e in again["events"])
+        assert again["events"] == r["events"] and again["event_count"] == r["event_count"]
+        assert c2.get(f"/api/runs/{r['run']['id']}?since=3").json()["events"][0]["seq"] == 4
+        # 沒有事件摘要檔的舊執行：從 stream-json 重建(沒有時間)
+        os.remove(run_dir / "events.jsonl")
+        old = c2.get(f"/api/runs/{r['run']['id']}").json()
+        assert any(e["kind"] == "landed" for e in old["events"]) and old["events"][0]["at"] is None
 
     def test_cannot_rerun_case_with_landed_records(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch)
@@ -183,10 +193,22 @@ class TestCommandAndStream:
         rejected = {"type": "user", "message": {"content": [
             {"type": "tool_result", "content": [{"type": "text", "text": "拒絕落地:以下引用尚未查證"}], "is_error": True}]}}
         assert live_run.summarize_event(rejected)[0]["kind"] == "error"
+        # 實測:讀到 main.py 原始碼(含「拒絕落地」字樣)曾被誤判為錯誤
+        read_source = {"type": "user", "message": {"content": [
+            {"type": "tool_result", "content": [{"type": "text", "text": 'print(f"拒絕落地:{e}", file=sys.stderr)'}]}]}}
+        assert live_run.summarize_event(read_source) == []
         res = live_run.summarize_event({"type": "result", "subtype": "error_max_turns", "is_error": True,
                                         "total_cost_usd": 2, "permission_denials": [{}, {}]})
         assert "回合上限" in res[0]["text"] and "2 次" in res[-1]["text"]
         assert live_run.summarize_event({"type": "stream_event"}) == []
+
+    def test_usage_limit_is_explained(self):
+        # 2026-10-28 Pro 訂閱實跑時的 result 事件(節錄)
+        limit = {"type": "result", "subtype": "success", "is_error": True, "api_error_status": 429,
+                 "terminal_reason": "api_error", "result": "You've hit your session limit · resets 7pm (Asia/Taipei)"}
+        text = live_run.result_error(limit)
+        assert "用量上限" in text and "resets 7pm" in text and "建立新案件" in text
+        assert "用量上限" not in live_run.result_error({**limit, "api_error_status": 401, "result": "OAuth session expired"})
 
     def test_claude_cmd_wrapper_is_not_called_directly(self, tmp_path, monkeypatch):
         cmd = tmp_path / "claude.cmd"

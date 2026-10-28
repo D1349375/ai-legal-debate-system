@@ -57,6 +57,8 @@ def test_unchecked_or_failed_party_is_a_note_never_a_clean_bill():
     view = party_issues.procedural_issues({"plaintiff": None, "defendant": failed})
     assert view["issues"] == []
     assert any("原告尚未查核" in n and "不得據此推定" in n for n in view["notes"])
+    # 沒給統編不等於自然人(實跑時原告是公司但未填統編)
+    assert any("未提供統一編號" in n and "自然人當事人無統編" not in n for n in view["notes"])
     assert any("被告商工查核未完成" in n and "公司登記基本資料" in n for n in view["notes"])
     assert party_issues.procedural_issues(None)["parties"] == {"plaintiff": None, "defendant": None}
 
