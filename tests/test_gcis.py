@@ -527,3 +527,69 @@ def test_live_keyword_needs_human_selection():
     result = gcis.search_companies("台積電")
     assert result["ok"] and any("台積電機" in row.get("Company_Name", "") or
                                 "台積電梯" in row.get("Company_Name", "") for row in result["rows"])
+
+
+def _status_query(rows_by_code, busy_once=(), fail=()):
+    """假的 _query:依 Company_Status 代碼回應；busy_once 的代碼第一次回連線數超限，fail 的代碼一律逾時。"""
+    filters, busy_left = [], set(busy_once)
+
+    def fake_query(dataset, filter_text, **kwargs):
+        filters.append(filter_text)
+        code = filter_text.rsplit("eq ", 1)[1]
+        if code in busy_left:
+            busy_left.discard(code)
+            return {**response("keyword", ok=False), "error": "商工資料連線或回應錯誤：ValueError: API 回應不是 JSON:超出同時最大連線數量。"}
+        if code in fail:
+            return response("keyword", ok=False)
+        return response("keyword", rows_by_code.get(code, []))
+    return fake_query, filters
+
+
+def test_name_search_finds_dissolved_companies_status_by_status(monkeypatch):
+    # 2026-10-29 實測：不帶 Company_Status 回 0 筆、`ne 01` 被忽略，只能逐一 eq 02–33
+    fake, filters = _status_query({
+        "01": [{"Business_Accounting_NO": "11111111", "Company_Name": "宏達甲有限公司", "Company_Status_Desc": "核准設立"}],
+        "04": [{"Business_Accounting_NO": "00848202", "Company_Name": "宏達乙有限公司", "Company_Status_Desc": "解散"}],
+        "09": [{"Business_Accounting_NO": "12727674", "Company_Name": "宏達丙股份有限公司", "Company_Status_Desc": "廢止"}]},
+        busy_once={"09"})
+    monkeypatch.setattr(gcis, "_query", fake)
+    monkeypatch.setattr(gcis.time, "sleep", lambda s: None)
+    from server import services
+    active = services.party_search("宏達")
+    assert filters == ["Company_Name like 宏達 and Company_Status eq 01"]
+    assert [(c["ban"], c["status_normal"]) for c in active["candidates"]] == [("11111111", True)]
+    filters.clear()
+    other = services.party_search("宏達", scope="inactive")
+    assert [f.rsplit("eq ", 1)[1] for f in filters] == [f"{i:02d}" for i in range(2, 10)] + ["09"] + [f"{i:02d}" for i in range(10, 34)]
+    assert all(" ne " not in f for f in filters)
+    assert [(c["ban"], c["status_text"], c["status_normal"]) for c in other["candidates"]] == [
+        ("00848202", "解散", False), ("12727674", "廢止", False)]
+    assert other["ok"] is True and other["failed_statuses"] == [] and other["error"] is None
+
+
+def test_name_search_reports_failed_statuses(monkeypatch):
+    fake, _ = _status_query({"04": [{"Business_Accounting_NO": "00848202", "Company_Name": "乙有限公司",
+                                     "Company_Status_Desc": "解散"}]}, fail={"05", "11"})
+    monkeypatch.setattr(gcis, "_query", fake)
+    result = gcis.search_companies_inactive("乙")
+    assert result["ok"] is True and result["failed_statuses"] == ["05", "11"]
+    assert "2 種狀態查詢失敗" in result["error"] and "逾時" in result["error"] and len(result["rows"]) == 1
+    fake, _ = _status_query({}, fail=set(gcis.INACTIVE_STATUS_CODES))
+    monkeypatch.setattr(gcis, "_query", fake)
+    assert gcis.search_companies_inactive("乙")["ok"] is False
+
+
+def test_non_json_body_is_an_error_not_empty(monkeypatch):
+    class Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return "超出同時最大連線數量。".encode("utf-8")
+
+    monkeypatch.setattr(gcis.urllib.request, "urlopen", lambda *a, **k: Resp())
+    result = gcis.search_companies("宏達")
+    assert result["ok"] is False and gcis.BUSY_MARK in result["error"]

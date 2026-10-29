@@ -172,7 +172,7 @@
   }
   function partyState(caseId, role) {
     var key = caseId + ":" + role;
-    if (!state.parties[key]) state.parties[key] = { ban: "", inputName: "", searchOpen: false, query: "", search: null, busy: false, searching: false, error: null, result: null };
+    if (!state.parties[key]) state.parties[key] = { ban: "", inputName: "", searchOpen: false, query: "", search: null, more: null, searchingMore: false, searchSeq: 0, busy: false, searching: false, error: null, result: null };
     return state.parties[key];
   }
   function citeIndex(d) {
@@ -435,13 +435,32 @@
     pieces.push(partySourceFooter(result));
     return h("div", { class: "party-result" }, pieces);
   }
+  function candidateButton(p) {
+    return function (c) { return h("button", {
+      class: "party-candidate" + (c.status_normal ? "" : " inactive"), type: "button",
+      onclick: function () { p.ban = c.ban; p.searchOpen = false; renderPanel(); },
+    }, h("strong", {}, c.name || "未提供名稱", c.status_normal ? null
+        : h("span", { class: "chip bad", text: "⚠ " + (c.status_text || "狀態未提供") + "（非核准設立）" })),
+    h("span", { text: "統編 " + c.ban + "　" + (c.status_text || "狀態未提供") }),
+    h("span", { text: c.address || "地址未提供" })); };
+  }
   async function searchParty(role) {
     var d = state.detail, p = partyState(d.case.case_id, role);
     if (p.query.trim().length < 2) { p.error = "公司名稱關鍵字至少 2 個字"; renderPanel(); return; }
-    p.searching = true; p.error = null; p.search = null; renderPanel();
-    try { p.search = await api("/api/party-search?q=" + encodeURIComponent(p.query.trim())); }
+    var seq = ++p.searchSeq, q = encodeURIComponent(p.query.trim());
+    p.searching = true; p.error = null; p.search = null; p.more = null; renderPanel();
+    try { p.search = await api("/api/party-search?q=" + q); }
     catch (e) { p.error = e.message; }
     p.searching = false;
+    if (seq !== p.searchSeq) return;
+    // 核准設立以外的狀態(已解散、廢止等)要逐一查 32 種狀態，較慢，先顯示核准設立的結果再補上
+    p.searchingMore = !p.error;
+    if (state.detail === d) renderPanel();
+    if (p.error) return;
+    try { var more = await api("/api/party-search?scope=inactive&q=" + q); }
+    catch (e) { more = { ok: false, error: e.message, candidates: [], failed_statuses: [] }; }
+    if (seq !== p.searchSeq) return;
+    p.more = more; p.searchingMore = false;
     if (state.detail === d) renderPanel();
   }
   async function checkParty(role) {
@@ -474,10 +493,15 @@
             onclick: function () { searchParty(role); }, text: p.searching ? "搜尋中…" : "搜尋候選" })),
         p.search && !p.search.ok ? banner("bad", "✗", "搜尋失敗：" + p.search.error) : null,
         p.search && p.search.ok ? [
-          p.search.candidates.length ? p.search.candidates.map(function (c) { return h("button", {
-            class: "party-candidate", type: "button", onclick: function () { p.ban = c.ban; p.searchOpen = false; renderPanel(); },
-          }, h("strong", { text: c.name || "未提供名稱" }), h("span", { text: "統編 " + c.ban + "　" + (c.status_text || "狀態未提供") }),
-          h("span", { text: c.address || "地址未提供" })); }) : h("p", { class: "detail-note", text: "沒有候選公司；請改用統編查核。" }),
+          p.search.candidates.length ? p.search.candidates.map(candidateButton(p)) : null,
+          p.searchingMore ? banner("warn", "⏱", "正在逐一查詢核准設立以外的 32 種公司狀態(已解散、廢止、撤銷等)，約需 20–30 秒…") : null,
+          p.more && p.more.candidates.length ? [h("p", { class: "detail-note", text: "以下為核准設立以外的狀態，不是正常營業中的公司：" }),
+            p.more.candidates.map(candidateButton(p))] : null,
+          p.more && !p.more.ok ? banner("warn", "⚠", "其他狀態(已解散等)查詢失敗，以下結果只含核准設立的公司：" + p.more.error) : null,
+          p.more && p.more.ok && p.more.failed_statuses.length ? banner("warn", "⚠", "其他狀態有 " + p.more.failed_statuses.length +
+            " 種查詢失敗，已解散等候選可能不完整：" + p.more.error) : null,
+          !p.searchingMore && !p.search.candidates.length && !(p.more && p.more.candidates.length)
+            ? h("p", { class: "detail-note", text: "沒有候選公司；請改用統編查核。" }) : null,
           partySourceFooter(p.search)] : null) : null,
       p.error ? banner("bad", "✗", ["查詢失敗：" + p.error, h("button", { class: "btn small", type: "button", onclick: function () { checkParty(role); }, text: "重試" })]) : null,
       p.busy ? banner("warn", "⏱", "查詢中…") : null,

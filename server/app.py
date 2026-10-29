@@ -263,10 +263,10 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
                                         persist=req.persist, recorded_party_checks=app.state.recorded_party_checks)
 
     @app.get("/api/party-search")
-    def party_search(q: str = Query(...), db=Depends(get_db)):
+    def party_search(q: str = Query(...), scope: str = Query("active", pattern="^(active|inactive)$"), db=Depends(get_db)):
         if len(q.strip()) < 2:
             raise HTTPException(422, "公司名稱關鍵字至少 2 個字")
-        return services.party_search(q.strip())
+        return services.party_search(q.strip(), scope=scope)
 
     @app.get("/", include_in_schema=False)
     def index():

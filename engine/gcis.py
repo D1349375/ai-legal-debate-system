@@ -2,6 +2,7 @@
 import datetime
 import json
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -16,6 +17,8 @@ DATASETS = {
     "business": ("426D5542-5F05-43EB-83F9-F1300F14E1F1", "商業登記基本資料-應用三", "https://data.gcis.nat.gov.tw/od/detail?oid=06BCF9F6-A6D0-4F82-A1F2-EA08144D7057"),
 }
 ATTRIBUTION = "提供機關/經濟部商業發展署"
+INACTIVE_STATUS_CODES = tuple(f"{i:02d}" for i in range(2, 34))  # 01 為核准設立(外國公司為核准登記)
+BUSY_MARK = "超出同時最大連線數量"
 HEADERS = {"User-Agent": "Mozilla/5.0 (LegalDebate party check; official open data)", "Accept": "application/json"}
 
 
@@ -38,6 +41,8 @@ def _query(dataset, filter_text, *, top=1, timeout=6):
         req = urllib.request.Request(url, headers=HEADERS)
         with urllib.request.urlopen(req, timeout=timeout) as response:
             body = response.read().decode("utf-8-sig").strip()
+        if body and body[0] not in "[{":  # 例如連線數超過上限時回純文字「超出同時最大連線數量。」
+            raise ValueError(f"API 回應不是 JSON:{body[:60]}")
         rows = json.loads(body) if body else []
         if not isinstance(rows, list):
             raise ValueError("API 回應不是資料陣列")
@@ -69,10 +74,40 @@ def business_basic(ban, timeout=6):
     return _query("business", f"President_No eq {ban}", timeout=timeout)
 
 
-def search_companies(keyword, top=10, timeout=6):
+def search_companies(keyword, top=10, timeout=6, status="01"):
     # 不提供姓名查詢；關鍵字只交給公司名稱欄。
     clean = str(keyword or "").strip().replace("'", "")[:80]
-    return _query("keyword", f"Company_Name like {clean} and Company_Status eq 01", top=min(max(1, top), 10), timeout=timeout)
+    return _query("keyword", f"Company_Name like {clean} and Company_Status eq {status}", top=min(max(1, top), 10), timeout=timeout)
+
+
+def search_companies_inactive(keyword, top=10, timeout=6, retry_wait=1.0, deadline=60):
+    """核准設立(01)以外的公司狀態，逐一查 02–33,讓已解散、廢止等公司也找得到。
+
+    官方 swagger 的 $filter 只接受 `Company_Status eq <01–33>`;2026-10-29 實測不帶狀態回 0 筆、`ne 01` 被忽略(仍只回 01)。
+    同時連線過多時回「超出同時最大連線數量」(實測 4 條並行就會出現)，所以依序查，碰到這句話等一下重試一次。
+    實測依序查完 32 種約 20–30 秒；超過 deadline 秒就停，沒查到的代碼列為失敗。
+    """
+    rows, failed, errors, fetched, urls = [], [], [], [], []
+    stop_at = time.monotonic() + deadline
+    for code in INACTIVE_STATUS_CODES:
+        if time.monotonic() > stop_at:
+            failed.append(code)
+            errors.append(f"整體查詢超過 {deadline} 秒，未查")
+            continue
+        result = search_companies(keyword, top, timeout, status=code)
+        if not result["ok"] and BUSY_MARK in (result["error"] or ""):
+            time.sleep(retry_wait)
+            result = search_companies(keyword, top, timeout, status=code)
+        urls.append(result["url"])
+        if result["ok"]:
+            rows += result["rows"]
+            fetched.append(result["fetched_at"])
+        else:
+            failed.append(code)
+            errors.append(result["error"])
+    return {"ok": len(failed) < len(INACTIVE_STATUS_CODES), "rows": rows, "url": urls[0], "dataset": "keyword",
+            "fetched_at": max(fetched, default=None), "failed_statuses": failed,
+            "error": f"{len(failed)} 種狀態查詢失敗(代碼 {'、'.join(failed)}):{errors[0]}" if failed else None}
 
 
 def roc_date_iso(value):

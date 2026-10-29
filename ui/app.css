@@ -260,6 +260,8 @@ code, .mono { font-family: var(--font-mono); }
 .party-candidate { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 2px; padding: 7px; margin: 4px 0; background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 12px; }
 .party-candidate:hover { background: var(--bg-card-hover); border-color: var(--focus); }
 .party-candidate span { color: var(--text-secondary); }
+.party-candidate.inactive { border-color: var(--bad-bd); border-style: dashed; }
+.party-candidate .chip { margin-left: 6px; font-weight: normal; }
 .party-result { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
 .party-result-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 15px; }
 .party-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }

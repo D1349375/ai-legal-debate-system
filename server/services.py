@@ -693,16 +693,22 @@ def party_check_one(session, ban, *, role=None, case_id=None, input_name=None, t
     return result
 
 
-def party_search(keyword, *, timeout=6.0):
-    fetched = gcis.search_companies(keyword, timeout=timeout)
-    return {"ok": fetched["ok"], "error": fetched["error"], "fetched_at": fetched["fetched_at"],
+def party_search(keyword, *, timeout=6.0, scope="active"):
+    """scope=active:核准設立(一次查詢);scope=inactive:其他 32 種狀態(逐一查詢，較慢，可能部分失敗)。"""
+    fetched = (gcis.search_companies_inactive(keyword, timeout=timeout) if scope == "inactive"
+               else gcis.search_companies(keyword, timeout=timeout))
+    candidates = [{"ban": str(row.get("Business_Accounting_NO", "")), "name": row.get("Company_Name"),
+                   "status_text": row.get("Company_Status_Desc"),
+                   # 只有「核准設立」(外國公司「核准登記」)算正常；狀態缺漏也不當正常
+                   "status_normal": row.get("Company_Status_Desc") in (party_rules.NORMAL, party_rules.FOREIGN_NORMAL),
+                   "address": row.get("Company_Location"), "responsible_name": row.get("Responsible_Name")}
+                  for row in fetched["rows"]]
+    return {"ok": fetched["ok"], "error": fetched["error"], "scope": scope,
+            "failed_statuses": fetched.get("failed_statuses", []), "fetched_at": fetched["fetched_at"],
             "source": {"dataset": gcis.DATASETS["keyword"][1], "url": fetched["url"],
                        "fetched_at": fetched["fetched_at"]},
             "attribution": f"{gcis.ATTRIBUTION} [{gcis.DATASETS['keyword'][1]}]" if fetched["ok"] else None,
-            "candidates": [{"ban": str(row.get("Business_Accounting_NO", "")), "name": row.get("Company_Name"),
-                            "status_text": row.get("Company_Status_Desc"),
-                            "address": row.get("Company_Location"), "responsible_name": row.get("Responsible_Name")}
-                           for row in fetched["rows"]]}
+            "candidates": candidates}
 
 
 # ───────────────────────── finalize ─────────────────────────
