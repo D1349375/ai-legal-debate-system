@@ -77,6 +77,9 @@ class PleadingDraft(Base):
     source = Column(String, nullable=True)
     parent_id = Column(Integer, nullable=True)
     citation_check_json = Column(Text, nullable=True)  # 存檔當下逐條查證結果(律師版才有)
+    # 哪一方的書狀:plaintiff=民事起訴狀、defendant=民事答辯狀。2026-10-29 新增，之前的紀錄為 NULL,一律視同 plaintiff
+    # (當時只產原告起訴狀)。律師編輯版沿用原稿的 side。
+    side = Column(String, nullable=True)
 
 
 class PartyCheck(Base):
@@ -110,6 +113,7 @@ class LiveRun(Base):
     error = Column(Text, nullable=True)
     log_path = Column(String, nullable=True)  # 相對專案根目錄的 stream-json 執行紀錄
     notes_json = Column(Text, nullable=True)  # 從 stream-json 觀察到的安全分類器中止與訂閱額度變化(JSON)
+    kind = Column(String, nullable=True)  # NULL/'full'=完整流程；'answer'=只替已跑完攻防的案件補產被告答辯狀(Step 9 被告方)
 
 
 def init_db(db_path='sqlite:///database/legal_debate.db'):

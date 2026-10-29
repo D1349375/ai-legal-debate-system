@@ -138,6 +138,47 @@ def finalize_case(session, *, case_id):
     }
 
 
+def pleading_materials(session, *, case_id, side):
+    """Step 9 撰狀素材(唯讀):該方 Stage 3 原文 + 對造 Stage 3 結構化摘要 + 當事人查核與程序事項。
+
+    讓既有案件不重跑攻防就能補產另一方的書狀(例如答辯狀)。對造只給 position 與引用，不給完整論證原文，
+    同 Step 4 的萃取紀律；每條引用附上目前查證狀態，只有 published 的能寫進書狀(record_pleading 會再擋一次)。
+    """
+    if side not in VALID_SIDES:
+        raise ValueError(f"非法 side: {side}")
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if case is None:
+        raise ValueError(f"找不到案件 {case_id}")
+    stage3 = {r.side: r for r in session.query(DebateArgument).filter_by(case_id=case_id, stage=3).all()}
+    if side not in stage3:
+        raise ValueError(f"{case_id} {side} 尚未完成 stage3,沒有撰狀素材;須先跑完攻防")
+    other = next(s for s in VALID_SIDES if s != side)
+    status_by_key = {}
+    for r in session.query(CitationVerification).all():
+        status_by_key.setdefault(_citation_key(r.citation_text), r.status)
+
+    def citations(row):
+        cited = json.loads(row.cited_statutes or "[]") + json.loads(row.cited_precedents or "[]")
+        return [{"citation_text": c, "status": status_by_key.get(_citation_key(c), "no_record")} for c in cited]
+
+    own = stage3[side]
+    opp = stage3.get(other)
+    existing = [r for r in session.query(PleadingDraft).filter_by(case_id=case_id).all()
+                if r.source in (None, 'system') and pleading_side(r) == side]
+    return {
+        "case": {"case_id": case.case_id, "case_type": case.case_type, "facts_summary": case.facts_summary,
+                 "claims": case.claims, "parties": json.loads(case.parties_json) if case.parties_json else None},
+        "side": side,
+        "own_stage3": {"position": own.position, "argument": own.reasoning, "falsifier": own.falsifier,
+                       "citations": citations(own), "model_id": own.model_id},
+        "opponent_stage3_summary": None if opp is None else {
+            "side": other, "position": opp.position, "citations": [c["citation_text"] for c in citations(opp)]},
+        "party_checks": latest_party_checks(session, case_id),
+        "procedural_issues": procedural_issues(latest_party_checks(session, case_id)),
+        "existing_system_drafts": len(existing),
+    }
+
+
 def record_verdict(session, *, case_id, verdict_main_text, verdict_reasoning, risk_map,
                     mechanical_anchor_json, protocol_version, citations_used):
     if session.query(Verdict).filter_by(case_id=case_id).one_or_none():
@@ -154,9 +195,17 @@ def record_verdict(session, *, case_id, verdict_main_text, verdict_reasoning, ri
     return row
 
 
-def record_pleading(session, *, case_id, draft_text, citations_used):
+def pleading_side(row):
+    """書狀屬於哪一方。side 欄位新增前落地的舊紀錄為 NULL,當時只產原告起訴狀，視同 plaintiff。"""
+    return row.side or 'plaintiff'
+
+
+def record_pleading(session, *, case_id, draft_text, citations_used, side='plaintiff'):
+    """side=plaintiff 為民事起訴狀骨架，defendant 為民事答辯狀骨架；兩方走同一道查證閘門。"""
+    if side not in VALID_SIDES:
+        raise ValueError(f"非法 side: {side}")
     _assert_all_published(session, citations_used)
-    row = PleadingDraft(case_id=case_id, draft_text=draft_text,
+    row = PleadingDraft(case_id=case_id, draft_text=draft_text, side=side,
                          citation_verification_status='published', generated_at=_now_iso())
     session.add(row)
     session.commit()
@@ -177,6 +226,7 @@ def record_pleading_edit(session, *, case_id, parent_id, draft_text, citation_ch
         raise ValueError("訴狀內容不可為空白")
     status = 'published' if all(c.get("gate") == "pass" for c in citation_check) else 'blocked'
     row = PleadingDraft(case_id=case_id, draft_text=draft_text, citation_verification_status=status,
+                        side=pleading_side(parent),  # 編輯起訴狀得到的仍是起訴狀，答辯狀亦同
                         generated_at=_now_iso(), source='lawyer_edit', parent_id=parent_id,
                         citation_check_json=json.dumps(citation_check, ensure_ascii=False))
     session.add(row)
