@@ -158,6 +158,8 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         detail = services.get_case_detail(db, case_id, cases_dir, app.state.recorded_checks)
         if detail is None:
             raise HTTPException(404, f"找不到案件:{case_id}")
+        if detail["case"]["source"] == "database":
+            detail["resume"] = runner.resume_plan(case_id)
         return detail
 
     @app.post("/api/cases", status_code=201, dependencies=[Depends(local_only)])
@@ -180,9 +182,9 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         return {"case_id": case_id, "parties": parties}
 
     @app.post("/api/cases/{case_id}/runs", status_code=201, dependencies=[Depends(local_only)])
-    def start_run(case_id: str):
+    def start_run(case_id: str, resume: bool = Query(False)):
         try:
-            return runner.start(case_id)
+            return runner.start(case_id, resume=resume)
         except PermissionError as e:
             raise HTTPException(403, f"即時執行未啟用:{e}")
         except ValueError as e:

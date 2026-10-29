@@ -3,6 +3,7 @@
 不呼叫真的 Claude Code:以 tests/fake_claude.py 模擬 `claude -p --output-format stream-json` 的輸出，
 並把內容寫進後端交給子程序的同一顆暫存資料庫。真實執行(2026-10-28 實測約 11 分鐘、估算 2.5 美元)不在自動測試範圍。
 """
+import json
 import os
 import sys
 
@@ -10,7 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from database.db import get_session, make_session_factory, record_argument, record_case
-from database.schema import LiveRun
+from database.schema import DebateArgument, LiveRun
 from server import live_run
 from server.app import create_app
 
@@ -109,6 +110,83 @@ class TestLiveRun:
         r = c.post("/api/cases/rec1/runs")
         assert r.status_code == 409 and "不可覆寫" in r.json()["detail"]
         assert c.post("/api/cases/nope/runs").status_code == 409
+        # 錄製紀錄(沒有 UI 執行過)不提供續跑
+        assert c.get("/api/cases/rec1").json()["resume"]["possible"] is False
+        r = c.post("/api/cases/rec1/runs?resume=true")
+        assert r.status_code == 409 and "錄製紀錄" in r.json()["detail"]
+
+    def test_resume_from_first_unlanded_stage_keeps_landed_records(self, db_url, tmp_path, monkeypatch):
+        c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
+        case_id = create(c)
+        first = run_to_end(c, case_id)["run"]
+        assert first["status"] == "incomplete"
+        with get_session(db_url) as s:
+            before = {(a.side, a.stage): (a.id, a.created_at, a.reasoning)
+                      for a in s.query(DebateArgument).filter_by(case_id=case_id).all()}
+        assert set(before) == {("plaintiff", 1), ("defendant", 1)}
+        plan = c.get(f"/api/cases/{case_id}").json()["resume"]
+        assert plan["possible"] and plan["from_label"] == "法官訊問" and plan["landed"] == ["Stage 1 爭點整理"]
+        assert c.post(f"/api/cases/{case_id}/runs").status_code == 409  # 不帶 resume 仍不能整件重跑
+
+        monkeypatch.setenv("FAKE_CLAUDE_MODE", "full")
+        r = c.post(f"/api/cases/{case_id}/runs?resume=true")
+        assert r.status_code == 201, r.text
+        run_id = r.json()["run"]["id"]
+        assert r.json()["run"]["resume_from"] == "法官訊問"  # 執行中就看得到續跑起點
+        c.app.state.live.wait(run_id, timeout=60)
+        r = c.get(f"/api/runs/{run_id}").json()
+        assert r["run"]["status"] == "succeeded" and r["run"]["resume_from"] == "法官訊問"
+        assert "續跑：從法官訊問開始" in r["events"][0]["text"]
+        landed = json.loads((tmp_path / "runs" / f"run-{run_id}" / "landed.json").read_text(encoding="utf-8"))
+        assert {(a["side"], a["stage"]) for a in landed["arguments"]} == set(before)
+        with get_session(db_url) as s:
+            after = {(a.side, a.stage): (a.id, a.created_at, a.reasoning)
+                     for a in s.query(DebateArgument).filter_by(case_id=case_id).all()}
+        assert {k: after[k] for k in before} == before and len(after) == 6
+        d = c.get(f"/api/cases/{case_id}").json()
+        assert d["resume"]["possible"] is False and "皆已落地" in d["resume"]["reason"]
+        # 舊紀錄仍歸第一次執行(時間戳只到秒，續跑紀錄可能與第一次結束同秒，故只驗即時生成)
+        origins = {(a["side"], a["stage"]): a["origin"] for a in d["arguments"]}
+        assert origins[("plaintiff", 1)]["run_id"] == first["id"] and origins[("plaintiff", 3)]["kind"] == "live"
+
+    def test_resume_prompt_tells_claude_not_to_reland(self):
+        plan = {"possible": True, "landed": ["Stage 1 爭點整理(僅原告)"], "landed_keys": [],
+                "from_key": "stage1", "from_label": "Stage 1 爭點整理", "from_step": "Step 2",
+                "missing_sides": ["defendant"]}
+        p = live_run.build_prompt("c1", "database/live_runs/run-9", plan)
+        assert "本次是續跑" in p and "不得覆寫、刪除或重新落地" in p and "從 SKILL.md Step 2" in p
+        assert "database/live_runs/run-9/landed.json" in p and "只派被告的 subagent" in p
+        assert "uncontested_points" not in p
+        assert "本次是續跑" not in live_run.build_prompt("c1", "database/live_runs/run-9")
+
+    def test_resume_plan_rules(self, tmp_path):
+        url = f"sqlite:///{tmp_path / 'plan.db'}"
+        with get_session(url) as s:
+            record_case(s, case_id="a", case_type="t", facts_summary="f", claims="c")
+            assert live_run.resume_plan(s, "a")["possible"] is False  # 沒有落地紀錄：直接開始
+            record_argument(s, case_id="a", side="plaintiff", stage=1, position="p", reasoning="r")
+            plan = live_run.resume_plan(s, "a")
+            assert plan["possible"] and plan["from_key"] == "stage1" and plan["missing_sides"] == ["defendant"]
+            assert plan["landed"] == ["Stage 1 爭點整理(僅原告)"]
+            record_argument(s, case_id="a", side="plaintiff", stage=2, position="p", reasoning="r", falsifier="x")
+            plan = live_run.resume_plan(s, "a")  # 前面缺、後面有：不猜
+            assert plan["possible"] is False and "不連續" in plan["reason"]
+
+    def test_resume_cannot_overwrite_even_if_claude_tries(self, db_url, tmp_path, monkeypatch):
+        c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
+        case_id = create(c)
+        run_to_end(c, case_id)
+        with get_session(db_url) as s:
+            before = [(a.id, a.reasoning, a.created_at) for a in s.query(DebateArgument).filter_by(case_id=case_id)]
+        monkeypatch.setenv("FAKE_CLAUDE_MODE", "full")
+        monkeypatch.setenv("FAKE_CLAUDE_FORCE_RELAND", "1")
+        run_id = c.post(f"/api/cases/{case_id}/runs?resume=true").json()["run"]["id"]
+        c.app.state.live.wait(run_id, timeout=60)
+        r = c.get(f"/api/runs/{run_id}").json()
+        assert r["run"]["status"] == "incomplete"
+        assert any("不可覆寫" in e["text"] for e in r["events"])
+        with get_session(db_url) as s:
+            assert [(a.id, a.reasoning, a.created_at) for a in s.query(DebateArgument).filter_by(case_id=case_id)] == before
 
     def test_incomplete_run_is_not_reported_as_success(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
@@ -207,7 +285,13 @@ class TestLiveRun:
             s.get(LiveRun, run_id).notes_json = None
             s.commit()
         c2 = make_client(db_url, tmp_path, monkeypatch)
-        assert len(c2.get(f"/api/runs/{run_id}").json()["run"]["safety_stops"]) == 1
+        run = c2.get(f"/api/runs/{run_id}").json()["run"]
+        assert len(run["safety_stops"]) == 1
+        with factory() as s:  # 續跑途中後端重啟：只有啟動時存的 resume_from,沒有觀察結果
+            s.get(LiveRun, run_id).notes_json = '{"resume_from": "法官訊問"}'
+            s.commit()
+        run = make_client(db_url, tmp_path, monkeypatch).get(f"/api/runs/{run_id}").json()["run"]
+        assert len(run["safety_stops"]) == 1 and run["resume_from"] == "法官訊問"
 
     def test_stale_running_rows_become_interrupted(self, db_url, tmp_path, monkeypatch):
         factory = make_session_factory(db_url)
@@ -293,7 +377,7 @@ class TestCommandAndStream:
         limit = {"type": "result", "subtype": "success", "is_error": True, "api_error_status": 429,
                  "terminal_reason": "api_error", "result": "You've hit your session limit · resets 7pm (Asia/Taipei)"}
         text = live_run.result_error(limit)
-        assert "用量上限" in text and "resets 7pm" in text and "建立新案件" in text
+        assert "用量上限" in text and "resets 7pm" in text and "續跑" in text
         assert "用量上限" not in live_run.result_error({**limit, "api_error_status": 401, "result": "OAuth session expired"})
 
     def test_claude_cmd_wrapper_is_not_called_directly(self, tmp_path, monkeypatch):

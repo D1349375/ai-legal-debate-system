@@ -1276,15 +1276,19 @@
       }
     } catch (e) { lr.error = e.message; }
   }
-  async function startRun(d) {
+  async function startRun(d, resume) {
     var hl = liveInfo(), id = d.case.case_id;
-    var ok = window.confirm("即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程。\n\n" +
+    var ok = window.confirm(resume ?
+      "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，從「" + d.resume.from_label + "」續跑。\n\n" +
+      "・已落地的" + d.resume.landed.join("、") + "不會重做，也不會被覆寫或刪除。\n" +
+      "・費用視剩下的階段而定(整件約 2.5–3.3 美元)；每次上限 " + hl.budget_usd + " 美元，超過即中止。訂閱帳號會占用 Claude 用量額度。\n\n確定續跑？" :
+      "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程。\n\n" +
       "・實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
-      "・執行中可取消；已落地的階段會保留，同一案件之後不能重跑。\n\n確定開始？");
+      "・執行中可取消；已落地的階段會保留，之後只能從尚未落地的階段續跑，不能整件重跑。\n\n確定開始？");
     if (!ok) return;
     state.liveBusy[id] = true; delete state.caseNotices[id]; renderPanel();
     try {
-      var r = await api("/api/cases/" + encodeURIComponent(id) + "/runs", { method: "POST" });
+      var r = await api("/api/cases/" + encodeURIComponent(id) + "/runs" + (resume ? "?resume=true" : ""), { method: "POST" });
       var lr = liveLog(r.run.id);
       lr.events = r.events; lr.since = r.event_count; lr.loaded = true;
       state.health = await api("/api/health");
@@ -1298,7 +1302,7 @@
     if (state.caseId === id) renderPanel();
   }
   async function cancelRun(run) {
-    if (!window.confirm("確定取消執行 #" + run.id + "？已落地的階段會保留，此案件之後不能重跑。")) return;
+    if (!window.confirm("確定取消執行 #" + run.id + "？已落地的階段會保留，之後只能從尚未落地的階段續跑。")) return;
     state.liveBusy[run.case_id] = true; renderPanel();
     try { await api("/api/runs/" + run.id + "/cancel", { method: "POST" }); }
     catch (e) { liveLog(run.id).error = "取消失敗：" + e.message; }
@@ -1371,7 +1375,7 @@
         e.subagent ? chip("neutral", "subagent") : null, h("span", { class: "run-text", text: e.text }));
     };
     return h("div", { class: "run-view" },
-      h("div", { class: "run-head" }, chip(st.cls, runLabel(run)), h("strong", { text: "執行 #" + run.id }),
+      h("div", { class: "run-head" }, chip(st.cls, runLabel(run)), h("strong", { text: "執行 #" + run.id + (run.resume_from ? "(從" + run.resume_from + "續跑)" : "") }),
         h("span", { class: "detail-note", text: "開始 " + fmtTime(run.started_at) + "・經過 " + elapsed(run) + "・模型 " + run.model +
           (run.cost_usd != null ? "・估算花費 " + run.cost_usd.toFixed(2) + " 美元" : "") + (run.exit_code != null ? "・結束碼 " + run.exit_code : "") }),
         run.status === "running" ? h("button", { class: "btn small", type: "button", disabled: state.liveBusy[run.case_id] ? true : null,
@@ -1394,11 +1398,12 @@
     var hl = liveInfo(), runs = d.live_runs || [], latest = runs[runs.length - 1];
     var hasRecords = d.stats.arguments || d.stats.questions || d.verdict || d.pleading;
     if (!latest && hasRecords) return null;  // 錄製案件：不提供重跑
-    var body = [];
+    var body = [], rp = d.resume;
     if (latest) body.push(runView(latest, d));
     if (!latest || latest.status !== "running") {
-      if (hasRecords) {
-        body.push(h("p", { class: "detail-note", text: "此案件已有落地紀錄，不能重跑(落地紀錄不可覆寫)。要用同樣內容再模擬一次，請另建案件。" }),
+      if (hasRecords && !(rp && rp.possible)) {
+        body.push(h("p", { class: "detail-note", text: "此案件已有落地紀錄，不能整件重跑(落地紀錄不可覆寫)。" +
+            (rp && rp.reason ? rp.reason + "。" : "") + "要用同樣內容再模擬一次，請另建案件。" }),
           h("button", { class: "btn small", type: "button", text: "以此案件內容建立新案件", onclick: function () { openCreate(prefillFrom(d)); } }));
       } else if (!hl.enabled) {
         body.push(banner("warn", "!", "即時執行停用：" + hl.reason));
@@ -1406,6 +1411,17 @@
         body.push(banner("bad", "✗", [h("strong", { text: "無法執行" }), "：" + hl.auth.detail + "。登入後重新整理本頁。"]));
       } else if (hl.active_run) {
         body.push(banner("warn", "⏳", "目前已有執行進行中(案件 " + hl.active_run.case_id + "，執行 #" + hl.active_run.id + ")，同一時間只能跑一件。"));
+      } else if (hasRecords) {
+        if (hl.quota) body.push(knownQuota(hl.quota, hl.quota_warn_at));
+        body.push(h("p", { class: "detail-note", text: "資料庫已落地：" + rp.landed.join("、") + "。可從「" + rp.from_label + "」續跑：" +
+            "已落地的紀錄不會重做，也不會被覆寫或刪除，Claude Code 會讀取這些紀錄接著跑剩下的階段。" +
+            (rp.missing_sides.length ? "此階段只補" + rp.missing_sides.map(function (x) { return SIDE[x].label; }).join("、") + "一方。" : "") +
+            (rp.landed.indexOf("法官訊問") >= 0 ? "法官訊問中「無爭議事項」當初沒有存進資料庫，續跑時無法取得，評估會照實註明。" : "") +
+            "每次上限 " + hl.budget_usd + " 美元。" }),
+          h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] ? true : null,
+            onclick: function () { startRun(d, true); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
+            state.liveBusy[d.case.case_id] ? "啟動中…" : "從「" + rp.from_label + "」續跑"),
+          h("button", { class: "btn small", type: "button", text: "或以此案件內容建立新案件", onclick: function () { openCreate(prefillFrom(d)); } }));
       } else {
         if (hl.quota) body.push(knownQuota(hl.quota, hl.quota_warn_at));
         body.push(h("p", { class: "detail-note", text: "按下後，後端在這台電腦以你的 Claude 帳號啟動 Claude Code(無互動模式，模型 " + hl.model +
