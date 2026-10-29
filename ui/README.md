@@ -38,8 +38,8 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
    shell 迴圈(`for … do python main.py …`)、`cd` 串接會被拒。導向寫到 `database/live_runs/` 以外會不會被拒沒有實測。另加
    `--setting-sources project --strict-mcp-config`,不載入使用者層設定與 MCP 伺服器。主 agent 與 subagent 都用 `--model` 指定的模型
    (subagent 以 `CLAUDE_CODE_SUBAGENT_MODEL` 指定),每次以 `--max-budget-usd` 限制花費。
-3. 同一時間只跑一件。2026-10-28 實測(Pro 訂閱帳號)一件約 11 分鐘、Claude Code 估算約 2.5 美元,
-   Claude 5 小時用量額度約用掉三成;此額度與同帳號其他 Claude Code 使用共用,用完時執行會以 HTTP 429 失敗(畫面會寫明)。
+3. 同一時間只跑一件。實測(Pro 訂閱帳號)一件約 11–15 分鐘、Claude Code 估算約 2.5–3.3 美元(2026-10-28 執行 #2:10 分 51 秒、2.51 美元;
+   2026-10-29 執行 #4:14 分 39 秒、3.25 美元),Claude 5 小時用量額度約用掉三成、7 天額度約 2%;此額度與同帳號其他 Claude Code 使用共用,用完時執行會以 HTTP 429 失敗(畫面會寫明)。
    進度依「資料庫已落地的階段」計算,另顯示 Claude Code 的步驟紀錄;
    各階段落地後畫面自動更新。執行中可取消(終止整個程序樹),已落地的階段保留。
 4. 結束時依 Claude Code 的結果事件與資料庫實況判定:全部落地為「執行完成」;Claude Code 回報完成但資料庫仍缺階段為「流程不完整」;
@@ -47,7 +47,14 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 5. 每次執行的完整原始輸出(`stream.jsonl`)、畫面上的步驟紀錄(`events.jsonl`,結束或重啟後照原序號與時間重播)與暫存檔
    存在 `database/live_runs/run-<N>/`(已列入 `.gitignore`)。subagent 在背景執行時,主 agent 會分成多輪、stream 結尾有多筆結果事件;
    花費與 token 用量取最後一筆的累計值,權限拒絕次數則逐輪加總。
-6. 已知限制:`--max-budget-usd` 是 Claude Code 用戶端的估算值,可能略為超出;官方文件沒有說明訂閱(OAuth)帳號是否同樣適用。
+6. subagent 的回覆偶爾會被 Anthropic 安全分類器(`reasoning_extraction`)中止(2026-10-28 執行 #3 原告 Stage 1 連續 3 次、
+   2026-10-29 執行 #4 被告 Stage 1 1 次)。stream-json 沒有分類器的 stop_reason,只有一則「stopped by a safety classifier」的合成訊息,
+   後端認這句話記錄次數(存在 `live_runs.notes_json`,舊執行在啟動時從 `stream.jsonl` 補登),畫面顯示「安全分類器中止 N 次」;
+   流程沒跑完時寫進失敗原因(「流程不完整」時標為可能原因;已有明確失敗原因時只附註)。依 SKILL.md,主 agent 應另開 subagent 以同一份範本重派,
+   最多 2 次;後端不驗證主 agent 是否照做,請以執行紀錄核對。依[官方文件](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback),這類中止照樣計費。
+   訂閱帳號的額度事件(5 小時、7 天視窗)也一併記錄,顯示本次執行開始→結束的用量;開始執行前會顯示上次已知的額度(標明是哪次執行結束時的值),
+   任一視窗達 90% 且尚未過重置時間時提醒。2026-10-28 執行 #1 的額度事件是舊格式(沒有 `unifiedWindows`),不記錄;API 金鑰登入沒有額度事件。
+7. 已知限制:`--max-budget-usd` 是 Claude Code 用戶端的估算值,可能略為超出;官方文件沒有說明訂閱(OAuth)帳號是否同樣適用。
    Windows 上透過 `taskkill /T /F` 終止程序樹。
 
 **安全**:即時執行會在這台電腦以使用者的 Claude 帳號執行有工具權限的程式,而本服務沒有登入驗證,所以:

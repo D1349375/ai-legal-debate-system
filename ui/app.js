@@ -1253,7 +1253,7 @@
   async function startRun(d) {
     var hl = liveInfo(), id = d.case.case_id;
     var ok = window.confirm("即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程。\n\n" +
-      "・實測一件約 11 分鐘、估算約 2.5 美元(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
+      "・實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
       "・執行中可取消；已落地的階段會保留，同一案件之後不能重跑。\n\n確定開始？");
     if (!ok) return;
     state.liveBusy[id] = true; delete state.caseNotices[id]; renderPanel();
@@ -1286,6 +1286,46 @@
     var min = Math.max(0, Math.round((end - Date.parse(run.started_at)) / 60000));
     return min < 60 ? min + " 分" : Math.floor(min / 60) + " 小時 " + (min % 60) + " 分";
   }
+  // 訂閱額度(rate_limit_event):5 小時與 7 天視窗；API 金鑰登入時沒有這項資料
+  var QUOTA_LABEL = { five_hour: "5 小時", seven_day: "7 天" };
+  function localTime(iso) {
+    var t = Date.parse(iso);
+    return isNaN(t) ? "—" : new Date(t).toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+  }
+  function quotaPct(x) { return x == null ? "?" : Math.round(x * 100) + "%"; }
+  function quotaLine(windows) {
+    return Object.keys(QUOTA_LABEL).filter(function (k) { return windows[k]; }).map(function (k) {
+      var w = windows[k];
+      return QUOTA_LABEL[k] + " " + (w.start != null && w.start !== w.end ? quotaPct(w.start) + " → " : "") + quotaPct(w.end) +
+        (w.resets_at ? "(" + localTime(w.resets_at) + " 重置)" : "");
+    }).join("・");
+  }
+  function quotaExpired(w) { return w.resets_at && Date.parse(w.resets_at) <= Date.now(); }
+  // 上次已知的額度(某次執行結束時的值)：已過重置時間的視窗不再提醒，改說明數值已過期
+  function knownQuota(q, warnAt) {
+    var keys = Object.keys(QUOTA_LABEL).filter(function (k) { return q.windows[k]; });
+    var hot = keys.filter(function (k) { return q.windows[k].end >= warnAt && !quotaExpired(q.windows[k]); });
+    var expired = keys.filter(function (k) { return quotaExpired(q.windows[k]); });
+    return [
+      hot.length ? banner("warn", "!", hot.map(function (k) {
+        return "訂閱帳號的 " + QUOTA_LABEL[k] + "額度在上次執行結束時已用 " + quotaPct(q.windows[k].end) +
+          (q.windows[k].resets_at ? "，" + localTime(q.windows[k].resets_at) + " 重置" : "");
+      }).join("；") + "。額度與這個帳號的其他 Claude 使用共用，用完時執行會中途失敗(已落地的階段保留)。") : null,
+      h("p", { class: "detail-note", text: "上次已知的訂閱額度(" + localTime(q.as_of) + " 執行 #" + q.run_id + " 結束時，不是即時值)：" +
+        quotaLine(q.windows) + (expired.length ? "。" + expired.map(function (k) { return QUOTA_LABEL[k]; }).join("、") +
+        "視窗已過重置時間，實際用量應已重置" : "") })];
+  }
+  function safetyStopBanner(run) {
+    var stops = run.safety_stops || [];
+    if (!stops.length) return null;
+    var who = stops.map(function (s) { return s.who; }).join("、");
+    var subagentOnly = stops.every(function (s) { return s.who !== "主 agent"; });
+    var tail = run.status === "succeeded" ? (subagentOnly ? "依 SKILL.md，被中止的輸出不得落地、應另開 subagent 以同一份範本重派；請以執行紀錄與最後回覆核對。" : "") :
+      run.status === "incomplete" ? "流程可能因此沒跑完，請以執行紀錄核對。" : "";
+    return banner("warn", "!", [h("strong", { text: "安全分類器中止 " + stops.length + " 次" }),
+      "：" + who + " 的回覆被 Anthropic 安全分類器中止。這不是程式或 API 錯誤。" + tail +
+      "依官方文件，這類中止照樣計費。"]);
+  }
   function runView(run, d) {
     var st = RUN_STATUS[run.status], lr = liveLog(run.id);
     if (!lr.loaded && run.status !== "running") loadRunLog(run.id);
@@ -1304,6 +1344,8 @@
         return chip(s.state === "done" ? "ok" : s.state === "partial" ? "warn" : "neutral", (s.state === "done" ? "✓ " : s.state === "partial" ? "◐ " : "· ") + s.label);
       })) : null,
       run.error ? banner(run.status === "cancelled" ? "warn" : "bad", run.status === "cancelled" ? "!" : "✗", run.error) : null,
+      safetyStopBanner(run),
+      run.quota ? h("p", { class: "detail-note", text: "訂閱額度(本次執行開始 → 結束)：" + quotaLine(run.quota) }) : null,
       lr.error ? banner("warn", "!", "讀取執行紀錄失敗：" + lr.error) : null,
       events.length ? h("div", { class: "run-log", role: "log", "aria-label": "執行紀錄" }, events.slice(-30).map(row)) :
         h("p", { class: "detail-note", text: run.status === "running" ? "等待 Claude Code 輸出…" : "沒有可顯示的執行紀錄。" }),
@@ -1328,9 +1370,10 @@
       } else if (hl.active_run) {
         body.push(banner("warn", "⏳", "目前已有執行進行中(案件 " + hl.active_run.case_id + "，執行 #" + hl.active_run.id + ")，同一時間只能跑一件。"));
       } else {
+        if (hl.quota) body.push(knownQuota(hl.quota, hl.quota_warn_at));
         body.push(h("p", { class: "detail-note", text: "按下後，後端在這台電腦以你的 Claude 帳號啟動 Claude Code(無互動模式，模型 " + hl.model +
             ")，依 legal-debate 流程跑完：起訴審查 → Stage 1 → 法官訊問 → Stage 2 → Stage 3 → 機械彙整 → 爭點評估 → 引用查證 → 訴狀骨架。" +
-            "只允許它執行 python main.py 指令、讀取專案檔案、派出 subagent。實測一件約 11 分鐘、估算約 2.5 美元(訂閱帳號會占用用量額度)，每次上限 " + hl.budget_usd + " 美元。" }),
+            "只允許它執行 python main.py 指令、讀取專案檔案、派出 subagent。實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(訂閱帳號會占用用量額度)，每次上限 " + hl.budget_usd + " 美元。" }),
           h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] ? true : null,
             onclick: function () { startRun(d); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
             state.liveBusy[d.case.case_id] ? "啟動中…" : "開始即時執行"));
@@ -1377,7 +1420,8 @@
         h("p", { class: "detail-note", text: "查證權威來源：法規＝法務部全國法規資料庫；判決＝本地語料庫 → 司法院裁判書查詢系統。" })),
       d.live_runs && d.live_runs.length ? h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "即時執行" }),
         d.live_runs.map(function (r) {
-          return meta("執行 #" + r.id, RUN_STATUS[r.status].label + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : ""));
+          return meta("執行 #" + r.id, RUN_STATUS[r.status].label + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
+            ((r.safety_stops || []).length ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
         })) : null,
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "限制" }),
         h("p", { class: "detail-note", text: "標示「⚡ 本次即時生成」者由本機 Claude Code 經 UI 執行產生；標示「⏺ 錄製紀錄」者是過去產生後落地的紀錄重播。引用查證僅確認條文／字號存在，未比對判決全文是否支持該論點。研究原型，非法律意見，訴狀須由律師審核。" })));

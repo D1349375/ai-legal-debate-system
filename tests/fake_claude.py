@@ -4,6 +4,8 @@
 模式：full(跑完整流程) / partial(只落地 Stage 1 就回報完成) / budget(花費上限中止) / api_error(API 錯誤)
       / crash(無 result 直接崩潰) / hang(卡住等取消)。
 FAKE_CLAUDE_AUTH=0 模擬未登入；FAKE_CLAUDE_DELAY(秒)讓每次落地之間停頓，方便在瀏覽器看進度。
+FAKE_CLAUDE_SAFETY=1 在被告 Stage 1 插入一則「回覆被安全分類器中止」的通知(格式照 2026-10-29 執行 #4 的 stream-json);
+FAKE_CLAUDE_QUOTA=1 在開始與結束各送一則 rate_limit_event(訂閱額度);FAKE_CLAUDE_STOP_AFTER_S1=budget 在 Stage 1 落地後以花費上限中止。
 """
 import json
 import os
@@ -35,6 +37,19 @@ def landed(text, parent=None):
           "message": {"content": [{"type": "tool_result", "tool_use_id": "t", "content": text}]}})
 
 
+def safety_stop(task):
+    emit({"type": "user", "parent_tool_use_id": "toolu_agent", "task_description": task, "isSynthetic": True,
+          "message": {"role": "user", "content": [{"type": "text", "text": (
+              "Your response above was stopped by a safety classifier — this is not a tool or API error. "
+              "The rest of it was withheld, and tool calls in it that had not finished did not run.")}]}})
+
+
+def quota(five_hour, seven_day):
+    emit({"type": "rate_limit_event", "rate_limit_info": {"status": "allowed_warning", "unifiedWindows": {
+        "five_hour": {"utilization": five_hour, "resetsAt": 1793269800, "status": "allowed"},
+        "seven_day": {"utilization": seven_day, "resetsAt": 1793548800, "status": "allowed_warning"}}}})
+
+
 def main():
     argv = sys.argv[1:]
     if argv[:2] == ["auth", "status"]:
@@ -50,6 +65,9 @@ def main():
         case = json.load(f)
     assert case["case_id"] == case_id
     tool("Read", {"file_path": os.path.join(ROOT, run_dir, "case.json")})
+    with_quota = os.environ.get("FAKE_CLAUDE_QUOTA") == "1"
+    if with_quota:
+        quota(0, 0.93)
 
     if mode == "hang":
         time.sleep(120)
@@ -69,9 +87,17 @@ def main():
     model = os.environ.get("CLAUDE_CODE_SUBAGENT_MODEL")
     for side in ("plaintiff", "defendant"):
         tool("Agent", {"description": f"{side} Stage 1"})
+        if side == "defendant" and os.environ.get("FAKE_CLAUDE_SAFETY") == "1":
+            safety_stop("被告 Stage 1")
+            tool("Agent", {"description": "被告 Stage 1(重派)"})
         record_argument(s, case_id=case_id, side=side, stage=1, position=f"{side} 立場", reasoning="推理",
                         cited_statutes=[], cited_precedents=[], model_id=model)
         landed(f"已落地論證 {case_id} {side} stage1", parent="agent-1")
+    if with_quota:
+        quota(0.27, 0.95)
+    if os.environ.get("FAKE_CLAUDE_STOP_AFTER_S1") == "budget":  # Stage 1 之後才撞到花費上限
+        emit({"type": "result", "subtype": "error_max_budget_usd", "is_error": True, "total_cost_usd": 15.01})
+        return 1
     if mode == "partial":
         emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 1.5, "result": "完成(其實沒有)"})
         return 0

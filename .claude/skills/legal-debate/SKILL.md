@@ -47,11 +47,11 @@ description: >-
 - 對 `plaintiff`、`defendant` 各開一個獨立 subagent(Agent 工具,一般用途即可),prompt **必須逐字套用** `templates/stage1_prompt.txt`,只填充 `{佔位符}`(`{SIDE}`/`{SIDE_LABEL}`/`{CASE_ID}`/`{CASE_FACTS_PATH}`/`{STANCE_TERMS}`/`{STATUTES_DIR}`=`corpus/statutes`/`{JUDGMENTS_DIR}`=`corpus/judgments`/`{PROCEDURAL_ISSUES_PATH}`=Step 1.5 的程序事項 JSON,沒有查核任何一方時仍要給)。
 - **隔離鐵律**:兩個 subagent 互相看不到對方的 prompt 或輸出,這是 Stage1 盲判的定義。
 - 收到原告 Stage 1 後機械核對:`ex_officio` 為 true 的每一則事項,原告 argument 都要有「程序補正(<id>)」段落(系統以 `engine.party_issues.cured_in` 判斷)。漏掉就退回同一個原告 subagent 補寫,**不得自己代寫補正內容**。這只核對有沒有回應,補正夠不夠由 Step 3 法官判斷。
-- 收齊後各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(`stage=1`)。
+- 收齊後各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(`stage=1`)。**兩方都拿到完整 JSON 之後才落地任何一方**(Stage 2、3 同理):先落地一方、另一方之後被安全分類器擋到放棄時,案件會卡在只有一方落地、又不能重跑的狀態(見文末「subagent 的回覆被安全分類器中止時」)。
 
 ### Step 3 — 法官生成訊問(獨立 subagent,基於 Stage 1)
 - 把雙方 Stage1 完整輸出整理成一份 JSON 給法官 subagent 讀,prompt 套用 `templates/judge_question_prompt.txt`,`{PROCEDURAL_ISSUES_PATH}` 填 Step 1.5 的程序事項 JSON。法官先審查原告 Stage 1 的程序補正,只有補正不足時才追問;追問的 `based_on` 以「官方事實層(<id>):」開頭,UI 以此 id 對應追問與事項。補正足夠就不追問,這是正常結果,不要要求法官每則都問。
-- 法官輸出的 `questions` 陣列,每一則各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(該 JSON 含 `question_text`/`target_side`/`based_on`,`main.py` 會依欄位自動辨識為訊問記錄,不是論證記錄)。
+- 法官輸出的 `questions` 陣列,每一則各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(該 JSON 含 `question_text`/`target_side`/`based_on`,`main.py` 會依欄位自動辨識為訊問記錄,不是論證記錄)。每則各下一次指令,不要用 shell 迴圈或 `&&` 串接一次落地多則(UI 無人值守執行時,只有單一 `python main.py ...` 指令會被允許,迴圈會被拒)。
 - `uncontested_points` 不落地資料庫(schema 未設對應欄位),但你要記下來,留給 Step 7(訴狀優先順序建議)與 Step 10(回報使用者)用。
 
 ### Step 4 — Stage 2 雙方應訊(可平行)
@@ -86,6 +86,7 @@ python main.py finalize --case-id <case_id>
   python main.py verdict --case-id <case_id> --json <path>
   ```
   (JSON 含 `verdict_main_text`/`verdict_analysis`/`risk_map`/`mechanical_anchor_json`/`citations_used`)。`record_verdict` 若偵測到未 published 引用會直接拒絕落地(`ValueError`,`main.py` 回傳 exit code 1)——這是機械閘門,不是你的判斷空間,遇到報錯不要試圖繞過。
+  `main.py verdict` 另會拒絕把民事訴訟法第249條與最高法院115年度台抗字第105號放在同一個括號裡的評估(並列讀起來像該裁定也支持駁回)。遇到這個報錯,把報錯原文交回同一個法官 subagent,請它只改這處引註的寫法後重新輸出;不要自己改寫評估內容。
 
 ### Step 9 — 訴狀草擬(骨架版,2026-08-08 決定,不經 `taiwan-legal-pleading` skill 潤飾)
 `taiwan-legal-pleading` skill 蒸餾已延後至 Phase 2(語料未到位,見 `noble-dancing-duckling.md`)。本階段訴狀初稿改為**骨架版**:
@@ -116,6 +117,15 @@ python main.py finalize --case-id <case_id>
 
 - `record`/`finalize`/`verdict`/`pleading` 遇「已落地不可覆寫」報錯 = 該案件此階段已跑過,**不要試圖刪除或改寫**,向使用者回報即可。
 - 任何案件層級的統計評估(如多案件命中率)不在本 skill 範圍——單案跑測不構成統計意義上的驗證,不要臨時手算了就宣稱結論。
+
+## subagent 的回覆被安全分類器中止時
+
+實跑時(2026-10-28 #3、2026-10-29 #4)subagent 輸出最終 JSON 時偶爾會被 Anthropic 的安全分類器中止(類別 `reasoning_extraction`)。這不是工具或 API 錯誤,subagent 會回報「回覆被安全分類器中止」、沒有交出完整 JSON。這個分類器有機率性,同一份 prompt 重派通常就能通過(#4 重派一次即成功)。處理方式:
+
+1. 被中止的那份輸出不完整,不得採用、不得落地,也不得由你補完或代寫。
+2. **另開一個新的 subagent**,用同一份範本逐字重派(佔位符照填)。不要用 SendMessage 叫原本那個 subagent 重寫:它已被告知不得再產出那段內容。也不要自行精簡或改寫範本來「避開」分類器,那樣會偏離範本、論證品質無從比較(#3 就是改寫後仍失敗)。
+3. 同一個角色同一階段最多重派 2 次(含第一次共 3 次)。都被中止就停在這一步:已落地的階段保留;同一階段另一方即使已完成也先不要落地(只落地一方,之後整件重跑時會撞到「已落地不可覆寫」),在最後回覆寫明卡在哪一個 subagent、被中止幾次。
+4. 每次中止都要在最後回覆照實列出(哪個 subagent、第幾次、最後是否重派成功)。依官方文件,`reasoning_extraction` 類別的中止(輸出前或串流中途)照樣計費(https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback ,「How refusals are billed」一節)。
 
 ## 已知限制
 

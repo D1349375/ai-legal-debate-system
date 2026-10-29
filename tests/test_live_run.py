@@ -162,6 +162,53 @@ class TestLiveRun:
         r = run_to_end(c, create(c))
         assert r["run"]["status"] == "failed" and "超過" in r["run"]["error"]
 
+    def test_safety_stop_and_quota_are_recorded(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("FAKE_CLAUDE_SAFETY", "1")
+        monkeypatch.setenv("FAKE_CLAUDE_QUOTA", "1")
+        c = make_client(db_url, tmp_path, monkeypatch)
+        case_id = create(c)
+        r = run_to_end(c, case_id)
+        run = r["run"]
+        assert run["status"] == "succeeded" and run["error"] is None  # 重派成功就算完成，但要記下被中止過
+        assert [s["who"] for s in run["safety_stops"]] == ["subagent「被告 Stage 1」"]
+        assert run["quota"]["seven_day"] == {"start": 0.93, "end": 0.95, "resets_at": "2026-11-01T16:00:00Z"}
+        assert run["quota"]["five_hour"]["start"] == 0 and run["quota"]["five_hour"]["end"] == 0.27
+        warns = [e["text"] for e in r["events"] if e["kind"] == "warn"]
+        assert any("被告 Stage 1" in t and "安全分類器中止" in t for t in warns)
+        assert any("1 次回覆被安全分類器中止" in t for t in warns)
+        # 案件明細與開始前的額度提醒
+        assert c.get(f"/api/cases/{case_id}").json()["live_runs"][0]["safety_stops"] == run["safety_stops"]
+        q = c.get("/api/health").json()["live_generation"]["quota"]
+        assert q["run_id"] == run["id"] and q["windows"]["seven_day"]["end"] == 0.95
+
+    def test_incomplete_run_names_safety_stop_as_likely_cause(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("FAKE_CLAUDE_SAFETY", "1")
+        c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
+        r = run_to_end(c, create(c))
+        assert r["run"]["status"] == "incomplete"
+        assert "安全分類器中止" in r["run"]["error"] and "被告 Stage 1" in r["run"]["error"]
+        assert r["run"]["quota"] is None  # 沒有額度事件(例如 API 金鑰登入)時不臆測
+
+    def test_failed_run_with_known_cause_only_notes_safety_stop(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("FAKE_CLAUDE_SAFETY", "1")
+        monkeypatch.setenv("FAKE_CLAUDE_STOP_AFTER_S1", "budget")
+        c = make_client(db_url, tmp_path, monkeypatch)
+        r = run_to_end(c, create(c))
+        err = r["run"]["error"]
+        assert r["run"]["status"] == "failed" and "花費上限" in err
+        assert "另外，執行期間有 1 次回覆被 Anthropic 安全分類器中止" in err and "很可能" not in err
+
+    def test_old_runs_are_backfilled_from_stream_log(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("FAKE_CLAUDE_SAFETY", "1")
+        c = make_client(db_url, tmp_path, monkeypatch)
+        run_id = run_to_end(c, create(c))["run"]["id"]
+        factory = make_session_factory(db_url)
+        with factory() as s:  # 模擬 notes_json 欄位加入前結束的執行
+            s.get(LiveRun, run_id).notes_json = None
+            s.commit()
+        c2 = make_client(db_url, tmp_path, monkeypatch)
+        assert len(c2.get(f"/api/runs/{run_id}").json()["run"]["safety_stops"]) == 1
+
     def test_stale_running_rows_become_interrupted(self, db_url, tmp_path, monkeypatch):
         factory = make_session_factory(db_url)
         with factory() as s:
@@ -215,6 +262,31 @@ class TestCommandAndStream:
                                         "total_cost_usd": 2, "permission_denials": [{}, {}]})
         assert "回合上限" in res[0]["text"] and "2 次" in res[-1]["text"]
         assert live_run.summarize_event({"type": "stream_event"}) == []
+        # 實測(2026-10-29 執行 #4):分類器中止只以合成 user 訊息出現在 stream-json
+        stop = {"type": "user", "parent_tool_use_id": "t1", "task_description": "被告 Stage 1", "message": {"content": [
+            {"type": "text", "text": "Your response above was stopped by a safety classifier — this is not a tool or API error."}]}}
+        ev = live_run.summarize_event(stop)
+        assert ev[0]["kind"] == "warn" and "subagent「被告 Stage 1」" in ev[0]["text"] and ev[0]["subagent"] is True
+        assert live_run.safety_stop_task({**stop, "parent_tool_use_id": None}) == "主 agent"
+        assert live_run.safety_stop_task({"type": "user", "message": {"content": [{"type": "text", "text": "hi"}]}}) is None
+        assert live_run.safety_stop_task({"type": "user", "message": {"content": [{"type": "text", "text": None}]}}) is None
+
+    def test_quota_windows_merge_and_bad_notes(self):
+        obs = live_run.StreamObserver()
+        both = {"five_hour": {"utilization": 0.1, "resetsAt": 1793269800}, "seven_day": {"utilization": 0.9, "resetsAt": 1793548800}}
+        obs.feed({"type": "rate_limit_event", "rate_limit_info": {"unifiedWindows": both}})
+        obs.feed({"type": "rate_limit_event", "rate_limit_info": {"unifiedWindows": {"five_hour": {"utilization": 0.3}}}})
+        q = obs.to_dict()["quota"]
+        assert q["five_hour"]["start"] == 0.1 and q["five_hour"]["end"] == 0.3
+        assert q["seven_day"] == {"start": 0.9, "end": 0.9, "resets_at": "2026-11-01T16:00:00Z"}  # 少了的視窗保留舊值
+        # 舊格式(2026-10-28 執行 #1:沒有 unifiedWindows)不臆測
+        old = live_run.StreamObserver()
+        old.feed({"type": "rate_limit_event", "rate_limit_info": {"rateLimitType": "five_hour", "utilization": 0.5}})
+        assert old.to_dict()["quota"] is None
+        # notes_json 是合法 JSON 但不是物件時不讓 API 掛掉
+        row = LiveRun(id=1, case_id="c", status="succeeded", started_at="x", notes_json="[]")
+        d = live_run.run_to_dict(row)
+        assert d["safety_stops"] == [] and d["quota"] is None
 
     def test_usage_limit_is_explained(self):
         # 2026-10-28 Pro 訂閱實跑時的 result 事件(節錄)

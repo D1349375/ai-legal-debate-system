@@ -134,3 +134,25 @@ def procedural_issues(party_checks):
 def cured_in(text, issue_id):
     """原告 Stage 1 是否有「程序補正(<id>)」段落(全形或半形括號皆可)；只核對有沒有回應，不判斷補正是否足夠。"""
     return bool(re.search(r"程序補正\s*[（(]\s*" + re.escape(issue_id) + r"\s*[）)]", text or ""))
+
+
+# 最內層的一組括號(含〔〕);巢狀時外層另外再比一次，見 mixed_dismissal_citations
+_PAREN = re.compile(r"[（(〔][^（()）〔〕]*[）)〕]")
+_TAI_KANG_105 = re.compile(r"(?<!\d)115\s*年?度?\s*[台臺]抗字?\s*第?\s*105(?!\d)")
+_ART_249 = re.compile(r"(?<!\d)249\s*條|§\s*249(?!\d)|第二百四十九條")
+
+
+def mixed_dismissal_citations(text):
+    """回傳把第249條與115台抗105放在同一個括號裡的引註。兩者支持的是不同的話：第249條是逾期未補正以裁定駁回，
+    115台抗105 是法院須依職權調查實際代表權(該案的駁回裁定已被廢棄確定)；並列會讓讀者以為該裁定也支持駁回
+    (2026-10-29 實跑 #4 的評估主文就這樣寫)。"""
+    found, text = [], text or ""
+    while True:  # 由內往外：比完最內層括號後把它換成佔位內容，外層括號就變成最內層
+        groups = list(_PAREN.finditer(text))
+        if not groups or found:  # 內層已找到就不再往外層重複回報
+            return found
+        for m in groups:
+            if _TAI_KANG_105.search(m.group(0)) and _ART_249.search(m.group(0)):
+                found.append(m.group(0).replace("‹", "(").replace("›", ")"))
+        # 內層括號的文字保留給外層比對，只拿掉括號字元
+        text = _PAREN.sub(lambda m: "‹" + m.group(0)[1:-1] + "›", text)

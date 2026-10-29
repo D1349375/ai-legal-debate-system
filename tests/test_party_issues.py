@@ -129,6 +129,23 @@ def test_cure_marker_accepts_full_and_half_width_brackets_only_for_the_same_id()
     assert not party_issues.cured_in("被告已解散，應列清算人", "defendant:dissolved")
 
 
+def test_dismissal_and_ex_officio_citations_must_not_share_a_parenthesis():
+    # 2026-10-29 執行 #4 評估主文的寫法
+    assert party_issues.mixed_dismissal_citations(
+        "逾期未補正則有被裁定駁回的風險(民事訴訟法第249條第1項;參最高法院115年度台抗字第105號)。")
+    assert party_issues.mixed_dismissal_citations("（民訴§249；115台抗105）")
+    assert not party_issues.mixed_dismissal_citations(
+        "逾期未補正以裁定駁回(民事訴訟法第249條第1項);但法院須依職權調查實際代表權(參最高法院115年度台抗字第105號裁定)。")
+    assert not party_issues.mixed_dismissal_citations(party_issues.KINDS["representation"][1])
+    # 「臺抗」、〔〕、巢狀括號、中文數字都要抓到；1050 號、第1249條不算
+    assert party_issues.mixed_dismissal_citations("(民事訴訟法第249條第1項;參最高法院115年度臺抗字第105號裁定)")
+    assert party_issues.mixed_dismissal_citations("〔民事訴訟法第二百四十九條、115台抗105〕")
+    nested = party_issues.mixed_dismissal_citations("(民事訴訟法第249條第1項;最高法院115年度台抗字第105號裁定(下稱105號裁定)參照)")
+    assert len(nested) == 1 and "(下稱105號裁定)" in nested[0]
+    assert not party_issues.mixed_dismissal_citations("(民事訴訟法第249條;最高法院115年度台抗字第1050號)")
+    assert not party_issues.mixed_dismissal_citations("(民法第1249條;最高法院115年度台抗字第105號)")
+
+
 # ───────── 串接：finalize 錨點與案件 API ─────────
 
 def _case(url, *, check_before_debate, cured, follow_up=False):

@@ -32,6 +32,23 @@ def test_record_accepts_renamed_argument_field(tmp_path):
     s.close()
 
 
+def test_verdict_refuses_mixed_dismissal_citation(tmp_path):
+    db_url = f"sqlite:///{tmp_path / 'cli.db'}"
+    s = get_session(db_url)
+    record_case(s, case_id="c1", case_type="撤銷詐害債權", facts_summary="事實", claims="請求")
+    s.close()
+    v = tmp_path / "verdict.json"
+    v.write_text(json.dumps({"verdict_main_text": "原告尚未補正，逾期有被裁定駁回的風險(民事訴訟法第249條第1項;參最高法院115年度台抗字第105號)。",
+                             "verdict_analysis": "分析", "risk_map": {}, "mechanical_anchor_json": {}, "citations_used": []},
+                            ensure_ascii=False), encoding="utf-8")
+    r = run_main("verdict", "--case-id", "c1", "--json", str(v), db_url=db_url)
+    assert r.returncode == 1 and r.stderr.startswith("拒絕落地:") and "同一個括號" in r.stderr
+    from database.schema import Verdict
+    s = get_session(db_url)
+    assert s.query(Verdict).count() == 0
+    s.close()
+
+
 def test_duplicate_record_is_refused_without_traceback(tmp_path):
     db_url = f"sqlite:///{tmp_path / 'cli.db'}"
     s = get_session(db_url)

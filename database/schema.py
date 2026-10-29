@@ -109,6 +109,7 @@ class LiveRun(Base):
     exit_code = Column(Integer, nullable=True)
     error = Column(Text, nullable=True)
     log_path = Column(String, nullable=True)  # 相對專案根目錄的 stream-json 執行紀錄
+    notes_json = Column(Text, nullable=True)  # 從 stream-json 觀察到的安全分類器中止與訂閱額度變化(JSON)
 
 
 def init_db(db_path='sqlite:///database/legal_debate.db'):

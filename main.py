@@ -27,6 +27,7 @@ from database.db import (
     get_session, record_case, record_argument, record_question,
     finalize_case, record_verdict, record_pleading, upsert_citation,
 )
+from engine.party_issues import mixed_dismissal_citations
 from engine.verify import verify_citations
 
 PROTOCOL_VERSION = "v1-2026-08-07"
@@ -105,11 +106,19 @@ def cmd_verify(args):
 def cmd_verdict(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
+    analysis = _pick(payload, "verdict_analysis", "verdict_reasoning")
+    mixed = mixed_dismissal_citations("\n".join([payload["verdict_main_text"], analysis,
+                                                 json.dumps(payload["risk_map"], ensure_ascii=False)]))
+    if mixed:
+        print("拒絕落地:第249條與最高法院115年度台抗字第105號放在同一個括號，讀起來像該裁定也支持駁回:"
+              + ";".join(mixed) + "。請退回法官 subagent 分開引註:第249條接在逾期未補正以裁定駁回之後，"
+              "115台抗105 只接在法院應依職權調查實際代表權之後", file=sys.stderr)
+        return 1
     session = get_session()
     try:
         row = record_verdict(
             session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
-            verdict_reasoning=_pick(payload, "verdict_analysis", "verdict_reasoning"), risk_map=payload["risk_map"],
+            verdict_reasoning=analysis, risk_map=payload["risk_map"],
             mechanical_anchor_json=payload["mechanical_anchor_json"],
             protocol_version=PROTOCOL_VERSION, citations_used=payload.get("citations_used", []),
         )

@@ -29,6 +29,11 @@ RUNS_DIR_REL = "database/live_runs"
 EVENTS_FILE = "events.jsonl"
 LANDED_LINE = re.compile(r"(?m)^\s*已落地")
 MEMORY_EVENTS = 400
+# 實測(CLI 2.1.312,2026-10-29 執行 #4):回覆被安全分類器中止時，CLI 會補一則合成的 user 訊息給該 agent,
+# 背景 subagent 的這則訊息也會出現在 stream-json(帶 parent_tool_use_id 與 task_description)。
+# 分類器的 stop_reason/category 只寫在 subagent 逐字稿，stream-json 沒有，所以只能認這句話。
+SAFETY_STOP_MARK = "stopped by a safety classifier"
+QUOTA_WARN_AT = 0.9
 
 # --allowedTools:Bash 規則會把 && ; | 等複合指令拆開逐段比對，任何一段不是 `python main.py` 即被拒。
 # 寫檔由 Edit 規則管轄(Write(...) 規則不會比對)，限定在本次執行資料夾的上層 database/live_runs/。
@@ -77,6 +82,7 @@ def build_prompt(case_id, run_dir):
 4. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
+7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
 """
 
 
@@ -147,6 +153,10 @@ def summarize_event(obj, root="."):
             elif block.get("type") == "tool_use":
                 out.append(("tool", _describe_tool(block.get("name"), block.get("input"), root)))
     elif kind == "user":
+        who = safety_stop_task(obj)
+        if who:
+            out.append(("warn", f"{who} 的回覆被 Anthropic 安全分類器中止(不是程式或 API 錯誤)" +
+                        (";依 SKILL.md 應另開 subagent 以同一份範本重派" if who != "主 agent" else "")))
         for block in (obj.get("message") or {}).get("content") or []:
             if not isinstance(block, dict) or block.get("type") != "tool_result":
                 continue
@@ -171,6 +181,72 @@ def summarize_event(obj, root="."):
         if denials:
             out.append(("warn", f"本次共有 {len(denials)} 次工具呼叫因權限不足被拒"))
     return [{"kind": k, "text": t, "subagent": sub} for k, t in out]
+
+
+def safety_stop_task(obj):
+    """這行 stream-json 若是「回覆被安全分類器中止」的通知，回傳被中止的是誰；否則回傳 None。"""
+    if obj.get("type") != "user":
+        return None
+    for block in (obj.get("message") or {}).get("content") or []:
+        if isinstance(block, dict) and block.get("type") == "text" and SAFETY_STOP_MARK in (block.get("text") or ""):
+            if not obj.get("parent_tool_use_id"):
+                return "主 agent"
+            return f"subagent「{obj['task_description']}」" if obj.get("task_description") else "subagent"
+    return None
+
+
+def _epoch_iso(value):
+    try:
+        return datetime.datetime.fromtimestamp(float(value), datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except (TypeError, ValueError, OverflowError, OSError):
+        return None
+
+
+class StreamObserver:
+    """從 stream-json 累計 UI 需要、但 result 事件沒有的觀察：安全分類器中止次數，以及訂閱額度
+    (rate_limit_event 的 5 小時/7 天視窗用量)在這次執行開始與結束時的值。API 金鑰登入時沒有額度事件。"""
+
+    def __init__(self):
+        self.safety_stops = []
+        self.quota_start = None
+        self.quota_end = None
+
+    def feed(self, obj, at=None):
+        who = safety_stop_task(obj)
+        if who:
+            self.safety_stops.append({"who": who, "at": obj.get("timestamp") or at})
+        if obj.get("type") == "rate_limit_event":
+            windows = (obj.get("rate_limit_info") or {}).get("unifiedWindows") or {}
+            snap = {name: {"utilization": w.get("utilization"), "resets_at": _epoch_iso(w.get("resetsAt"))}
+                    for name, w in windows.items() if isinstance(w, dict) and isinstance(w.get("utilization"), (int, float))}
+            # 逐個視窗更新：開始值取該視窗第一次出現的值，結束值取最後一次；某則事件少了某個視窗時保留舊值
+            for name, w in snap.items():
+                self.quota_start = self.quota_start or {}
+                self.quota_start.setdefault(name, w)
+                self.quota_end = {**(self.quota_end or {}), name: w}
+
+    def to_dict(self):
+        quota = None
+        if self.quota_end:
+            quota = {name: {"start": self.quota_start[name]["utilization"],
+                            "end": w["utilization"], "resets_at": w["resets_at"]}
+                     for name, w in self.quota_end.items()}
+        return {"safety_stops": self.safety_stops, "quota": quota}
+
+
+def observe_log(path):
+    """從已存的 stream-json 重建觀察(舊執行補登用)。讀不到檔案回傳 None。"""
+    obs = StreamObserver()
+    try:
+        with open(path, "rb") as f:
+            for raw in f:
+                try:
+                    obs.feed(json.loads(raw.decode("utf-8", "replace")))
+                except ValueError:
+                    continue
+    except OSError:
+        return None
+    return obs.to_dict()
 
 
 def summarize_results(results):
@@ -229,12 +305,22 @@ def pipeline_missing(session, case_id):
     return missing
 
 
+def _notes(row):
+    try:
+        notes = json.loads(row.notes_json) if row.notes_json else {}
+    except ValueError:
+        return {}
+    return notes if isinstance(notes, dict) else {}
+
+
 def run_to_dict(row):
+    notes = _notes(row)
     return {"id": row.id, "case_id": row.case_id, "status": row.status, "started_at": row.started_at,
             "ended_at": row.ended_at, "model": row.model,
             "budget_usd": float(row.budget_usd) if row.budget_usd else None,
             "cost_usd": float(row.cost_usd) if row.cost_usd else None,
-            "exit_code": row.exit_code, "error": row.error, "log_path": row.log_path}
+            "exit_code": row.exit_code, "error": row.error, "log_path": row.log_path,
+            "safety_stops": notes.get("safety_stops") or [], "quota": notes.get("quota")}
 
 
 def _kill_tree(proc):
@@ -263,6 +349,7 @@ class _Active:
         self.timed_out = False
         self.result = None  # 最後一筆 result 事件
         self.results = []
+        self.observer = StreamObserver()
         self.lock = threading.Lock()
         self.thread = None
 
@@ -285,6 +372,7 @@ class LiveRunManager:
         self._active = None
         self._lock = threading.Lock()
         self._mark_stale_runs()
+        self._backfill_notes()
         # 登入狀態在背景查一次供 UI 提前提示(不拖慢啟動);真正的把關在 start() 每次重查
         self.auth = {"checked": False, "logged_in": None, "detail": None}
         self._auth_seq = 0
@@ -306,7 +394,8 @@ class LiveRunManager:
         active = self._active
         return {"enabled": self.enabled, "reason": None if self.enabled else self.reason,
                 "model": self.model, "budget_usd": self.budget_usd, "max_minutes": self.max_minutes,
-                "auth": self.auth, "active_run": {"id": active.run_id, "case_id": active.case_id} if active else None}
+                "auth": self.auth, "active_run": {"id": active.run_id, "case_id": active.case_id} if active else None,
+                "quota": self.latest_quota(), "quota_warn_at": QUOTA_WARN_AT}
 
     def _mark_stale_runs(self):
         with self.factory() as s:
@@ -413,6 +502,7 @@ class LiveRunManager:
                         obj = json.loads(raw.decode("utf-8", "replace"))
                     except ValueError:
                         continue
+                    active.observer.feed(obj, _now_iso())
                     if obj.get("type") == "result":  # 可能有多筆，結束後一起摘要(見 summarize_results)
                         active.results.append(obj)
                         active.result = obj
@@ -453,10 +543,22 @@ class LiveRunManager:
             status, error = "failed", reason
         if status != "succeeded" and missing and status != "incomplete":
             error += "(資料庫尚缺:" + "、".join(missing) + ")"
+        notes = active.observer.to_dict()
+        stops = notes["safety_stops"]
+        who = "、".join(s["who"] for s in stops)
+        if stops and status == "incomplete":
+            # Claude Code 自己回報完成但資料庫缺階段：沒有其他明確原因，分類器中止是最可能的解釋，但仍只是推斷
+            error += (f"。執行期間有 {len(stops)} 次回覆被 Anthropic 安全分類器中止({who}),"
+                      "很可能就是流程沒跑完的原因;請以執行紀錄與 Claude Code 最後回覆核對。這不是程式錯誤，可另建案件重跑")
+        elif stops and status == "failed":  # 已有明確失敗原因(花費上限、429、逾時…),只附註不歸因
+            error += f"。另外，執行期間有 {len(stops)} 次回覆被 Anthropic 安全分類器中止({who})"
         self._append(active, "error" if status != "succeeded" else "result",
                      {"succeeded": "執行完成，各階段皆已落地資料庫", "incomplete": "執行結束但流程不完整",
                       "cancelled": "已取消", "failed": "執行失敗"}[status] + (f":{error}" if error else ""))
-        self._finish(active.run_id, status, error=error, cost=cost, exit_code=code)
+        if stops and status == "succeeded":
+            self._append(active, "warn", f"執行期間有 {len(stops)} 次回覆被安全分類器中止({who})。"
+                                         "依 SKILL.md 被中止的輸出不得落地、應另開 subagent 重派;請以執行紀錄與最後回覆核對")
+        self._finish(active.run_id, status, error=error, cost=cost, exit_code=code, notes=notes)
         with self._lock:
             if self._active is active:
                 self._active = None
@@ -469,12 +571,32 @@ class LiveRunManager:
         except OSError:
             return ""
 
-    def _finish(self, run_id, status, *, error=None, cost=None, exit_code=None):
+    def _finish(self, run_id, status, *, error=None, cost=None, exit_code=None, notes=None):
         with self.factory() as s:
             row = s.get(LiveRun, run_id)
             row.status, row.ended_at, row.error, row.exit_code = status, _now_iso(), error, exit_code
             row.cost_usd = str(cost) if isinstance(cost, (int, float)) else None
+            if notes is not None:
+                row.notes_json = json.dumps(notes, ensure_ascii=False)
             s.commit()
+
+    def _backfill_notes(self):
+        """notes_json 欄位加入前結束的執行，從存檔的 stream-json 補登(例如 2026-10-29 執行 #4 的那次中止)。"""
+        with self.factory() as s:
+            for row in s.query(LiveRun).filter(LiveRun.notes_json.is_(None), LiveRun.status != "running").all():
+                notes = observe_log(self._log_abs(row.log_path)) if row.log_path else None
+                if notes is not None:
+                    row.notes_json = json.dumps(notes, ensure_ascii=False)
+            s.commit()
+
+    def latest_quota(self):
+        """最近一次有額度資料的執行結束時的訂閱額度(開始前提醒用;不是即時值)。"""
+        with self.factory() as s:
+            for row in s.query(LiveRun).filter(LiveRun.notes_json.isnot(None)).order_by(LiveRun.id.desc()).all():
+                quota = _notes(row).get("quota")
+                if quota:
+                    return {"run_id": row.id, "as_of": row.ended_at, "windows": quota}
+        return None
 
     # ── 取消 / 查詢 ──
     def cancel(self, run_id):
