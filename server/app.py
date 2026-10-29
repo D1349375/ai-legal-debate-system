@@ -158,6 +158,8 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         detail = services.get_case_detail(db, case_id, cases_dir, app.state.recorded_checks)
         if detail is None:
             raise HTTPException(404, f"找不到案件:{case_id}")
+        if detail["case"]["source"] == "database":
+            detail["resume"] = runner.resume_plan(case_id)
         return detail
 
     @app.post("/api/cases", status_code=201, dependencies=[Depends(local_only)])
@@ -180,9 +182,9 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         return {"case_id": case_id, "parties": parties}
 
     @app.post("/api/cases/{case_id}/runs", status_code=201, dependencies=[Depends(local_only)])
-    def start_run(case_id: str):
+    def start_run(case_id: str, resume: bool = Query(False)):
         try:
-            return runner.start(case_id)
+            return runner.start(case_id, resume=resume)
         except PermissionError as e:
             raise HTTPException(403, f"即時執行未啟用:{e}")
         except ValueError as e:
@@ -263,10 +265,10 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
                                         persist=req.persist, recorded_party_checks=app.state.recorded_party_checks)
 
     @app.get("/api/party-search")
-    def party_search(q: str = Query(...), db=Depends(get_db)):
+    def party_search(q: str = Query(...), scope: str = Query("active", pattern="^(active|inactive)$"), db=Depends(get_db)):
         if len(q.strip()) < 2:
             raise HTTPException(422, "公司名稱關鍵字至少 2 個字")
-        return services.party_search(q.strip())
+        return services.party_search(q.strip(), scope=scope)
 
     @app.get("/", include_in_schema=False)
     def index():

@@ -26,6 +26,7 @@ from engine import verify as engine_verify
 from engine import gcis, party_rules
 from engine.aggregate import VALID_SIDES, disagreement
 from engine.party_issues import cured_in, procedural_issues
+from server import pleading_export
 from server.live_run import run_to_dict
 from engine.verify import (
     JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES, STATUTES_DIR,
@@ -454,11 +455,15 @@ def export_pleading_text(case_id, version):
               if o["kind"] == "lawyer_edit" else
               f"本次即時生成(UI 執行 #{o['run_id']},本機 Claude Code)" if o["kind"] == "live" else
               "錄製紀錄(過去由 Claude Code subagent 產生後落地)")
-    lines = [version["draft_text"].rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
+    body, note = (pleading_export.system_draft_for_export(version["draft_text"]) if version["source"] == "system"
+                  else (version["draft_text"], None))  # 系統版去掉畫面上不顯示的內部備註；資料庫原文不動
+    lines = [body.rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
              f"案件:{case_id}", f"版本:{version['label']}", f"來源:{source}",
              f"產生／存檔時間:{version['generated_at']}", f"匯出時間:{_now_iso()}",
              f"引用查證:{len(version['citation_check'])} 條，全部已查證通過"]
     lines += [f"  - {c['citation_text']}:已查證通過" for c in version["citation_check"]]
+    if note:
+        lines += ["系統補充說明(供律師參考，非訴狀正文):", *(f"  {line}" for line in note.splitlines())]
     lines += ["聲明：本稿為爭點分析後的訴狀骨架或其編輯稿，非法律意見，須經執業律師審核後方可使用。",
               "查證僅確認條文／裁判字號存在，未比對判決全文是否支持該論點。"]
     return "\n".join(lines) + "\n"
@@ -693,16 +698,22 @@ def party_check_one(session, ban, *, role=None, case_id=None, input_name=None, t
     return result
 
 
-def party_search(keyword, *, timeout=6.0):
-    fetched = gcis.search_companies(keyword, timeout=timeout)
-    return {"ok": fetched["ok"], "error": fetched["error"], "fetched_at": fetched["fetched_at"],
+def party_search(keyword, *, timeout=6.0, scope="active"):
+    """scope=active:核准設立(一次查詢);scope=inactive:其他 32 種狀態(逐一查詢，較慢，可能部分失敗)。"""
+    fetched = (gcis.search_companies_inactive(keyword, timeout=timeout) if scope == "inactive"
+               else gcis.search_companies(keyword, timeout=timeout))
+    candidates = [{"ban": str(row.get("Business_Accounting_NO", "")), "name": row.get("Company_Name"),
+                   "status_text": row.get("Company_Status_Desc"),
+                   # 只有「核准設立」(外國公司「核准登記」)算正常；狀態缺漏也不當正常
+                   "status_normal": row.get("Company_Status_Desc") in (party_rules.NORMAL, party_rules.FOREIGN_NORMAL),
+                   "address": row.get("Company_Location"), "responsible_name": row.get("Responsible_Name")}
+                  for row in fetched["rows"]]
+    return {"ok": fetched["ok"], "error": fetched["error"], "scope": scope,
+            "failed_statuses": fetched.get("failed_statuses", []), "fetched_at": fetched["fetched_at"],
             "source": {"dataset": gcis.DATASETS["keyword"][1], "url": fetched["url"],
                        "fetched_at": fetched["fetched_at"]},
             "attribution": f"{gcis.ATTRIBUTION} [{gcis.DATASETS['keyword'][1]}]" if fetched["ok"] else None,
-            "candidates": [{"ban": str(row.get("Business_Accounting_NO", "")), "name": row.get("Company_Name"),
-                            "status_text": row.get("Company_Status_Desc"),
-                            "address": row.get("Company_Location"), "responsible_name": row.get("Responsible_Name")}
-                           for row in fetched["rows"]]}
+            "candidates": candidates}
 
 
 # ───────────────────────── finalize ─────────────────────────

@@ -28,14 +28,19 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 
 ## 即時執行(Claude Code)
 
-1. 先用「＋ 建立新案件」建立案件,再到案件總覽按「開始即時執行」。只有資料庫中**還沒有任何攻防或書狀紀錄**的案件可以執行;
-   落地紀錄不可覆寫,所以跑過(含失敗或取消)的案件不能重跑,請用「以此案件內容建立新案件」再建一件。
+1. 先用「＋ 建立新案件」建立案件,再到案件總覽按「開始即時執行」。只有資料庫中**還沒有任何攻防或書狀紀錄**的案件可以整件執行;
+   落地紀錄不可覆寫,所以跑過(含失敗或取消)但沒跑完的案件只能**從第一個尚未落地的階段續跑**:後端依資料庫實況判斷起點
+   (Stage 1 → 法官訊問 → Stage 2 → Stage 3 → 爭點評估 → 訴狀;某階段只有一方落地時只補另一方),把已落地紀錄匯出到
+   `database/live_runs/run-N/landed.json` 給 Claude Code 讀,並在 prompt 明示不得覆寫、刪除或重新落地(資料庫層本來就拒絕覆寫)。
+   落地不連續(前面缺、後面有)或錄製案件不提供續跑。要整件重來,請用「以此案件內容建立新案件」再建一件。
 2. 後端以無互動模式啟動 Claude Code(在專案目錄執行 `claude -p "/legal-debate <案件ID> …"`),權限只開到流程需要的範圍:
    `--permission-mode dontAsk`,允許 `Bash(python main.py *)`、`Skill(legal-debate *)`、Read、Grep、Glob、Agent,
    寫檔只限 `database/live_runs/` 之下;其他工具呼叫一律自動拒絕,不會停下來等人核准。
    Bash 的實際邊界(2026-10-28 以 Claude Code 2.1.312 實測):除 `python main.py …` 外,Claude Code 內建視為唯讀的指令(如 `ls`)也會放行,
    把輸出導向 `database/live_runs/` 之下的檔案(`python main.py finalize … > database/live_runs/run-N/anchor.json`)也會放行;
-   shell 迴圈(`for … do python main.py …`)、`cd` 串接會被拒。導向寫到 `database/live_runs/` 以外會不會被拒沒有實測。另加
+   shell 迴圈(`for … do python main.py …`)、`cd` 串接會被拒。導向寫到 `database/live_runs/` 以外一律被拒(2026-10-29 以 2.1.312 實測:
+   絕對路徑、`../`、專案根目錄、`>>`、`2>`、`| tee` 都列入 `permission_denials`,檔案沒有產生;以本機假 API 驅動真的 Claude Code,
+   不連 Anthropic、不用額度,見 `tests/test_claude_permissions.py`,設 `LEGALDEBATE_PROBE_CLAUDE=1` 可重跑)。另加
    `--setting-sources project --strict-mcp-config`,不載入使用者層設定與 MCP 伺服器。主 agent 與 subagent 都用 `--model` 指定的模型
    (subagent 以 `CLAUDE_CODE_SUBAGENT_MODEL` 指定),每次以 `--max-budget-usd` 限制花費。
 3. 同一時間只跑一件。實測(Pro 訂閱帳號)一件約 11–15 分鐘、Claude Code 估算約 2.5–3.3 美元(2026-10-28 執行 #2:10 分 51 秒、2.51 美元;
@@ -55,7 +60,8 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
    訂閱帳號的額度事件(5 小時、7 天視窗)也一併記錄,顯示本次執行開始→結束的用量;開始執行前會顯示上次已知的額度(標明是哪次執行結束時的值),
    任一視窗達 90% 且尚未過重置時間時提醒。2026-10-28 執行 #1 的額度事件是舊格式(沒有 `unifiedWindows`),不記錄;API 金鑰登入沒有額度事件。
 7. 已知限制:`--max-budget-usd` 是 Claude Code 用戶端的估算值,可能略為超出;官方文件沒有說明訂閱(OAuth)帳號是否同樣適用。
-   Windows 上透過 `taskkill /T /F` 終止程序樹。
+   Windows 上透過 `taskkill /T /F` 終止程序樹;`tests/test_live_run.py` 以假 Claude Code 再開一層孫程序驗證取消後兩者都結束
+   (2026-10-29 Windows 11 實測通過;改成只終止子程序時此測試會失敗)。真的 Claude Code 跑 Bash 時的程序樹未另外實測。
 
 **安全**:即時執行會在這台電腦以使用者的 Claude 帳號執行有工具權限的程式,而本服務沒有登入驗證,所以:
 

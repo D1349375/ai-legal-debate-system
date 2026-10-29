@@ -24,7 +24,8 @@
 
   var CASE_STATUS = {
     completed: { cls: "ok", label: "✓ 完整紀錄" },
-    in_progress: { cls: "warn", label: "進行中" },
+    // 有論證但缺爭點評估或訴狀；只有執行中才叫「進行中」，否則是停在中途的紀錄(見 renderCaseList)
+    in_progress: { cls: "warn", label: "◐ 未完成(部分落地)" },
     case_only: { cls: "neutral", label: "僅案件" },
     input_only: { cls: "neutral", label: "僅案件輸入" },
   };
@@ -172,7 +173,7 @@
   }
   function partyState(caseId, role) {
     var key = caseId + ":" + role;
-    if (!state.parties[key]) state.parties[key] = { ban: "", inputName: "", searchOpen: false, query: "", search: null, busy: false, searching: false, error: null, result: null };
+    if (!state.parties[key]) state.parties[key] = { ban: "", inputName: "", searchOpen: false, query: "", search: null, more: null, searchingMore: false, searchSeq: 0, busy: false, searching: false, error: null, result: null };
     return state.parties[key];
   }
   function citeIndex(d) {
@@ -207,6 +208,7 @@
     if (!state.cases.length) { box.append(h("div", { class: "detail-note", text: "資料庫中沒有案件。" })); return; }
     state.cases.forEach(function (c) {
       var st = CASE_STATUS[c.status] || CASE_STATUS.case_only;
+      if (c.status === "in_progress" && c.last_run_status === "running") st = { cls: "warn", label: "進行中" };
       box.append(h("button", {
         class: "case-item", type: "button", "aria-current": c.case_id === state.caseId ? "true" : "false",
         onclick: function () { selectCase(c.case_id, "overview"); },
@@ -435,13 +437,32 @@
     pieces.push(partySourceFooter(result));
     return h("div", { class: "party-result" }, pieces);
   }
+  function candidateButton(p) {
+    return function (c) { return h("button", {
+      class: "party-candidate" + (c.status_normal ? "" : " inactive"), type: "button",
+      onclick: function () { p.ban = c.ban; p.searchOpen = false; renderPanel(); },
+    }, h("strong", {}, c.name || "未提供名稱", c.status_normal ? null
+        : h("span", { class: "chip bad", text: "⚠ " + (c.status_text || "狀態未提供") + "（非核准設立）" })),
+    h("span", { text: "統編 " + c.ban + "　" + (c.status_text || "狀態未提供") }),
+    h("span", { text: c.address || "地址未提供" })); };
+  }
   async function searchParty(role) {
     var d = state.detail, p = partyState(d.case.case_id, role);
     if (p.query.trim().length < 2) { p.error = "公司名稱關鍵字至少 2 個字"; renderPanel(); return; }
-    p.searching = true; p.error = null; p.search = null; renderPanel();
-    try { p.search = await api("/api/party-search?q=" + encodeURIComponent(p.query.trim())); }
+    var seq = ++p.searchSeq, q = encodeURIComponent(p.query.trim());
+    p.searching = true; p.error = null; p.search = null; p.more = null; renderPanel();
+    try { p.search = await api("/api/party-search?q=" + q); }
     catch (e) { p.error = e.message; }
     p.searching = false;
+    if (seq !== p.searchSeq) return;
+    // 核准設立以外的狀態(已解散、廢止等)要逐一查 32 種狀態，較慢，先顯示核准設立的結果再補上
+    p.searchingMore = !p.error;
+    if (state.detail === d) renderPanel();
+    if (p.error) return;
+    try { var more = await api("/api/party-search?scope=inactive&q=" + q); }
+    catch (e) { more = { ok: false, error: e.message, candidates: [], failed_statuses: [] }; }
+    if (seq !== p.searchSeq) return;
+    p.more = more; p.searchingMore = false;
     if (state.detail === d) renderPanel();
   }
   async function checkParty(role) {
@@ -474,10 +495,15 @@
             onclick: function () { searchParty(role); }, text: p.searching ? "搜尋中…" : "搜尋候選" })),
         p.search && !p.search.ok ? banner("bad", "✗", "搜尋失敗：" + p.search.error) : null,
         p.search && p.search.ok ? [
-          p.search.candidates.length ? p.search.candidates.map(function (c) { return h("button", {
-            class: "party-candidate", type: "button", onclick: function () { p.ban = c.ban; p.searchOpen = false; renderPanel(); },
-          }, h("strong", { text: c.name || "未提供名稱" }), h("span", { text: "統編 " + c.ban + "　" + (c.status_text || "狀態未提供") }),
-          h("span", { text: c.address || "地址未提供" })); }) : h("p", { class: "detail-note", text: "沒有候選公司；請改用統編查核。" }),
+          p.search.candidates.length ? p.search.candidates.map(candidateButton(p)) : null,
+          p.searchingMore ? banner("warn", "⏱", "正在逐一查詢核准設立以外的 32 種公司狀態(已解散、廢止、撤銷等)，約需 20–30 秒…") : null,
+          p.more && p.more.candidates.length ? [h("p", { class: "detail-note", text: "以下為核准設立以外的狀態，不是正常營業中的公司：" }),
+            p.more.candidates.map(candidateButton(p))] : null,
+          p.more && !p.more.ok ? banner("warn", "⚠", "其他狀態(已解散等)查詢失敗，以下結果只含核准設立的公司：" + p.more.error) : null,
+          p.more && p.more.ok && p.more.failed_statuses.length ? banner("warn", "⚠", "其他狀態有 " + p.more.failed_statuses.length +
+            " 種查詢失敗，已解散等候選可能不完整：" + p.more.error) : null,
+          !p.searchingMore && !p.search.candidates.length && !(p.more && p.more.candidates.length)
+            ? h("p", { class: "detail-note", text: "沒有候選公司；請改用統編查核。" }) : null,
           partySourceFooter(p.search)] : null) : null,
       p.error ? banner("bad", "✗", ["查詢失敗：" + p.error, h("button", { class: "btn small", type: "button", onclick: function () { checkParty(role); }, text: "重試" })]) : null,
       p.busy ? banner("warn", "⏱", "查詢中…") : null,
@@ -1250,15 +1276,19 @@
       }
     } catch (e) { lr.error = e.message; }
   }
-  async function startRun(d) {
+  async function startRun(d, resume) {
     var hl = liveInfo(), id = d.case.case_id;
-    var ok = window.confirm("即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程。\n\n" +
+    var ok = window.confirm(resume ?
+      "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，從「" + d.resume.from_label + "」續跑。\n\n" +
+      "・已落地的" + d.resume.landed.join("、") + "不會重做，也不會被覆寫或刪除。\n" +
+      "・費用視剩下的階段而定(整件約 2.5–3.3 美元)；每次上限 " + hl.budget_usd + " 美元，超過即中止。訂閱帳號會占用 Claude 用量額度。\n\n確定續跑？" :
+      "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程。\n\n" +
       "・實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
-      "・執行中可取消；已落地的階段會保留，同一案件之後不能重跑。\n\n確定開始？");
+      "・執行中可取消；已落地的階段會保留，之後只能從尚未落地的階段續跑，不能整件重跑。\n\n確定開始？");
     if (!ok) return;
     state.liveBusy[id] = true; delete state.caseNotices[id]; renderPanel();
     try {
-      var r = await api("/api/cases/" + encodeURIComponent(id) + "/runs", { method: "POST" });
+      var r = await api("/api/cases/" + encodeURIComponent(id) + "/runs" + (resume ? "?resume=true" : ""), { method: "POST" });
       var lr = liveLog(r.run.id);
       lr.events = r.events; lr.since = r.event_count; lr.loaded = true;
       state.health = await api("/api/health");
@@ -1272,7 +1302,7 @@
     if (state.caseId === id) renderPanel();
   }
   async function cancelRun(run) {
-    if (!window.confirm("確定取消執行 #" + run.id + "？已落地的階段會保留，此案件之後不能重跑。")) return;
+    if (!window.confirm("確定取消執行 #" + run.id + "？已落地的階段會保留，之後只能從尚未落地的階段續跑。")) return;
     state.liveBusy[run.case_id] = true; renderPanel();
     try { await api("/api/runs/" + run.id + "/cancel", { method: "POST" }); }
     catch (e) { liveLog(run.id).error = "取消失敗：" + e.message; }
@@ -1315,9 +1345,19 @@
         quotaLine(q.windows) + (expired.length ? "。" + expired.map(function (k) { return QUOTA_LABEL[k]; }).join("、") +
         "視窗已過重置時間，實際用量應已重置" : "") })];
   }
+  // 流程不完整且有分類器中止：最可能的原因就是分類器(Claude Code 自己回報完成，沒有其他明確錯誤)
+  function stoppedByClassifier(run) { return run.status === "incomplete" && (run.safety_stops || []).length > 0; }
+  function runLabel(run) {
+    return RUN_STATUS[run.status].label + (stoppedByClassifier(run) ? "(安全分類器中止 " + run.safety_stops.length + " 次)" : "");
+  }
   function safetyStopBanner(run) {
     var stops = run.safety_stops || [];
     if (!stops.length) return null;
+    if (stoppedByClassifier(run)) {
+      return banner("bad", "!", [h("strong", { text: "流程沒跑完的可能原因：安全分類器中止 " + stops.length + " 次" }),
+        "：" + stops.map(function (s) { return s.who; }).join("、") + " 的回覆被 Anthropic 安全分類器中止，之後的階段沒有落地。" +
+        "這不是程式或 API 錯誤，是根據執行紀錄推斷的原因，請以下方執行紀錄核對。依官方文件，這類中止照樣計費。"]);
+    }
     var who = stops.map(function (s) { return s.who; }).join("、");
     var subagentOnly = stops.every(function (s) { return s.who !== "主 agent"; });
     var tail = run.status === "succeeded" ? (subagentOnly ? "依 SKILL.md，被中止的輸出不得落地、應另開 subagent 以同一份範本重派；請以執行紀錄與最後回覆核對。" : "") :
@@ -1325,6 +1365,14 @@
     return banner("warn", "!", [h("strong", { text: "安全分類器中止 " + stops.length + " 次" }),
       "：" + who + " 的回覆被 Anthropic 安全分類器中止。這不是程式或 API 錯誤。" + tail +
       "依官方文件，這類中止照樣計費。"]);
+  }
+  function fmtTokens(n) { return n >= 10000 ? (n / 10000).toFixed(n >= 1000000 ? 0 : 1) + " 萬" : String(n); }
+  function tokenTotal(t) { return t.input_tokens + t.cache_read_input_tokens + t.cache_creation_input_tokens + t.output_tokens; }
+  // 整次執行(含 subagent)的 token 數，取自 Claude Code 回報的累計值
+  function tokenLine(t) {
+    return "token 用量(含 subagent)：合計 " + fmtTokens(tokenTotal(t)) + "・輸入 " + fmtTokens(t.input_tokens) +
+      "・快取讀取 " + fmtTokens(t.cache_read_input_tokens) + "・快取寫入 " + fmtTokens(t.cache_creation_input_tokens) +
+      "・輸出 " + fmtTokens(t.output_tokens) + (Object.keys(t.by_model || {}).length > 1 ? "(" + Object.keys(t.by_model).join("、") + ")" : "");
   }
   function runView(run, d) {
     var st = RUN_STATUS[run.status], lr = liveLog(run.id);
@@ -1335,7 +1383,7 @@
         e.subagent ? chip("neutral", "subagent") : null, h("span", { class: "run-text", text: e.text }));
     };
     return h("div", { class: "run-view" },
-      h("div", { class: "run-head" }, chip(st.cls, st.label), h("strong", { text: "執行 #" + run.id }),
+      h("div", { class: "run-head" }, chip(st.cls, runLabel(run)), h("strong", { text: "執行 #" + run.id + (run.resume_from ? "(從" + run.resume_from + "續跑)" : "") }),
         h("span", { class: "detail-note", text: "開始 " + fmtTime(run.started_at) + "・經過 " + elapsed(run) + "・模型 " + run.model +
           (run.cost_usd != null ? "・估算花費 " + run.cost_usd.toFixed(2) + " 美元" : "") + (run.exit_code != null ? "・結束碼 " + run.exit_code : "") }),
         run.status === "running" ? h("button", { class: "btn small", type: "button", disabled: state.liveBusy[run.case_id] ? true : null,
@@ -1343,9 +1391,12 @@
       run.status === "running" ? h("div", { class: "chip-row" }, d.progress.map(function (s) {
         return chip(s.state === "done" ? "ok" : s.state === "partial" ? "warn" : "neutral", (s.state === "done" ? "✓ " : s.state === "partial" ? "◐ " : "· ") + s.label);
       })) : null,
+      stoppedByClassifier(run) ? safetyStopBanner(run) : null,
       run.error ? banner(run.status === "cancelled" ? "warn" : "bad", run.status === "cancelled" ? "!" : "✗", run.error) : null,
-      safetyStopBanner(run),
+      stoppedByClassifier(run) ? null : safetyStopBanner(run),
       run.quota ? h("p", { class: "detail-note", text: "訂閱額度(本次執行開始 → 結束)：" + quotaLine(run.quota) }) : null,
+      run.tokens ? h("p", { class: "detail-note", text: tokenLine(run.tokens) }) :
+        run.status !== "running" ? h("p", { class: "detail-note", text: "token 用量：Claude Code 沒有回報 token 數，不估算。" }) : null,
       lr.error ? banner("warn", "!", "讀取執行紀錄失敗：" + lr.error) : null,
       events.length ? h("div", { class: "run-log", role: "log", "aria-label": "執行紀錄" }, events.slice(-30).map(row)) :
         h("p", { class: "detail-note", text: run.status === "running" ? "等待 Claude Code 輸出…" : "沒有可顯示的執行紀錄。" }),
@@ -1357,11 +1408,12 @@
     var hl = liveInfo(), runs = d.live_runs || [], latest = runs[runs.length - 1];
     var hasRecords = d.stats.arguments || d.stats.questions || d.verdict || d.pleading;
     if (!latest && hasRecords) return null;  // 錄製案件：不提供重跑
-    var body = [];
+    var body = [], rp = d.resume;
     if (latest) body.push(runView(latest, d));
     if (!latest || latest.status !== "running") {
-      if (hasRecords) {
-        body.push(h("p", { class: "detail-note", text: "此案件已有落地紀錄，不能重跑(落地紀錄不可覆寫)。要用同樣內容再模擬一次，請另建案件。" }),
+      if (hasRecords && !(rp && rp.possible)) {
+        body.push(h("p", { class: "detail-note", text: "此案件已有落地紀錄，不能整件重跑(落地紀錄不可覆寫)。" +
+            (rp && rp.reason ? rp.reason + "。" : "") + "要用同樣內容再模擬一次，請另建案件。" }),
           h("button", { class: "btn small", type: "button", text: "以此案件內容建立新案件", onclick: function () { openCreate(prefillFrom(d)); } }));
       } else if (!hl.enabled) {
         body.push(banner("warn", "!", "即時執行停用：" + hl.reason));
@@ -1369,6 +1421,17 @@
         body.push(banner("bad", "✗", [h("strong", { text: "無法執行" }), "：" + hl.auth.detail + "。登入後重新整理本頁。"]));
       } else if (hl.active_run) {
         body.push(banner("warn", "⏳", "目前已有執行進行中(案件 " + hl.active_run.case_id + "，執行 #" + hl.active_run.id + ")，同一時間只能跑一件。"));
+      } else if (hasRecords) {
+        if (hl.quota) body.push(knownQuota(hl.quota, hl.quota_warn_at));
+        body.push(h("p", { class: "detail-note", text: "資料庫已落地：" + rp.landed.join("、") + "。可從「" + rp.from_label + "」續跑：" +
+            "已落地的紀錄不會重做，也不會被覆寫或刪除，Claude Code 會讀取這些紀錄接著跑剩下的階段。" +
+            (rp.missing_sides.length ? "此階段只補" + rp.missing_sides.map(function (x) { return SIDE[x].label; }).join("、") + "一方。" : "") +
+            (rp.landed.indexOf("法官訊問") >= 0 ? "法官訊問中「無爭議事項」當初沒有存進資料庫，續跑時無法取得，評估會照實註明。" : "") +
+            "每次上限 " + hl.budget_usd + " 美元。" }),
+          h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] ? true : null,
+            onclick: function () { startRun(d, true); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
+            state.liveBusy[d.case.case_id] ? "啟動中…" : "從「" + rp.from_label + "」續跑"),
+          h("button", { class: "btn small", type: "button", text: "或以此案件內容建立新案件", onclick: function () { openCreate(prefillFrom(d)); } }));
       } else {
         if (hl.quota) body.push(knownQuota(hl.quota, hl.quota_warn_at));
         body.push(h("p", { class: "detail-note", text: "按下後，後端在這台電腦以你的 Claude 帳號啟動 Claude Code(無互動模式，模型 " + hl.model +
@@ -1379,7 +1442,7 @@
             state.liveBusy[d.case.case_id] ? "啟動中…" : "開始即時執行"));
       }
     }
-    return card("即時執行(Claude Code)", body, latest ? chip(RUN_STATUS[latest.status].cls, RUN_STATUS[latest.status].label) : null);
+    return card("即時執行(Claude Code)", body, latest ? chip(RUN_STATUS[latest.status].cls, runLabel(latest)) : null);
   }
   function prefillFrom(d) {
     var p = d.case.parties || {}, pl = p.plaintiff || {}, df = p.defendant || {};
@@ -1420,8 +1483,9 @@
         h("p", { class: "detail-note", text: "查證權威來源：法規＝法務部全國法規資料庫；判決＝本地語料庫 → 司法院裁判書查詢系統。" })),
       d.live_runs && d.live_runs.length ? h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "即時執行" }),
         d.live_runs.map(function (r) {
-          return meta("執行 #" + r.id, RUN_STATUS[r.status].label + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
-            ((r.safety_stops || []).length ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
+          return meta("執行 #" + r.id, runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
+            (r.tokens ? "・" + fmtTokens(tokenTotal(r.tokens)) + " token" : "") +
+            ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
         })) : null,
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "限制" }),
         h("p", { class: "detail-note", text: "標示「⚡ 本次即時生成」者由本機 Claude Code 經 UI 執行產生；標示「⏺ 錄製紀錄」者是過去產生後落地的紀錄重播。引用查證僅確認條文／字號存在，未比對判決全文是否支持該論點。研究原型，非法律意見，訴狀須由律師審核。" })));

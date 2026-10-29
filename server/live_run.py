@@ -18,6 +18,8 @@ import signal
 import subprocess
 import threading
 
+from sqlalchemy import or_
+
 from database.db import DB_URL_ENV, default_db_path
 from database.schema import Case, CourtQuestion, DebateArgument, LiveRun, PleadingDraft, Verdict
 from engine.aggregate import VALID_SIDES
@@ -70,7 +72,7 @@ def resolve_claude_command():
     return [found], None
 
 
-def build_prompt(case_id, run_dir):
+def build_prompt(case_id, run_dir, resume=None):
     return f"""/legal-debate {case_id}
 
 本次由 LegalDebate UI 以無人值守方式(claude -p)觸發，過程中沒有人能回答問題。請依 .claude/skills/legal-debate/SKILL.md 跑完 Step 1–10;需要使用者決定的地方，依 SKILL.md 最保守的做法處理，並在最後的回覆說明，不要停下來等待。
@@ -83,6 +85,20 @@ def build_prompt(case_id, run_dir):
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
+""" + (resume_instructions(resume, run_dir) if resume else "")
+
+
+def resume_instructions(plan, run_dir):
+    side_note = ""
+    if plan["missing_sides"]:
+        missing = "、".join(SIDE_LABEL[x] for x in plan["missing_sides"])
+        present = "、".join(SIDE_LABEL[x] for x in VALID_SIDES if x not in plan["missing_sides"])
+        side_note = f"\n   {plan['from_label']}只有{present}已落地：只派{missing}的 subagent、只落地{missing}。"
+    no_uncontested = ("\n   法官訊問的 uncontested_points 當初沒有落地資料庫，本次無法取得；Step 7 與最後回覆用到時照實寫明無法取得，不要自行推測補寫。"
+                      if "questions" in plan["landed_keys"] else "")
+    return f"""8. 本次是續跑。資料庫已落地：{"、".join(plan["landed"])}。這些紀錄一律不得覆寫、刪除或重新落地(SKILL.md「落地紀律」)。
+   從 SKILL.md {plan["from_step"]}({plan["from_label"]})開始。之前的步驟只做 Step 1 的檢索詞整理與 Step 1.5 的 `python main.py issues`,不要再派 subagent 重做已落地的階段。
+   已落地的論證、法官訊問與評估已由 UI 從資料庫匯出到 {run_dir}/landed.json(唯讀);後續步驟需要前階段的輸出(含對造結構化摘要)時，以這個檔案為準。{side_note}{no_uncontested}
 """
 
 
@@ -249,6 +265,41 @@ def observe_log(path):
     return obs.to_dict()
 
 
+USAGE_FIELDS = (("inputTokens", "input_tokens"), ("outputTokens", "output_tokens"),
+                ("cacheReadInputTokens", "cache_read_input_tokens"),
+                ("cacheCreationInputTokens", "cache_creation_input_tokens"))
+
+
+def token_usage(result):
+    """整次執行(含 subagent)的 token 數。實測(CLI 2.1.312)result 事件的 modelUsage 與 total_cost_usd 一樣是累計值，
+    usage 欄只是主 agent 最後一輪，所以取 modelUsage 依模型加總。沒有 modelUsage 時回傳 None,不拿 usage 充數。"""
+    by_model = {}
+    for model, u in ((result or {}).get("modelUsage") or {}).items():
+        if isinstance(u, dict):
+            by_model[model] = {key: int(u.get(src) or 0) for src, key in USAGE_FIELDS}
+    if not by_model:
+        return None
+    total = {key: sum(m[key] for m in by_model.values()) for _, key in USAGE_FIELDS}
+    return {**total, "by_model": by_model}
+
+
+def usage_from_log(path):
+    """從已存的 stream-json 取最後一筆 result 的 token 數(舊執行補登用)。"""
+    last = None
+    try:
+        with open(path, "rb") as f:
+            for raw in f:
+                try:
+                    obj = json.loads(raw.decode("utf-8", "replace"))
+                except ValueError:
+                    continue
+                if obj.get("type") == "result":
+                    last = obj
+    except OSError:
+        return None
+    return token_usage(last)
+
+
 def summarize_results(results):
     """整次執行的 result 事件摘要。subagent 在背景執行時(實測 CLI 2.1.312),主 agent 每等一批就結束一輪，
     stream 結尾會連續出現多筆 result:花費與 modelUsage 是累計值，權限拒絕只記在當輪。所以只摘要最後一筆，
@@ -272,7 +323,7 @@ def result_error(obj):
     if obj.get("api_error_status") == 429:
         # 實測訂閱帳號用完 session 額度時:is_error + api_error_status 429,result 為 "You've hit your session limit · resets …"
         return (f"Claude 帳號已達用量上限或速率限制(HTTP 429):{detail}。此額度與同一帳號的其他 Claude Code 使用共用;"
-                "已落地的階段保留，額度重置後請以「以此案件內容建立新案件」重跑")
+                "已落地的階段保留，額度重置後可從尚未落地的階段續跑")
     return f"Claude Code 回報錯誤:{detail}"
 
 
@@ -305,12 +356,90 @@ def pipeline_missing(session, case_id):
     return missing
 
 
+SIDE_LABEL = {"plaintiff": "原告", "defendant": "被告"}
+# 續跑的步驟順序(key, 名稱, SKILL.md 起點)。Step 6–8(finalize、查證)不落地，以評估落地為準。
+RESUME_STEPS = (("stage1", "Stage 1 爭點整理", "Step 2"), ("questions", "法官訊問", "Step 3"),
+                ("stage2", "Stage 2 訊問攻防", "Step 4"), ("stage3", "Stage 3 辯論終結", "Step 5"),
+                ("verdict", "爭點強弱評估", "Step 6"), ("pleading", "訴狀骨架", "Step 9"))
+
+
+def resume_plan(session, case_id):
+    """依資料庫實況找出第一個尚未落地的步驟，從那裡續跑；已落地的紀錄不重做、不覆寫。
+    落地不連續(前面缺、後面有)或沒有需要續跑的步驟時，possible 為 False 並說明原因。"""
+    sides = {stage: set() for stage in (1, 2, 3)}
+    for a in session.query(DebateArgument).filter_by(case_id=case_id).all():
+        sides.setdefault(a.stage, set()).add(a.side)
+    done = {"stage1": sides[1] >= set(VALID_SIDES),
+            "questions": session.query(CourtQuestion).filter_by(case_id=case_id).count() > 0,
+            "stage2": sides[2] >= set(VALID_SIDES), "stage3": sides[3] >= set(VALID_SIDES),
+            "verdict": session.query(Verdict).filter_by(case_id=case_id).count() > 0,
+            "pleading": session.query(PleadingDraft).filter_by(case_id=case_id).count() > 0}
+    stage_sides = {f"stage{n}": sides[n] for n in (1, 2, 3)}
+    touched = {key: done[key] or bool(stage_sides.get(key)) for key in done}
+    landed = []
+    for key, label, _ in RESUME_STEPS:
+        if done[key]:
+            landed.append(label)
+        elif touched[key]:
+            landed.append(label + "(僅" + "、".join(SIDE_LABEL[x] for x in VALID_SIDES if x in stage_sides[key]) + ")")
+    plan = {"possible": False, "reason": None, "landed": landed, "landed_keys": [k for k in done if done[k]],
+            "from_key": None, "from_label": None, "from_step": None, "missing_sides": []}
+    if not any(touched.values()):
+        plan["reason"] = "此案件沒有落地紀錄，直接開始執行即可"
+        return plan
+    first = next((i for i, (key, _, _) in enumerate(RESUME_STEPS) if not done[key]), None)
+    if first is None:
+        plan["reason"] = "各階段皆已落地，沒有需要續跑的步驟"
+        return plan
+    later = [label for key, label, _ in RESUME_STEPS[first + 1:] if touched[key]]
+    if later:
+        plan["reason"] = (f"資料庫的落地紀錄不連續({RESUME_STEPS[first][1]}未落地，但{'、'.join(later)}已落地)，"
+                          "無法判斷該從哪裡續跑；請建立新案件")
+        return plan
+    key, label, step = RESUME_STEPS[first]
+    plan.update(possible=True, from_key=key, from_label=label, from_step=step,
+                missing_sides=[x for x in VALID_SIDES if x not in stage_sides[key]] if key in stage_sides else [])
+    return plan
+
+
+def export_landed(session, case_id):
+    """續跑時交給 Claude Code 的已落地紀錄(唯讀副本，資料庫才是正本)。"""
+    def loads(text):
+        try:
+            return json.loads(text) if text else []
+        except ValueError:
+            return text
+    verdict = session.query(Verdict).filter_by(case_id=case_id).one_or_none()
+    return {
+        "case_id": case_id,
+        "note": "由 LegalDebate UI 從資料庫匯出的已落地紀錄，僅供續跑時讀取；這些紀錄不得覆寫、刪除或重新落地。",
+        "arguments": [{"side": a.side, "stage": a.stage, "position": a.position, "argument": a.reasoning,
+                       "cited_statutes": loads(a.cited_statutes), "cited_precedents": loads(a.cited_precedents),
+                       "falsifier": a.falsifier, "model_id": a.model_id, "created_at": a.created_at}
+                      for a in session.query(DebateArgument).filter_by(case_id=case_id)
+                      .order_by(DebateArgument.stage, DebateArgument.side).all()],
+        "court_questions": [{"question_text": q.question_text, "target_side": q.target_side, "based_on": q.based_on}
+                            for q in session.query(CourtQuestion).filter_by(case_id=case_id).order_by(CourtQuestion.id).all()],
+        "verdict": None if verdict is None else {
+            "verdict_main_text": verdict.verdict_main_text, "verdict_analysis": verdict.verdict_reasoning,
+            "risk_map": loads(verdict.risk_map), "mechanical_anchor_json": loads(verdict.mechanical_anchor_json)},
+    }
+
+
 def _notes(row):
     try:
         notes = json.loads(row.notes_json) if row.notes_json else {}
     except ValueError:
         return {}
     return notes if isinstance(notes, dict) else {}
+
+
+def _usage(row):
+    try:
+        usage = json.loads(row.usage_json) if row.usage_json else None
+    except ValueError:
+        return None
+    return usage if isinstance(usage, dict) else None
 
 
 def run_to_dict(row):
@@ -320,7 +449,8 @@ def run_to_dict(row):
             "budget_usd": float(row.budget_usd) if row.budget_usd else None,
             "cost_usd": float(row.cost_usd) if row.cost_usd else None,
             "exit_code": row.exit_code, "error": row.error, "log_path": row.log_path,
-            "safety_stops": notes.get("safety_stops") or [], "quota": notes.get("quota")}
+            "safety_stops": notes.get("safety_stops") or [], "quota": notes.get("quota"),
+            "resume_from": notes.get("resume_from"), "tokens": _usage(row)}
 
 
 def _kill_tree(proc):
@@ -340,8 +470,9 @@ def _kill_tree(proc):
 
 
 class _Active:
-    def __init__(self, run_id, case_id, proc, events_path=None):
+    def __init__(self, run_id, case_id, proc, events_path=None, resume_from=None):
         self.run_id, self.case_id, self.proc = run_id, case_id, proc
+        self.resume_from = resume_from
         self.events_path = events_path
         self.events = []
         self.seq = 0
@@ -418,8 +549,16 @@ class LiveRunManager:
         return rel.replace("\\", "/") if not rel.startswith("..") else abs_dir.replace("\\", "/")
 
     # ── 啟動 ──
-    def start(self, case_id):
-        """回傳 run dict;不能執行時 raise PermissionError(未啟用)或 ValueError(案件狀態不允許)。"""
+    def resume_plan(self, case_id):
+        with self.factory() as s:
+            plan = resume_plan(s, case_id)
+            if plan["possible"] and not s.query(LiveRun).filter_by(case_id=case_id).count():
+                plan.update(possible=False, reason="此案件的紀錄不是 UI 即時執行產生的(錄製紀錄),不提供續跑")
+        return plan
+
+    def start(self, case_id, resume=False):
+        """回傳 run dict;不能執行時 raise PermissionError(未啟用)或 ValueError(案件狀態不允許)。
+        resume=True:從第一個尚未落地的步驟續跑(見 resume_plan),已落地的紀錄不覆寫。"""
         if not self.enabled:
             raise PermissionError(self.reason)
         if self._active is None:
@@ -435,10 +574,19 @@ class LiveRunManager:
                     raise ValueError(f"找不到案件 {case_id}(必須先落地資料庫)")
                 existing = sum(s.query(m).filter_by(case_id=case_id).count()
                                for m in (DebateArgument, CourtQuestion, Verdict, PleadingDraft))
-                if existing:
-                    raise ValueError("此案件已有攻防或書狀紀錄。落地紀錄不可覆寫，不能重跑；請建立新案件")
+                plan = None
+                if resume:
+                    plan = self.resume_plan(case_id)
+                    if not plan["possible"]:
+                        raise ValueError(f"無法續跑：{plan['reason']}")
+                elif existing:
+                    raise ValueError("此案件已有攻防或書狀紀錄。落地紀錄不可覆寫，不能整件重跑；"
+                                     "可從尚未落地的階段續跑，或建立新案件")
+                landed_export = export_landed(s, case_id) if plan else None
                 row = LiveRun(case_id=case_id, status="running", started_at=_now_iso(), model=self.model,
-                              budget_usd=str(self.budget_usd))
+                              budget_usd=str(self.budget_usd),
+                              # 續跑起點先存，執行中畫面就看得到；結束時與觀察結果一起覆寫
+                              notes_json=json.dumps({"resume_from": plan["from_label"]}, ensure_ascii=False) if plan else None)
                 s.add(row)
                 s.commit()
                 run_id = row.id
@@ -452,7 +600,10 @@ class LiveRunManager:
             os.makedirs(abs_dir, exist_ok=True)
             with open(os.path.join(abs_dir, "case.json"), "w", encoding="utf-8") as f:
                 json.dump(case_payload, f, ensure_ascii=False, indent=2)
-            args = build_args(self.command, build_prompt(case_id, run_dir), model=self.model, budget_usd=self.budget_usd)
+            if landed_export:
+                with open(os.path.join(abs_dir, "landed.json"), "w", encoding="utf-8") as f:
+                    json.dump(landed_export, f, ensure_ascii=False, indent=2)
+            args = build_args(self.command, build_prompt(case_id, run_dir, plan), model=self.model, budget_usd=self.budget_usd)
             env = dict(os.environ)
             env[DB_URL_ENV] = self.db_url or f"sqlite:///{default_db_path()}"
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = self.model  # CLI 2.1.251 前此變數優先於 Agent 的 model 參數
@@ -468,9 +619,11 @@ class LiveRunManager:
                 stderr_file.close()
                 self._finish(run_id, "failed", error=f"無法啟動 Claude Code:{e}")
                 raise ValueError(f"無法啟動 Claude Code:{e}")
-            active = _Active(run_id, case_id, proc, events_path=os.path.join(abs_dir, EVENTS_FILE))
+            active = _Active(run_id, case_id, proc, events_path=os.path.join(abs_dir, EVENTS_FILE),
+                             resume_from=plan["from_label"] if plan else None)
             self._active = active
-            self._append(active, "info", f"已啟動執行 #{run_id}(模型 {self.model},花費上限 {self.budget_usd:g} 美元)")
+            self._append(active, "info", f"已啟動執行 #{run_id}(模型 {self.model},花費上限 {self.budget_usd:g} 美元)" +
+                         (f"。續跑：從{plan['from_label']}開始，已落地的{'、'.join(plan['landed'])}不重做、不覆寫" if plan else ""))
             active.thread = threading.Thread(target=self._pump, args=(active, stderr_file, abs_dir), daemon=True)
             active.thread.start()
             return self.get(run_id)
@@ -544,12 +697,14 @@ class LiveRunManager:
         if status != "succeeded" and missing and status != "incomplete":
             error += "(資料庫尚缺:" + "、".join(missing) + ")"
         notes = active.observer.to_dict()
+        if active.resume_from:
+            notes["resume_from"] = active.resume_from
         stops = notes["safety_stops"]
         who = "、".join(s["who"] for s in stops)
         if stops and status == "incomplete":
             # Claude Code 自己回報完成但資料庫缺階段：沒有其他明確原因，分類器中止是最可能的解釋，但仍只是推斷
             error += (f"。執行期間有 {len(stops)} 次回覆被 Anthropic 安全分類器中止({who}),"
-                      "很可能就是流程沒跑完的原因;請以執行紀錄與 Claude Code 最後回覆核對。這不是程式錯誤，可另建案件重跑")
+                      "很可能就是流程沒跑完的原因;請以執行紀錄與 Claude Code 最後回覆核對。這不是程式錯誤，可從尚未落地的階段續跑")
         elif stops and status == "failed":  # 已有明確失敗原因(花費上限、429、逾時…),只附註不歸因
             error += f"。另外，執行期間有 {len(stops)} 次回覆被 Anthropic 安全分類器中止({who})"
         self._append(active, "error" if status != "succeeded" else "result",
@@ -558,7 +713,8 @@ class LiveRunManager:
         if stops and status == "succeeded":
             self._append(active, "warn", f"執行期間有 {len(stops)} 次回覆被安全分類器中止({who})。"
                                          "依 SKILL.md 被中止的輸出不得落地、應另開 subagent 重派;請以執行紀錄與最後回覆核對")
-        self._finish(active.run_id, status, error=error, cost=cost, exit_code=code, notes=notes)
+        self._finish(active.run_id, status, error=error, cost=cost, exit_code=code, notes=notes,
+                     usage=token_usage(active.result))
         with self._lock:
             if self._active is active:
                 self._active = None
@@ -571,22 +727,31 @@ class LiveRunManager:
         except OSError:
             return ""
 
-    def _finish(self, run_id, status, *, error=None, cost=None, exit_code=None, notes=None):
+    def _finish(self, run_id, status, *, error=None, cost=None, exit_code=None, notes=None, usage=None):
         with self.factory() as s:
             row = s.get(LiveRun, run_id)
             row.status, row.ended_at, row.error, row.exit_code = status, _now_iso(), error, exit_code
             row.cost_usd = str(cost) if isinstance(cost, (int, float)) else None
             if notes is not None:
                 row.notes_json = json.dumps(notes, ensure_ascii=False)
+            if usage is not None:
+                row.usage_json = json.dumps(usage, ensure_ascii=False)
             s.commit()
 
     def _backfill_notes(self):
         """notes_json 欄位加入前結束的執行，從存檔的 stream-json 補登(例如 2026-10-29 執行 #4 的那次中止)。"""
         with self.factory() as s:
-            for row in s.query(LiveRun).filter(LiveRun.notes_json.is_(None), LiveRun.status != "running").all():
+            # 續跑在啟動時就先存了 resume_from,執行途中後端重啟的話 notes_json 不是 NULL 但還沒有觀察結果，一併補登
+            for row in s.query(LiveRun).filter(or_(LiveRun.notes_json.is_(None), LiveRun.notes_json.notlike('%"safety_stops"%')),
+                                               LiveRun.status != "running").all():
                 notes = observe_log(self._log_abs(row.log_path)) if row.log_path else None
                 if notes is not None:
-                    row.notes_json = json.dumps(notes, ensure_ascii=False)
+                    row.notes_json = json.dumps({**_notes(row), **notes}, ensure_ascii=False)
+            # token 數欄位加入前結束的執行(2026-10-28 #1 起)同樣從 stream-json 補登
+            for row in s.query(LiveRun).filter(LiveRun.usage_json.is_(None), LiveRun.status != "running").all():
+                usage = usage_from_log(self._log_abs(row.log_path)) if row.log_path else None
+                if usage is not None:
+                    row.usage_json = json.dumps(usage, ensure_ascii=False)
             s.commit()
 
     def latest_quota(self):
