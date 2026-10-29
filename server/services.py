@@ -26,6 +26,7 @@ from engine import verify as engine_verify
 from engine import gcis, party_rules
 from engine.aggregate import VALID_SIDES, disagreement
 from engine.party_issues import cured_in, procedural_issues
+from server import pleading_export
 from server.live_run import run_to_dict
 from engine.verify import (
     JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES, STATUTES_DIR,
@@ -454,11 +455,15 @@ def export_pleading_text(case_id, version):
               if o["kind"] == "lawyer_edit" else
               f"本次即時生成(UI 執行 #{o['run_id']},本機 Claude Code)" if o["kind"] == "live" else
               "錄製紀錄(過去由 Claude Code subagent 產生後落地)")
-    lines = [version["draft_text"].rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
+    body, note = (pleading_export.system_draft_for_export(version["draft_text"]) if version["source"] == "system"
+                  else (version["draft_text"], None))  # 系統版去掉畫面上不顯示的內部備註；資料庫原文不動
+    lines = [body.rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
              f"案件:{case_id}", f"版本:{version['label']}", f"來源:{source}",
              f"產生／存檔時間:{version['generated_at']}", f"匯出時間:{_now_iso()}",
              f"引用查證:{len(version['citation_check'])} 條，全部已查證通過"]
     lines += [f"  - {c['citation_text']}:已查證通過" for c in version["citation_check"]]
+    if note:
+        lines += ["系統補充說明(供律師參考，非訴狀正文):", *(f"  {line}" for line in note.splitlines())]
     lines += ["聲明：本稿為爭點分析後的訴狀骨架或其編輯稿，非法律意見，須經執業律師審核後方可使用。",
               "查證僅確認條文／裁判字號存在，未比對判決全文是否支持該論點。"]
     return "\n".join(lines) + "\n"

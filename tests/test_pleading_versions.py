@@ -84,6 +84,25 @@ class TestVersions:
         assert text.startswith("﻿民事起訴狀") and "錄製紀錄" in text and "民法第474條:已查證通過" in text
         assert "須經執業律師審核" in text
 
+    def test_export_drops_internal_notes_but_keeps_db_text(self, db_url, client):
+        # 早期錄製稿：標題括號與附註寫了內部代號；畫面不顯示，匯出也不帶，資料庫原文不動
+        raw = ("民事起訴狀（骨架版,未經表達DNA潤飾——1.2 taiwan-legal-pleading Skill 蒸餾延後至 Phase 2）\n\n訴之聲明\n"
+               "一、被告應給付原告50萬元。\n事實及理由\n（本段直接取自 Stage3 原告方最終 position + reasoning,依 legal-debate skill Step9）\n"
+               "依民法第474條請求返還借款。\n\n---\n【本稿產出說明,供內部/律師覆核用,非訴狀正式內容】\n"
+               "- 本稿為骨架版,未經 taiwan-legal-pleading Skill 潤飾。\n- 證物名稱為推定,須律師確認。")
+        with get_session(db_url) as s:
+            record_pleading(s, case_id="c2", draft_text=raw, citations_used=["民法第474條"])
+            vid = s.query(PleadingDraft).filter_by(case_id="c2").one().id
+        text = client.get(f"/api/cases/c2/pleadings/{vid}/export").content.decode("utf-8")
+        body, footer = text.split("─" * 24)
+        assert "taiwan-legal-pleading" not in text and "Skill" not in text and "Phase" not in text
+        assert "本稿產出說明" not in text and "position" not in text
+        assert body.startswith("﻿民事起訴狀\n骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用\n")
+        assert "依民法第474條請求返還借款。" in body and "證物名稱為推定" not in body
+        assert "系統補充說明(供律師參考，非訴狀正文)" in footer and "證物名稱為推定,須律師確認。" in footer
+        with get_session(db_url) as s:
+            assert s.get(PleadingDraft, vid).draft_text == raw
+
     def test_lawyer_edit_keeps_original_and_verifies_new_citation(self, client, calls):
         edited = DRAFT.replace("依民法第474條請求返還借款。", "依民法第474條請求返還借款，並依民法第184條請求賠償。")
         r = save(client, edited)
