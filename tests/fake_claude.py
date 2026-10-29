@@ -6,8 +6,8 @@
 FAKE_CLAUDE_AUTH=0 模擬未登入；FAKE_CLAUDE_DELAY(秒)讓每次落地之間停頓，方便在瀏覽器看進度。
 FAKE_CLAUDE_SAFETY=1 在被告 Stage 1 插入一則「回覆被安全分類器中止」的通知(格式照 2026-10-29 執行 #4 的 stream-json);
 FAKE_CLAUDE_QUOTA=1 在開始與結束各送一則 rate_limit_event(訂閱額度);FAKE_CLAUDE_STOP_AFTER_S1=budget 在 Stage 1 落地後以花費上限中止。
-prompt 是「只跑 Step 9C」時改走只產答辯狀：讀撰狀素材後落地一份被告答辯狀。
-prompt 是續跑(第 8 點)時，照 prompt 的指示跳過資料庫已有的紀錄，並確認 landed.json 存在；
+書狀只落地 prompt「本次要產生的書狀」列出的那幾份；prompt 是「只跑 Step 9C」時只補產這幾份書狀，不跑攻防。
+prompt 是續跑時，照 prompt 的指示跳過資料庫已有的紀錄，並確認 landed.json 存在；
 FAKE_CLAUDE_FORCE_RELAND=1 則故意重新落地已有的紀錄，驗證資料庫層會拒絕覆寫。
 """
 import json
@@ -24,6 +24,9 @@ from database.db import (  # noqa: E402
     finalize_case, get_session, pleading_side, record_argument, record_pleading, record_question, record_verdict,
 )
 from database.schema import CourtQuestion, DebateArgument, PleadingDraft, Verdict  # noqa: E402
+
+DRAFTS = {"plaintiff": "民事起訴狀\n訴之聲明\n一、被告應給付原告。",
+          "defendant": "民事答辯狀\n答辯聲明\n一、原告之訴及假執行之聲請均駁回。"}
 
 
 def emit(obj):
@@ -96,12 +99,18 @@ def main():
 
     s = get_session()
     model = os.environ.get("CLAUDE_CODE_SUBAGENT_MODEL")
-    if "Step 9C" in prompt:
-        tool("Bash", {"command": f"python main.py pleading-source --case-id {case_id} --side defendant"})
-        if mode != "partial":
-            record_pleading(s, case_id=case_id, side="defendant", citations_used=[],
-                            draft_text="民事答辯狀\n答辯聲明\n一、原告之訴及假執行之聲請均駁回。")
-            landed(f"已落地答辯狀草稿 {case_id}")
+    m = re.search(r"本次要產生的書狀：([^。\n]*)", prompt)
+    wanted = [side for side, label in (("plaintiff", "原告起訴狀"), ("defendant", "被告答辯狀")) if m and label in m.group(1)]
+
+    def land_pleading(side):
+        record_pleading(s, case_id=case_id, side=side, citations_used=[], draft_text=DRAFTS[side])
+        landed(f"已落地{'起訴狀' if side == 'plaintiff' else '答辯狀'}草稿 {case_id}")
+
+    if "只跑 .claude/skills/legal-debate/SKILL.md 的 Step 9C" in prompt:
+        for side in wanted:
+            tool("Bash", {"command": f"python main.py pleading-source --case-id {case_id} --side {side}"})
+            if mode != "partial":
+                land_pleading(side)
         emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 0.4, "result": "完成"})
         return 0
     resume = "本次是續跑" in prompt
@@ -157,13 +166,9 @@ def main():
         record_verdict(s, case_id=case_id, verdict_main_text="評估", verdict_reasoning="理由",
                        risk_map={"對原告不利之處": [], "對被告不利之處": [], "建議補強證據": []},
                        mechanical_anchor_json=anchor, protocol_version="test", citations_used=[])
-    if not has_pleading("plaintiff"):
-        record_pleading(s, case_id=case_id, draft_text="民事起訴狀\n訴之聲明\n一、被告應給付原告。", citations_used=[])
-        landed(f"已落地起訴狀草稿 {case_id}")
-    if not has_pleading("defendant"):
-        record_pleading(s, case_id=case_id, side="defendant", citations_used=[],
-                        draft_text="民事答辯狀\n答辯聲明\n一、原告之訴及假執行之聲請均駁回。")
-        landed(f"已落地答辯狀草稿 {case_id}")
+    for side in wanted:
+        if not has_pleading(side):
+            land_pleading(side)
     # 實測(2026-10-28):主 agent 會讀 main.py 原始碼(含「已落地」字樣,前有行號);
     # subagent 在背景執行時，stream 結尾連續出現多筆 result,花費為累計值、權限拒絕只記在當輪
     tool("Read", {"file_path": os.path.join(ROOT, "main.py")})

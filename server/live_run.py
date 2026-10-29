@@ -49,8 +49,32 @@ RESULT_ERRORS = {
     "error_during_execution": "Claude Code 執行途中發生錯誤",
 }
 FINAL_STATES = ("succeeded", "incomplete", "failed", "cancelled", "interrupted")
-# full:完整流程(Step 1–10,新案件);answer:只替已跑完攻防的案件補產被告答辯狀(SKILL.md Step 9C)
-RUN_KINDS = ("full", "answer")
+# full:完整流程(Step 1–10,新案件或續跑);pleadings:只替已跑完攻防的案件補產書狀(SKILL.md Step 9C)
+RUN_KINDS = ("full", "pleadings")
+# 要產生哪幾份書狀由使用者選(花費由使用者控制):plaintiff=原告起訴狀(9A)、defendant=被告答辯狀(9B)
+DOC_LABEL = {"plaintiff": "原告起訴狀", "defendant": "被告答辯狀"}
+DOC_STEP = {"plaintiff": "9A", "defendant": "9B"}
+
+
+def normalize_documents(documents, kind):
+    """回傳依原告、被告排序且不重複的書狀清單。完整流程未指定時兩份都產；補產一定要指定。"""
+    if documents is None:
+        if kind == "pleadings":
+            raise ValueError("補產書狀須指定要產生哪一份(起訴狀或答辯狀)")
+        return list(VALID_SIDES)
+    chosen = [side for side in VALID_SIDES if side in documents]
+    if not chosen or len(chosen) != len(set(documents)):
+        raise ValueError(f"書狀選擇不合法:{documents}(只能是 plaintiff、defendant,至少一份)")
+    return chosen
+
+
+def documents_text(documents):
+    return "、".join(DOC_LABEL[side] for side in documents)
+
+
+def stored_documents(row):
+    """LiveRun.documents 欄位新增前的執行為 NULL(當時固定產書狀，不記錄選擇)。"""
+    return [d for d in (row.documents or "").split(",") if d] or None
 
 
 def _now_iso():
@@ -74,7 +98,17 @@ def resolve_claude_command():
     return [found], None
 
 
-def build_prompt(case_id, run_dir, resume=None):
+def documents_instructions(documents, number):
+    skipped = [side for side in VALID_SIDES if side not in documents]
+    text = (f"{number}. 本次要產生的書狀：{documents_text(documents)}。使用者為控制花費，只選了"
+            f"{'、'.join(f'{DOC_LABEL[s]}(SKILL.md Step 9 的 {DOC_STEP[s]})' for s in documents)}。")
+    if skipped:
+        text += (f"不要產生{documents_text(skipped)},Step 8 也不必為只會用在{documents_text(skipped)}的引用另做查證；"
+                 f"之後需要時，使用者會另外要求補產。")
+    return text + "\n"
+
+
+def build_prompt(case_id, run_dir, resume=None, documents=VALID_SIDES):
     return f"""/legal-debate {case_id}
 
 本次由 LegalDebate UI 以無人值守方式(claude -p)觸發，過程中沒有人能回答問題。請依 .claude/skills/legal-debate/SKILL.md 跑完 Step 1–10;需要使用者決定的地方，依 SKILL.md 最保守的做法處理，並在最後的回覆說明，不要停下來等待。
@@ -87,7 +121,7 @@ def build_prompt(case_id, run_dir, resume=None):
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
-""" + (resume_instructions(resume, run_dir) if resume else "")
+""" + documents_instructions(documents, 8) + (resume_instructions(resume, run_dir) if resume else "")
 
 
 def resume_instructions(plan, run_dir):
@@ -98,25 +132,28 @@ def resume_instructions(plan, run_dir):
         side_note = f"\n   {plan['from_label']}只有{present}已落地：只派{missing}的 subagent、只落地{missing}。"
     no_uncontested = ("\n   法官訊問的 uncontested_points 當初沒有落地資料庫，本次無法取得；Step 7 與最後回覆用到時照實寫明無法取得，不要自行推測補寫。"
                       if "questions" in plan["landed_keys"] else "")
-    return f"""8. 本次是續跑。資料庫已落地：{"、".join(plan["landed"])}。這些紀錄一律不得覆寫、刪除或重新落地(SKILL.md「落地紀律」)。
+    return f"""9. 本次是續跑。資料庫已落地：{"、".join(plan["landed"])}。這些紀錄一律不得覆寫、刪除或重新落地(SKILL.md「落地紀律」)。
    從 SKILL.md {plan["from_step"]}({plan["from_label"]})開始。之前的步驟只做 Step 1 的檢索詞整理與 Step 1.5 的 `python main.py issues`,不要再派 subagent 重做已落地的階段。
    已落地的論證、法官訊問與評估已由 UI 從資料庫匯出到 {run_dir}/landed.json(唯讀);後續步驟需要前階段的輸出(含對造結構化摘要)時，以這個檔案為準。{side_note}{no_uncontested}
 """
 
 
-def build_answer_prompt(case_id, run_dir):
+def build_pleading_prompt(case_id, run_dir, documents):
+    docs = documents_text(documents)
+    sides = " / ".join(f"--side {side}" for side in documents)
     return f"""/legal-debate {case_id}
 
-本次由 LegalDebate UI 以無人值守方式(claude -p)觸發，過程中沒有人能回答問題。只跑 .claude/skills/legal-debate/SKILL.md 的 Step 9C(只替既有案件補產被告民事答辯狀骨架),不跑其他步驟；需要使用者決定的地方，依 SKILL.md 最保守的做法處理，並在最後的回覆說明，不要停下來等待。
+本次由 LegalDebate UI 以無人值守方式(claude -p)觸發，過程中沒有人能回答問題。只跑 .claude/skills/legal-debate/SKILL.md 的 Step 9C(只替既有案件補產書狀骨架),不跑其他步驟；需要使用者決定的地方，依 SKILL.md 最保守的做法處理，並在最後的回覆說明，不要停下來等待。
 
 本次執行的固定條件：
-1. 案件 {case_id} 的攻防、評估與查證結果已在資料庫，案件輸入檔是 {run_dir}/case.json。不要執行 `python main.py case`、`record`、`finalize`、`verdict`、`party`,也不要重新產生起訴狀；既有紀錄一律不動。
-2. 撰狀素材用 `python main.py pleading-source --case-id {case_id} --side defendant` 取得。
-3. 答辯狀落地用 `python main.py pleading --case-id {case_id} --draft-file <檔案> --citations <檔案> --side defendant`。
-4. 所有暫存檔(答辯狀草稿、引用清單、查證用的清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
-5. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
-6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；未通過查證的引用不寫進答辯狀，並在最後回覆列出。
-7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
+1. 案件 {case_id} 的攻防、評估與查證結果已在資料庫，案件輸入檔是 {run_dir}/case.json。不要執行 `python main.py case`、`record`、`finalize`、`verdict`、`party`;既有紀錄一律不動。
+2. 本次要產生的書狀：{docs}。使用者只選了這些，不要產生其他書狀。
+3. 撰狀素材用 `python main.py pleading-source --case-id {case_id} --side <一方>` 取得({sides})。
+4. 落地用 `python main.py pleading --case-id {case_id} --draft-file <檔案> --citations <檔案> --side <一方>`,一份書狀落地一次。
+5. 所有暫存檔(書狀草稿、引用清單、查證用的清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
+6. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
+7. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；未通過查證的引用不寫進書狀，並在最後回覆列出。
+8. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
 """
 
 
@@ -362,23 +399,24 @@ def _system_pleadings(session, case_id, side):
             if r.source in (None, "system") and pleading_side(r) == side]
 
 
-def answer_blocker(session, case_id):
-    """只產答辯狀(Step 9C)的前提：已有被告 Stage 3、還沒有答辯狀。可以執行時回傳 None,否則回傳原因。"""
+def pleading_blocker(session, case_id, documents):
+    """補產書狀(Step 9C)的前提：每份要產的書狀，該方都已有 Stage 3、且還沒有該份書狀。可以執行時回傳 None,否則回傳原因。"""
     if session.query(Case).filter_by(case_id=case_id).one_or_none() is None:
         return f"找不到案件 {case_id}(必須先落地資料庫)"
-    if not session.query(DebateArgument).filter_by(case_id=case_id, side="defendant", stage=3).count():
-        return "此案件還沒有被告 Stage 3,不能只產答辯狀；須先跑完攻防"
-    if _system_pleadings(session, case_id, "defendant"):
-        return "此案件已有答辯狀骨架，不重複產生"
+    for side in documents:
+        if not session.query(DebateArgument).filter_by(case_id=case_id, side=side, stage=3).count():
+            return f"此案件還沒有{SIDE_LABEL[side]} Stage 3,不能只產{DOC_LABEL[side]};須先跑完攻防"
+        if _system_pleadings(session, case_id, side):
+            return f"此案件已有{DOC_LABEL[side]}骨架，不重複產生"
     return None
 
 
-def pipeline_missing(session, case_id, kind="full", since=None):
-    """依資料庫實況列出流程還缺哪些落地紀錄(不看 Claude 怎麼說，只看資料庫)。
-    kind=answer 只看本次執行開始(since)之後有沒有落地答辯狀。"""
-    if kind == "answer":
-        landed = [r for r in _system_pleadings(session, case_id, "defendant") if since is None or r.generated_at >= since]
-        return [] if landed else ["答辯狀骨架"]
+def pipeline_missing(session, case_id, kind="full", since=None, documents=VALID_SIDES):
+    """依資料庫實況列出流程還缺哪些落地紀錄(不看 Claude 怎麼說，只看資料庫)。書狀只檢查使用者選的那幾份；
+    kind=pleadings 只看本次執行開始(since)之後有沒有落地選定的書狀。"""
+    if kind == "pleadings":
+        return [DOC_LABEL[side] + "骨架" for side in documents
+                if not [r for r in _system_pleadings(session, case_id, side) if since is None or r.generated_at >= since]]
     missing = []
     landed = {(a.side, a.stage) for a in session.query(DebateArgument).filter_by(case_id=case_id).all()}
     for stage in (1, 2, 3):
@@ -389,10 +427,9 @@ def pipeline_missing(session, case_id, kind="full", since=None):
         missing.append("法官訊問")
     if not session.query(Verdict).filter_by(case_id=case_id).count():
         missing.append("爭點強弱評估")
-    if not _system_pleadings(session, case_id, "plaintiff"):
-        missing.append("起訴狀骨架")
-    if not _system_pleadings(session, case_id, "defendant"):
-        missing.append("答辯狀骨架")
+    for side in documents:
+        if not _system_pleadings(session, case_id, side):
+            missing.append(DOC_LABEL[side] + "骨架")
     return missing
 
 
@@ -413,7 +450,8 @@ def resume_plan(session, case_id):
             "questions": session.query(CourtQuestion).filter_by(case_id=case_id).count() > 0,
             "stage2": sides[2] >= set(VALID_SIDES), "stage3": sides[3] >= set(VALID_SIDES),
             "verdict": session.query(Verdict).filter_by(case_id=case_id).count() > 0,
-            "pleading": bool(_system_pleadings(session, case_id, "plaintiff"))}  # 答辯狀另有「只產答辯狀」(Step 9C)
+            # 任一份書狀已落地即算做過 Step 9;使用者當時沒選的另一份用「補產書狀」(Step 9C)
+            "pleading": any(_system_pleadings(session, case_id, side) for side in VALID_SIDES)}
     stage_sides = {f"stage{n}": sides[n] for n in (1, 2, 3)}
     touched = {key: done[key] or bool(stage_sides.get(key)) for key in done}
     landed = []
@@ -484,7 +522,8 @@ def _usage(row):
 
 def run_to_dict(row):
     notes = _notes(row)
-    return {"id": row.id, "case_id": row.case_id, "kind": row.kind or "full", "status": row.status, "started_at": row.started_at,
+    return {"id": row.id, "case_id": row.case_id, "kind": row.kind or "full", "documents": stored_documents(row),
+            "status": row.status, "started_at": row.started_at,
             "ended_at": row.ended_at, "model": row.model,
             "budget_usd": float(row.budget_usd) if row.budget_usd else None,
             "cost_usd": float(row.cost_usd) if row.cost_usd else None,
@@ -510,9 +549,10 @@ def _kill_tree(proc):
 
 
 class _Active:
-    def __init__(self, run_id, case_id, proc, events_path=None, kind="full", started_at=None, resume_from=None):
+    def __init__(self, run_id, case_id, proc, events_path=None, kind="full", started_at=None, resume_from=None,
+                 documents=VALID_SIDES):
         self.run_id, self.case_id, self.proc = run_id, case_id, proc
-        self.kind, self.started_at = kind, started_at
+        self.kind, self.started_at, self.documents = kind, started_at, documents
         self.resume_from = resume_from
         self.events_path = events_path
         self.events = []
@@ -597,14 +637,16 @@ class LiveRunManager:
                 plan.update(possible=False, reason="此案件的紀錄不是 UI 即時執行產生的(錄製紀錄),不提供續跑")
         return plan
 
-    def start(self, case_id, kind="full", resume=False):
+    def start(self, case_id, kind="full", resume=False, documents=None):
         """回傳 run dict;不能執行時 raise PermissionError(未啟用)或 ValueError(案件狀態不允許)。
         kind=full 跑完整流程:新案件從頭跑;resume=True 時從第一個尚未落地的步驟續跑(見 resume_plan),已落地的紀錄不覆寫。
-        kind=answer 只補產答辯狀(見 answer_blocker)。"""
+        kind=pleadings 只補產書狀(見 pleading_blocker)。documents 是使用者選的書狀(plaintiff/defendant),
+        完整流程未指定時兩份都產。"""
         if kind not in RUN_KINDS:
             raise ValueError(f"非法的執行種類:{kind}")
         if resume and kind != "full":
-            raise ValueError("只產答辯狀的執行沒有續跑")
+            raise ValueError("補產書狀的執行沒有續跑")
+        documents = normalize_documents(documents, kind)
         if not self.enabled:
             raise PermissionError(self.reason)
         if self._active is None:
@@ -619,8 +661,8 @@ class LiveRunManager:
                 if case is None:
                     raise ValueError(f"找不到案件 {case_id}(必須先落地資料庫)")
                 plan = None
-                if kind == "answer":
-                    blocker = answer_blocker(s, case_id)
+                if kind == "pleadings":
+                    blocker = pleading_blocker(s, case_id, documents)
                     if blocker:
                         raise ValueError(blocker)
                 elif resume:
@@ -635,7 +677,7 @@ class LiveRunManager:
                                          "可從尚未落地的階段續跑，或建立新案件")
                 landed_export = export_landed(s, case_id) if plan else None
                 row = LiveRun(case_id=case_id, status="running", started_at=_now_iso(), model=self.model,
-                              budget_usd=str(self.budget_usd), kind=kind,
+                              budget_usd=str(self.budget_usd), kind=kind, documents=",".join(documents),
                               # 續跑起點先存，執行中畫面就看得到；結束時與觀察結果一起覆寫
                               notes_json=json.dumps({"resume_from": plan["from_label"]}, ensure_ascii=False) if plan else None)
                 s.add(row)
@@ -654,7 +696,8 @@ class LiveRunManager:
             if landed_export:
                 with open(os.path.join(abs_dir, "landed.json"), "w", encoding="utf-8") as f:
                     json.dump(landed_export, f, ensure_ascii=False, indent=2)
-            prompt = build_answer_prompt(case_id, run_dir) if kind == "answer" else build_prompt(case_id, run_dir, plan)
+            prompt = (build_pleading_prompt(case_id, run_dir, documents) if kind == "pleadings"
+                      else build_prompt(case_id, run_dir, plan, documents))
             args = build_args(self.command, prompt, model=self.model, budget_usd=self.budget_usd)
             env = dict(os.environ)
             env[DB_URL_ENV] = self.db_url or f"sqlite:///{default_db_path()}"
@@ -672,10 +715,13 @@ class LiveRunManager:
                 self._finish(run_id, "failed", error=f"無法啟動 Claude Code:{e}")
                 raise ValueError(f"無法啟動 Claude Code:{e}")
             active = _Active(run_id, case_id, proc, events_path=os.path.join(abs_dir, EVENTS_FILE),
-                             kind=kind, started_at=started_at, resume_from=plan["from_label"] if plan else None)
+                             kind=kind, started_at=started_at, resume_from=plan["from_label"] if plan else None,
+                             documents=documents)
             self._active = active
-            self._append(active, "info", f"已啟動執行 #{run_id}" + ("(只產答辯狀，Step 9C)" if kind == "answer" else "") +
+            self._append(active, "info", f"已啟動執行 #{run_id}" +
+                         (f"(只補產{documents_text(documents)},Step 9C)" if kind == "pleadings" else "") +
                          f"(模型 {self.model},花費上限 {self.budget_usd:g} 美元)" +
+                         (f"。產生書狀：{documents_text(documents)}" if kind == "full" else "") +
                          (f"。續跑：從{plan['from_label']}開始，已落地的{'、'.join(plan['landed'])}不重做、不覆寫" if plan else ""))
             active.thread = threading.Thread(target=self._pump, args=(active, stderr_file, abs_dir), daemon=True)
             active.thread.start()
@@ -731,7 +777,7 @@ class LiveRunManager:
         result = active.result or {}
         cost = result.get("total_cost_usd")
         with self.factory() as s:
-            missing = pipeline_missing(s, active.case_id, kind=active.kind, since=active.started_at)
+            missing = pipeline_missing(s, active.case_id, kind=active.kind, since=active.started_at, documents=active.documents)
         if active.cancel_requested:
             status, error = "cancelled", "使用者取消；已終止 Claude Code 程序樹。已落地的階段保留在資料庫。"
         elif active.timed_out:
@@ -761,7 +807,8 @@ class LiveRunManager:
         elif stops and status == "failed":  # 已有明確失敗原因(花費上限、429、逾時…),只附註不歸因
             error += f"。另外，執行期間有 {len(stops)} 次回覆被 Anthropic 安全分類器中止({who})"
         self._append(active, "error" if status != "succeeded" else "result",
-                     {"succeeded": "執行完成，答辯狀骨架已落地資料庫" if active.kind == "answer" else "執行完成，各階段皆已落地資料庫",
+                     {"succeeded": (f"執行完成，{documents_text(active.documents)}骨架已落地資料庫" if active.kind == "pleadings"
+                                    else "執行完成，各階段皆已落地資料庫"),
                       "incomplete": "執行結束但流程不完整",
                       "cancelled": "已取消", "failed": "執行失敗"}[status] + (f":{error}" if error else ""))
         if stops and status == "succeeded":

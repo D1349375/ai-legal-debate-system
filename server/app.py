@@ -61,7 +61,9 @@ class CreateCaseRequest(BaseModel):
 
 
 class RunRequest(BaseModel):
-    kind: Literal["full", "answer"] = "full"  # answer:只替既有案件補產被告答辯狀(SKILL.md Step 9C)
+    kind: Literal["full", "pleadings"] = "full"  # pleadings:只替既有案件補產書狀(SKILL.md Step 9C)
+    # 要產生的書狀，由使用者選擇以控制花費。完整流程省略時兩份都產；補產時必填
+    documents: list[Literal["plaintiff", "defendant"]] | None = Field(default=None, min_length=1, max_length=2)
 
 
 class PleadingEditRequest(BaseModel):
@@ -188,7 +190,8 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
     @app.post("/api/cases/{case_id}/runs", status_code=201, dependencies=[Depends(local_only)])
     def start_run(case_id: str, req: RunRequest | None = None, resume: bool = Query(False)):
         try:
-            return runner.start(case_id, kind=(req or RunRequest()).kind, resume=resume)
+            req = req or RunRequest()
+            return runner.start(case_id, kind=req.kind, resume=resume, documents=req.documents)
         except PermissionError as e:
             raise HTTPException(403, f"即時執行未啟用:{e}")
         except ValueError as e:

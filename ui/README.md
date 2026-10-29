@@ -45,7 +45,7 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
    (subagent 以 `CLAUDE_CODE_SUBAGENT_MODEL` 指定),每次以 `--max-budget-usd` 限制花費。
 3. 同一時間只跑一件。實測(Pro 訂閱帳號)一件約 11–15 分鐘、Claude Code 估算約 2.5–3.3 美元(2026-10-28 執行 #2:10 分 51 秒、2.51 美元;
    2026-10-29 執行 #4:14 分 39 秒、3.25 美元),Claude 5 小時用量額度約用掉三成、7 天額度約 2%;此額度與同帳號其他 Claude Code 使用共用,用完時執行會以 HTTP 429 失敗(畫面會寫明)。
-   這些數字都是流程加入被告答辯狀(2026-10-29)**之前**量的;現在完整流程多產一份答辯狀,時間與花費會再增加,尚未實測。
+   這些數字都是流程加入被告答辯狀(2026-10-29)**之前**量的,當時只產一份起訴狀;選兩份書狀時時間與花費會再增加,尚未實測。
    進度依「資料庫已落地的階段」計算,另顯示 Claude Code 的步驟紀錄;
    各階段落地後畫面自動更新。執行中可取消(終止整個程序樹),已落地的階段保留。
 4. 結束時依 Claude Code 的結果事件與資料庫實況判定:全部落地為「執行完成」;Claude Code 回報完成但資料庫仍缺階段為「流程不完整」;
@@ -60,14 +60,19 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
    最多 2 次;後端不驗證主 agent 是否照做,請以執行紀錄核對。依[官方文件](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback),這類中止照樣計費。
    訂閱帳號的額度事件(5 小時、7 天視窗)也一併記錄,顯示本次執行開始→結束的用量;開始執行前會顯示上次已知的額度(標明是哪次執行結束時的值),
    任一視窗達 90% 且尚未過重置時間時提醒。2026-10-28 執行 #1 的額度事件是舊格式(沒有 `unifiedWindows`),不記錄;API 金鑰登入沒有額度事件。
-7. **只產答辯狀**:已有被告 Stage 3、但還沒有答辯狀的案件(2026-10-29 之前跑完的案件都是如此),可在「訴狀骨架」分頁切到
-   「答辯狀(被告)」按「只產生答辯狀(即時執行)」(API:`POST /api/cases/{id}/runs`,body `{"kind": "answer"}`)。
-   Claude Code 只跑 SKILL.md Step 9C:以 `python main.py pleading-source --side defendant` 讀資料庫中的被告 Stage 3 與查證狀態,
-   草擬後以 `main.py pleading --side defendant` 落地;不重跑攻防,既有的攻防、評估與起訴狀不動。權限、花費上限與取消方式同完整流程;
-   判定成功只看本次執行開始後有沒有落地答辯狀。已有答辯狀的案件不再重複產生。這種執行只列在答辯狀分頁與右側「即時執行」清單,
+7. **書狀由使用者選**(2026-10-30,讓使用者控制花費):開始即時執行或續跑前,必須在「只產起訴狀(原告)/只產答辯狀(被告)/兩份都產」
+   三者中選一個(沒有預選,選了按鈕才能按)。後端把選擇寫進 prompt(「本次要產生的書狀:…」),Claude Code 只產選的那幾份,
+   判定成功也只檢查選的那幾份;選擇存在 `live_runs.documents`,畫面上每次執行都標出產了哪幾份
+   (API:`POST /api/cases/{id}/runs`,body `{"documents": ["plaintiff"]}`;省略 `documents` 時兩份都產,與 CLI 直接跑 skill 相同)。
+8. **只補產一份書狀**:已有該方 Stage 3、但還沒有那份書狀的案件(2026-10-29 之前跑完的案件只有起訴狀;之後的案件可能只產了當時選的那份),
+   可在「訴狀骨架」分頁切到缺的那份,按「只產生起訴狀/答辯狀(即時執行)」
+   (API:body `{"kind": "pleadings", "documents": ["defendant"]}`,補產時 `documents` 必填)。
+   Claude Code 只跑 SKILL.md Step 9C:以 `python main.py pleading-source --side <一方>` 讀資料庫中該方 Stage 3 與查證狀態,
+   草擬後以 `main.py pleading --side <一方>` 落地;不重跑攻防,既有的攻防、評估與另一份書狀不動。權限、花費上限與取消方式同完整流程;
+   判定成功只看本次執行開始後有沒有落地選定的書狀。已有的書狀不再重複產生。這種執行只列在該書狀的分頁與右側「即時執行」清單,
    不出現在案件總覽的即時執行卡片。時間與花費尚未實測(只以 `tests/fake_claude.py` 測過流程)。
    不用 UI 時,也可在 Claude Code 對話中要求「替 <案件ID> 產生答辯狀」,依 SKILL.md Step 9C 執行。
-8. 已知限制:`--max-budget-usd` 是 Claude Code 用戶端的估算值,可能略為超出;官方文件沒有說明訂閱(OAuth)帳號是否同樣適用。
+9. 已知限制:`--max-budget-usd` 是 Claude Code 用戶端的估算值,可能略為超出;官方文件沒有說明訂閱(OAuth)帳號是否同樣適用。
    Windows 上透過 `taskkill /T /F` 終止程序樹;`tests/test_live_run.py` 以假 Claude Code 再開一層孫程序驗證取消後兩者都結束
    (2026-10-29 Windows 11 實測通過;改成只終止子程序時此測試會失敗)。真的 Claude Code 跑 Bash 時的程序樹未另外實測。
 

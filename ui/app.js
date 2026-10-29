@@ -75,7 +75,7 @@
     cases: [], caseId: null, detail: null, tab: "overview", loading: false, error: null,
     health: null, runs: {}, verifyOpts: { mode: "auto", timeout: 6, persist: true },
     parties: {}, creating: null, caseNotices: {}, liveLogs: {}, liveBusy: {}, pollTimer: null,
-    pleadingSel: {}, pleadingEdit: {}, pleadingBusy: {}, pleadingNotice: {}, pleadingSide: {},
+    pleadingSel: {}, pleadingEdit: {}, pleadingBusy: {}, pleadingNotice: {}, pleadingSide: {}, docChoice: {},
   };
 
   // ───────────── 小工具 ─────────────
@@ -1115,11 +1115,12 @@
     var lede = doc.lede + "可編輯為律師版本(原稿保留)，須由執業律師審核修訂、補正當事人資訊與證物清單後方可使用，不得逕行送出。";
     var ed = state.pleadingEdit[id];
     if (!vs.length) return [panelHead("訴狀骨架初稿", null, lede), documentSwitch(d, false), partyPleadingCard(d),
-      emptyState(side === "defendant"
-        ? [h("p", { text: "此案件尚未產生答辯狀(被告)骨架。" }),
-           h("p", { class: "detail-note", text: "答辯狀骨架於 2026-10-29 加入流程，之前跑完的案件只產生了原告起訴狀；系統不會拿起訴狀充數。" +
-             "已有雙方 Stage 3 與查證結果的案件，可依 legal-debate 流程 Step 9C 只補產答辯狀，不必重跑整場攻防。" })]
-        : "此案件尚未落地起訴狀草稿。"), side === "defendant" ? answerRunCard(d, false) : null];
+      emptyState([h("p", { text: "此案件尚未產生" + doc.label + "骨架。" }),
+        h("p", { class: "detail-note", text: (side === "defendant"
+          ? "答辯狀骨架於 2026-10-29 加入流程，之前跑完的案件只產生了原告起訴狀；之後的案件只產使用者選的書狀。"
+          : "即時執行時只產使用者選的書狀；沒選起訴狀的案件就不會有。") +
+          "系統不會拿另一方的書狀充數。已有該方 Stage 3 與查證結果的案件，可依 legal-debate 流程 Step 9C 只補產這一份，不必重跑整場攻防。" })]),
+      pleadingRunCard(d, side, false)];
     var v = selectedVersion(d), busy = state.pleadingBusy[id];
     var exportUrl = API_BASE + "/api/cases/" + encodeURIComponent(id) + "/pleadings/" + v.id + "/export";
     var out = [
@@ -1144,7 +1145,7 @@
         v.exportable ? h("a", { class: "btn primary", href: exportUrl, download: "" }, "匯出" + doc.short + " .txt")
           : h("button", { class: "btn primary", type: "button", disabled: true, text: "匯出" + doc.short + " .txt" }),
         v.exportable ? null : h("span", { class: "detail-note", text: "有 " + v.blocked_count + " 條引用未通過查證，未放行，不能匯出。" })),
-      side === "defendant" ? answerRunCard(d, true) : null,
+      pleadingRunCard(d, side, true),
       partyPleadingCard(d),
       pleadingDoc(v),
       note ? card("系統補充說明(供律師參考，非訴狀正文)", paragraphs(note)) : null);
@@ -1311,24 +1312,27 @@
       }
     } catch (e) { lr.error = e.message; }
   }
-  async function startRun(d, mode) {
-    var hl = liveInfo(), id = d.case.case_id, answer = mode === "answer", resume = mode === "resume";
-    var ok = window.confirm(answer
-      ? "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，只產生被告答辯狀骨架(legal-debate Step 9C)，不重跑攻防。\n\n" +
-        "・只產答辯狀的時間與花費尚未實測(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
-        "・執行中可取消；既有的攻防、評估與起訴狀不會被更動。\n\n確定開始？"
+  // mode:full(新案件完整流程) / resume(續跑) / pleadings(只補產書狀，Step 9C);documents:使用者選的書狀
+  async function startRun(d, mode, documents) {
+    var hl = liveInfo(), id = d.case.case_id, pleadings = mode === "pleadings", resume = mode === "resume";
+    var docs = docsText(documents);
+    var ok = window.confirm(pleadings
+      ? "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，只產生" + docs + "骨架(legal-debate Step 9C)，不重跑攻防。\n\n" +
+        "・只補產書狀的時間與花費尚未實測(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
+        "・執行中可取消；既有的攻防、評估與其他書狀不會被更動。\n\n確定開始？"
       : resume
-      ? "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，從「" + d.resume.from_label + "」續跑。\n\n" +
+      ? "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，從「" + d.resume.from_label + "」續跑，書狀只產生：" + docs + "。\n\n" +
         "・已落地的" + d.resume.landed.join("、") + "不會重做，也不會被覆寫或刪除。\n" +
-        "・費用視剩下的階段而定(整件約 2.5–3.3 美元，實測於流程加入答辯狀之前)；每次上限 " + hl.budget_usd + " 美元，超過即中止。訂閱帳號會占用 Claude 用量額度。\n\n確定續跑？"
-      : "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程。\n\n" +
-        "・實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(實測於流程加入答辯狀之前，現在多產一份答辯狀，實際會再增加，尚未實測；訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
-        "・執行中可取消；已落地的階段會保留，之後只能從尚未落地的階段續跑，不能整件重跑。\n\n確定開始？");
+        "・費用視剩下的階段與書狀份數而定(整件約 2.5–3.3 美元，實測時只產一份起訴狀)；每次上限 " + hl.budget_usd + " 美元，超過即中止。訂閱帳號會占用 Claude 用量額度。\n\n確定續跑？"
+      : "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，跑完整攻防流程，書狀只產生：" + docs + "。\n\n" +
+        "・實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(實測時只產一份起訴狀；選兩份會再增加，尚未實測；訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
+        "・執行中可取消；已落地的階段會保留，之後只能從尚未落地的階段續跑，不能整件重跑。沒選的書狀之後可在「訴狀骨架」分頁補產。\n\n確定開始？");
     if (!ok) return;
     state.liveBusy[id] = true; delete state.caseNotices[id]; delete state.pleadingNotice[id]; renderPanel();
     try {
-      var r = await api("/api/cases/" + encodeURIComponent(id) + "/runs" + (resume ? "?resume=true" : ""), answer ? { method: "POST",
-        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "answer" }) } : { method: "POST" });
+      var r = await api("/api/cases/" + encodeURIComponent(id) + "/runs" + (resume ? "?resume=true" : ""), { method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: pleadings ? "pleadings" : "full", documents: documents }) });
       var lr = liveLog(r.run.id);
       lr.events = r.events; lr.since = r.event_count; lr.loaded = true;
       state.health = await api("/api/health");
@@ -1336,7 +1340,7 @@
       await refreshCases();
       await reloadDetailQuietly();
     } catch (e) {
-      if (answer) state.pleadingNotice[id] = banner("bad", "✗", "無法開始只產答辯狀：" + e.message);
+      if (pleadings) state.pleadingNotice[id] = banner("bad", "✗", "無法開始補產" + docs + "：" + e.message);
       else state.caseNotices[id] = [{ cls: "bad", icon: "✗", text: "無法開始即時執行：" + e.message }];
     }
     state.liveBusy[id] = false;
@@ -1425,7 +1429,8 @@
     };
     return h("div", { class: "run-view" },
       h("div", { class: "run-head" }, chip(st.cls, runLabel(run)), h("strong", { text: "執行 #" + run.id + (run.resume_from ? "(從" + run.resume_from + "續跑)" : "") }),
-        run.kind === "answer" ? chip("neutral", "只產答辯狀(Step 9C)") : null,
+        run.kind === "pleadings" ? chip("neutral", "只補產" + docsText(run.documents) + "(Step 9C)")
+          : run.documents ? chip("neutral", "書狀：" + docsText(run.documents)) : null,
         h("span", { class: "detail-note", text: "開始 " + fmtTime(run.started_at) + "・經過 " + elapsed(run) + "・模型 " + run.model +
           (run.cost_usd != null ? "・估算花費 " + run.cost_usd.toFixed(2) + " 美元" : "") + (run.exit_code != null ? "・結束碼 " + run.exit_code : "") }),
         run.status === "running" ? h("button", { class: "btn small", type: "button", disabled: state.liveBusy[run.case_id] ? true : null,
@@ -1447,7 +1452,7 @@
   }
   function liveRunCard(d) {
     if (d.case.source !== "database") return null;
-    var hl = liveInfo(), runs = (d.live_runs || []).filter(function (r) { return r.kind !== "answer"; }), latest = runs[runs.length - 1];
+    var hl = liveInfo(), runs = (d.live_runs || []).filter(function (r) { return r.kind !== "pleadings"; }), latest = runs[runs.length - 1];
     var hasRecords = d.stats.arguments || d.stats.questions || d.verdict || (d.pleading_versions || []).length;
     if (!latest && hasRecords) return null;  // 錄製案件：不提供重跑
     var body = [], rp = d.resume;
@@ -1470,46 +1475,75 @@
             (rp.missing_sides.length ? "此階段只補" + rp.missing_sides.map(function (x) { return SIDE[x].label; }).join("、") + "一方。" : "") +
             (rp.landed.indexOf("法官訊問") >= 0 ? "法官訊問中「無爭議事項」當初沒有存進資料庫，續跑時無法取得，評估會照實註明。" : "") +
             "每次上限 " + hl.budget_usd + " 美元。" }),
-          h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] ? true : null,
-            onclick: function () { startRun(d, "resume"); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
+          documentChooser(d),
+          h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] || !chosenDocs(d) ? true : null,
+            onclick: function () { startRun(d, "resume", chosenDocs(d)); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
             state.liveBusy[d.case.case_id] ? "啟動中…" : "從「" + rp.from_label + "」續跑"),
           h("button", { class: "btn small", type: "button", text: "或以此案件內容建立新案件", onclick: function () { openCreate(prefillFrom(d)); } }));
       } else {
         if (hl.quota) body.push(knownQuota(hl.quota, hl.quota_warn_at));
         body.push(h("p", { class: "detail-note", text: "按下後，後端在這台電腦以你的 Claude 帳號啟動 Claude Code(無互動模式，模型 " + hl.model +
-            ")，依 legal-debate 流程跑完：起訴審查 → Stage 1 → 法官訊問 → Stage 2 → Stage 3 → 機械彙整 → 爭點評估 → 引用查證 → 起訴狀與答辯狀骨架。" +
-            "只允許它執行 python main.py 指令、讀取專案檔案、派出 subagent。實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(實測於流程加入答辯狀之前，現在會再增加，尚未實測；訂閱帳號會占用用量額度)，每次上限 " + hl.budget_usd + " 美元。" }),
-          h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] ? true : null,
-            onclick: function () { startRun(d, "full"); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
+            ")，依 legal-debate 流程跑完：起訴審查 → Stage 1 → 法官訊問 → Stage 2 → Stage 3 → 機械彙整 → 爭點評估 → 引用查證 → 你選的書狀骨架。" +
+            "只允許它執行 python main.py 指令、讀取專案檔案、派出 subagent。實測一件約 11–15 分鐘、估算約 2.5–3.3 美元(實測時只產一份起訴狀；選兩份會再增加，尚未實測；訂閱帳號會占用用量額度)，每次上限 " + hl.budget_usd + " 美元。" }),
+          documentChooser(d),
+          h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] || !chosenDocs(d) ? true : null,
+            onclick: function () { startRun(d, "full", chosenDocs(d)); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
             state.liveBusy[d.case.case_id] ? "啟動中…" : "開始即時執行"));
       }
     }
     return card("即時執行(Claude Code)", body, latest ? chip(RUN_STATUS[latest.status].cls, runLabel(latest)) : null);
   }
-  // 只產答辯狀(legal-debate Step 9C):已有被告 Stage 3 的案件，不重跑攻防，只補產被告答辯狀骨架
-  function answerRunCard(d, hasAnswer) {
+  // 書狀由使用者選(控制花費)：起訴狀、答辯狀或兩份。沒有預選，選了才能開始
+  var DOC_CHOICES = [
+    { key: "plaintiff", label: "只產起訴狀(原告)", docs: ["plaintiff"] },
+    { key: "defendant", label: "只產答辯狀(被告)", docs: ["defendant"] },
+    { key: "both", label: "兩份都產", docs: ["plaintiff", "defendant"] },
+  ];
+  function docsText(documents) {
+    return (documents || []).map(function (s) { return DOCUMENT[s].short + "(" + SIDE[s].label + ")"; }).join("、");
+  }
+  function chosenDocs(d) {
+    var key = state.docChoice[d.case.case_id];
+    var c = DOC_CHOICES.filter(function (x) { return x.key === key; })[0];
+    return c ? c.docs : null;
+  }
+  function documentChooser(d) {
+    var id = d.case.case_id, cur = state.docChoice[id];
+    return h("div", { class: "doc-chooser" },
+      h("p", { class: "detail-note", text: "要產生哪一份書狀？每多一份就多一份撰狀與查證的花費；沒選的那份之後可在「訴狀骨架」分頁單獨補產。" }),
+      h("div", { class: "seg", role: "group", "aria-label": "要產生的書狀" }, DOC_CHOICES.map(function (c) {
+        return h("button", { type: "button", "aria-pressed": String(cur === c.key), disabled: state.liveBusy[id] ? true : null,
+          onclick: function () { state.docChoice[id] = c.key; renderPanel(); } }, c.label);
+      })),
+      cur ? null : h("p", { class: "detail-note", text: "請先選擇要產生的書狀。" }));
+  }
+  // 只補產某一方的書狀(legal-debate Step 9C):已有該方 Stage 3 的案件，不重跑攻防
+  function pleadingRunCard(d, side, has) {
     if (d.case.source !== "database") return null;
-    var hl = liveInfo(), runs = (d.live_runs || []).filter(function (r) { return r.kind === "answer"; });
+    var doc = DOCUMENT[side];
+    var hl = liveInfo(), runs = (d.live_runs || []).filter(function (r) {
+      return r.kind === "pleadings" && (r.documents || []).indexOf(side) >= 0;
+    });
     var latest = runs[runs.length - 1], body = [];
     if (latest) body.push(runView(latest, d));
-    if (!hasAnswer && (!latest || latest.status !== "running")) {
-      var ready = d.arguments.some(function (a) { return a.side === "defendant" && a.stage === 3; });
-      if (!ready) body.push(h("p", { class: "detail-note", text: "此案件還沒有被告 Stage 3，不能只產答辯狀；須先跑完攻防。" }));
+    if (!has && (!latest || latest.status !== "running")) {
+      var ready = d.arguments.some(function (a) { return a.side === side && a.stage === 3; });
+      if (!ready) body.push(h("p", { class: "detail-note", text: "此案件還沒有" + SIDE[side].label + " Stage 3，不能只產" + doc.short + "；須先跑完攻防。" }));
       else if (!hl.enabled) body.push(banner("warn", "!", "即時執行停用：" + hl.reason));
       else if (hl.auth && hl.auth.checked && !hl.auth.logged_in) body.push(banner("bad", "✗", [h("strong", { text: "無法執行" }), "：" + hl.auth.detail + "。登入後重新整理本頁。"]));
       else if (hl.active_run) body.push(banner("warn", "⏳", "目前已有執行進行中(案件 " + hl.active_run.case_id + "，執行 #" + hl.active_run.id + ")，同一時間只能跑一件。"));
       else {
         if (hl.quota) body.push(knownQuota(hl.quota, hl.quota_warn_at));
         body.push(h("p", { class: "detail-note", text: "按下後，後端在這台電腦以你的 Claude 帳號啟動 Claude Code(無互動模式，模型 " + hl.model +
-            ")，只跑 legal-debate 流程 Step 9C：讀取資料庫中被告方 Stage 3 與引用查證結果，草擬並落地答辯狀骨架；不重跑攻防，既有的攻防、評估與起訴狀不會被更動。" +
-            "只產答辯狀的時間與花費尚未實測；每次上限 " + hl.budget_usd + " 美元(訂閱帳號會占用用量額度)。" }),
+            ")，只跑 legal-debate 流程 Step 9C：讀取資料庫中" + SIDE[side].label + "方 Stage 3 與引用查證結果，草擬並落地" + doc.short + "骨架；不重跑攻防，既有的攻防、評估與其他書狀不會被更動。" +
+            "只補產一份書狀的時間與花費尚未實測；每次上限 " + hl.budget_usd + " 美元(訂閱帳號會占用用量額度)。" }),
           h("button", { class: "btn primary", type: "button", disabled: state.liveBusy[d.case.case_id] ? true : null,
-            onclick: function () { startRun(d, "answer"); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
-            state.liveBusy[d.case.case_id] ? "啟動中…" : "只產生答辯狀(即時執行)"));
+            onclick: function () { startRun(d, "pleadings", [side]); } }, h("span", { class: "ico", "aria-hidden": "true", text: "▶" }),
+            state.liveBusy[d.case.case_id] ? "啟動中…" : "只產生" + doc.short + "(即時執行)"));
       }
     }
     if (!body.length) return null;
-    return card("只產答辯狀(Claude Code 即時執行)", body, latest ? chip(RUN_STATUS[latest.status].cls, RUN_STATUS[latest.status].label) : null);
+    return card("只產" + doc.short + "(Claude Code 即時執行)", body, latest ? chip(RUN_STATUS[latest.status].cls, runLabel(latest)) : null);
   }
   function prefillFrom(d) {
     var p = d.case.parties || {}, pl = p.plaintiff || {}, df = p.defendant || {};
@@ -1550,7 +1584,7 @@
         h("p", { class: "detail-note", text: "查證權威來源：法規＝法務部全國法規資料庫；判決＝本地語料庫 → 司法院裁判書查詢系統。" })),
       d.live_runs && d.live_runs.length ? h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "即時執行" }),
         d.live_runs.map(function (r) {
-          return meta("執行 #" + r.id + (r.kind === "answer" ? "(只產答辯狀)" : ""), runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
+          return meta("執行 #" + r.id + (r.kind === "pleadings" ? "(只補產" + docsText(r.documents) + ")" : ""), runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
             (r.tokens ? "・" + fmtTokens(tokenTotal(r.tokens)) + " token" : "") +
             ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
         })) : null,

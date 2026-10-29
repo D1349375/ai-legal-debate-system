@@ -199,7 +199,7 @@ class TestLiveRun:
         c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
         r = run_to_end(c, create(c))
         assert r["run"]["status"] == "incomplete"
-        assert "原告 Stage 2" in r["run"]["error"] and "起訴狀骨架" in r["run"]["error"] and "答辯狀骨架" in r["run"]["error"]
+        assert "原告 Stage 2" in r["run"]["error"] and "原告起訴狀骨架" in r["run"]["error"] and "被告答辯狀骨架" in r["run"]["error"]
 
     def test_budget_stop_is_reported(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch, mode="budget")
@@ -344,11 +344,27 @@ class TestCommandAndStream:
         assert "Bash(python main.py *)" in allowed and not any(a == "Bash" or a == "Write" for a in allowed)
         assert args[args.index("--max-budget-usd") + 1] == "15"
 
-    def test_answer_prompt_runs_only_step_9c(self):
-        p = live_run.build_answer_prompt("test-2026-10-27-gcis-001", "database/live_runs/run-9")
+    def test_pleading_prompt_runs_only_step_9c_for_chosen_documents(self):
+        p = live_run.build_pleading_prompt("test-2026-10-27-gcis-001", "database/live_runs/run-9", ["defendant"])
         assert p.startswith("/legal-debate test-2026-10-27-gcis-001") and "Step 9C" in p
-        assert "pleading-source --case-id test-2026-10-27-gcis-001 --side defendant" in p and "--side defendant" in p
+        assert "本次要產生的書狀：被告答辯狀。" in p and "--side defendant" in p and "--side plaintiff" not in p
         assert "不要執行 `python main.py case`、`record`、`finalize`、`verdict`" in p
+
+    def test_full_prompt_names_only_the_chosen_documents(self):
+        p = live_run.build_prompt("c1", "database/live_runs/run-9", None, ["plaintiff"])
+        assert "本次要產生的書狀：原告起訴狀。" in p and "Step 9 的 9A" in p and "不要產生被告答辯狀" in p
+        both = live_run.build_prompt("c1", "database/live_runs/run-9")
+        assert "本次要產生的書狀：原告起訴狀、被告答辯狀。" in both and "不要產生" not in both
+
+    def test_documents_must_be_a_real_choice(self):
+        assert live_run.normalize_documents(None, "full") == ["plaintiff", "defendant"]
+        assert live_run.normalize_documents(["defendant", "plaintiff"], "full") == ["plaintiff", "defendant"]
+        assert live_run.normalize_documents(["plaintiff", "plaintiff"], "full") == ["plaintiff"]
+        for bad in ([], ["other"], ["plaintiff", "judge"]):
+            with pytest.raises(ValueError):
+                live_run.normalize_documents(bad, "full")
+        with pytest.raises(ValueError):
+            live_run.normalize_documents(None, "pleadings")  # 補產一定要指定
 
     def test_prompt_pins_case_and_run_dir(self):
         p = live_run.build_prompt("ui-20261028-001", "database/live_runs/run-7")
@@ -447,47 +463,97 @@ def land_debated_case(db_url, case_id="done1"):
     return case_id
 
 
-class TestAnswerRun:
-    def start(self, client, case_id):
-        return client.post(f"/api/cases/{case_id}/runs", json={"kind": "answer"})
+class TestPleadingRun:
+    """只補產書狀(Step 9C):使用者選一方，不重跑攻防。"""
+    def start(self, client, case_id, documents=("defendant",)):
+        return client.post(f"/api/cases/{case_id}/runs", json={"kind": "pleadings", "documents": list(documents)})
 
-    def test_answer_run_lands_only_the_answer(self, db_url, tmp_path, monkeypatch):
+    def test_pleading_run_lands_only_the_chosen_document(self, db_url, tmp_path, monkeypatch):
         case_id = land_debated_case(db_url)
         c = make_client(db_url, tmp_path, monkeypatch)
         assert c.post(f"/api/cases/{case_id}/runs").status_code == 409  # 完整流程仍不能重跑
         r = self.start(c, case_id)
         assert r.status_code == 201, r.text
         run_id = r.json()["run"]["id"]
-        assert r.json()["run"]["kind"] == "answer"
+        assert r.json()["run"]["kind"] == "pleadings" and r.json()["run"]["documents"] == ["defendant"]
         c.app.state.live.wait(run_id, timeout=60)
         done = c.get(f"/api/runs/{run_id}").json()
         assert done["run"]["status"] == "succeeded", done["run"]["error"]
-        assert done["events"][0]["text"].startswith("已啟動執行 #%d(只產答辯狀" % run_id)
-        assert done["events"][-1]["text"] == "執行完成，答辯狀骨架已落地資料庫"
+        assert done["events"][0]["text"].startswith("已啟動執行 #%d(只補產被告答辯狀" % run_id)
+        assert done["events"][-1]["text"] == "執行完成，被告答辯狀骨架已落地資料庫"
         d = c.get(f"/api/cases/{case_id}").json()
         assert d["pleadings"]["defendant"]["origin"] == {"kind": "live", "run_id": run_id, "run_status": "succeeded"}
         assert d["pleadings"]["plaintiff"]["origin"]["kind"] == "recorded"  # 既有起訴狀不動
         assert len(d["arguments"]) == 2
         again = self.start(c, case_id)
-        assert again.status_code == 409 and "已有答辯狀骨架" in again.json()["detail"]
+        assert again.status_code == 409 and "已有被告答辯狀骨架" in again.json()["detail"]
+        assert self.start(c, case_id, ["plaintiff"]).status_code == 409  # 起訴狀也已經有了
 
-    def test_answer_run_requires_defendant_stage3(self, db_url, tmp_path, monkeypatch):
+    def test_pleading_run_requires_that_sides_stage3(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch)
         r = self.start(c, "rec1")
         assert r.status_code == 409 and "還沒有被告 Stage 3" in r.json()["detail"]
         assert self.start(c, "nope").status_code == 409
         assert c.post("/api/cases/rec1/runs", json={"kind": "other"}).status_code == 422
+        assert c.post("/api/cases/rec1/runs", json={"kind": "pleadings", "documents": []}).status_code == 422
+        assert c.post("/api/cases/rec1/runs", json={"kind": "pleadings", "documents": ["judge"]}).status_code == 422
+        r = c.post("/api/cases/rec1/runs", json={"kind": "pleadings"})
+        assert r.status_code == 409 and "須指定" in r.json()["detail"]
 
-    def test_answer_run_cannot_be_a_resume(self, db_url, tmp_path, monkeypatch):
+    def test_pleading_run_cannot_be_a_resume(self, db_url, tmp_path, monkeypatch):
         case_id = land_debated_case(db_url)
         c = make_client(db_url, tmp_path, monkeypatch)
-        r = c.post(f"/api/cases/{case_id}/runs?resume=true", json={"kind": "answer"})
+        r = c.post(f"/api/cases/{case_id}/runs?resume=true", json={"kind": "pleadings", "documents": ["defendant"]})
         assert r.status_code == 409 and "沒有續跑" in r.json()["detail"]
 
-    def test_answer_run_without_landing_is_incomplete(self, db_url, tmp_path, monkeypatch):
+    def test_pleading_run_without_landing_is_incomplete(self, db_url, tmp_path, monkeypatch):
         case_id = land_debated_case(db_url)
         c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
         run_id = self.start(c, case_id).json()["run"]["id"]
         c.app.state.live.wait(run_id, timeout=60)
         run = c.get(f"/api/runs/{run_id}").json()["run"]
-        assert run["status"] == "incomplete" and run["error"] == "Claude Code 回報完成，但資料庫仍缺:答辯狀骨架"
+        assert run["status"] == "incomplete" and run["error"] == "Claude Code 回報完成，但資料庫仍缺:被告答辯狀骨架"
+
+
+class TestDocumentChoice:
+    """完整流程只產使用者選的書狀(花費由使用者控制)。"""
+    def run(self, c, case_id, documents):
+        r = c.post(f"/api/cases/{case_id}/runs", json={"documents": documents})
+        assert r.status_code == 201, r.text
+        run_id = r.json()["run"]["id"]
+        c.app.state.live.wait(run_id, timeout=60)
+        return c.get(f"/api/runs/{run_id}").json()
+
+    def test_full_run_with_only_the_complaint(self, db_url, tmp_path, monkeypatch):
+        c = make_client(db_url, tmp_path, monkeypatch)
+        case_id = create(c)
+        done = self.run(c, case_id, ["plaintiff"])
+        assert done["run"]["status"] == "succeeded", done["run"]["error"]  # 沒選的答辯狀不算缺
+        assert done["run"]["documents"] == ["plaintiff"] and "產生書狀：原告起訴狀" in done["events"][0]["text"]
+        d = c.get(f"/api/cases/{case_id}").json()
+        assert d["pleadings"]["plaintiff"] and d["pleadings"]["defendant"] is None
+        assert d["resume"]["possible"] is False  # 書狀步驟已做過；答辯狀改用補產
+        r = c.post(f"/api/cases/{case_id}/runs", json={"kind": "pleadings", "documents": ["defendant"]})
+        assert r.status_code == 201, r.text
+        c.app.state.live.wait(r.json()["run"]["id"], timeout=60)
+        assert c.get(f"/api/cases/{case_id}").json()["pleadings"]["defendant"]
+
+    def test_full_run_with_only_the_answer(self, db_url, tmp_path, monkeypatch):
+        c = make_client(db_url, tmp_path, monkeypatch)
+        case_id = create(c)
+        assert self.run(c, case_id, ["defendant"])["run"]["status"] == "succeeded"
+        d = c.get(f"/api/cases/{case_id}").json()
+        assert d["pleadings"]["plaintiff"] is None and d["pleadings"]["defendant"]
+
+    def test_resume_keeps_the_new_choice(self, db_url, tmp_path, monkeypatch):
+        c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
+        case_id = create(c)
+        run_to_end(c, case_id)
+        monkeypatch.setenv("FAKE_CLAUDE_MODE", "full")
+        r = c.post(f"/api/cases/{case_id}/runs?resume=true", json={"documents": ["defendant"]})
+        assert r.status_code == 201, r.text
+        c.app.state.live.wait(r.json()["run"]["id"], timeout=60)
+        run = c.get(f"/api/runs/{r.json()['run']['id']}").json()["run"]
+        assert run["status"] == "succeeded" and run["documents"] == ["defendant"]
+        d = c.get(f"/api/cases/{case_id}").json()
+        assert d["pleadings"]["plaintiff"] is None and d["pleadings"]["defendant"]

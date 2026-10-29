@@ -114,7 +114,9 @@ class LiveRun(Base):
     log_path = Column(String, nullable=True)  # 相對專案根目錄的 stream-json 執行紀錄
     notes_json = Column(Text, nullable=True)  # 從 stream-json 觀察到的安全分類器中止與訂閱額度變化(JSON)
     usage_json = Column(Text, nullable=True)  # 整次執行的 token 數(最後一筆 result 事件的 modelUsage 累計值,JSON)
-    kind = Column(String, nullable=True)  # NULL/'full'=完整流程；'answer'=只替已跑完攻防的案件補產被告答辯狀(Step 9 被告方)
+    kind = Column(String, nullable=True)  # NULL/'full'=完整流程；'pleadings'=只替已跑完攻防的案件補產書狀(Step 9C)
+    # 使用者選擇產生的書狀(逗號分隔:plaintiff=起訴狀、defendant=答辯狀);2026-10-30 新增，之前的執行為 NULL
+    documents = Column(String, nullable=True)
 
 
 def init_db(db_path='sqlite:///database/legal_debate.db'):
