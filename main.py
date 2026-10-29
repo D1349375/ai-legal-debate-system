@@ -10,7 +10,9 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
-  python main.py pleading --case-id X --draft-file <file> --citations <file>  落地訴狀草稿
+  python main.py pleading --case-id X --draft-file <file> --citations <file> [--side plaintiff|defendant]
+                                                          落地訴狀草稿(預設原告起訴狀；defendant=被告答辯狀)
+  python main.py pleading-source --case-id X --side defendant  印出該方撰狀素材(Stage 3+查證狀態),不重跑攻防補產書狀用
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
@@ -31,6 +33,7 @@ from engine.party_issues import mixed_dismissal_citations
 from engine.verify import verify_citations
 
 PROTOCOL_VERSION = "v1-2026-08-07"
+PLEADING_LABEL = {"plaintiff": "起訴狀", "defendant": "答辯狀"}
 
 
 def _pick(payload, *keys):
@@ -137,11 +140,23 @@ def cmd_pleading(args):
     session = get_session()
     try:
         row = record_pleading(session, case_id=args.case_id, draft_text=draft_text,
-                               citations_used=citations_used)
+                               citations_used=citations_used, side=args.side)
     except ValueError as e:
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
-    print(f"已落地訴狀草稿 {row.case_id}")
+    print(f"已落地{PLEADING_LABEL[row.side]}草稿 {row.case_id}")
+    return 0
+
+
+def cmd_pleading_source(args):
+    from database.db import pleading_materials
+    session = get_session()
+    try:
+        result = pleading_materials(session, case_id=args.case_id, side=args.side)
+    except ValueError as e:
+        print(f"無法取得撰狀素材:{e}", file=sys.stderr)
+        return 1
+    print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -284,7 +299,14 @@ def main():
     p.add_argument("--case-id", required=True)
     p.add_argument("--draft-file", required=True)
     p.add_argument("--citations", required=True, help="JSON 檔:此份訴狀引用的 citation_text 陣列")
+    p.add_argument("--side", choices=("plaintiff", "defendant"), default="plaintiff",
+                   help="哪一方的書狀:plaintiff=民事起訴狀(預設)、defendant=民事答辯狀")
     p.set_defaults(fn=cmd_pleading)
+
+    p = sub.add_parser("pleading-source", help="印出某一方的撰狀素材(Stage 3 原文、對造摘要、引用查證狀態)")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--side", choices=("plaintiff", "defendant"), required=True)
+    p.set_defaults(fn=cmd_pleading_source)
 
     p = sub.add_parser("serve", help="啟動 UI 後端(預設只綁本機 127.0.0.1)")
     p.add_argument("--host", default="127.0.0.1")

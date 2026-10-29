@@ -79,7 +79,7 @@ class TestVersions:
         assert v["source"] == "system" and v["label"] == "系統產生版 #1" and v["exportable"] is True
         assert v["origin"] == {"kind": "recorded"}
         r = client.get("/api/cases/c1/pleadings/1/export")
-        assert r.status_code == 200 and "c1_v1_system.txt" in r.headers["content-disposition"]
+        assert r.status_code == 200 and "c1_complaint_v1_system.txt" in r.headers["content-disposition"]
         text = r.content.decode("utf-8")
         assert text.startswith("﻿民事起訴狀") and "錄製紀錄" in text and "民法第474條:已查證通過" in text
         assert "須經執業律師審核" in text

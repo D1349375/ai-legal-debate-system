@@ -15,7 +15,7 @@ import time
 
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
-    record_pleading_edit, latest_party_checks,
+    record_pleading_edit, latest_party_checks, pleading_side,
 )
 from sqlalchemy import func
 
@@ -129,7 +129,10 @@ def list_cases(session, cases_dir=None):
     run_status = {}
     for cid, status in session.query(LiveRun.case_id, LiveRun.status).order_by(LiveRun.id).all():
         run_status[cid] = status
-    pleading_ids = {c for c, in session.query(PleadingDraft.case_id).all()}
+    pleading_sides = {}
+    for row in session.query(PleadingDraft).all():
+        pleading_sides.setdefault(row.case_id, set()).add(pleading_side(row))
+    pleading_ids = {c for c, sides in pleading_sides.items() if "plaintiff" in sides}
     items = []
     db_ids = set()
     for row in session.query(Case).order_by(Case.created_at.desc()).all():
@@ -146,6 +149,7 @@ def list_cases(session, cases_dir=None):
             "facts_excerpt": row.facts_summary[:60], "source": "database", "status": status,
             "arguments": c["arguments"], "questions": c["questions"],
             "has_verdict": row.case_id in verdict_ids, "has_pleading": row.case_id in pleading_ids,
+            "has_answer": "defendant" in pleading_sides.get(row.case_id, ()),
             "created_via": row.created_via, "last_run_status": run_status.get(row.case_id),
         })
     for cid, payload in _load_input_cases(cases_dir).items():
@@ -155,7 +159,7 @@ def list_cases(session, cases_dir=None):
             "case_id": cid, "case_type": payload.get("case_type", ""), "created_at": None,
             "facts_excerpt": payload.get("facts_summary", "")[:60], "source": "input_only",
             "status": "input_only", "arguments": 0, "questions": 0,
-            "has_verdict": False, "has_pleading": False,
+            "has_verdict": False, "has_pleading": False, "has_answer": False,
         })
     return items
 
@@ -339,6 +343,10 @@ def extract_citations(text):
     return out
 
 
+# 書狀種類：side 欄位新增前的舊紀錄一律是原告起訴狀(pleading_side 視 NULL 為 plaintiff)
+PLEADING_DOCUMENT = {"plaintiff": "民事起訴狀(原告)", "defendant": "民事答辯狀(被告)"}
+
+
 def _is_system(row):
     return row.source in (None, "system")
 
@@ -367,6 +375,7 @@ def pleading_version(row, lookup, origin):
         status = row.citation_verification_status
         version_origin = {"kind": "lawyer_edit"}
     return {"id": row.id, "source": "system" if _is_system(row) else "lawyer_edit", "parent_id": row.parent_id,
+            "side": pleading_side(row), "document": PLEADING_DOCUMENT[pleading_side(row)],
             "label": ("系統產生版" if _is_system(row) else "律師編輯版") + f" #{row.id}",
             "generated_at": row.generated_at, "draft_text": row.draft_text, "origin": version_origin,
             "status": status, "citation_check": check, "blocked_count": len(blocked),
@@ -455,10 +464,10 @@ def export_pleading_text(case_id, version):
               if o["kind"] == "lawyer_edit" else
               f"本次即時生成(UI 執行 #{o['run_id']},本機 Claude Code)" if o["kind"] == "live" else
               "錄製紀錄(過去由 Claude Code subagent 產生後落地)")
-    body, note = (pleading_export.system_draft_for_export(version["draft_text"]) if version["source"] == "system"
+    body, note = (pleading_export.system_draft_for_export(version["draft_text"], version["side"]) if version["source"] == "system"
                   else (version["draft_text"], None))  # 系統版去掉畫面上不顯示的內部備註；資料庫原文不動
     lines = [body.rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
-             f"案件:{case_id}", f"版本:{version['label']}", f"來源:{source}",
+             f"案件:{case_id}", f"書狀:{version['document']}", f"版本:{version['label']}", f"來源:{source}",
              f"產生／存檔時間:{version['generated_at']}", f"匯出時間:{_now_iso()}",
              f"引用查證:{len(version['citation_check'])} 條，全部已查證通過"]
     lines += [f"  - {c['citation_text']}:已查證通過" for c in version["citation_check"]]
@@ -469,7 +478,7 @@ def export_pleading_text(case_id, version):
     return "\n".join(lines) + "\n"
 
 
-def _progress(case_row, arguments, questions, verdict, pleading, citations):
+def _progress(case_row, arguments, questions, verdict, pleadings, citations):
     sides = lambda stage: len({a["side"] for a in arguments if a["stage"] == stage})  # noqa: E731
     published = sum(1 for c in citations if c["db_record"] and c["db_record"]["status"] == "published")
 
@@ -488,7 +497,10 @@ def _progress(case_row, arguments, questions, verdict, pleading, citations):
         {"key": "verify", "label": "引用查證", "state": ("done" if citations and published == len(citations)
                                                         else ("partial" if published else "pending")),
          "detail": f"{published}/{len(citations)} 已查證通過"},
-        {"key": "pleading", "label": "訴狀骨架初稿", "state": "done" if pleading else "pending", "detail": ""},
+        {"key": "pleading", "label": "起訴狀骨架(原告)", "state": "done" if pleadings.get("plaintiff") else "pending",
+         "detail": ""},
+        {"key": "answer", "label": "答辯狀骨架(被告)", "state": "done" if pleadings.get("defendant") else "pending",
+         "detail": "" if pleadings.get("defendant") else "尚未產生"},
     ]
 
 
@@ -556,9 +568,10 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                      "facts_summary": payload.get("facts_summary", ""), "claims": payload.get("claims", ""),
                      "created_at": None, "source": "input_only"},
             "provenance": {"kind": "input_only", "model_ids": [], "first_recorded_at": None, "last_recorded_at": None},
-            "arguments": [], "questions": [], "verdict": None, "pleading": None, "pleading_versions": [], "citations": [],
+            "arguments": [], "questions": [], "verdict": None, "pleading": None,
+            "pleadings": {"plaintiff": None, "defendant": None}, "pleading_versions": [], "citations": [],
             "citation_changes": [], "drift_detail": None,
-            "progress": _progress(None, [], [], None, None, []),
+            "progress": _progress(None, [], [], None, {}, []),
             "stats": {"arguments": 0, "questions": 0, "citations": 0, "citations_published": 0},
             "party_checks": party_checks, "live_runs": [],
             "procedural_issues": procedural_view(session, case_id, party_checks, [], [], None, None),
@@ -591,18 +604,22 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
         }
 
     pleading_rows = session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
-    system_rows = [r for r in pleading_rows if _is_system(r)]
-    pleading = None
-    if system_rows:
-        pleading_row = system_rows[-1]
-        pleading = {
-            "id": pleading_row.id,
-            "draft_text": pleading_row.draft_text, "generated_at": pleading_row.generated_at,
-            "origin": origin(pleading_row.generated_at),
-            "citation_verification_status": pleading_row.citation_verification_status,
-            "draft_count": len(system_rows),
-            "citation_check": _pleading_citation_check(pleading_row.draft_text, lookup),
-        }
+    # 每一方各取最新的系統產生版；沒有就是 None(UI 照實顯示尚未產生，不拿另一方的書狀充數)
+    pleadings = {}
+    for side in VALID_SIDES:
+        system_rows = [r for r in pleading_rows if _is_system(r) and pleading_side(r) == side]
+        pleading = None
+        if system_rows:
+            pleading_row = system_rows[-1]
+            pleading = {
+                "id": pleading_row.id, "side": side,
+                "draft_text": pleading_row.draft_text, "generated_at": pleading_row.generated_at,
+                "origin": origin(pleading_row.generated_at),
+                "citation_verification_status": pleading_row.citation_verification_status,
+                "draft_count": len(system_rows),
+                "citation_check": _pleading_citation_check(pleading_row.draft_text, lookup),
+            }
+        pleadings[side] = pleading
     pleading_versions = [pleading_version(r, lookup, origin) for r in pleading_rows]
 
     citations = _collect_citations(arguments, lookup, recorded_checks)
@@ -618,11 +635,12 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                        "model_ids": sorted({a["model_id"] for a in arguments if a["model_id"]}),
                        "first_recorded_at": stamps[0] if stamps else None,
                        "last_recorded_at": stamps[-1] if stamps else None},
-        "arguments": arguments, "questions": questions, "verdict": verdict, "pleading": pleading,
+        "arguments": arguments, "questions": questions, "verdict": verdict,
+        "pleading": pleadings["plaintiff"], "pleadings": pleadings,  # pleading:原告起訴狀(沿用舊欄位名)
         "pleading_versions": pleading_versions,
         "citations": citations, "citation_changes": citation_changes(arguments),
         "drift_detail": drift_detail(arguments) if any(a["stage"] == 3 for a in arguments) else None,
-        "progress": _progress(case_row, arguments, questions, verdict, pleading, citations),
+        "progress": _progress(case_row, arguments, questions, verdict, pleadings, citations),
         "stats": {"arguments": len(arguments), "questions": len(questions), "citations": len(citations),
                   "citations_published": sum(1 for c in citations if c["db_record"]
                                              and c["db_record"]["status"] == "published")},

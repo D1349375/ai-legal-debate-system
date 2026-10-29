@@ -50,13 +50,14 @@ def clean_draft_note(raw):
     return "\n".join(lines)
 
 
-def system_draft_for_export(draft_text):
+def system_draft_for_export(draft_text, side="plaintiff"):
     """回傳 (訴狀正文, 系統補充說明或 None)。標題後的括號說明(早期稿在此寫內部代號)改為與畫面相同的副標題。"""
     body, note = split_draft_note(draft_text)
     lines = delabel_jargon(body).strip().split("\n")
     title = 0
     while title < len(lines) - 1 and (not lines[title].strip() or re.fullmatch(r"【[^】]*】", lines[title].strip())):
         title += 1
-    lines[title] = re.sub(r"[（(][\s\S]*[）)]\s*$", "", lines[title]).strip() or "民事起訴狀"
+    lines[title] = re.sub(r"[（(][\s\S]*[）)]\s*$", "", lines[title]).strip() or (
+        "民事答辯狀" if side == "defendant" else "民事起訴狀")
     lines.insert(title + 1, SUBTITLE)
     return "\n".join(lines), (clean_draft_note(note) or None) if note else None
