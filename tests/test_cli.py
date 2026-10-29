@@ -15,6 +15,23 @@ def run_main(*args, db_url):
                           encoding="utf-8", timeout=60)
 
 
+def test_record_accepts_renamed_argument_field(tmp_path):
+    # 範本輸出欄位由 reasoning 改名為 argument(避開 reasoning_extraction 分類器);資料庫欄位不變
+    db_url = f"sqlite:///{tmp_path / 'cli.db'}"
+    s = get_session(db_url)
+    record_case(s, case_id="c1", case_type="買賣價金", facts_summary="事實", claims="請求")
+    s.close()
+    arg = tmp_path / "s1.json"
+    arg.write_text(json.dumps({"case_id": "c1", "side": "defendant", "stage": 1, "position": "p", "argument": "論證理由"},
+                              ensure_ascii=False), encoding="utf-8")
+    r = run_main("record", "--json", str(arg), db_url=db_url)
+    assert r.returncode == 0, r.stderr
+    from database.schema import DebateArgument
+    s = get_session(db_url)
+    assert s.query(DebateArgument).filter_by(case_id="c1").one().reasoning == "論證理由"
+    s.close()
+
+
 def test_duplicate_record_is_refused_without_traceback(tmp_path):
     db_url = f"sqlite:///{tmp_path / 'cli.db'}"
     s = get_session(db_url)

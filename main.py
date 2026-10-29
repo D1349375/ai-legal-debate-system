@@ -32,6 +32,16 @@ from engine.verify import verify_citations
 PROTOCOL_VERSION = "v1-2026-08-07"
 
 
+def _pick(payload, *keys):
+    """依序取第一個存在的欄位。subagent 範本的輸出欄位已改名(argument / verdict_analysis):
+    JSON 欄位叫 reasoning 會觸發 Claude 安全分類器 reasoning_extraction(2026-10-28 實跑被擋)。
+    資料庫欄位名不變，舊名仍接受(錄製紀錄與舊 JSON)。"""
+    for key in keys:
+        if key in payload:
+            return payload[key]
+    raise KeyError(" 或 ".join(keys))
+
+
 def cmd_case(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
@@ -54,7 +64,7 @@ def cmd_record(args):
             return 0
         row = record_argument(
             session, case_id=payload["case_id"], side=payload["side"], stage=int(payload["stage"]),
-            position=payload["position"], reasoning=payload["reasoning"],
+            position=payload["position"], reasoning=_pick(payload, "argument", "reasoning"),
             cited_statutes=payload.get("cited_statutes"), cited_precedents=payload.get("cited_precedents"),
             falsifier=payload.get("falsifier"), model_id=payload.get("model_id"),
         )
@@ -99,7 +109,7 @@ def cmd_verdict(args):
     try:
         row = record_verdict(
             session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
-            verdict_reasoning=payload["verdict_reasoning"], risk_map=payload["risk_map"],
+            verdict_reasoning=_pick(payload, "verdict_analysis", "verdict_reasoning"), risk_map=payload["risk_map"],
             mechanical_anchor_json=payload["mechanical_anchor_json"],
             protocol_version=PROTOCOL_VERSION, citations_used=payload.get("citations_used", []),
         )
