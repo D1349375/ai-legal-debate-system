@@ -7,19 +7,73 @@ pip install -r requirements.txt      # 首次:fastapi / uvicorn / httpx / sqlalc
 python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開啟瀏覽器
 ```
 
-選項:`--port 8080`、`--no-browser`、`--host 0.0.0.0`(預設只綁本機)。網址列 `#/<案件ID>/<分頁>` 可直接連到某案件的某分頁
+選項:`--port 8080`、`--no-browser`、`--host 0.0.0.0`(預設只綁本機;改綁其他位址時即時執行會停用,見下)、
+`--model`(即時執行的 Claude 模型,預設 `claude-sonnet-5-5`)、`--budget-usd`(每次即時執行的花費上限,預設 15 美元)。網址列 `#/<案件ID>/<分頁>` 可直接連到某案件的某分頁
 (分頁:`overview` `parties` `debate` `aggregate` `verify` `verdict` `pleading`)。
 
 ## 這個 UI 做什麼、不做什麼
 
-| 分頁 | 性質 | 資料來源 |
+| 功能/分頁 | 性質 | 資料來源 |
 |---|---|---|
-| 案件總覽、攻防過程、爭點評估、訴狀骨架 | **錄製紀錄重播** | 資料庫已落地的內容。論證由 Claude Code subagent 產生後經 `main.py record` 寫入,**不是即時生成** |
+| 案件總覽、攻防過程、爭點評估、訴狀骨架 | **錄製紀錄重播**或**本次即時生成**,逐筆標示 | 資料庫已落地的內容。落在 UI 即時執行期間的紀錄標「⚡ 本次即時生成・執行 #N」,其餘標「⏺ 錄製紀錄」 |
+| ＋ 建立新案件 | **寫入資料庫** | 使用者輸入的案由、事實、請求與雙方當事人原樣寫入;有填統編者建立後立即做商工查核 |
+| 即時執行 | **即時執行(Claude Code)** | 後端在本機啟動 Claude Code 跑 legal-debate skill,見下方「即時執行」 |
+| 訴狀編輯 | **另存新版本** | 律師編輯版另存一列,系統產生的原稿不動;引用重新查證,未通過者不得匯出 |
 | 機械彙整 | **即時執行** | 按鈕觸發後端當場呼叫 `engine/aggregate.py`(唯讀,不寫 DB) |
 | 引用查證 | **即時執行** | 按鈕觸發後端當場查證(見下),通過者寫入 `citation_verifications`(同 CLI `verify`,可取消勾選) |
 | 當事人查核 | **即時執行** | 依統編查經濟部商工開放資料；名稱搜尋只提供候選，須由使用者選定統編。每次查詢追加至 `party_checks`，不更動錄製論證或書狀本文 |
 
-第一階段**不會**呼叫任何 LLM;引擎本身不含 LLM 推理。「＋建立新案件」為停用狀態(需 LLM,第二階段)。
+引擎本身不含 LLM 推理。LLM 只在使用者按下「即時執行」時,由本機的 Claude Code 呼叫(僅限 Anthropic Claude 模型)。
+錄製案件(含 `demo/recorded_*.json` 匯入者)照常重播,不能重跑,也不需要網路或 Claude 帳號。
+
+## 即時執行(Claude Code)
+
+1. 先用「＋ 建立新案件」建立案件,再到案件總覽按「開始即時執行」。只有資料庫中**還沒有任何攻防或書狀紀錄**的案件可以執行;
+   落地紀錄不可覆寫,所以跑過(含失敗或取消)的案件不能重跑,請用「以此案件內容建立新案件」再建一件。
+2. 後端以無互動模式啟動 Claude Code(在專案目錄執行 `claude -p "/legal-debate <案件ID> …"`),權限只開到流程需要的範圍:
+   `--permission-mode dontAsk`,允許 `Bash(python main.py *)`、`Skill(legal-debate *)`、Read、Grep、Glob、Agent,
+   寫檔只限 `database/live_runs/` 之下;其他工具呼叫一律自動拒絕,不會停下來等人核准。
+   Bash 的實際邊界(2026-10-28 以 Claude Code 2.1.312 實測):除 `python main.py …` 外,Claude Code 內建視為唯讀的指令(如 `ls`)也會放行,
+   把輸出導向 `database/live_runs/` 之下的檔案(`python main.py finalize … > database/live_runs/run-N/anchor.json`)也會放行;
+   shell 迴圈(`for … do python main.py …`)、`cd` 串接會被拒。導向寫到 `database/live_runs/` 以外會不會被拒沒有實測。另加
+   `--setting-sources project --strict-mcp-config`,不載入使用者層設定與 MCP 伺服器。主 agent 與 subagent 都用 `--model` 指定的模型
+   (subagent 以 `CLAUDE_CODE_SUBAGENT_MODEL` 指定),每次以 `--max-budget-usd` 限制花費。
+3. 同一時間只跑一件。實測(Pro 訂閱帳號)一件約 11–15 分鐘、Claude Code 估算約 2.5–3.3 美元(2026-10-28 執行 #2:10 分 51 秒、2.51 美元;
+   2026-10-29 執行 #4:14 分 39 秒、3.25 美元),Claude 5 小時用量額度約用掉三成、7 天額度約 2%;此額度與同帳號其他 Claude Code 使用共用,用完時執行會以 HTTP 429 失敗(畫面會寫明)。
+   進度依「資料庫已落地的階段」計算,另顯示 Claude Code 的步驟紀錄;
+   各階段落地後畫面自動更新。執行中可取消(終止整個程序樹),已落地的階段保留。
+4. 結束時依 Claude Code 的結果事件與資料庫實況判定:全部落地為「執行完成」;Claude Code 回報完成但資料庫仍缺階段為「流程不完整」;
+   超過花費上限、程序異常結束、逾 120 分鐘為「執行失敗」,並寫出原因(含錯誤輸出末段);後端在執行途中重啟則標為「執行中斷」。
+5. 每次執行的完整原始輸出(`stream.jsonl`)、畫面上的步驟紀錄(`events.jsonl`,結束或重啟後照原序號與時間重播)與暫存檔
+   存在 `database/live_runs/run-<N>/`(已列入 `.gitignore`)。subagent 在背景執行時,主 agent 會分成多輪、stream 結尾有多筆結果事件;
+   花費與 token 用量取最後一筆的累計值,權限拒絕次數則逐輪加總。
+6. subagent 的回覆偶爾會被 Anthropic 安全分類器(`reasoning_extraction`)中止(2026-10-28 執行 #3 原告 Stage 1 連續 3 次、
+   2026-10-29 執行 #4 被告 Stage 1 1 次)。stream-json 沒有分類器的 stop_reason,只有一則「stopped by a safety classifier」的合成訊息,
+   後端認這句話記錄次數(存在 `live_runs.notes_json`,舊執行在啟動時從 `stream.jsonl` 補登),畫面顯示「安全分類器中止 N 次」;
+   流程沒跑完時寫進失敗原因(「流程不完整」時標為可能原因;已有明確失敗原因時只附註)。依 SKILL.md,主 agent 應另開 subagent 以同一份範本重派,
+   最多 2 次;後端不驗證主 agent 是否照做,請以執行紀錄核對。依[官方文件](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback),這類中止照樣計費。
+   訂閱帳號的額度事件(5 小時、7 天視窗)也一併記錄,顯示本次執行開始→結束的用量;開始執行前會顯示上次已知的額度(標明是哪次執行結束時的值),
+   任一視窗達 90% 且尚未過重置時間時提醒。2026-10-28 執行 #1 的額度事件是舊格式(沒有 `unifiedWindows`),不記錄;API 金鑰登入沒有額度事件。
+7. 已知限制:`--max-budget-usd` 是 Claude Code 用戶端的估算值,可能略為超出;官方文件沒有說明訂閱(OAuth)帳號是否同樣適用。
+   Windows 上透過 `taskkill /T /F` 終止程序樹。
+
+**安全**:即時執行會在這台電腦以使用者的 Claude 帳號執行有工具權限的程式,而本服務沒有登入驗證,所以:
+
+- 只有綁定 `127.0.0.1`/`localhost` 時才啟用。以 `--host 0.0.0.0` 啟動時即時執行整個停用(畫面會寫出原因),
+  區網內其他裝置只能看重播,不能觸發。
+- 建立案件、即時執行、取消、訴狀另存與重新查證等寫入端點只接受本機連線,並檢查 `Host` 與 `Origin` 標頭,
+  擋下其他網站(或 DNS rebinding)透過瀏覽器對本機 API 發出的請求。
+
+## 訴狀版本與匯出
+
+- 「✎ 編輯為新版本」以目前版本為底稿編輯,存檔時另存一列「律師編輯版」;系統產生版(經查證閘門落地的原稿)保留不動,
+  預設顯示的仍是最新的系統產生版。
+- 存檔時由版本文字找出所有引用:沿用原稿且已有通過紀錄者不重查;新增或改動的引用(及原本未通過者)當場重新查證(同「引用查證」分頁的規則)。
+- 系統只辨識「法規名第N條」(民法、民事訴訟法等 8 部法規)與「最高法院N年度台X字第N號」;其他看起來像引用的寫法
+  (如其他法規、下級審字號)標為「無法辨識,無法查證」,不放行。
+- 有任何一條未通過的版本照實標示「未放行」,**不能匯出**;網路恢復後可按「重新查證未通過的引用」。
+- 匯出為 UTF-8 純文字(`.txt`),正文之後附版本、來源(本次即時生成/錄製紀錄/律師編輯)、逐條查證結果與「須經律師審核」聲明。
+  系統產生版匯出的是資料庫中的原文(含畫面上隱藏的系統備註)。
 
 ## 引用查證的順序與離線行為
 
@@ -48,12 +102,18 @@ python main.py serve                 # 預設 http://127.0.0.1:8000,並自動開
 
 ## API(`/api/docs` 有互動文件)
 
-`GET /api/health` · `GET /api/cases` · `GET /api/cases/{id}` · `POST /api/cases/{id}/finalize` · `POST /api/verify` · `POST /api/party-check` · `GET /api/party-search`
+`GET /api/health` · `GET /api/cases` · `POST /api/cases` · `GET /api/cases/{id}` · `POST /api/cases/{id}/finalize` ·
+`POST /api/cases/{id}/runs` · `GET /api/runs/{run_id}` · `POST /api/runs/{run_id}/cancel` ·
+`POST /api/cases/{id}/pleadings` · `POST /api/cases/{id}/pleadings/{version}/reverify` · `GET /api/cases/{id}/pleadings/{version}/export` ·
+`POST /api/verify` · `POST /api/party-check` · `GET /api/party-search`
 
-刻意**沒有**任何寫入論證/判決的端點。
+仍然**沒有**直接寫入論證/判決的端點:論證、訊問、評估與系統訴狀只會由 Claude Code 的 subagent 經 `main.py record/verdict/pleading`
+落地,查證閘門照舊。
 
 ## 測試
 
 ```bash
-python -m pytest tests/ -v
+python -m pytest -q -m "not network"
 ```
+
+即時執行的測試以 `tests/fake_claude.py` 模擬 Claude Code 的 stream-json 輸出,不呼叫任何模型、不花費;真實執行(實測約 11 分鐘、估算 2.5 美元)不在自動測試範圍。

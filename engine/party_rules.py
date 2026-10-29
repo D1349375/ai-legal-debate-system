@@ -28,29 +28,41 @@ def _active_suspension(c):
 RULES = [
     {"code": "rep_chairman", "level": None, "when": lambda c: c["basic_ok"] and c["normal"] and c["form"] == "股份有限公司", "message": "法定代理人帶入：董事長 {rep}", "legal_basis": ["公司法第208條"]},
     {"code": "rep_director", "level": None, "when": lambda c: c["basic_ok"] and c["normal"] and c["form"] == "有限公司", "message": "法定代理人帶入：董事／董事長 {rep}", "legal_basis": ["公司法第108條"]},
-    {"code": "rep_mismatch", "level": "warn", "when": lambda c: c["basic_ok"] and c["normal"] and c["form"] == "股份有限公司" and bool(c["chairman"]) and bool(c["rep"]) and c["chairman"] != c["rep"], "message": "登記負責人與董監事名單的董事長不一致，請確認法定代理人", "legal_basis": ["公司法第208條"]},
+    {"code": "rep_mismatch", "level": "warn", "when": lambda c: c["basic_ok"] and c["normal"] and c["form"] == "股份有限公司" and not c["interim_managers"] and bool(c["chairman"]) and bool(c["rep"]) and c["chairman"] != c["rep"], "message": "登記負責人與董監事名單的董事長不一致，請確認法定代理人", "legal_basis": ["公司法第208條"]},
+    # 職稱字串「臨時管理人」依第208條之1第2項(法院囑託登記)與第8條第2項用語推定；2026-10-28 未找到登記有臨時管理人的實例可比對
+    *[
+        {"code": "interim_manager", "level": "bad",
+         "when": lambda c, form=form: c["basic_ok"] and c["form"] == form and bool(c["interim_managers"]),
+         "message": "董監事資料登記有臨時管理人（{interim_managers}）。法院選任之臨時管理人代行董事長及董事會之職權，在執行職務範圍內為公司負責人；法定代理人應列臨時管理人，不可照列董事長。臨時管理人不得為不利於公司之行為。" + detail + "請律師確認。",
+         "legal_basis": basis}
+        for form, detail, basis in [
+            ("股份有限公司", "", ["公司法第208條之1", "公司法第8條"]),
+            ("有限公司", "有限公司之董事準用此規定。", ["公司法第108條", "公司法第208條之1", "公司法第8條"]),
+        ]
+    ],
     {"code": "foreign_branch", "level": "warn", "when": lambda c: c["basic_ok"] and c["form"] == "外國公司" and c["status"] == FOREIGN_NORMAL, "message": "此為外國公司在臺分公司登記(核准登記),屬正常營業狀態;登記之在中華民國境內負責人為 {rep_display}。外國公司與中華民國公司有同一之權利能力;當事人列法與法定代理人(在臺負責人或外國公司之代表人)需律師確認。管轄依其在中華民國之主事務所或主營業所", "legal_basis": ["公司法第4條", "公司法第372條", "民事訴訟法第2條"]},
     {"code": "foreign_dissolved", "level": "bad", "when": lambda c: c["basic_ok"] and c["form"] == "外國公司" and c["status"] in ABNORMAL, "message": "外國公司在臺分公司已{status}。應就在中華民國境內營業所生之債權債務清算了結;除外國公司另有指定清算人外,以其在中華民國境內之負責人或分公司經理人為清算人;未了之債務仍由外國公司清償。請律師確認", "legal_basis": ["公司法第380條"]},
     *[
         {"code": "dissolved", "level": "bad",
          "when": lambda c, form=form, statuses=statuses: c["basic_ok"] and c["form"] == form and c["status"] in statuses,
-         "message": "對造已{status}。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。" + detail,
+         "message": "此公司已{status}。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。" + detail,
          "legal_basis": basis + (["公司法第26條之1"] if form != "其他" and statuses == {"廢止", "廢止登記", "撤銷"} else [])}
         for form, detail, basis in [
             ("股份有限公司", "股份有限公司原則上以解散前全體董事為清算人；章程另有規定或股東會另選者，從其選任；無法依此決定時，得聲請法院選派。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。例外：公司與董事（含身兼清算人之前董事）間的訴訟，由監察人代表公司。",
              ["公司法第24條", "公司法第25條", "公司法第8條", "公司法第322條", "公司法第85條", "公司法第213條"]),
-            ("有限公司", "有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。例外：公司與董事（含身兼清算人之前董事）間的訴訟，由監察人代表公司。",
-             ["公司法第24條", "公司法第25條", "公司法第8條", "公司法第113條", "公司法第79條", "公司法第85條", "公司法第213條"]),
+            ("有限公司", "有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+             ["公司法第24條", "公司法第25條", "公司法第8條", "公司法第113條", "公司法第79條", "公司法第85條"]),
             ("其他", "清算人依公司型態與章程而定，需律師確認；登記資料已不顯示董事與清算人。",
              ["公司法第24條", "公司法第25條"]),
         ]
         for statuses in [{"解散"}, {"廢止", "廢止登記", "撤銷"}]
     ],
     {"code": "ordered_dissolve", "level": "bad", "when": lambda c: c["basic_ok"] and c["status"] == "核准設立，但已命令解散", "message": "主管機關已命令解散，需確認是否已進入清算，以及法定代理人應如何列載", "legal_basis": ["公司法第24條"]},
-    {"code": "merged", "level": "bad", "when": lambda c: c["basic_ok"] and c["status"] == "合併解散", "message": "已因合併而解散，權利義務由存續或新設公司承受，被告應改列存續或新設公司；訴訟中發生合併時，未委任訴訟代理人者程序當然停止；有訴訟代理人時不當然停止，但仍須承受。", "legal_basis": ["公司法第75條", "公司法第319條", "民事訴訟法第169條", "民事訴訟法第173條"]},
+    {"code": "merged", "level": "bad", "when": lambda c: c["basic_ok"] and c["status"] == "合併解散", "message": "已因合併而解散，權利義務由存續或新設公司概括承受，被告應改列存續或新設公司；消滅公司繼續中之訴訟，由存續或新設公司承受其當事人地位。訴訟中發生合併時，未委任訴訟代理人者程序當然停止；有訴訟代理人時不當然停止，但仍須承受。", "legal_basis": ["公司法第75條", "公司法第319條", "企業併購法第24條", "民事訴訟法第169條", "民事訴訟法第173條"]},
     {"code": "bankrupt", "level": "bad", "when": lambda c: c["basic_ok"] and c["status"] == "破產", "message": "已宣告破產。關於破產財團之訴訟，應以破產管理人為當事人（破產法第75條及實務見解），仍列破產公司可能當事人不適格；訴訟中受破產宣告者，關於破產財團之訴訟程序當然停止（有訴訟代理人亦同）。請律師確認。", "legal_basis": ["民事訴訟法第174條"]},
+    {"code": "reorganization", "level": "bad", "when": lambda c: c["basic_ok"] and c["status"] == "重整", "message": "已裁定重整（限公開發行股票或公司債之公司）。公司業務之經營及財產之管理處分權移屬重整人，股東會、董事及監察人之職權停止；重整人在執行職務範圍內為公司負責人，法定代理人應列重整人，不可照列董事長。登記之重整人：{reorganizers}。重整人有數人時，重整事務之執行以過半數同意行之；重整人進行訴訟應事前徵得重整監督人許可。裁定重整後，公司因財產關係所生之訴訟等程序當然停止；重整裁定前成立之對公司債權為重整債權，非依重整程序不得行使權利。請律師確認。", "legal_basis": ["公司法第282條", "公司法第293條", "公司法第8條", "公司法第290條", "公司法第294條", "公司法第296條"]},
     {"code": "liquidated", "level": "warn", "when": lambda c: c["basic_ok"] and c["form"] != "外國公司" and c["status"] in LIQUIDATED, "message": "已登記清算完結。清算完結的聲報備查不等於法人格消滅；若仍有未了債務或訴訟，實務認法人格仍存續，可列清算人為法定代理人（參最高法院114年度台聲字第397號）。請律師確認。", "legal_basis": ["公司法第25條", "民法第40條"]},
-    {"code": "withdrawn", "level": "warn", "when": lambda c: c["basic_ok"] and c["kind"] == "company" and c["form"] != "外國公司" and bool(c["status"]) and c["status"] not in {NORMAL, "核准設立，但已命令解散", "合併解散", "破產"} | ABNORMAL | LIQUIDATED, "message": "公司狀態非「核准設立」（{status}），需人工確認", "legal_basis": ["民事訴訟法第249條"]},
+    {"code": "withdrawn", "level": "warn", "when": lambda c: c["basic_ok"] and c["kind"] == "company" and c["form"] != "外國公司" and bool(c["status"]) and c["status"] not in {NORMAL, "核准設立，但已命令解散", "合併解散", "破產", "重整"} | ABNORMAL | LIQUIDATED, "message": "公司狀態非「核准設立」（{status}），需人工確認", "legal_basis": ["民事訴訟法第249條"]},
     {"code": "no_rep", "level": "warn", "when": lambda c: c["basic_ok"] and c["kind"] == "company" and c["form"] != "外國公司" and not c["normal"] and not c["rep"], "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入", "legal_basis": ["民事訴訟法第116條"]},
     {"code": "suspended", "level": "warn", "when": lambda c: c["basic_ok"] and c["suspended"], "message": "公司停業中（{suspension_from}起）。停業不影響法人格與代表人，送達仍得向法定代理人為之；如有日後不能強制執行或甚難執行之虞，可評估聲請假扣押（須釋明請求及假扣押原因）。", "legal_basis": ["民事訴訟法第522條", "民事訴訟法第523條", "民事訴訟法第526條"]},
     {"code": "branch_entity", "level": "warn", "when": lambda c: c["kind"] == "branch", "message": "此統編為分公司。實務見解認分公司就其業務範圍內事項涉訟有當事人能力（最高法院40年台上字第39號判例），亦得以總公司為當事人；因分公司業務涉訟，得於分公司所在地法院起訴。請律師確認。", "legal_basis": ["民事訴訟法第6條"]},
@@ -92,15 +104,20 @@ def summarize(ban, kind, results, *, input_name=None):
     form = ("外國公司" if foreign else "股份有限公司" if (name or "").endswith("股份有限公司")
             else "有限公司" if (name or "").endswith("有限公司") else "其他" if name else None)
     chairman = next((_value(d, "Person_Name") for d in director_rows if _value(d, "Person_Position_Name") == "董事長"), None)
+    reorganizers = [_value(d, "Person_Name", "Juristic_Person_Name") for d in director_rows if _value(d, "Person_Position_Name") == "重整人"]
+    interim_managers = [_value(d, "Person_Name", "Juristic_Person_Name") for d in director_rows
+                        if "臨時管理人" in (_value(d, "Person_Position_Name") or "")]
     suspension = None
     if _active_suspension(basic):
         suspension = {"from": gcis.roc_date(basic.get("Sus_Beg_Date")), "to": gcis.roc_date(basic.get("Sus_End_Date"))}
     context = {"kind": kind, "basic_ok": basic_ok, "normal": status == NORMAL, "status": status or "未提供", "form": form,
                "rep": rep, "rep_display": rep or "官方登記未提供", "chairman": chairman, "suspended": bool(suspension),
+               "reorganizers": "、".join(n for n in reorganizers if n) or rep or "官方登記未提供",
+               "interim_managers": "、".join(n for n in interim_managers if n),
                "suspension_from": suspension["from"] if suspension else None,
                "input_name": input_name, "name": name}
     legal_representative = None
-    if kind == "company" and basic_ok and context["normal"] and rep:
+    if kind == "company" and basic_ok and context["normal"] and rep and not interim_managers:
         if form == "股份有限公司" and chairman == rep:
             legal_representative = {"name": rep, "title": "董事長", "basis": ["公司法第208條"]}
         elif form == "有限公司":

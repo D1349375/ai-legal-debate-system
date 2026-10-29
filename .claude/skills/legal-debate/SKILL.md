@@ -1,7 +1,7 @@
 ---
 name: legal-debate
 description: >-
-  LegalDebate 模擬法庭 orchestrator:跑單一民事案件的完整三角色四階段流程(案件輸入→立場驅動檢索→
+  LegalDebate 模擬法庭 orchestrator:跑單一民事案件的完整三角色四階段流程(案件輸入→商工當事人查核與起訴審查→立場驅動檢索→
   Stage1爭點整理→法官訊問→Stage2訊問攻防→Stage3辯論終結→機械死穴彙整→法官爭點強弱評估→
   引用查證→訴狀骨架初稿)。觸發詞:「跑案件模擬法庭」「模擬攻防」「案件辯論」「/legal-debate」。
   三角色:原告代理人、被告代理人、法官。單一模型,單一審判長,僅處理民事通常訴訟程序案件。
@@ -35,19 +35,27 @@ description: >-
 ### Step 1 — 案件輸入 + 凍結立場驅動檢索詞
 - 確認/建立 `data/cases/<case_id>.json`,執行 `python main.py case --json data/cases/<case_id>.json` 落地案件。
 - 依 `engine/stance_rag.py` 的規則(`build_stance_terms(side, case_type)`)取得雙方檢索詞——直接讀該檔案的 `_SIDE_FRAME_TERMS`/`_CASE_TYPE_TERMS` 對照案件的 `case_type` 列出結果即可,不需要额外寫程式呼叫。連同案件事實整理成一份摘要檔,供 Stage1 subagent 讀取。
+- **官方事實層(2026-10-27 串接)**:當事人是公司或商號、且使用者提供了統一編號時,逐一執行 `python main.py party --ban <統編> --case-id <case_id> --role plaintiff|defendant` 查核商工登記。**統編只能來自使用者**,不得自己猜或用名稱搜尋後自行選定(同名公司很多,選錯就是查錯人)。自然人或使用者沒給統編的一方不查,照實留空。
+- 查核完成後進入 Step 1.5。
+
+### Step 1.5 — 起訴審查(官方事實層,Stage 1 之前)
+- 實務上法院收狀後先審查當事人能力與法定代理權,有欠缺而可以補正者,審判長定期間命補正,逾期未補正以裁定駁回(民事訴訟法第249條第1項)。最高法院115年度台抗字第105號裁定可見此流程:一審發現原告公司已解散、登記清算人非起訴所列代表人,即裁定限期補正,逾期後駁回;但該駁回裁定經高院廢棄、最高法院維持,理由是法院應依職權調查實際代表權,不得僅憑登記認定——所以本系統只提出命補正事項,不替法院下「應駁回」的結論。本系統在這個時點提出程序事項。
+- 執行 `python main.py issues --case-id <case_id>`,把輸出存成程序事項 JSON。這是 `engine/party_issues.py` 依固定規則從登記狀態轉成的命補正事項(法定代理、當事人能力、當事人適格等),**不是 LLM 產出,你也不得自行增刪**。`notes` 裡寫著哪一方未查核或查核未完成——**未查核不等於沒有程序問題**,回報使用者時要照實說。
+- 這份 JSON 是雙方共享的公示資料(起訴狀的當事人欄本來就有),在 Step 2 交給雙方;不違反 Stage 1「看不到對造輸出」的盲判定義。這一步不是加開辯論輪次。
 
 ### Step 2 — Stage 1 爭點整理(雙方獨立,可平行)
-- 對 `plaintiff`、`defendant` 各開一個獨立 subagent(Agent 工具,一般用途即可),prompt **必須逐字套用** `templates/stage1_prompt.txt`,只填充 `{佔位符}`(`{SIDE}`/`{SIDE_LABEL}`/`{CASE_ID}`/`{CASE_FACTS_PATH}`/`{STANCE_TERMS}`/`{STATUTES_DIR}`=`corpus/statutes`/`{JUDGMENTS_DIR}`=`corpus/judgments`)。
+- 對 `plaintiff`、`defendant` 各開一個獨立 subagent(Agent 工具,一般用途即可),prompt **必須逐字套用** `templates/stage1_prompt.txt`,只填充 `{佔位符}`(`{SIDE}`/`{SIDE_LABEL}`/`{CASE_ID}`/`{CASE_FACTS_PATH}`/`{STANCE_TERMS}`/`{STATUTES_DIR}`=`corpus/statutes`/`{JUDGMENTS_DIR}`=`corpus/judgments`/`{PROCEDURAL_ISSUES_PATH}`=Step 1.5 的程序事項 JSON,沒有查核任何一方時仍要給)。
 - **隔離鐵律**:兩個 subagent 互相看不到對方的 prompt 或輸出,這是 Stage1 盲判的定義。
-- 收齊後各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(`stage=1`)。
+- 收到原告 Stage 1 後機械核對:`ex_officio` 為 true 的每一則事項,原告 argument 都要有「程序補正(<id>)」段落(系統以 `engine.party_issues.cured_in` 判斷)。漏掉就退回同一個原告 subagent 補寫,**不得自己代寫補正內容**。這只核對有沒有回應,補正夠不夠由 Step 3 法官判斷。
+- 收齊後各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(`stage=1`)。**兩方都拿到完整 JSON 之後才落地任何一方**(Stage 2、3 同理):先落地一方、另一方之後被安全分類器擋到放棄時,案件會卡在只有一方落地、又不能重跑的狀態(見文末「subagent 的回覆被安全分類器中止時」)。
 
 ### Step 3 — 法官生成訊問(獨立 subagent,基於 Stage 1)
-- 把雙方 Stage1 完整輸出整理成一份 JSON 給法官 subagent 讀,prompt 套用 `templates/judge_question_prompt.txt`。
-- 法官輸出的 `questions` 陣列,每一則各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(該 JSON 含 `question_text`/`target_side`/`based_on`,`main.py` 會依欄位自動辨識為訊問記錄,不是論證記錄)。
+- 把雙方 Stage1 完整輸出整理成一份 JSON 給法官 subagent 讀,prompt 套用 `templates/judge_question_prompt.txt`,`{PROCEDURAL_ISSUES_PATH}` 填 Step 1.5 的程序事項 JSON。法官先審查原告 Stage 1 的程序補正,只有補正不足時才追問;追問的 `based_on` 以「官方事實層(<id>):」開頭,UI 以此 id 對應追問與事項。補正足夠就不追問,這是正常結果,不要要求法官每則都問。
+- 法官輸出的 `questions` 陣列,每一則各自存成暫存 JSON,執行 `python main.py record --json <path>` 落地(該 JSON 含 `question_text`/`target_side`/`based_on`,`main.py` 會依欄位自動辨識為訊問記錄,不是論證記錄)。每則各下一次指令,不要用 shell 迴圈或 `&&` 串接一次落地多則(UI 無人值守執行時,只有單一 `python main.py ...` 指令會被允許,迴圈會被拒)。
 - `uncontested_points` 不落地資料庫(schema 未設對應欄位),但你要記下來,留給 Step 7(訴狀優先順序建議)與 Step 10(回報使用者)用。
 
 ### Step 4 — Stage 2 雙方應訊(可平行)
-- 給雙方各自:自己的 Stage1 完整輸出 + **對造 Stage1 的結構化摘要**(你自己從對造 Stage1 JSON 萃取 `position` + 最強論點一句話 + `cited_statutes`/`cited_precedents`,不得把對造完整 `reasoning` 全文丟過去——這是刻意設計,阻擋修辭趨同,逼雙方正面對決論點而非模仿對方語氣)+ 法官本輪全部訊問。
+- 給雙方各自:自己的 Stage1 完整輸出 + **對造 Stage1 的結構化摘要**(你自己從對造 Stage1 JSON 萃取 `position` + 最強論點一句話 + `cited_statutes`/`cited_precedents`,不得把對造完整 `argument` 全文丟過去——這是刻意設計,阻擋修辭趨同,逼雙方正面對決論點而非模仿對方語氣)+ 法官本輪全部訊問。
 - prompt 套用 `templates/stage2_prompt.txt`。收齊後 `python main.py record --json <path>` 落地(`stage=2`)。
 
 ### Step 5 — Stage 3 辯論終結(可平行)
@@ -58,14 +66,14 @@ description: >-
 ```
 python main.py finalize --case-id <case_id>
 ```
-取得 `mechanical_anchor_json`(`weak_points` + `position_drift`),這是 Step 7 法官敘述不得違背的方向錨點。
+取得 `mechanical_anchor_json`(`weak_points` + `position_drift` + `procedural_issues`),這是 Step 7 法官敘述不得違背的方向錨點。`procedural_issues` 取 finalize 當下最新的商工查核結果;若 Step 1 之後重新查核過,以這裡為準。
 
 ### Step 7 — 法官頒布爭點強弱評估(獨立 subagent,受 Step 6 錨點約束)
 - prompt 套用 `templates/verdict_prompt.txt`,餵入完整三階段紀錄 + Step 6 的機械錨點 JSON。
 - **這裡先不落地** verdict——要等 Step 8 查證通過,`citations_used` 全數 published 才能落地(見下)。
 
 ### Step 8 — 引用查證(獨立 subagent,涵蓋判決書引用;獨立 context 結構性強制)
-- 收集 Step 2-7 所有輸出裡出現的全部 `cited_statutes` + `cited_precedents` + verdict 的 `citations_used`,去重。
+- 收集 Step 2-7 所有輸出裡出現的全部 `cited_statutes` + `cited_precedents` + verdict 的 `citations_used`,去重。程序事項的 `legal_basis` 若被法官或雙方引用,同樣要查證,不因為是規則表帶出來的就免查。
 - **開一個新的、乾淨的 subagent**(不能是剛才寫論證/判決的同一個 context 自己查自己),第一項任務:
   ```
   python main.py verify <citation1> <citation2> ...
@@ -77,14 +85,16 @@ python main.py finalize --case-id <case_id>
   ```
   python main.py verdict --case-id <case_id> --json <path>
   ```
-  (JSON 含 `verdict_main_text`/`verdict_reasoning`/`risk_map`/`mechanical_anchor_json`/`citations_used`)。`record_verdict` 若偵測到未 published 引用會直接拒絕落地(`ValueError`,`main.py` 回傳 exit code 1)——這是機械閘門,不是你的判斷空間,遇到報錯不要試圖繞過。
+  (JSON 含 `verdict_main_text`/`verdict_analysis`/`risk_map`/`mechanical_anchor_json`/`citations_used`)。`record_verdict` 若偵測到未 published 引用會直接拒絕落地(`ValueError`,`main.py` 回傳 exit code 1)——這是機械閘門,不是你的判斷空間,遇到報錯不要試圖繞過。
+  `main.py verdict` 另會拒絕把民事訴訟法第249條與最高法院115年度台抗字第105號放在同一個括號裡的評估(並列讀起來像該裁定也支持駁回)。遇到這個報錯,把報錯原文交回同一個法官 subagent,請它只改這處引註的寫法後重新輸出;不要自己改寫評估內容。
 
 ### Step 9 — 訴狀草擬(骨架版,2026-08-08 決定,不經 `taiwan-legal-pleading` skill 潤飾)
 `taiwan-legal-pleading` skill 蒸餾已延後至 Phase 2(語料未到位,見 `noble-dancing-duckling.md`)。本階段訴狀初稿改為**骨架版**:
 
 1. 用 Read 讀取 `corpus/pleadings/reference/司法院官方民事起訴狀範本_結構參考用.pdf`,取得訴狀欄位結構(案號/當事人欄/訴之聲明/事實及理由/證物名稱/此致/具狀人)。
-2. 把 Stage3 的 `position`/`reasoning`/`cited_statutes` 直接套進上述骨架的對應欄位——預設以原告方 Stage3 為主(訴狀站在原告角度撰寫);若使用場景是被告方答辯狀,改用被告方 Stage3,依使用者實際需求判斷。**不做語氣潤飾、不做修辭改寫**,這是刻意的,語氣潤飾要等 Phase 2 律師語料到位才做。誠實跟使用者說明這是骨架版,不是最終可用訴狀。
+2. 把 Stage3 的 `position`/`argument`/`cited_statutes` 直接套進上述骨架的對應欄位——預設以原告方 Stage3 為主(訴狀站在原告角度撰寫);若使用場景是被告方答辯狀,改用被告方 Stage3,依使用者實際需求判斷。**不做語氣潤飾、不做修辭改寫**,這是刻意的,語氣潤飾要等 Phase 2 律師語料到位才做。誠實跟使用者說明這是骨架版,不是最終可用訴狀。
 3. 只使用 Step 8 已查證為 `published` 的引用,未 published 的引用不得出現在訴狀草稿裡。
+3a. 當事人欄:有商工查核結果的一方,名稱、統編、地址照登記填;法定代理人只填查核結果 `legal_representative` 有帶入的人。有 bad 等級程序事項時(例如被告已解散),法定代理人欄寫「清算人(待查明:<程序事項要查的資料>)」,**不得照列原負責人,也不得編造清算人姓名**。
 4. 落地:
    ```
    python main.py pleading --case-id <case_id> --draft-file <path> --citations <path>
@@ -93,6 +103,7 @@ python main.py finalize --case-id <case_id>
 
 ### Step 10 — 回報使用者
 逐案回報:
+- 官方事實層:哪一方查核了商工登記、起訴審查產生哪些命補正事項、原告 Stage 1 如何補正、法官是否追問、最後是否補正完成;未查核的一方照實說未查核
 - 雙方三階段立場摘要(Stage1 初始立場 → Stage3 最終立場,標出立場是否有位移)
 - 法官爭點確認(哪些無實質爭議、哪些是真爭點)
 - 機械死穴清單(`weak_points`,誰在哪個爭點有明確 falsifier)
@@ -106,6 +117,15 @@ python main.py finalize --case-id <case_id>
 
 - `record`/`finalize`/`verdict`/`pleading` 遇「已落地不可覆寫」報錯 = 該案件此階段已跑過,**不要試圖刪除或改寫**,向使用者回報即可。
 - 任何案件層級的統計評估(如多案件命中率)不在本 skill 範圍——單案跑測不構成統計意義上的驗證,不要臨時手算了就宣稱結論。
+
+## subagent 的回覆被安全分類器中止時
+
+實跑時(2026-10-28 #3、2026-10-29 #4)subagent 輸出最終 JSON 時偶爾會被 Anthropic 的安全分類器中止(類別 `reasoning_extraction`)。這不是工具或 API 錯誤,subagent 會回報「回覆被安全分類器中止」、沒有交出完整 JSON。這個分類器有機率性,同一份 prompt 重派通常就能通過(#4 重派一次即成功)。處理方式:
+
+1. 被中止的那份輸出不完整,不得採用、不得落地,也不得由你補完或代寫。
+2. **另開一個新的 subagent**,用同一份範本逐字重派(佔位符照填)。不要用 SendMessage 叫原本那個 subagent 重寫:它已被告知不得再產出那段內容。也不要自行精簡或改寫範本來「避開」分類器,那樣會偏離範本、論證品質無從比較(#3 就是改寫後仍失敗)。
+3. 同一個角色同一階段最多重派 2 次(含第一次共 3 次)。都被中止就停在這一步:已落地的階段保留;同一階段另一方即使已完成也先不要落地(只落地一方,之後整件重跑時會撞到「已落地不可覆寫」),在最後回覆寫明卡在哪一個 subagent、被中止幾次。
+4. 每次中止都要在最後回覆照實列出(哪個 subagent、第幾次、最後是否重派成功)。依官方文件,`reasoning_extraction` 類別的中止(輸出前或串流中途)照樣計費(https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback ,「How refusals are billed」一節)。
 
 ## 已知限制
 

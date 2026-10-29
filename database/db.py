@@ -14,12 +14,16 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
 from database.schema import (
-    Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck,
+    Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck, LiveRun,
 )
 from engine.aggregate import compile_weak_points, disagreement, VALID_SIDES
+from engine.party_issues import procedural_issues
 from engine.verify import parse_citation
 
 _DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'legal_debate.db')
+# UI 觸發即時執行時，後端以此環境變數把自己使用的資料庫交給 Claude Code 子程序，
+# 確保 subagent 經 main.py 落地的紀錄寫進同一顆資料庫(測試時則是暫存資料庫)。
+DB_URL_ENV = 'LEGALDEBATE_DB_URL'
 
 
 def _sync_schema(engine):
@@ -45,7 +49,7 @@ def default_db_path():
 
 def make_session_factory(db_url=None):
     """建立一次 engine、之後重複取 session(長駐程序用,如 server/;CLI 仍用 get_session)。"""
-    engine = create_engine(db_url or f"sqlite:///{_DB_FILE}")
+    engine = create_engine(db_url or os.environ.get(DB_URL_ENV) or f"sqlite:///{_DB_FILE}")
     Base.metadata.create_all(engine)
     _sync_schema(engine)
     return sessionmaker(bind=engine)
@@ -59,11 +63,12 @@ def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def record_case(session, *, case_id, case_type, facts_summary, claims):
+def record_case(session, *, case_id, case_type, facts_summary, claims, parties=None, created_via=None):
     if session.query(Case).filter_by(case_id=case_id).one_or_none():
         raise ValueError(f"{case_id} 已存在，不可覆寫")
     row = Case(case_id=case_id, case_type=case_type, facts_summary=facts_summary,
-               claims=claims, created_at=_now_iso())
+               claims=claims, created_at=_now_iso(), created_via=created_via,
+               parties_json=json.dumps(parties, ensure_ascii=False) if parties else None)
     session.add(row)
     session.commit()
     return row
@@ -128,6 +133,8 @@ def finalize_case(session, *, case_id):
     return {
         "weak_points": compile_weak_points(stage3),
         "position_drift": disagreement(stage1, stage3),
+        # 官方事實層:依商工查核轉成的程序事項，法官評估須先處理，不得以實體理由略過
+        "procedural_issues": procedural_issues(latest_party_checks(session, case_id)),
     }
 
 
@@ -151,6 +158,27 @@ def record_pleading(session, *, case_id, draft_text, citations_used):
     _assert_all_published(session, citations_used)
     row = PleadingDraft(case_id=case_id, draft_text=draft_text,
                          citation_verification_status='published', generated_at=_now_iso())
+    session.add(row)
+    session.commit()
+    return row
+
+
+def record_pleading_edit(session, *, case_id, parent_id, draft_text, citation_check):
+    """律師編輯版:另存一列新版本，原稿不動。
+
+    與 record_pleading 不同，這裡不以例外擋下未通過的引用——律師的編輯不能因網路逾時就消失——
+    而是照實把逐條查證結果存下來，有任何一條未通過即標為 blocked；匯出端點只放行 published。
+    citation_check 由呼叫端(server/services.py)逐條實際查證後產生，這裡不做任何「假設通過」。
+    """
+    parent = session.get(PleadingDraft, parent_id)
+    if parent is None or parent.case_id != case_id:
+        raise ValueError(f"{case_id} 找不到要編輯的訴狀版本 #{parent_id}")
+    if not draft_text.strip():
+        raise ValueError("訴狀內容不可為空白")
+    status = 'published' if all(c.get("gate") == "pass" for c in citation_check) else 'blocked'
+    row = PleadingDraft(case_id=case_id, draft_text=draft_text, citation_verification_status=status,
+                        generated_at=_now_iso(), source='lawyer_edit', parent_id=parent_id,
+                        citation_check_json=json.dumps(citation_check, ensure_ascii=False))
     session.add(row)
     session.commit()
     return row

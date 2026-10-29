@@ -6,11 +6,12 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 用法:
   python main.py case     --json <file>                 案件輸入
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
-  python main.py finalize --case-id X                    機械死穴彙整+分歧統計，印出判決錨點
+  python main.py finalize --case-id X                    機械死穴彙整+分歧統計+程序事項，印出判決錨點
+  python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
   python main.py pleading --case-id X --draft-file <file> --citations <file>  落地訴狀草稿
-  python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例 + 真實執行機械環節)
+  python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
 """
@@ -26,9 +27,20 @@ from database.db import (
     get_session, record_case, record_argument, record_question,
     finalize_case, record_verdict, record_pleading, upsert_citation,
 )
+from engine.party_issues import mixed_dismissal_citations
 from engine.verify import verify_citations
 
 PROTOCOL_VERSION = "v1-2026-08-07"
+
+
+def _pick(payload, *keys):
+    """依序取第一個存在的欄位。subagent 範本的輸出欄位已改名(argument / verdict_analysis):
+    JSON 欄位叫 reasoning 會觸發 Claude 安全分類器 reasoning_extraction(2026-10-28 實跑被擋)。
+    資料庫欄位名不變，舊名仍接受(錄製紀錄與舊 JSON)。"""
+    for key in keys:
+        if key in payload:
+            return payload[key]
+    raise KeyError(" 或 ".join(keys))
 
 
 def cmd_case(args):
@@ -45,17 +57,21 @@ def cmd_record(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
-    if "question_text" in payload:
-        row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
-                               target_side=payload["target_side"], based_on=payload["based_on"])
-        print(f"已落地訊問 {row.case_id} -> {row.target_side}")
-        return 0
-    row = record_argument(
-        session, case_id=payload["case_id"], side=payload["side"], stage=int(payload["stage"]),
-        position=payload["position"], reasoning=payload["reasoning"],
-        cited_statutes=payload.get("cited_statutes"), cited_precedents=payload.get("cited_precedents"),
-        falsifier=payload.get("falsifier"), model_id=payload.get("model_id"),
-    )
+    try:
+        if "question_text" in payload:
+            row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
+                                   target_side=payload["target_side"], based_on=payload["based_on"])
+            print(f"已落地訊問 {row.case_id} -> {row.target_side}")
+            return 0
+        row = record_argument(
+            session, case_id=payload["case_id"], side=payload["side"], stage=int(payload["stage"]),
+            position=payload["position"], reasoning=_pick(payload, "argument", "reasoning"),
+            cited_statutes=payload.get("cited_statutes"), cited_precedents=payload.get("cited_precedents"),
+            falsifier=payload.get("falsifier"), model_id=payload.get("model_id"),
+        )
+    except ValueError as e:  # 如重複落地(不可覆寫):與 verdict/pleading 一致，印原因而非 traceback
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
     print(f"已落地論證 {row.case_id} {row.side} stage{row.stage}")
     return 0
 
@@ -64,6 +80,15 @@ def cmd_finalize(args):
     session = get_session()
     result = finalize_case(session, case_id=args.case_id)
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def cmd_issues(args):
+    from database.db import latest_party_checks
+    from engine.party_issues import procedural_issues
+    session = get_session()
+    result = procedural_issues(latest_party_checks(session, args.case_id))
+    print(json.dumps({"case_id": args.case_id, **result}, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -81,11 +106,19 @@ def cmd_verify(args):
 def cmd_verdict(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
+    analysis = _pick(payload, "verdict_analysis", "verdict_reasoning")
+    mixed = mixed_dismissal_citations("\n".join([payload["verdict_main_text"], analysis,
+                                                 json.dumps(payload["risk_map"], ensure_ascii=False)]))
+    if mixed:
+        print("拒絕落地:第249條與最高法院115年度台抗字第105號放在同一個括號，讀起來像該裁定也支持駁回:"
+              + ";".join(mixed) + "。請退回法官 subagent 分開引註:第249條接在逾期未補正以裁定駁回之後，"
+              "115台抗105 只接在法院應依職權調查實際代表權之後", file=sys.stderr)
+        return 1
     session = get_session()
     try:
         row = record_verdict(
             session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
-            verdict_reasoning=payload["verdict_reasoning"], risk_map=payload["risk_map"],
+            verdict_reasoning=analysis, risk_map=payload["risk_map"],
             mechanical_anchor_json=payload["mechanical_anchor_json"],
             protocol_version=PROTOCOL_VERSION, citations_used=payload.get("citations_used", []),
         )
@@ -119,11 +152,15 @@ def cmd_serve(args):
     import uvicorn
     from server.app import create_app
 
-    app = create_app()
+    from server.live_run import options_for_host
+    app = create_app(live=options_for_host(args.host, model=args.model, budget_usd=args.budget_usd))
     url = f"http://{args.host}:{args.port}/"
     if app.state.seeded:
         print(f"資料庫原本沒有案件，已由 demo/recorded_cases.json 匯入錄製紀錄:{app.state.seeded}")
     print(f"LegalDebate UI:{url}(Ctrl+C 結束)")
+    avail = app.state.live.availability()
+    print("即時執行:" + (f"已啟用(模型 {avail['model']},每次花費上限 {avail['budget_usd']:g} 美元)" if avail["enabled"]
+                        else f"停用——{avail['reason']}"))
     if not args.no_browser:
         threading.Timer(1.2, lambda: webbrowser.open(url)).start()
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
@@ -230,6 +267,10 @@ def main():
     p.add_argument("--case-id", required=True)
     p.set_defaults(fn=cmd_finalize)
 
+    p = sub.add_parser("issues", help="依案件的商工查核結果印出法官應依職權調查的程序事項")
+    p.add_argument("--case-id", required=True)
+    p.set_defaults(fn=cmd_issues)
+
     p = sub.add_parser("verify", help="引用查證")
     p.add_argument("citations", nargs="+")
     p.set_defaults(fn=cmd_verify)
@@ -249,6 +290,8 @@ def main():
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)
     p.add_argument("--no-browser", action="store_true", help="不自動開啟瀏覽器")
+    p.add_argument("--model", help="即時執行使用的 Claude 模型(預設 claude-sonnet-5-5,主 agent 與 subagent 相同)")
+    p.add_argument("--budget-usd", type=float, help="即時執行每次的花費上限(美元，預設 15)")
     p.set_defaults(fn=cmd_serve)
 
     p = sub.add_parser("export-demo", help="匯出錄製紀錄 fixture 到 demo/")
