@@ -1,7 +1,7 @@
 """測試用的假 Claude Code:不呼叫任何模型，只模擬 `claude -p --output-format stream-json` 的輸出格式，
 並依 FAKE_CLAUDE_MODE 把固定內容寫進 LEGALDEBATE_DB_URL 指向的資料庫(驗證後端有把同一顆 DB 交給子程序)。
 
-模式：full(跑完整流程) / partial(只落地 Stage 1 就回報完成) / budget(花費上限中止) / api_error(API 錯誤)
+模式：full(跑完整流程) / partial(只落地 Stage 1 就回報完成) / budget(花費上限中止) / api_error(API 錯誤) / tree(開孫程序後卡住)
       / crash(無 result 直接崩潰) / hang(卡住等取消)。
 FAKE_CLAUDE_AUTH=0 模擬未登入；FAKE_CLAUDE_DELAY(秒)讓每次落地之間停頓，方便在瀏覽器看進度。
 FAKE_CLAUDE_SAFETY=1 在被告 Stage 1 插入一則「回覆被安全分類器中止」的通知(格式照 2026-10-29 執行 #4 的 stream-json);
@@ -12,6 +12,7 @@ FAKE_CLAUDE_FORCE_RELAND=1 則故意重新落地已有的紀錄，驗證資料�
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 
@@ -73,6 +74,12 @@ def main():
         quota(0, 0.93)
 
     if mode == "hang":
+        time.sleep(120)
+        return 0
+    if mode == "tree":  # 像 Claude Code 跑 Bash 一樣再開一層子程序(孫程序),驗證取消時整個程序樹都會終止
+        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
+        with open(os.path.join(ROOT, run_dir, "tree_pids.json"), "w", encoding="utf-8") as f:
+            json.dump({"fake_claude": os.getpid(), "grandchild": child.pid}, f)
         time.sleep(120)
         return 0
     if mode == "crash":

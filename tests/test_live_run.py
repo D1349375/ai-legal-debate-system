@@ -6,6 +6,7 @@
 import json
 import os
 import sys
+import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -238,6 +239,23 @@ class TestLiveRun:
         assert done["run"]["status"] == "cancelled" and "取消" in done["run"]["error"]
         assert c.post(f"/api/runs/{run_id}/cancel").status_code == 409
         assert c.get("/api/health").json()["live_generation"]["active_run"] is None
+
+    def test_cancel_terminates_whole_process_tree(self, db_url, tmp_path, monkeypatch):
+        # Claude Code 跑 Bash 時會再開子程序；只殺 claude 本身會留下孤兒程序(Windows 尤其如此)，所以驗孫程序也結束
+        psutil = pytest.importorskip("psutil")
+        c = make_client(db_url, tmp_path, monkeypatch, mode="tree")
+        run_id = c.post(f"/api/cases/{create(c)}/runs").json()["run"]["id"]
+        pid_file = tmp_path / "runs" / f"run-{run_id}" / "tree_pids.json"
+        deadline = time.monotonic() + 30
+        while not pid_file.exists() and time.monotonic() < deadline:
+            time.sleep(0.1)
+        time.sleep(0.2)  # 等檔案寫完
+        pids = json.loads(pid_file.read_text(encoding="utf-8"))
+        assert all(psutil.pid_exists(p) for p in pids.values())
+        done = c.post(f"/api/runs/{run_id}/cancel").json()
+        assert done["run"]["status"] == "cancelled"
+        gone, alive = psutil.wait_procs([psutil.Process(p) for p in pids.values() if psutil.pid_exists(p)], timeout=10)
+        assert not alive, f"取消後仍存活的程序:{[p.pid for p in alive]}"
 
     def test_timeout_kills_run(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch, mode="hang", max_minutes=0.02)
