@@ -24,7 +24,8 @@
 
   var CASE_STATUS = {
     completed: { cls: "ok", label: "✓ 完整紀錄" },
-    in_progress: { cls: "warn", label: "進行中" },
+    // 有論證但缺爭點評估或訴狀；只有執行中才叫「進行中」，否則是停在中途的紀錄(見 renderCaseList)
+    in_progress: { cls: "warn", label: "◐ 未完成(部分落地)" },
     case_only: { cls: "neutral", label: "僅案件" },
     input_only: { cls: "neutral", label: "僅案件輸入" },
   };
@@ -207,6 +208,7 @@
     if (!state.cases.length) { box.append(h("div", { class: "detail-note", text: "資料庫中沒有案件。" })); return; }
     state.cases.forEach(function (c) {
       var st = CASE_STATUS[c.status] || CASE_STATUS.case_only;
+      if (c.status === "in_progress" && c.last_run_status === "running") st = { cls: "warn", label: "進行中" };
       box.append(h("button", {
         class: "case-item", type: "button", "aria-current": c.case_id === state.caseId ? "true" : "false",
         onclick: function () { selectCase(c.case_id, "overview"); },
