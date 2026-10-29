@@ -146,8 +146,11 @@ def main():
     landed('    60\t    print(f"已落地論證 {row.case_id} {row.side} stage{row.stage}")')
     emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 3.21, "result": "Stage 1 已派出，等待完成",
           "permission_denials": [{"tool_name": "Bash", "tool_input": {"command": "for i in 1 2; do python main.py record; done"}}]})
+    # 實測 modelUsage 是整次累計值(含 subagent);usage 只是主 agent 最後一輪
     emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 3.21, "result": "全部完成",
-          "permission_denials": []})
+          "permission_denials": [], "usage": {"input_tokens": 9, "output_tokens": 99},
+          "modelUsage": {"claude-sonnet-5-5": {"inputTokens": 188, "outputTokens": 138510, "cacheReadInputTokens": 6185052,
+                                               "cacheCreationInputTokens": 389538, "costUSD": 3.21}}})
     return 0
 
 

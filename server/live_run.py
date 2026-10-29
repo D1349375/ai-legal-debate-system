@@ -265,6 +265,41 @@ def observe_log(path):
     return obs.to_dict()
 
 
+USAGE_FIELDS = (("inputTokens", "input_tokens"), ("outputTokens", "output_tokens"),
+                ("cacheReadInputTokens", "cache_read_input_tokens"),
+                ("cacheCreationInputTokens", "cache_creation_input_tokens"))
+
+
+def token_usage(result):
+    """整次執行(含 subagent)的 token 數。實測(CLI 2.1.312)result 事件的 modelUsage 與 total_cost_usd 一樣是累計值，
+    usage 欄只是主 agent 最後一輪，所以取 modelUsage 依模型加總。沒有 modelUsage 時回傳 None,不拿 usage 充數。"""
+    by_model = {}
+    for model, u in ((result or {}).get("modelUsage") or {}).items():
+        if isinstance(u, dict):
+            by_model[model] = {key: int(u.get(src) or 0) for src, key in USAGE_FIELDS}
+    if not by_model:
+        return None
+    total = {key: sum(m[key] for m in by_model.values()) for _, key in USAGE_FIELDS}
+    return {**total, "by_model": by_model}
+
+
+def usage_from_log(path):
+    """從已存的 stream-json 取最後一筆 result 的 token 數(舊執行補登用)。"""
+    last = None
+    try:
+        with open(path, "rb") as f:
+            for raw in f:
+                try:
+                    obj = json.loads(raw.decode("utf-8", "replace"))
+                except ValueError:
+                    continue
+                if obj.get("type") == "result":
+                    last = obj
+    except OSError:
+        return None
+    return token_usage(last)
+
+
 def summarize_results(results):
     """整次執行的 result 事件摘要。subagent 在背景執行時(實測 CLI 2.1.312),主 agent 每等一批就結束一輪，
     stream 結尾會連續出現多筆 result:花費與 modelUsage 是累計值，權限拒絕只記在當輪。所以只摘要最後一筆，
@@ -399,6 +434,14 @@ def _notes(row):
     return notes if isinstance(notes, dict) else {}
 
 
+def _usage(row):
+    try:
+        usage = json.loads(row.usage_json) if row.usage_json else None
+    except ValueError:
+        return None
+    return usage if isinstance(usage, dict) else None
+
+
 def run_to_dict(row):
     notes = _notes(row)
     return {"id": row.id, "case_id": row.case_id, "status": row.status, "started_at": row.started_at,
@@ -407,7 +450,7 @@ def run_to_dict(row):
             "cost_usd": float(row.cost_usd) if row.cost_usd else None,
             "exit_code": row.exit_code, "error": row.error, "log_path": row.log_path,
             "safety_stops": notes.get("safety_stops") or [], "quota": notes.get("quota"),
-            "resume_from": notes.get("resume_from")}
+            "resume_from": notes.get("resume_from"), "tokens": _usage(row)}
 
 
 def _kill_tree(proc):
@@ -670,7 +713,8 @@ class LiveRunManager:
         if stops and status == "succeeded":
             self._append(active, "warn", f"執行期間有 {len(stops)} 次回覆被安全分類器中止({who})。"
                                          "依 SKILL.md 被中止的輸出不得落地、應另開 subagent 重派;請以執行紀錄與最後回覆核對")
-        self._finish(active.run_id, status, error=error, cost=cost, exit_code=code, notes=notes)
+        self._finish(active.run_id, status, error=error, cost=cost, exit_code=code, notes=notes,
+                     usage=token_usage(active.result))
         with self._lock:
             if self._active is active:
                 self._active = None
@@ -683,13 +727,15 @@ class LiveRunManager:
         except OSError:
             return ""
 
-    def _finish(self, run_id, status, *, error=None, cost=None, exit_code=None, notes=None):
+    def _finish(self, run_id, status, *, error=None, cost=None, exit_code=None, notes=None, usage=None):
         with self.factory() as s:
             row = s.get(LiveRun, run_id)
             row.status, row.ended_at, row.error, row.exit_code = status, _now_iso(), error, exit_code
             row.cost_usd = str(cost) if isinstance(cost, (int, float)) else None
             if notes is not None:
                 row.notes_json = json.dumps(notes, ensure_ascii=False)
+            if usage is not None:
+                row.usage_json = json.dumps(usage, ensure_ascii=False)
             s.commit()
 
     def _backfill_notes(self):
@@ -701,6 +747,11 @@ class LiveRunManager:
                 notes = observe_log(self._log_abs(row.log_path)) if row.log_path else None
                 if notes is not None:
                     row.notes_json = json.dumps({**_notes(row), **notes}, ensure_ascii=False)
+            # token 數欄位加入前結束的執行(2026-10-28 #1 起)同樣從 stream-json 補登
+            for row in s.query(LiveRun).filter(LiveRun.usage_json.is_(None), LiveRun.status != "running").all():
+                usage = usage_from_log(self._log_abs(row.log_path)) if row.log_path else None
+                if usage is not None:
+                    row.usage_json = json.dumps(usage, ensure_ascii=False)
             s.commit()
 
     def latest_quota(self):

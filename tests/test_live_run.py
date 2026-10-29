@@ -69,6 +69,10 @@ class TestLiveRun:
         r = run_to_end(c, case_id)
         assert r["run"]["status"] == "succeeded" and r["run"]["error"] is None
         assert r["run"]["cost_usd"] == 3.21 and r["active"] is False
+        tokens = r["run"]["tokens"]  # 取 modelUsage 累計值，不是主 agent 最後一輪的 usage
+        assert tokens["input_tokens"] == 188 and tokens["output_tokens"] == 138510
+        assert tokens["cache_read_input_tokens"] == 6185052 and tokens["cache_creation_input_tokens"] == 389538
+        assert list(tokens["by_model"]) == ["claude-sonnet-5-5"]
         kinds = [e["kind"] for e in r["events"]]
         assert "landed" in kinds and "result" in kinds
         texts = [e["text"] for e in r["events"]]
@@ -281,12 +285,13 @@ class TestLiveRun:
         c = make_client(db_url, tmp_path, monkeypatch)
         run_id = run_to_end(c, create(c))["run"]["id"]
         factory = make_session_factory(db_url)
-        with factory() as s:  # 模擬 notes_json 欄位加入前結束的執行
-            s.get(LiveRun, run_id).notes_json = None
+        with factory() as s:  # 模擬 notes_json / usage_json 欄位加入前結束的執行
+            row = s.get(LiveRun, run_id)
+            row.notes_json = row.usage_json = None
             s.commit()
         c2 = make_client(db_url, tmp_path, monkeypatch)
         run = c2.get(f"/api/runs/{run_id}").json()["run"]
-        assert len(run["safety_stops"]) == 1
+        assert len(run["safety_stops"]) == 1 and run["tokens"]["output_tokens"] == 138510
         with factory() as s:  # 續跑途中後端重啟：只有啟動時存的 resume_from,沒有觀察結果
             s.get(LiveRun, run_id).notes_json = '{"resume_from": "法官訊問"}'
             s.commit()
@@ -371,6 +376,16 @@ class TestCommandAndStream:
         row = LiveRun(id=1, case_id="c", status="succeeded", started_at="x", notes_json="[]")
         d = live_run.run_to_dict(row)
         assert d["safety_stops"] == [] and d["quota"] is None
+
+    def test_token_usage_sums_models_and_never_guesses(self):
+        r = {"usage": {"input_tokens": 1, "output_tokens": 2},
+             "modelUsage": {"a": {"inputTokens": 10, "outputTokens": 20, "cacheReadInputTokens": 30},
+                            "b": {"inputTokens": 1, "outputTokens": 2, "cacheCreationInputTokens": 4}}}
+        u = live_run.token_usage(r)
+        assert (u["input_tokens"], u["output_tokens"], u["cache_read_input_tokens"], u["cache_creation_input_tokens"]) == (11, 22, 30, 4)
+        assert live_run.token_usage({"usage": {"input_tokens": 1}}) is None and live_run.token_usage(None) is None
+        row = LiveRun(id=1, case_id="c", status="failed", started_at="x", usage_json="[]")
+        assert live_run.run_to_dict(row)["tokens"] is None
 
     def test_usage_limit_is_explained(self):
         # 2026-10-28 Pro 訂閱實跑時的 result 事件(節錄)

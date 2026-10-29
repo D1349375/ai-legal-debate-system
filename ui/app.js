@@ -1366,6 +1366,14 @@
       "：" + who + " 的回覆被 Anthropic 安全分類器中止。這不是程式或 API 錯誤。" + tail +
       "依官方文件，這類中止照樣計費。"]);
   }
+  function fmtTokens(n) { return n >= 10000 ? (n / 10000).toFixed(n >= 1000000 ? 0 : 1) + " 萬" : String(n); }
+  function tokenTotal(t) { return t.input_tokens + t.cache_read_input_tokens + t.cache_creation_input_tokens + t.output_tokens; }
+  // 整次執行(含 subagent)的 token 數，取自 Claude Code 回報的累計值
+  function tokenLine(t) {
+    return "token 用量(含 subagent)：合計 " + fmtTokens(tokenTotal(t)) + "・輸入 " + fmtTokens(t.input_tokens) +
+      "・快取讀取 " + fmtTokens(t.cache_read_input_tokens) + "・快取寫入 " + fmtTokens(t.cache_creation_input_tokens) +
+      "・輸出 " + fmtTokens(t.output_tokens) + (Object.keys(t.by_model || {}).length > 1 ? "(" + Object.keys(t.by_model).join("、") + ")" : "");
+  }
   function runView(run, d) {
     var st = RUN_STATUS[run.status], lr = liveLog(run.id);
     if (!lr.loaded && run.status !== "running") loadRunLog(run.id);
@@ -1387,6 +1395,8 @@
       run.error ? banner(run.status === "cancelled" ? "warn" : "bad", run.status === "cancelled" ? "!" : "✗", run.error) : null,
       stoppedByClassifier(run) ? null : safetyStopBanner(run),
       run.quota ? h("p", { class: "detail-note", text: "訂閱額度(本次執行開始 → 結束)：" + quotaLine(run.quota) }) : null,
+      run.tokens ? h("p", { class: "detail-note", text: tokenLine(run.tokens) }) :
+        run.status !== "running" ? h("p", { class: "detail-note", text: "token 用量：Claude Code 沒有回報 token 數，不估算。" }) : null,
       lr.error ? banner("warn", "!", "讀取執行紀錄失敗：" + lr.error) : null,
       events.length ? h("div", { class: "run-log", role: "log", "aria-label": "執行紀錄" }, events.slice(-30).map(row)) :
         h("p", { class: "detail-note", text: run.status === "running" ? "等待 Claude Code 輸出…" : "沒有可顯示的執行紀錄。" }),
@@ -1474,6 +1484,7 @@
       d.live_runs && d.live_runs.length ? h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "即時執行" }),
         d.live_runs.map(function (r) {
           return meta("執行 #" + r.id, runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
+            (r.tokens ? "・" + fmtTokens(tokenTotal(r.tokens)) + " token" : "") +
             ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
         })) : null,
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "限制" }),
