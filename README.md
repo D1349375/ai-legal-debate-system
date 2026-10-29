@@ -75,7 +75,8 @@ The CLI walks a case through the pipeline:
 | `finalize` | Mechanically collate weak points and divergence statistics, printing the verdict anchors |
 | `verify` | Run citation verification against the authoritative sources |
 | `verdict` | Persist the judge's written decision |
-| `pleading` | Persist the pleading draft |
+| `pleading` | Persist a pleading draft: the plaintiff's complaint (default) or, with `--side defendant`, the defendant's answer |
+| `pleading-source` | Print one side's Stage 3 text and citation status, to draft that side's pleading without rerunning the debate |
 
 `ui/legal_workspace_ui.html` is a standalone UI prototype — open it directly in a browser; it
 is not wired to the backend.
