@@ -1339,9 +1339,19 @@
         quotaLine(q.windows) + (expired.length ? "。" + expired.map(function (k) { return QUOTA_LABEL[k]; }).join("、") +
         "視窗已過重置時間，實際用量應已重置" : "") })];
   }
+  // 流程不完整且有分類器中止：最可能的原因就是分類器(Claude Code 自己回報完成，沒有其他明確錯誤)
+  function stoppedByClassifier(run) { return run.status === "incomplete" && (run.safety_stops || []).length > 0; }
+  function runLabel(run) {
+    return RUN_STATUS[run.status].label + (stoppedByClassifier(run) ? "(安全分類器中止 " + run.safety_stops.length + " 次)" : "");
+  }
   function safetyStopBanner(run) {
     var stops = run.safety_stops || [];
     if (!stops.length) return null;
+    if (stoppedByClassifier(run)) {
+      return banner("bad", "!", [h("strong", { text: "流程沒跑完的可能原因：安全分類器中止 " + stops.length + " 次" }),
+        "：" + stops.map(function (s) { return s.who; }).join("、") + " 的回覆被 Anthropic 安全分類器中止，之後的階段沒有落地。" +
+        "這不是程式或 API 錯誤，是根據執行紀錄推斷的原因，請以下方執行紀錄核對。依官方文件，這類中止照樣計費。"]);
+    }
     var who = stops.map(function (s) { return s.who; }).join("、");
     var subagentOnly = stops.every(function (s) { return s.who !== "主 agent"; });
     var tail = run.status === "succeeded" ? (subagentOnly ? "依 SKILL.md，被中止的輸出不得落地、應另開 subagent 以同一份範本重派；請以執行紀錄與最後回覆核對。" : "") :
@@ -1359,7 +1369,7 @@
         e.subagent ? chip("neutral", "subagent") : null, h("span", { class: "run-text", text: e.text }));
     };
     return h("div", { class: "run-view" },
-      h("div", { class: "run-head" }, chip(st.cls, st.label), h("strong", { text: "執行 #" + run.id }),
+      h("div", { class: "run-head" }, chip(st.cls, runLabel(run)), h("strong", { text: "執行 #" + run.id }),
         h("span", { class: "detail-note", text: "開始 " + fmtTime(run.started_at) + "・經過 " + elapsed(run) + "・模型 " + run.model +
           (run.cost_usd != null ? "・估算花費 " + run.cost_usd.toFixed(2) + " 美元" : "") + (run.exit_code != null ? "・結束碼 " + run.exit_code : "") }),
         run.status === "running" ? h("button", { class: "btn small", type: "button", disabled: state.liveBusy[run.case_id] ? true : null,
@@ -1367,8 +1377,9 @@
       run.status === "running" ? h("div", { class: "chip-row" }, d.progress.map(function (s) {
         return chip(s.state === "done" ? "ok" : s.state === "partial" ? "warn" : "neutral", (s.state === "done" ? "✓ " : s.state === "partial" ? "◐ " : "· ") + s.label);
       })) : null,
+      stoppedByClassifier(run) ? safetyStopBanner(run) : null,
       run.error ? banner(run.status === "cancelled" ? "warn" : "bad", run.status === "cancelled" ? "!" : "✗", run.error) : null,
-      safetyStopBanner(run),
+      stoppedByClassifier(run) ? null : safetyStopBanner(run),
       run.quota ? h("p", { class: "detail-note", text: "訂閱額度(本次執行開始 → 結束)：" + quotaLine(run.quota) }) : null,
       lr.error ? banner("warn", "!", "讀取執行紀錄失敗：" + lr.error) : null,
       events.length ? h("div", { class: "run-log", role: "log", "aria-label": "執行紀錄" }, events.slice(-30).map(row)) :
@@ -1403,7 +1414,7 @@
             state.liveBusy[d.case.case_id] ? "啟動中…" : "開始即時執行"));
       }
     }
-    return card("即時執行(Claude Code)", body, latest ? chip(RUN_STATUS[latest.status].cls, RUN_STATUS[latest.status].label) : null);
+    return card("即時執行(Claude Code)", body, latest ? chip(RUN_STATUS[latest.status].cls, runLabel(latest)) : null);
   }
   function prefillFrom(d) {
     var p = d.case.parties || {}, pl = p.plaintiff || {}, df = p.defendant || {};
@@ -1444,8 +1455,8 @@
         h("p", { class: "detail-note", text: "查證權威來源：法規＝法務部全國法規資料庫；判決＝本地語料庫 → 司法院裁判書查詢系統。" })),
       d.live_runs && d.live_runs.length ? h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "即時執行" }),
         d.live_runs.map(function (r) {
-          return meta("執行 #" + r.id, RUN_STATUS[r.status].label + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
-            ((r.safety_stops || []).length ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
+          return meta("執行 #" + r.id, runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
+            ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
         })) : null,
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "限制" }),
         h("p", { class: "detail-note", text: "標示「⚡ 本次即時生成」者由本機 Claude Code 經 UI 執行產生；標示「⏺ 錄製紀錄」者是過去產生後落地的紀錄重播。引用查證僅確認條文／字號存在，未比對判決全文是否支持該論點。研究原型，非法律意見，訴狀須由律師審核。" })));
