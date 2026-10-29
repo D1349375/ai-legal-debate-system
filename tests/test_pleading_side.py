@@ -146,3 +146,47 @@ class TestCli:
         out = json.loads(r.stdout)
         assert out["side"] == "defendant" and out["own_stage3"]["citations"][0]["status"] == "published"
         assert "reasoning" not in out["own_stage3"]  # 輸出欄位名避開 reasoning_extraction 分類器
+
+
+class TestApi:
+    @pytest.fixture
+    def client(self, db_url, tmp_path):
+        from fastapi.testclient import TestClient
+        from server.app import create_app
+        app = create_app(db_url=db_url, cases_dir=str(tmp_path / "none"), live_checks_path=str(tmp_path / "none.json"),
+                         seed_on_empty=False, local_clients=("testclient",))
+        return TestClient(app, base_url="http://127.0.0.1:8000")
+
+    def test_missing_answer_is_reported_not_substituted(self, client, db_url):
+        s = get_session(db_url)
+        s.add(PleadingDraft(case_id="c1", draft_text="民事起訴狀\n依民法第474條", citation_verification_status="published",
+                            generated_at="2026-08-09T00:00:00Z"))  # 舊紀錄 side=NULL
+        s.commit()
+        s.close()
+        d = client.get("/api/cases/c1").json()
+        assert d["pleadings"]["plaintiff"]["id"] == 1 and d["pleadings"]["defendant"] is None
+        assert d["pleading"]["id"] == 1  # 舊欄位仍是原告起訴狀
+        assert [v["side"] for v in d["pleading_versions"]] == ["plaintiff"]
+        steps = {p["key"]: p for p in d["progress"]}
+        assert steps["pleading"]["state"] == "done" and steps["answer"]["state"] == "pending"
+        [item] = [c for c in client.get("/api/cases").json()["cases"] if c["case_id"] == "c1"]
+        assert item["has_pleading"] is True and item["has_answer"] is False
+
+    def test_answer_listed_exported_and_edited_separately(self, client, db_url, monkeypatch):
+        s = get_session(db_url)
+        record_pleading(s, case_id="c1", draft_text="民事起訴狀\n依民法第474條", citations_used=["民法第474條"])
+        record_pleading(s, case_id="c1", draft_text=ANSWER, citations_used=["民法第125條"], side="defendant")
+        s.close()
+        d = client.get("/api/cases/c1").json()
+        assert d["pleadings"]["defendant"]["id"] == 2 and d["pleadings"]["plaintiff"]["id"] == 1
+        assert {p["key"]: p["state"] for p in d["progress"]}["answer"] == "done"
+        r = client.get("/api/cases/c1/pleadings/2/export")
+        assert r.status_code == 200 and "c1_answer_v2_system.txt" in r.headers["content-disposition"]
+        assert "書狀:民事答辯狀(被告)" in r.content.decode("utf-8")
+        assert "c1_complaint_v1_system.txt" in client.get("/api/cases/c1/pleadings/1/export").headers["content-disposition"]
+        r = client.post("/api/cases/c1/pleadings", json={"parent_id": 2, "draft_text": ANSWER + "\n補充", "mode": "offline"})
+        assert r.status_code == 201, r.text
+        assert r.json()["side"] == "defendant" and r.json()["document"] == "民事答辯狀(被告)"
+        d = client.get("/api/cases/c1").json()
+        assert d["pleadings"]["defendant"]["id"] == 2  # 預設仍顯示系統產生版
+        assert [v["side"] for v in d["pleading_versions"]] == ["plaintiff", "defendant", "defendant"]

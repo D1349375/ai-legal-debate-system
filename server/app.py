@@ -228,7 +228,8 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         if not v["exportable"]:
             raise HTTPException(409, f"{v['label']} 有 {v['blocked_count']} 條引用未通過查證，未放行，不能匯出")
         kind = "lawyer" if v["source"] == "lawyer_edit" else "system"
-        name = f"{case_id}_v{version_id}_{kind}.txt"
+        document = "answer" if v["side"] == "defendant" else "complaint"  # 起訴狀與答辯狀檔名分開
+        name = f"{case_id}_{document}_v{version_id}_{kind}.txt"
         body = "\ufeff" + services.export_pleading_text(case_id, v)  # BOM:Windows 記事本正確辨識 UTF-8
         return Response(body.encode("utf-8"), media_type="text/plain; charset=utf-8",
                         headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(name)}"})
