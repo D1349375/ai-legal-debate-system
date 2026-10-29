@@ -1,11 +1,12 @@
 """測試用的假 Claude Code:不呼叫任何模型，只模擬 `claude -p --output-format stream-json` 的輸出格式，
 並依 FAKE_CLAUDE_MODE 把固定內容寫進 LEGALDEBATE_DB_URL 指向的資料庫(驗證後端有把同一顆 DB 交給子程序)。
 
-模式：full(跑完整流程) / partial(只落地 Stage 1 就回報完成) / budget(花費上限中止) / api_error(API 錯誤)
+模式：full(跑完整流程) / partial(只落地 Stage 1 就回報完成；只產答辯狀時什麼都不落地就回報完成) / budget(花費上限中止) / api_error(API 錯誤)
       / crash(無 result 直接崩潰) / hang(卡住等取消)。
 FAKE_CLAUDE_AUTH=0 模擬未登入；FAKE_CLAUDE_DELAY(秒)讓每次落地之間停頓，方便在瀏覽器看進度。
 FAKE_CLAUDE_SAFETY=1 在被告 Stage 1 插入一則「回覆被安全分類器中止」的通知(格式照 2026-10-29 執行 #4 的 stream-json);
-FAKE_CLAUDE_QUOTA=1 在開始與結束各送一則 rate_limit_event(訂閱額度);FAKE_CLAUDE_STOP_AFTER_S1=budget 在 Stage 1 落地後以花費上限中止。
+FAKE_CLAUDE_QUOTA=1 在開始與結束各送一則 rate_limit_event(訂閱額度);
+prompt 是「只跑 Step 9C」時改走只產答辯狀：讀撰狀素材後落地一份被告答辯狀；FAKE_CLAUDE_STOP_AFTER_S1=budget 在 Stage 1 落地後以花費上限中止。
 """
 import json
 import os
@@ -85,6 +86,14 @@ def main():
 
     s = get_session()
     model = os.environ.get("CLAUDE_CODE_SUBAGENT_MODEL")
+    if "Step 9C" in prompt:
+        tool("Bash", {"command": f"python main.py pleading-source --case-id {case_id} --side defendant"})
+        if mode != "partial":
+            record_pleading(s, case_id=case_id, side="defendant", citations_used=[],
+                            draft_text="民事答辯狀\n答辯聲明\n一、原告之訴及假執行之聲請均駁回。")
+            landed(f"已落地答辯狀草稿 {case_id}")
+        emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 0.4, "result": "完成"})
+        return 0
     for side in ("plaintiff", "defendant"):
         tool("Agent", {"description": f"{side} Stage 1"})
         if side == "defendant" and os.environ.get("FAKE_CLAUDE_SAFETY") == "1":
@@ -112,7 +121,10 @@ def main():
                    risk_map={"對原告不利之處": [], "對被告不利之處": [], "建議補強證據": []},
                    mechanical_anchor_json=anchor, protocol_version="test", citations_used=[])
     record_pleading(s, case_id=case_id, draft_text="民事起訴狀\n訴之聲明\n一、被告應給付原告。", citations_used=[])
-    landed(f"已落地訴狀草稿 {case_id}")
+    landed(f"已落地起訴狀草稿 {case_id}")
+    record_pleading(s, case_id=case_id, side="defendant", citations_used=[],
+                    draft_text="民事答辯狀\n答辯聲明\n一、原告之訴及假執行之聲請均駁回。")
+    landed(f"已落地答辯狀草稿 {case_id}")
     # 實測(2026-10-28):主 agent 會讀 main.py 原始碼(含「已落地」字樣,前有行號);
     # subagent 在背景執行時，stream 結尾連續出現多筆 result,花費為累計值、權限拒絕只記在當輪
     tool("Read", {"file_path": os.path.join(ROOT, "main.py")})

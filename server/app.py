@@ -60,6 +60,10 @@ class CreateCaseRequest(BaseModel):
     defendant: PartyInput
 
 
+class RunRequest(BaseModel):
+    kind: Literal["full", "answer"] = "full"  # answer:只替既有案件補產被告答辯狀(SKILL.md Step 9C)
+
+
 class PleadingEditRequest(BaseModel):
     parent_id: int
     draft_text: str = Field(min_length=1, max_length=100000)
@@ -180,9 +184,9 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         return {"case_id": case_id, "parties": parties}
 
     @app.post("/api/cases/{case_id}/runs", status_code=201, dependencies=[Depends(local_only)])
-    def start_run(case_id: str):
+    def start_run(case_id: str, req: RunRequest | None = None):
         try:
-            return runner.start(case_id)
+            return runner.start(case_id, kind=(req or RunRequest()).kind)
         except PermissionError as e:
             raise HTTPException(403, f"即時執行未啟用:{e}")
         except ValueError as e:

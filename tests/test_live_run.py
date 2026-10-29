@@ -9,7 +9,7 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 
-from database.db import get_session, make_session_factory, record_argument, record_case
+from database.db import get_session, make_session_factory, record_argument, record_case, record_pleading
 from database.schema import LiveRun
 from server import live_run
 from server.app import create_app
@@ -81,6 +81,7 @@ class TestLiveRun:
         assert {a["origin"]["kind"] for a in d["arguments"]} == {"live"}
         assert d["verdict"]["origin"] == {"kind": "live", "run_id": r["run"]["id"], "run_status": "succeeded"}
         assert d["pleading"]["origin"]["kind"] == "live"
+        assert d["pleadings"]["defendant"]["origin"]["kind"] == "live"  # 完整流程同時產出起訴狀與答辯狀
         assert d["arguments"][0]["model_id"] == "claude-sonnet-5-5"  # 子程序收到 CLAUDE_CODE_SUBAGENT_MODEL
         # 錄製案件不受影響
         assert c.get("/api/cases/rec1").json()["provenance"]["kind"] == "recorded_replay"
@@ -114,7 +115,7 @@ class TestLiveRun:
         c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
         r = run_to_end(c, create(c))
         assert r["run"]["status"] == "incomplete"
-        assert "原告 Stage 2" in r["run"]["error"] and "訴狀骨架" in r["run"]["error"]
+        assert "原告 Stage 2" in r["run"]["error"] and "起訴狀骨架" in r["run"]["error"] and "答辯狀骨架" in r["run"]["error"]
 
     def test_budget_stop_is_reported(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch, mode="budget")
@@ -235,6 +236,12 @@ class TestCommandAndStream:
         assert "Bash(python main.py *)" in allowed and not any(a == "Bash" or a == "Write" for a in allowed)
         assert args[args.index("--max-budget-usd") + 1] == "15"
 
+    def test_answer_prompt_runs_only_step_9c(self):
+        p = live_run.build_answer_prompt("test-2026-10-27-gcis-001", "database/live_runs/run-9")
+        assert p.startswith("/legal-debate test-2026-10-27-gcis-001") and "Step 9C" in p
+        assert "pleading-source --case-id test-2026-10-27-gcis-001 --side defendant" in p and "--side defendant" in p
+        assert "不要執行 `python main.py case`、`record`、`finalize`、`verdict`" in p
+
     def test_prompt_pins_case_and_run_dir(self):
         p = live_run.build_prompt("ui-20261028-001", "database/live_runs/run-7")
         assert p.startswith("/legal-debate ui-20261028-001")
@@ -309,3 +316,54 @@ class TestCommandAndStream:
         assert live_run.resolve_claude_command() == ([str(exe)], None)
         monkeypatch.setattr(live_run.shutil, "which", lambda name: None)
         assert live_run.resolve_claude_command()[0] is None
+
+
+def land_debated_case(db_url, case_id="done1"):
+    """已跑完攻防、只有原告起訴狀的既有案件(2026-10-29 前跑完的案件都是如此)。"""
+    s = get_session(db_url)
+    record_case(s, case_id=case_id, case_type="消費借貸", facts_summary="事實", claims="請求")
+    for side in ("plaintiff", "defendant"):
+        record_argument(s, case_id=case_id, side=side, stage=3, position=f"{side} s3", reasoning="r", falsifier="f")
+    record_pleading(s, case_id=case_id, draft_text="民事起訴狀", citations_used=[])
+    s.close()
+    return case_id
+
+
+class TestAnswerRun:
+    def start(self, client, case_id):
+        return client.post(f"/api/cases/{case_id}/runs", json={"kind": "answer"})
+
+    def test_answer_run_lands_only_the_answer(self, db_url, tmp_path, monkeypatch):
+        case_id = land_debated_case(db_url)
+        c = make_client(db_url, tmp_path, monkeypatch)
+        assert c.post(f"/api/cases/{case_id}/runs").status_code == 409  # 完整流程仍不能重跑
+        r = self.start(c, case_id)
+        assert r.status_code == 201, r.text
+        run_id = r.json()["run"]["id"]
+        assert r.json()["run"]["kind"] == "answer"
+        c.app.state.live.wait(run_id, timeout=60)
+        done = c.get(f"/api/runs/{run_id}").json()
+        assert done["run"]["status"] == "succeeded", done["run"]["error"]
+        assert done["events"][0]["text"].startswith("已啟動執行 #%d(只產答辯狀" % run_id)
+        assert done["events"][-1]["text"] == "執行完成，答辯狀骨架已落地資料庫"
+        d = c.get(f"/api/cases/{case_id}").json()
+        assert d["pleadings"]["defendant"]["origin"] == {"kind": "live", "run_id": run_id, "run_status": "succeeded"}
+        assert d["pleadings"]["plaintiff"]["origin"]["kind"] == "recorded"  # 既有起訴狀不動
+        assert len(d["arguments"]) == 2
+        again = self.start(c, case_id)
+        assert again.status_code == 409 and "已有答辯狀骨架" in again.json()["detail"]
+
+    def test_answer_run_requires_defendant_stage3(self, db_url, tmp_path, monkeypatch):
+        c = make_client(db_url, tmp_path, monkeypatch)
+        r = self.start(c, "rec1")
+        assert r.status_code == 409 and "還沒有被告 Stage 3" in r.json()["detail"]
+        assert self.start(c, "nope").status_code == 409
+        assert c.post("/api/cases/rec1/runs", json={"kind": "other"}).status_code == 422
+
+    def test_answer_run_without_landing_is_incomplete(self, db_url, tmp_path, monkeypatch):
+        case_id = land_debated_case(db_url)
+        c = make_client(db_url, tmp_path, monkeypatch, mode="partial")
+        run_id = self.start(c, case_id).json()["run"]["id"]
+        c.app.state.live.wait(run_id, timeout=60)
+        run = c.get(f"/api/runs/{run_id}").json()["run"]
+        assert run["status"] == "incomplete" and run["error"] == "Claude Code 回報完成，但資料庫仍缺:答辯狀骨架"
