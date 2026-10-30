@@ -1,7 +1,7 @@
 {
  "_meta": {
   "format": "legaldebate-recorded-party-checks/1",
-  "recorded_at": "2026-10-03T10:41:26Z",
+  "recorded_at": "2026-10-30T15:48:00Z",
   "note": "過去對經濟部商工開放資料的實際查詢結果；離線呈現時非本次即時查詢。"
  },
  "checks": [
@@ -268,6 +268,4179 @@
     "branches": {
      "rows": [],
      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T12:09:45Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T12:09:44Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T12:09:44Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T12:09:44Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T12:09:45Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T12:09:45Z",
+    "elapsed_ms": 1290,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T12:13:21Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T12:13:20Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T12:13:20Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T12:13:21Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T12:13:21Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T12:13:21Z",
+    "elapsed_ms": 1865,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T12:21:04Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T12:21:03Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T12:21:03Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T12:21:04Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T12:21:04Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T12:21:04Z",
+    "elapsed_ms": 1172,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T12:50:43Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "basic_data_available": true,
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T12:50:43Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T12:50:43Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T12:50:43Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T12:50:43Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T12:50:43Z",
+    "elapsed_ms": 493,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "00005748",
+   "fetched_at": "2026-10-03T12:50:55Z",
+   "result": {
+    "ban": "00005748",
+    "entity_type": "branch",
+    "name": null,
+    "status_text": null,
+    "status_level": "warn",
+    "company_form": null,
+    "basic_data_available": false,
+    "legal_representative": null,
+    "address": null,
+    "capital": null,
+    "setup_date": null,
+    "last_change_date": null,
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "branch_entity",
+      "level": "warn",
+      "message": "此統編為分公司。實務見解認分公司就其業務範圍內事項涉訟有當事人能力（最高法院40年台上字第39號判例），亦得以總公司為當事人；因分公司業務涉訟，得於分公司所在地法院起訴。請律師確認。",
+      "legal_basis": [
+       "民事訴訟法第6條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": null,
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": "地址無法解析縣市，請人工確認",
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000005748&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T12:50:55Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T12:50:55Z",
+    "elapsed_ms": 204,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000005748&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T12:53:08Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "basic_data_available": true,
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T12:53:08Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T12:53:08Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T12:53:08Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T12:53:08Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T12:53:08Z",
+    "elapsed_ms": 703,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "00005748",
+   "fetched_at": "2026-10-03T12:53:29Z",
+   "result": {
+    "ban": "00005748",
+    "entity_type": "branch",
+    "name": null,
+    "status_text": null,
+    "status_level": "warn",
+    "company_form": null,
+    "basic_data_available": false,
+    "legal_representative": null,
+    "address": null,
+    "capital": null,
+    "setup_date": null,
+    "last_change_date": null,
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "branch_entity",
+      "level": "warn",
+      "message": "此統編為分公司。實務見解認分公司就其業務範圍內事項涉訟有當事人能力（最高法院40年台上字第39號判例），亦得以總公司為當事人；因分公司業務涉訟，得於分公司所在地法院起訴。請律師確認。",
+      "legal_basis": [
+       "民事訴訟法第6條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": null,
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": "地址無法解析縣市，請人工確認",
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000005748&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T12:53:29Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T12:53:29Z",
+    "elapsed_ms": 469,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000005748&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "70801932",
+   "fetched_at": "2026-10-03T13:45:12Z",
+   "result": {
+    "ban": "70801932",
+    "entity_type": "company",
+    "name": "新加坡商全球紀實有限公司",
+    "status_text": "核准登記",
+    "status_level": "warn",
+    "company_form": "外國公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": "賈斯汀艾莫",
+    "address": "臺北市中山區市民大道3段209號4樓",
+    "capital": {
+     "registered": 20000000,
+     "paid_in": 0
+    },
+    "setup_date": "民國90年2月16日",
+    "last_change_date": "民國111年5月18日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "在中華民國境內負責人/代表人",
+      "name": "賈斯汀艾莫",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 1,
+     "truncated": false,
+     "items": [
+      {
+       "ban": "70801932",
+       "name": "台灣分公司",
+       "manager": "馬艶華",
+       "address": "臺北市中山區市民大道3段209號4樓",
+       "status_text": "核准設立"
+      }
+     ]
+    },
+    "warnings": [
+     {
+      "code": "foreign_branch",
+      "level": "warn",
+      "message": "此為外國公司在臺分公司登記(核准登記),屬正常營業狀態;登記之在中華民國境內負責人為 賈斯汀艾莫。外國公司與中華民國公司有同一之權利能力;當事人列法與法定代理人(在臺負責人或外國公司之代表人)需律師確認。管轄依其在中華民國之主事務所或主營業所",
+      "legal_basis": [
+       "公司法第4條",
+       "公司法第372條",
+       "民事訴訟法第2條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣臺北地方法院",
+      "city": "臺北市",
+      "district": "中山區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [
+      {
+       "court": "臺灣臺北地方法院",
+       "city": "臺北市",
+       "district": "中山區",
+       "basis": "民事訴訟法第6條",
+       "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html",
+       "address": "臺北市中山區市民大道3段209號4樓",
+       "condition": "限該分公司業務涉訟"
+      }
+     ],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2070801932&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T13:45:10Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T13:45:11Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T13:45:12Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T13:45:12Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T13:45:12Z",
+    "elapsed_ms": 3146,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2070801932&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "70801932",
+       "Company_Status_Desc": "核准登記",
+       "Company_Name": "新加坡商全球紀實有限公司",
+       "Capital_Stock_Amount": 20000000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "賈斯汀艾莫",
+       "Company_Location": "臺北市中山區市民大道3段209號4樓",
+       "Register_Organization_Desc": "經濟部商業司",
+       "Company_Setup_Date": "0900216",
+       "Change_Of_Approval_Data": "1110518",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "在中華民國境內負責人/代表人",
+       "Person_Name": "賈斯汀艾莫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "70801932",
+       "Branch_Office_Business_Accounting_NO": "70801932",
+       "Branch_Office_Manager_Name": "馬艶華",
+       "Branch_Office_Status": "01",
+       "Branch_Office_Status_Desc": "核准設立",
+       "Branch_Office_Name": "台灣分公司",
+       "Branch_Office_Location": "臺北市中山區市民大道3段209號4樓",
+       "BR_ESTAB_DATE": "0900216",
+       "CHG_APP_DATE": "1120301",
+       "Revoke_App_Date": "       ",
+       "_rowNum": 1
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "70801932",
+   "fetched_at": "2026-10-03T13:47:04Z",
+   "result": {
+    "ban": "70801932",
+    "entity_type": "company",
+    "name": "新加坡商全球紀實有限公司",
+    "status_text": "核准登記",
+    "status_level": "warn",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "address": "臺北市中山區市民大道3段209號4樓",
+    "capital": {
+     "registered": 20000000,
+     "paid_in": 0
+    },
+    "setup_date": "民國90年2月16日",
+    "last_change_date": "民國111年5月18日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "在中華民國境內負責人/代表人",
+      "name": "賈斯汀艾莫",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 1,
+     "truncated": false,
+     "items": [
+      {
+       "ban": "70801932",
+       "name": "台灣分公司",
+       "manager": "馬艶華",
+       "address": "臺北市中山區市民大道3段209號4樓",
+       "status_text": "核准設立"
+      }
+     ]
+    },
+    "warnings": [
+     {
+      "code": "withdrawn",
+      "level": "warn",
+      "message": "公司狀態非「核准設立」（核准登記），需人工確認",
+      "legal_basis": [
+       "民事訴訟法第249條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣臺北地方法院",
+      "city": "臺北市",
+      "district": "中山區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [
+      {
+       "court": "臺灣臺北地方法院",
+       "city": "臺北市",
+       "district": "中山區",
+       "basis": "民事訴訟法第6條",
+       "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html",
+       "address": "臺北市中山區市民大道3段209號4樓",
+       "condition": "限該分公司業務涉訟"
+      }
+     ],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2070801932&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T13:47:02Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T13:47:03Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T13:47:03Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T13:47:04Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T13:47:04Z",
+    "elapsed_ms": 1646,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2070801932&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "70801932",
+       "Company_Status_Desc": "核准登記",
+       "Company_Name": "新加坡商全球紀實有限公司",
+       "Capital_Stock_Amount": 20000000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "賈斯汀艾莫",
+       "Company_Location": "臺北市中山區市民大道3段209號4樓",
+       "Register_Organization_Desc": "經濟部商業司",
+       "Company_Setup_Date": "0900216",
+       "Change_Of_Approval_Data": "1110518",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "在中華民國境內負責人/代表人",
+       "Person_Name": "賈斯汀艾莫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "70801932",
+       "Branch_Office_Business_Accounting_NO": "70801932",
+       "Branch_Office_Manager_Name": "馬艶華",
+       "Branch_Office_Status": "01",
+       "Branch_Office_Status_Desc": "核准設立",
+       "Branch_Office_Name": "台灣分公司",
+       "Branch_Office_Location": "臺北市中山區市民大道3段209號4樓",
+       "BR_ESTAB_DATE": "0900216",
+       "CHG_APP_DATE": "1120301",
+       "Revoke_App_Date": "       ",
+       "_rowNum": 1
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "70801932",
+   "fetched_at": "2026-10-03T13:48:13Z",
+   "result": {
+    "ban": "70801932",
+    "entity_type": "company",
+    "name": "新加坡商全球紀實有限公司",
+    "status_text": "核准登記",
+    "status_level": "warn",
+    "company_form": "外國公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": "賈斯汀艾莫",
+    "address": "臺北市中山區市民大道3段209號4樓",
+    "capital": {
+     "registered": 20000000,
+     "paid_in": 0
+    },
+    "setup_date": "民國90年2月16日",
+    "last_change_date": "民國111年5月18日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "在中華民國境內負責人/代表人",
+      "name": "賈斯汀艾莫",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 1,
+     "truncated": false,
+     "items": [
+      {
+       "ban": "70801932",
+       "name": "台灣分公司",
+       "manager": "馬艶華",
+       "address": "臺北市中山區市民大道3段209號4樓",
+       "status_text": "核准設立"
+      }
+     ]
+    },
+    "warnings": [
+     {
+      "code": "foreign_branch",
+      "level": "warn",
+      "message": "此為外國公司在臺分公司登記(核准登記),屬正常營業狀態;登記之在中華民國境內負責人為 賈斯汀艾莫。外國公司與中華民國公司有同一之權利能力;當事人列法與法定代理人(在臺負責人或外國公司之代表人)需律師確認。管轄依其在中華民國之主事務所或主營業所",
+      "legal_basis": [
+       "公司法第4條",
+       "公司法第372條",
+       "民事訴訟法第2條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣臺北地方法院",
+      "city": "臺北市",
+      "district": "中山區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [
+      {
+       "court": "臺灣臺北地方法院",
+       "city": "臺北市",
+       "district": "中山區",
+       "basis": "民事訴訟法第6條",
+       "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html",
+       "address": "臺北市中山區市民大道3段209號4樓",
+       "condition": "限該分公司業務涉訟"
+      }
+     ],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2070801932&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T13:48:12Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T13:48:12Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T13:48:12Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T13:48:13Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T13:48:13Z",
+    "elapsed_ms": 1542,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2070801932&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "70801932",
+       "Company_Status_Desc": "核准登記",
+       "Company_Name": "新加坡商全球紀實有限公司",
+       "Capital_Stock_Amount": 20000000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "賈斯汀艾莫",
+       "Company_Location": "臺北市中山區市民大道3段209號4樓",
+       "Register_Organization_Desc": "經濟部商業司",
+       "Company_Setup_Date": "0900216",
+       "Change_Of_Approval_Data": "1110518",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "在中華民國境內負責人/代表人",
+       "Person_Name": "賈斯汀艾莫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "70801932",
+       "Branch_Office_Business_Accounting_NO": "70801932",
+       "Branch_Office_Manager_Name": "馬艶華",
+       "Branch_Office_Status": "01",
+       "Branch_Office_Status_Desc": "核准設立",
+       "Branch_Office_Name": "台灣分公司",
+       "Branch_Office_Location": "臺北市中山區市民大道3段209號4樓",
+       "BR_ESTAB_DATE": "0900216",
+       "CHG_APP_DATE": "1120301",
+       "Revoke_App_Date": "       ",
+       "_rowNum": 1
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2070801932&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T16:41:08Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "basic_data_available": true,
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "registered_responsible_name": "魏哲家",
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T16:41:06Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T16:41:06Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T16:41:07Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T16:41:08Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T16:41:08Z",
+    "elapsed_ms": 2539,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "00074857",
+   "fetched_at": "2026-10-03T16:41:09Z",
+   "result": {
+    "ban": "00074857",
+    "entity_type": "company",
+    "name": "創宇興業有限公司",
+    "status_text": "解散",
+    "status_level": "bad",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": null,
+    "address": "新北市板橋區四川路2段237號4樓之4",
+    "capital": {
+     "registered": 20000,
+     "paid_in": 0
+    },
+    "setup_date": "民國113年10月21日",
+    "last_change_date": "民國114年4月15日",
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "dissolved",
+      "level": "bad",
+      "message": "對造已解散。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+      "legal_basis": [
+       "公司法第24條",
+       "公司法第25條",
+       "公司法第8條",
+       "公司法第113條",
+       "公司法第79條",
+       "公司法第85條"
+      ]
+     },
+     {
+      "code": "no_rep",
+      "level": "warn",
+      "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入",
+      "legal_basis": [
+       "民事訴訟法第116條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新北地方法院",
+      "city": "新北市",
+      "district": "板橋區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T16:41:08Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T16:41:08Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T16:41:09Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T16:41:09Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T16:41:09Z",
+    "elapsed_ms": 1021,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "00074857",
+       "Company_Status_Desc": "解散",
+       "Company_Name": "創宇興業有限公司",
+       "Capital_Stock_Amount": 20000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "",
+       "Company_Location": "新北市板橋區四川路2段237號4樓之4",
+       "Register_Organization_Desc": "新北市政府",
+       "Company_Setup_Date": "1131021",
+       "Change_Of_Approval_Data": "1140415",
+       "Revoke_App_Date": "1140619",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "00074857",
+   "fetched_at": "2026-10-03T16:42:15Z",
+   "result": {
+    "ban": "00074857",
+    "entity_type": "company",
+    "name": "創宇興業有限公司",
+    "status_text": "解散",
+    "status_level": "bad",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": null,
+    "address": "新北市板橋區四川路2段237號4樓之4",
+    "capital": {
+     "registered": 20000,
+     "paid_in": 0
+    },
+    "setup_date": "民國113年10月21日",
+    "last_change_date": "民國114年4月15日",
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "dissolved",
+      "level": "bad",
+      "message": "對造已解散。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+      "legal_basis": [
+       "公司法第24條",
+       "公司法第25條",
+       "公司法第8條",
+       "公司法第113條",
+       "公司法第79條",
+       "公司法第85條"
+      ]
+     },
+     {
+      "code": "no_rep",
+      "level": "warn",
+      "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入",
+      "legal_basis": [
+       "民事訴訟法第116條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新北地方法院",
+      "city": "新北市",
+      "district": "板橋區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T16:42:14Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T16:42:15Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T16:42:15Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T16:42:15Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T16:42:15Z",
+    "elapsed_ms": 1401,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "00074857",
+       "Company_Status_Desc": "解散",
+       "Company_Name": "創宇興業有限公司",
+       "Capital_Stock_Amount": 20000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "",
+       "Company_Location": "新北市板橋區四川路2段237號4樓之4",
+       "Register_Organization_Desc": "新北市政府",
+       "Company_Setup_Date": "1131021",
+       "Change_Of_Approval_Data": "1140415",
+       "Revoke_App_Date": "1140619",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T16:43:54Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "basic_data_available": true,
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "registered_responsible_name": "魏哲家",
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T16:43:54Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T16:43:54Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T16:43:54Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T16:43:54Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T16:43:54Z",
+    "elapsed_ms": 575,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "00074857",
+   "fetched_at": "2026-10-03T16:43:55Z",
+   "result": {
+    "ban": "00074857",
+    "entity_type": "company",
+    "name": "創宇興業有限公司",
+    "status_text": "解散",
+    "status_level": "bad",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": null,
+    "address": "新北市板橋區四川路2段237號4樓之4",
+    "capital": {
+     "registered": 20000,
+     "paid_in": 0
+    },
+    "setup_date": "民國113年10月21日",
+    "last_change_date": "民國114年4月15日",
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "dissolved",
+      "level": "bad",
+      "message": "對造已解散。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+      "legal_basis": [
+       "公司法第24條",
+       "公司法第25條",
+       "公司法第8條",
+       "公司法第113條",
+       "公司法第79條",
+       "公司法第85條"
+      ]
+     },
+     {
+      "code": "no_rep",
+      "level": "warn",
+      "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入",
+      "legal_basis": [
+       "民事訴訟法第116條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新北地方法院",
+      "city": "新北市",
+      "district": "板橋區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T16:43:54Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T16:43:55Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T16:43:55Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T16:43:55Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T16:43:55Z",
+    "elapsed_ms": 728,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "00074857",
+       "Company_Status_Desc": "解散",
+       "Company_Name": "創宇興業有限公司",
+       "Capital_Stock_Amount": 20000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "",
+       "Company_Location": "新北市板橋區四川路2段237號4樓之4",
+       "Register_Organization_Desc": "新北市政府",
+       "Company_Setup_Date": "1131021",
+       "Change_Of_Approval_Data": "1140415",
+       "Revoke_App_Date": "1140619",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "00074857",
+   "fetched_at": "2026-10-03T16:44:58Z",
+   "result": {
+    "ban": "00074857",
+    "entity_type": "company",
+    "name": "創宇興業有限公司",
+    "status_text": "解散",
+    "status_level": "bad",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": null,
+    "address": "新北市板橋區四川路2段237號4樓之4",
+    "capital": {
+     "registered": 20000,
+     "paid_in": 0
+    },
+    "setup_date": "民國113年10月21日",
+    "last_change_date": "民國114年4月15日",
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "dissolved",
+      "level": "bad",
+      "message": "對造已解散。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+      "legal_basis": [
+       "公司法第24條",
+       "公司法第25條",
+       "公司法第8條",
+       "公司法第113條",
+       "公司法第79條",
+       "公司法第85條"
+      ]
+     },
+     {
+      "code": "no_rep",
+      "level": "warn",
+      "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入",
+      "legal_basis": [
+       "民事訴訟法第116條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新北地方法院",
+      "city": "新北市",
+      "district": "板橋區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T16:44:57Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T16:44:57Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T16:44:58Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T16:44:58Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T16:44:58Z",
+    "elapsed_ms": 2205,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "00074857",
+       "Company_Status_Desc": "解散",
+       "Company_Name": "創宇興業有限公司",
+       "Capital_Stock_Amount": 20000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "",
+       "Company_Location": "新北市板橋區四川路2段237號4樓之4",
+       "Register_Organization_Desc": "新北市政府",
+       "Company_Setup_Date": "1131021",
+       "Change_Of_Approval_Data": "1140415",
+       "Revoke_App_Date": "1140619",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "22099131",
+   "fetched_at": "2026-10-03T20:50:23Z",
+   "result": {
+    "ban": "22099131",
+    "entity_type": "company",
+    "name": "台灣積體電路製造股份有限公司",
+    "status_text": "核准設立",
+    "status_level": "ok",
+    "company_form": "股份有限公司",
+    "basic_data_available": true,
+    "legal_representative": {
+     "name": "魏哲家",
+     "title": "董事長",
+     "basis": [
+      "公司法第208條"
+     ]
+    },
+    "registered_responsible_name": "魏哲家",
+    "address": "新竹科學園區新竹市力行六路8號",
+    "capital": {
+     "registered": 280500000000,
+     "paid_in": 259323700670
+    },
+    "setup_date": "民國76年2月21日",
+    "last_change_date": "民國115年8月21日",
+    "suspension": null,
+    "directors": [
+     {
+      "title": "董事長",
+      "name": "魏哲家",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "曾繁城",
+      "juristic_person": null
+     },
+     {
+      "title": "董事",
+      "name": "葉俊顯",
+      "juristic_person": "行政院國家發展基金管理會"
+     },
+     {
+      "title": "獨立董事",
+      "name": "彼得‧邦菲爵士",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "麥克‧史賓林特",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "摩西‧蓋弗瑞洛夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "拉斐爾‧萊夫",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "烏蘇拉‧伯恩斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "琳恩‧埃爾森漢斯",
+      "juristic_person": null
+     },
+     {
+      "title": "獨立董事",
+      "name": "林全",
+      "juristic_person": null
+     }
+    ],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新竹地方法院",
+      "city": "新竹市",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T20:50:22Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T20:50:22Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T20:50:22Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T20:50:23Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T20:50:23Z",
+    "elapsed_ms": 1554,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2022099131&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "22099131",
+       "Company_Status_Desc": "核准設立",
+       "Company_Name": "台灣積體電路製造股份有限公司",
+       "Capital_Stock_Amount": 280500000000,
+       "Paid_In_Capital_Amount": 259323700670,
+       "Share_Val": 10,
+       "Equity_Amt": 25932370067,
+       "Responsible_Name": "魏哲家",
+       "Company_Location": "新竹科學園區新竹市力行六路8號",
+       "Register_Organization_Desc": "國家科學及技術委員會新竹科學園區管理局",
+       "Company_Setup_Date": "0760221",
+       "Change_Of_Approval_Data": "1150821",
+       "Revoke_App_Date": "",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [
+      {
+       "Person_Position_Name": "董事長",
+       "Person_Name": "魏哲家",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 7452349
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "曾繁城",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 24472675
+      },
+      {
+       "Person_Position_Name": "董事",
+       "Person_Name": "葉俊顯",
+       "Juristic_Person_Name": "行政院國家發展基金管理會",
+       "Person_Shareholding": 1653709980
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "彼得‧邦菲爵士",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "麥克‧史賓林特",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "摩西‧蓋弗瑞洛夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "拉斐爾‧萊夫",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "烏蘇拉‧伯恩斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "琳恩‧埃爾森漢斯",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 0
+      },
+      {
+       "Person_Position_Name": "獨立董事",
+       "Person_Name": "林全",
+       "Juristic_Person_Name": "",
+       "Person_Shareholding": 126826
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2022099131&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "00074857",
+   "fetched_at": "2026-10-03T20:50:24Z",
+   "result": {
+    "ban": "00074857",
+    "entity_type": "company",
+    "name": "創宇興業有限公司",
+    "status_text": "解散",
+    "status_level": "bad",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": null,
+    "address": "新北市板橋區四川路2段237號4樓之4",
+    "capital": {
+     "registered": 20000,
+     "paid_in": 0
+    },
+    "setup_date": "民國113年10月21日",
+    "last_change_date": "民國114年4月15日",
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "dissolved",
+      "level": "bad",
+      "message": "對造已解散。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+      "legal_basis": [
+       "公司法第24條",
+       "公司法第25條",
+       "公司法第8條",
+       "公司法第113條",
+       "公司法第79條",
+       "公司法第85條"
+      ]
+     },
+     {
+      "code": "no_rep",
+      "level": "warn",
+      "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入",
+      "legal_basis": [
+       "民事訴訟法第116條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣新北地方法院",
+      "city": "新北市",
+      "district": "板橋區",
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-03T20:50:23Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-03T20:50:24Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-03T20:50:24Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-03T20:50:24Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-03T20:50:24Z",
+    "elapsed_ms": 1170,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2000074857&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "00074857",
+       "Company_Status_Desc": "解散",
+       "Company_Name": "創宇興業有限公司",
+       "Capital_Stock_Amount": 20000,
+       "Paid_In_Capital_Amount": 0,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "",
+       "Company_Location": "新北市板橋區四川路2段237號4樓之4",
+       "Register_Organization_Desc": "新北市政府",
+       "Company_Setup_Date": "1131021",
+       "Change_Of_Approval_Data": "1140415",
+       "Revoke_App_Date": "1140619",
+       "Case_Status": "",
+       "Case_Status_Desc": "",
+       "Sus_App_Date": "",
+       "Sus_Beg_Date": "",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2000074857&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "29112102",
+   "fetched_at": "2026-10-27T12:48:38Z",
+   "result": {
+    "ban": "29112102",
+    "entity_type": "company",
+    "name": "順昌導線工業有限公司",
+    "status_text": "解散",
+    "status_level": "bad",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": null,
+    "address": "彰化縣彰化市牛埔里彰南路3段191號",
+    "capital": {
+     "registered": 3000000,
+     "paid_in": null
+    },
+    "setup_date": "民國97年6月16日",
+    "last_change_date": "民國99年7月30日",
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "dissolved",
+      "level": "bad",
+      "message": "對造已解散。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+      "legal_basis": [
+       "公司法第24條",
+       "公司法第25條",
+       "公司法第8條",
+       "公司法第113條",
+       "公司法第79條",
+       "公司法第85條"
+      ]
+     },
+     {
+      "code": "no_rep",
+      "level": "warn",
+      "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入",
+      "legal_basis": [
+       "民事訴訟法第116條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣彰化地方法院",
+      "city": "彰化縣",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2029112102&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-27T12:48:35Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-27T12:48:36Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-27T12:48:37Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-27T12:48:38Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-27T12:48:38Z",
+    "elapsed_ms": 4100,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2029112102&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "29112102",
+       "Company_Status_Desc": "解散",
+       "Company_Name": "順昌導線工業有限公司",
+       "Capital_Stock_Amount": 3000000,
+       "Paid_In_Capital_Amount": null,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "",
+       "Company_Location": "彰化縣彰化市牛埔里彰南路3段191號",
+       "Register_Organization_Desc": "商業發展署",
+       "Company_Setup_Date": "0970616",
+       "Change_Of_Approval_Data": "0990730",
+       "Revoke_App_Date": "1040504",
+       "Case_Status": null,
+       "Case_Status_Desc": null,
+       "Sus_App_Date": "       ",
+       "Sus_Beg_Date": "       ",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=50",
+     "ok": true,
+     "error": null
+    }
+   }
+  },
+  {
+   "ban": "29112102",
+   "fetched_at": "2026-10-27T12:49:28Z",
+   "result": {
+    "ban": "29112102",
+    "entity_type": "company",
+    "name": "順昌導線工業有限公司",
+    "status_text": "解散",
+    "status_level": "bad",
+    "company_form": "有限公司",
+    "basic_data_available": true,
+    "legal_representative": null,
+    "registered_responsible_name": null,
+    "address": "彰化縣彰化市牛埔里彰南路3段191號",
+    "capital": {
+     "registered": 3000000,
+     "paid_in": null
+    },
+    "setup_date": "民國97年6月16日",
+    "last_change_date": "民國99年7月30日",
+    "suspension": null,
+    "directors": [],
+    "branches": {
+     "count": 0,
+     "truncated": false,
+     "items": []
+    },
+    "warnings": [
+     {
+      "code": "dissolved",
+      "level": "bad",
+      "message": "此公司已解散。除合併、分割、破產外應行清算，於清算範圍內視為尚未解散；法定代理人應列清算人，不可照列原負責人。有限公司原則上以全體股東為清算人；章程另有規定或經股東決議另選者，從其選任。登記資料已不顯示董事與清算人，請調閱解散前之公司變更登記表，並向法院查詢有無清算人就任聲報。清算人有數人而未推定代表者，各有對外代表權，書狀應列全體清算人或已推定之代表清算人。",
+      "legal_basis": [
+       "公司法第24條",
+       "公司法第25條",
+       "公司法第8條",
+       "公司法第113條",
+       "公司法第79條",
+       "公司法第85條"
+      ]
+     },
+     {
+      "code": "no_rep",
+      "level": "warn",
+      "message": "官方登記未提供負責人，書狀的法定代理人欄不自動帶入",
+      "legal_basis": [
+       "民事訴訟法第116條"
+      ]
+     }
+    ],
+    "jurisdiction": {
+     "primary": {
+      "court": "臺灣彰化地方法院",
+      "city": "彰化縣",
+      "district": null,
+      "basis": "民事訴訟法第2條",
+      "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+     },
+     "primary_candidates": [],
+     "alternatives": [],
+     "note": null,
+     "notice": "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。",
+     "source_url": "https://www.judicial.gov.tw/tw/communique/dl-1325-cc1e7976cf0246aca7c8fd1f14688a48.html"
+    },
+    "always_notes": [
+     "登記資料為查詢當下的狀態，不代表簽約或起訴當時的狀態"
+    ],
+    "sources": [
+     {
+      "dataset": "統編查是否為公司、分公司及商業",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2029112102&%24skip=0&%24top=3",
+      "fetched_at": "2026-10-27T12:49:27Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記基本資料-應用一",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=1",
+      "fetched_at": "2026-10-27T12:49:27Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "公司登記董監事資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=100",
+      "fetched_at": "2026-10-27T12:49:28Z",
+      "ok": true,
+      "error": null
+     },
+     {
+      "dataset": "統編查分公司資料",
+      "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=50",
+      "fetched_at": "2026-10-27T12:49:28Z",
+      "ok": true,
+      "error": null
+     }
+    ],
+    "attribution": "提供機關/經濟部商業發展署 [統編查是否為公司、分公司及商業、公司登記基本資料-應用一、公司登記董監事資料、統編查分公司資料]",
+    "query_status": "ok",
+    "errors": [],
+    "live_attempt": {
+     "tried": true,
+     "outcome": "ok",
+     "error": null
+    },
+    "via": "gcis_live",
+    "fetched_at": "2026-10-27T12:49:28Z",
+    "elapsed_ms": 3187,
+    "persisted": true
+   },
+   "raw": {
+    "entity_type": {
+     "rows": [
+      {
+       "Year": "115",
+       "exist": "Y",
+       "TYPE": "公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "分公司"
+      },
+      {
+       "Year": "115",
+       "exist": "N",
+       "TYPE": "商業"
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/673F0FC0-B3A7-429F-9041-E9866836B66D?%24format=json&%24filter=NO%20eq%2029112102&%24skip=0&%24top=3",
+     "ok": true,
+     "error": null
+    },
+    "company": {
+     "rows": [
+      {
+       "Business_Accounting_NO": "29112102",
+       "Company_Status_Desc": "解散",
+       "Company_Name": "順昌導線工業有限公司",
+       "Capital_Stock_Amount": 3000000,
+       "Paid_In_Capital_Amount": null,
+       "Share_Val": 0,
+       "Equity_Amt": 0,
+       "Responsible_Name": "",
+       "Company_Location": "彰化縣彰化市牛埔里彰南路3段191號",
+       "Register_Organization_Desc": "商業發展署",
+       "Company_Setup_Date": "0970616",
+       "Change_Of_Approval_Data": "0990730",
+       "Revoke_App_Date": "1040504",
+       "Case_Status": null,
+       "Case_Status_Desc": null,
+       "Sus_App_Date": "       ",
+       "Sus_Beg_Date": "       ",
+       "Sus_End_Date": ""
+      }
+     ],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=1",
+     "ok": true,
+     "error": null
+    },
+    "directors": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/4E5F7653-1B91-4DDC-99D5-468530FAE396?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=100",
+     "ok": true,
+     "error": null
+    },
+    "branches": {
+     "rows": [],
+     "url": "https://data.gcis.nat.gov.tw/od/data/api/FDB8D2C8-573D-4276-BFA4-8D3925ABE1CB?%24format=json&%24filter=Business_Accounting_NO%20eq%2029112102&%24skip=0&%24top=50",
      "ok": true,
      "error": null
     }
