@@ -463,7 +463,7 @@ def export_pleading_text(case_id, version):
     source = ("律師在 UI 編輯後另存" + (f"(基於 #{version['parent_id']})" if version["parent_id"] else "")
               if o["kind"] == "lawyer_edit" else
               f"本次即時生成(UI 執行 #{o['run_id']},本機 Claude Code)" if o["kind"] == "live" else
-              "錄製紀錄(過去由 Claude Code subagent 產生後落地)")
+              "錄製紀錄(過去由 Claude Code 產生後落地)")  # 書狀由主 agent 撰寫(SKILL.md Step 9),不經 subagent
     body, note = (pleading_export.system_draft_for_export(version["draft_text"], version["side"]) if version["source"] == "system"
                   else (version["draft_text"], None))  # 系統版去掉畫面上不顯示的內部備註；資料庫原文不動
     lines = [body.rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
