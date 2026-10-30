@@ -1,0 +1,7 @@
+{
+  "case_id": "live-2026-10-29-gcis-004",
+  "case_type": "撤銷詐害債權",
+  "note": "case_type「撤銷詐害債權」未收錄於 _CASE_TYPE_TERMS,依 build_stance_terms 規則僅回退為通用立場框架詞。",
+  "plaintiff": ["請求權成立", "有理由", "應負賠償責任", "應予給付"],
+  "defendant": ["欠缺請求權基礎", "罹於時效", "抗辯成立", "無理由"]
+}
