@@ -1,0 +1,16 @@
+{
+  "p": {
+    "source_file": "p_s2.json",
+    "source_sha256": "74b947944e9af63161d6f7d8af23fe85d9a391130ca686061918f6a7bc6833d8",
+    "strongest_point_source_field": "argument",
+    "strongest_point_is_exact_substring": true,
+    "position_and_citations_copied_verbatim": true
+  },
+  "d": {
+    "source_file": "d_s2.json",
+    "source_sha256": "649dbbc887eaa405833d300e81bcd5b6b5d638bea70c8c05f69b14a10972a5ea",
+    "strongest_point_source_field": "argument",
+    "strongest_point_is_exact_substring": true,
+    "position_and_citations_copied_verbatim": true
+  }
+}

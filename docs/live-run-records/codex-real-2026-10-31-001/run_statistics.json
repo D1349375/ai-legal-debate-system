@@ -1,0 +1,288 @@
+{
+  "case_id": "real-2026-10-31-001",
+  "captured_at": "2026-10-31T08:33:24.863502+00:00",
+  "calls": [
+    {
+      "call": "01_p_s1",
+      "status": "process_finished",
+      "classification": "environment_failure_not_adopted",
+      "exit_code": 4294967295,
+      "started_at": "2026-10-31T04:57:20.332071+00:00",
+      "ended_at": "2026-10-31T05:01:19.485665+00:00",
+      "duration_seconds": 239.154,
+      "last_message_exists": false,
+      "usage_events": []
+    },
+    {
+      "call": "02_d_s1",
+      "status": "process_finished",
+      "classification": "environment_failure_not_adopted",
+      "exit_code": 4294967295,
+      "started_at": "2026-10-31T04:58:03.273991+00:00",
+      "ended_at": "2026-10-31T05:01:19.469157+00:00",
+      "duration_seconds": 196.195,
+      "last_message_exists": false,
+      "usage_events": []
+    },
+    {
+      "call": "03_p_s1_attempt2",
+      "status": "process_finished",
+      "classification": "complete_json_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:03:35.541768+00:00",
+      "ended_at": "2026-10-31T05:12:52.788975+00:00",
+      "duration_seconds": 557.247,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 858067,
+          "cached_input_tokens": 789760,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 16067,
+          "reasoning_output_tokens": 4749
+        }
+      ]
+    },
+    {
+      "call": "04_d_s1_attempt2",
+      "status": "process_finished",
+      "classification": "complete_json_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:03:28.018520+00:00",
+      "ended_at": "2026-10-31T05:12:41.555539+00:00",
+      "duration_seconds": 553.537,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 457943,
+          "cached_input_tokens": 405504,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 17673,
+          "reasoning_output_tokens": 5417
+        }
+      ]
+    },
+    {
+      "call": "05_judge_questions",
+      "status": "process_finished",
+      "classification": "complete_json_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:14:51.201881+00:00",
+      "ended_at": "2026-10-31T05:18:49.586770+00:00",
+      "duration_seconds": 238.385,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 336334,
+          "cached_input_tokens": 294272,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 7874,
+          "reasoning_output_tokens": 2977
+        }
+      ]
+    },
+    {
+      "call": "06_p_s2",
+      "status": "process_finished",
+      "classification": "complete_json_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:23:32.865728+00:00",
+      "ended_at": "2026-10-31T05:32:46.784203+00:00",
+      "duration_seconds": 553.918,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 635388,
+          "cached_input_tokens": 549760,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 16320,
+          "reasoning_output_tokens": 4241
+        }
+      ]
+    },
+    {
+      "call": "07_d_s2",
+      "status": "process_finished",
+      "classification": "complete_json_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:23:34.332085+00:00",
+      "ended_at": "2026-10-31T05:30:38.853091+00:00",
+      "duration_seconds": 424.521,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 701182,
+          "cached_input_tokens": 616576,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 12437,
+          "reasoning_output_tokens": 3663
+        }
+      ]
+    },
+    {
+      "call": "08_p_s3",
+      "status": "process_finished",
+      "classification": "complete_json_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:36:41.988264+00:00",
+      "ended_at": "2026-10-31T05:43:33.504904+00:00",
+      "duration_seconds": 411.517,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 530385,
+          "cached_input_tokens": 466688,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 13077,
+          "reasoning_output_tokens": 4447
+        }
+      ]
+    },
+    {
+      "call": "09_d_s3",
+      "status": "process_finished",
+      "classification": "complete_json_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:36:55.483792+00:00",
+      "ended_at": "2026-10-31T05:42:55.071430+00:00",
+      "duration_seconds": 359.588,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 879717,
+          "cached_input_tokens": 794240,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 11972,
+          "reasoning_output_tokens": 3441
+        }
+      ]
+    },
+    {
+      "call": "10_judge_verdict",
+      "status": "process_finished",
+      "classification": "complete_json_unpublished",
+      "exit_code": 0,
+      "started_at": "2026-10-31T05:46:45.446649+00:00",
+      "ended_at": "2026-10-31T05:51:51.785661+00:00",
+      "duration_seconds": 306.339,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 1482306,
+          "cached_input_tokens": 1384064,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 10446,
+          "reasoning_output_tokens": 2031
+        }
+      ]
+    },
+    {
+      "call": "11_citation_verify",
+      "status": "process_finished",
+      "classification": "stopped_step8_environment_no_final",
+      "exit_code": 4294967295,
+      "started_at": "2026-10-31T06:52:18.269344+00:00",
+      "ended_at": "2026-10-31T07:04:40.522691+00:00",
+      "duration_seconds": 742.253,
+      "last_message_exists": false,
+      "usage_events": []
+    },
+    {
+      "call": "12_citation_verify_attempt2",
+      "status": "process_finished",
+      "classification": "reported_pass_not_adopted_missing_execution_evidence",
+      "exit_code": 0,
+      "started_at": "2026-10-31T07:46:13.411193+00:00",
+      "ended_at": "2026-10-31T07:53:57.814832+00:00",
+      "duration_seconds": 464.404,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 1131987,
+          "cached_input_tokens": 1081216,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 8683,
+          "reasoning_output_tokens": 3547
+        }
+      ]
+    },
+    {
+      "call": "13_citation_verify_attempt3",
+      "status": "process_finished",
+      "classification": "citation_verification_passed_with_execution_deviations",
+      "exit_code": 0,
+      "started_at": "2026-10-31T07:56:21.356638+00:00",
+      "ended_at": "2026-10-31T08:03:24.089682+00:00",
+      "duration_seconds": 422.733,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 1516323,
+          "cached_input_tokens": 1409536,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 13754,
+          "reasoning_output_tokens": 3782
+        }
+      ]
+    },
+    {
+      "call": "14_plaintiff_pleading",
+      "status": "process_finished",
+      "classification": "complete_pleading_outputs_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T08:13:35.388041+00:00",
+      "ended_at": "2026-10-31T08:15:27.413551+00:00",
+      "duration_seconds": 112.026,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 93447,
+          "cached_input_tokens": 68096,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 4435,
+          "reasoning_output_tokens": 1543
+        }
+      ]
+    },
+    {
+      "call": "15_defendant_pleading",
+      "status": "process_finished",
+      "classification": "complete_pleading_outputs_selected",
+      "exit_code": 0,
+      "started_at": "2026-10-31T08:13:48.886323+00:00",
+      "ended_at": "2026-10-31T08:17:27.853582+00:00",
+      "duration_seconds": 218.967,
+      "last_message_exists": true,
+      "usage_events": [
+        {
+          "input_tokens": 146681,
+          "cached_input_tokens": 122496,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 8002,
+          "reasoning_output_tokens": 3799
+        }
+      ]
+    }
+  ],
+  "attempted_calls": 15,
+  "running_calls": [],
+  "unadopted_environment_failures": [
+    "01_p_s1",
+    "02_d_s1"
+  ],
+  "wall_span_seconds": 12007.522,
+  "any_actor_active_seconds": 4175.939,
+  "sum_call_seconds": 5800.784,
+  "reported_usage_sum": {
+    "input_tokens": 8769760,
+    "cached_input_tokens": 7982208,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 140740,
+    "reasoning_output_tokens": 43637
+  },
+  "calls_with_usage": 12,
+  "usage_limitations": "Reported event usage only; aborted calls without usage are omitted. Cached input tokens are a subset, not extra input. No actual monetary charge is available.",
+  "controller_command_count": 28,
+  "controller_command_errors": [],
+  "parse_errors": []
+}

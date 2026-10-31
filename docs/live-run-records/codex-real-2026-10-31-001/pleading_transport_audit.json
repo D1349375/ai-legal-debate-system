@@ -1,0 +1,48 @@
+{
+  "audit_at_utc": "2026-10-31T08:31:50.741733+00:00",
+  "kind": "pleading_transport_and_publication_fidelity_only",
+  "status": "PASS",
+  "checks": [
+    {
+      "side": "plaintiff",
+      "raw_element_type": "object",
+      "citation_count": 35,
+      "raw_draft_hash_matches_writer_audit": true,
+      "raw_citations_hash_matches_writer_audit": true,
+      "collected_draft_byte_identical": true,
+      "provenance_draft_hash_matches": true,
+      "collected_citation_strings_equal_in_order": true,
+      "no_status_field_used_as_gate_override": true,
+      "native_publication_exit_zero": true,
+      "native_command_side_correct": true,
+      "database_rows_for_side": 1,
+      "database_draft_text_equals_collected_text": true,
+      "database_citation_verification_status": "published",
+      "source_draft_sha256": "e2eea7c2859dcddece7eb26033e360b198f5fc316b74f6dd0e6e7f46a17a35ec",
+      "source_citations_sha256": "f0717d640a622267a00c791bc9e4c77d2f57d3e0ee85612172e33356b25e2b06",
+      "collected_citations_sha256": "5c006a880cc2b9bbe0cdaef97291dac8253b9f73c6012c4d66506c472c5eeb4a"
+    },
+    {
+      "side": "defendant",
+      "raw_element_type": "string",
+      "citation_count": 33,
+      "raw_draft_hash_matches_writer_audit": true,
+      "raw_citations_hash_matches_writer_audit": true,
+      "collected_draft_byte_identical": true,
+      "provenance_draft_hash_matches": true,
+      "collected_citation_strings_equal_in_order": true,
+      "no_status_field_used_as_gate_override": true,
+      "native_publication_exit_zero": true,
+      "native_command_side_correct": true,
+      "database_rows_for_side": 1,
+      "database_draft_text_equals_collected_text": true,
+      "database_citation_verification_status": "published",
+      "source_draft_sha256": "f8462cf2837cc5d037694e152370a8090cf46b35cc835f33ed115d7491504efc",
+      "source_citations_sha256": "dda8d2dc1133aff9e5e7288659840d3c1bec02b2d0ad2ca204c69240f60394d5",
+      "collected_citations_sha256": "dda8d2dc1133aff9e5e7288659840d3c1bec02b2d0ad2ca204c69240f60394d5"
+    }
+  ],
+  "classification": "Transport serialization mismatch: plaintiff writer returned citation_text/status objects while controller CLI accepts string arrays. Writer task omitted publisher CLI/schema note.",
+  "interpretation": "Controller extraction preserves every citation string and order; status claims are not substituted for the native published-citation gate. This is not attributed to a legal-model or native-CLI error.",
+  "scope": "No draft-merits review or edits. Raw role files preserved. Database opened with mode=ro and query_only; no project module/main/role/network call executed."
+}

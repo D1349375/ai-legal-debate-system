@@ -1,0 +1,31 @@
+{
+  "kind": "infrastructure_probe_no_model_no_verify_call",
+  "argv": [
+    "codex",
+    "sandbox",
+    "-C",
+    "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system",
+    "-P",
+    "legaldebate-role",
+    "-c",
+    "windows.sandbox=\"mxc\"",
+    "-c",
+    "default_permissions=\"legaldebate-role\"",
+    "-c",
+    "permissions.legaldebate-role.filesystem={\":root\" = \"deny\", \":minimal\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus\" = \"read\", \"C:/Users/berto/AppData/Local/Programs/Python/Python312\" = \"read\", \"C:/Users/berto/AppData/Local/OpenAI/Codex/bin\" = \"read\", \"C:/Users/berto/.cache/codex-runtimes/codex-primary-runtime/dependencies\" = \"read\", \"C:/Users/berto/AppData/Local/Microsoft/WinGet/Links\" = \"read\", \"C:/Users/berto/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/main.py\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/engine\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/db.py\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/schema.py\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db-journal\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db-wal\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db-shm\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.claude\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.git\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.gitattributes\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.github\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.gitignore\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.pytest_cache\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/data\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/demo\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/LICENSE\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/pytest.ini\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/README.md\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/requirements.txt\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/scripts\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/server\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/tests\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/ui\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/video\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/legal_debate.db\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/__pycache__\" = \"deny\"}",
+    "-c",
+    "permissions.legaldebate-role.network.enabled=false",
+    "--",
+    "C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "-c",
+    "import sys,os\nsys.stdout.reconfigure(encoding='utf-8')\nfrom database.db import get_session\nfrom engine.verify import verify_citations\nprint('original_source_imports=True')\nprint('LEGALDEBATE_DB_URL='+os.environ['LEGALDEBATE_DB_URL'])\nf=open('database/codex_runs.db','r+b');f.close()\nprint('dedicated_db_open_rw=True; bytes_written=0; network_calls=0')\ntry:\n open('data/cases/real-2026-10-31-002.json','rb').close()\n raise RuntimeError('Unexpected access to denied case directory')\nexcept PermissionError:\n print('other_case_directory_denied=True')\n"
+  ],
+  "started_at": "2026-10-31T05:51:11.547963+00:00",
+  "env": {
+    "LEGALDEBATE_DB_URL": "sqlite:///database/codex_runs.db",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "reason": "Original Python namespace imports need parent-directory listing; named child entries remain denied except source/corpus/dedicated DB.",
+  "ended_at": "2026-10-31T05:51:13.206674+00:00",
+  "exit_code": 0
+}

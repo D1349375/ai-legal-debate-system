@@ -1,0 +1,3 @@
+WARNING: failed to clean up stale arg0 temp dirs: 存取被拒。 (os error 5)
+WARNING: proceeding, even though we could not create PATH aliases: 存取被拒。 (os error 5) at path "C:\\Users\\berto\\.codex\\tmp\\arg0-windows\\codex-arg0Am59F3"
+windows sandbox failed: Restricted read-only access requires the elevated Windows sandbox backend

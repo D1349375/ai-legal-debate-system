@@ -1,0 +1,322 @@
+{
+  "method": "POSTRUN read-only file checks after call12 finished; no engine/model/network/database execution. Only this validation JSON is written.",
+  "annotations": [
+    {
+      "id": "real-002-01",
+      "source_file": "calls/11_citation_verify/last_message.txt",
+      "field": "text",
+      "quote_length": 31,
+      "exact_substring": true,
+      "valid_length": true,
+      "source_sha256": "9bc26e411468fe847c772c2b87f96bd08eb69169aa9a81cd09cdf4f32eb83049"
+    },
+    {
+      "id": "real-002-02",
+      "source_file": "calls/11_citation_verify/last_message.txt",
+      "field": "text",
+      "quote_length": 25,
+      "exact_substring": true,
+      "valid_length": true,
+      "source_sha256": "9bc26e411468fe847c772c2b87f96bd08eb69169aa9a81cd09cdf4f32eb83049"
+    },
+    {
+      "id": "real-002-03",
+      "source_file": "calls/12_citation_verify_attempt2/workspace/verification_report.md",
+      "field": "text",
+      "quote_length": 37,
+      "exact_substring": true,
+      "valid_length": true,
+      "source_sha256": "9bd90f9a3ad905715486b1cb91010b2a2b0b22141ca90832b4c749838ba8d0ef"
+    },
+    {
+      "id": "real-002-04",
+      "source_file": "calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+      "field": "/61/source_file",
+      "quote_length": 31,
+      "exact_substring": true,
+      "valid_length": true,
+      "source_sha256": "e72e008d928d9c98c3a535fdd6c1f8614eaea1d08ed01a8544b18c7674ef07bc"
+    },
+    {
+      "id": "real-002-05",
+      "source_file": "calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+      "field": "/22/matched_text",
+      "quote_length": 27,
+      "exact_substring": true,
+      "valid_length": true,
+      "source_sha256": "e72e008d928d9c98c3a535fdd6c1f8614eaea1d08ed01a8544b18c7674ef07bc"
+    }
+  ],
+  "all_annotations_valid": true,
+  "old_audit_validator_limit": "Existing audit_run.py discovers the original last_message text; the three new source_file artifacts require this explicit source-field validator. No validator or product changes.",
+  "raw_results_count": 111,
+  "raw_citation_order_matches_inputs": true,
+  "initial_raw_counts": {
+    "published": 107,
+    "unparseable": 3,
+    "verification_failed": 1
+  },
+  "retry_results": [
+    {
+      "status": "published",
+      "law_name": "民事訴訟法",
+      "article_no": "195",
+      "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=195",
+      "matched_text": "第 195 條\n當事人就其提出之事實，應為真實及完全之陳述。\n當事人對於他造提出之事實及證據，應為陳述。",
+      "citation_text": "民事訴訟法第195條",
+      "source_type": "statute"
+    }
+  ],
+  "final_summary_counts": {
+    "published": 102,
+    "draft": 4,
+    "total": 106
+  },
+  "checks_count": 106,
+  "independently_counted_final_statuses": {
+    "published": 102,
+    "draft": 4
+  },
+  "read_evidence": [
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,2031,20260514,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 53,
+          "output_chars": 6799
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1945,20260513,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 41,
+          "output_chars": 4335
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1945,20260304,2.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 40,
+          "output_chars": 969
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1939,20260409,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 54,
+          "output_chars": 3737
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,561,20260422,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 58,
+          "output_chars": 3262
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1131,20260527,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 60,
+          "output_chars": 3649
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1071,20260318,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 39,
+          "output_chars": 6283
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,521,20260513,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 64,
+          "output_chars": 5083
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,2167,20260507,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 67,
+          "output_chars": 5467
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,113,台上,2221,20260402,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 68,
+          "output_chars": 8147
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1738,20260429,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 63,
+          "output_chars": 3378
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,207,20260325,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 47,
+          "output_chars": 2801
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,192,20260325,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 45,
+          "output_chars": 6884
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,192,20260325,2.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 46,
+          "output_chars": 1260
+        }
+      ]
+    },
+    {
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,459,20260527,1.txt",
+      "sha256_matches_review": true,
+      "full_text_output_matches": true,
+      "trace": [
+        {
+          "stream_line": 59,
+          "output_chars": 2148
+        }
+      ]
+    }
+  ],
+  "supporting_quotes": [
+    {
+      "citation": "最高法院114年度台上字第2031號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院114年度台上字第1945號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院114年度台上字第1939號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院115年度台上字第561號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院114年度台上字第1131號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院114年度台上字第1071號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院115年度台上字第521號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院114年度台上字第2167號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院113年度台上字第2221號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院114年度台上字第1738號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院115年度台上字第207號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院115年度台上字第192號",
+      "exact_quote_with_whitespace_normalized": true
+    },
+    {
+      "citation": "最高法院115年度台上字第459號",
+      "exact_quote_with_whitespace_normalized": true
+    }
+  ],
+  "unique_dockets": 13,
+  "text_files": 15,
+  "retry_stream_events": 89,
+  "retry_holdout_needle_count": 12,
+  "retry_holdout_hits": [],
+  "immutable_before_retry_snapshot_manifest_sha256": "fc0457625fbdfb7ee3998b73b0bc92aaabc7a940ca5dc2f086dc0fbb9765efb1",
+  "annotation_count": 5,
+  "unique_chain_count": 3,
+  "inference_annotation_count": 1,
+  "all_required_annotation_fields_present": true,
+  "final_eval_sha256": "e4e1e078d824b8705664d0b7a1dab2097dc1f59418fd27e24ca7eb5b5212629e",
+  "independent_audit_files": [
+    {
+      "source_file": "calls\\12_citation_verify_attempt2\\retry_execution_audit.json",
+      "sha256": "28343009e29ff666d6751a4dc78fa450f81b32308e49b87e4932b1512aad31f6"
+    },
+    {
+      "source_file": "calls\\12_citation_verify_attempt2\\retry_db_state_audit.json",
+      "sha256": "20b32a62e3292c570b5500ec55d3f1423d7f1693a5d9117fcbd19631a9d35d43"
+    }
+  ]
+}

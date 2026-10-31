@@ -30,6 +30,8 @@ venv.bak/
 
 # Testing & IDE
 .pytest_cache/
+.pytest-tmp/
+.pytest-root-*/
 .coverage
 htmlcov/
 # Claude Code: keep the project skill (legal-debate orchestrator and its prompt templates)
@@ -50,6 +52,9 @@ htmlcov/
 *.log
 # UI 即時執行的 Claude Code 執行紀錄與暫存檔
 database/live_runs/
+# 重跑紀錄裡每個 call 各複製一份的判決語料，可由語料庫重建
+docs/live-run-records/**/workspace/corpus/
+docs/live-run-records/**/shared_corpus/
 _tmp/
 tmp/
 

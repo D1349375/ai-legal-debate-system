@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker
 
 from database.schema import (
     Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck, LiveRun,
+    CaseCitationCheck, JudgeBundle,
 )
 from engine.aggregate import compile_weak_points, disagreement, VALID_SIDES
 from engine.party_issues import procedural_issues
@@ -63,11 +64,29 @@ def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def record_case(session, *, case_id, case_type, facts_summary, claims, parties=None, created_via=None):
+def record_case(session, *, case_id, case_type, facts_summary='', claims, parties=None, created_via=None,
+                represented_side=None, uncontested_facts=None, plaintiff_facts=None, defendant_facts=None,
+                claim_amount=None, protocol_version=None):
     if session.query(Case).filter_by(case_id=case_id).one_or_none():
         raise ValueError(f"{case_id} 已存在，不可覆寫")
+    from engine.role_protocol import PROTOCOL_VERSION, procedure_warning
+    if represented_side is not None and represented_side not in VALID_SIDES:
+        raise ValueError('represented_side 必須是 plaintiff 或 defendant')
+    if represented_side is None and any(v is not None for v in (uncontested_facts, plaintiff_facts, defendant_facts, claim_amount, protocol_version)):
+        raise ValueError('新案 represented_side 為必填')
+    procedure_warning(claim_amount, claims)
+    if represented_side and not any((uncontested_facts, plaintiff_facts, defendant_facts)):
+        if represented_side == 'plaintiff':
+            plaintiff_facts = facts_summary
+        else:
+            defendant_facts = facts_summary
+    if not facts_summary:
+        facts_summary = '\n'.join(v for v in (uncontested_facts, plaintiff_facts, defendant_facts) if v)
     row = Case(case_id=case_id, case_type=case_type, facts_summary=facts_summary,
                claims=claims, created_at=_now_iso(), created_via=created_via,
+               represented_side=represented_side, uncontested_facts=uncontested_facts,
+               plaintiff_facts=plaintiff_facts, defendant_facts=defendant_facts, claim_amount=claim_amount,
+               protocol_version=PROTOCOL_VERSION if represented_side else None,
                parties_json=json.dumps(parties, ensure_ascii=False) if parties else None)
     session.add(row)
     session.commit()
@@ -75,12 +94,28 @@ def record_case(session, *, case_id, case_type, facts_summary, claims, parties=N
 
 
 def record_argument(session, *, case_id, side, stage, position, reasoning,
-                     cited_statutes=None, cited_precedents=None, falsifier=None, model_id=None):
+                     cited_statutes=None, cited_precedents=None, falsifier=None, model_id=None,
+                     structured_json=None):
     if side not in VALID_SIDES:
         raise ValueError(f"非法 side: {side}")
     if stage not in (1, 2, 3):
         raise ValueError("stage 只能是 1(爭點整理)/2(訊問攻防)/3(辯論終結)")
-    if stage in (2, 3) and not (falsifier and falsifier.strip()):
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    from engine.role_protocol import is_v2, decoded, validate_argument
+    data = None
+    if is_v2(case):
+        data = decoded(structured_json) if structured_json is not None else None
+        if data is not None:
+            data['cited_statutes'] = cited_statutes or []
+            data['cited_precedents'] = cited_precedents or []
+        data = validate_argument(session, case, side, stage, position, reasoning, data)
+        if side == case.represented_side:
+            if falsifier and falsifier.strip():
+                raise ValueError('代理方 falsifier 必須留空，update_conditions 請寫 internal_notes')
+            falsifier = None
+        else:
+            falsifier = json.dumps(data.get('defeat_conditions', []), ensure_ascii=False)
+    elif stage in (2, 3) and not (falsifier and falsifier.strip()):
         raise ValueError(f"stage {stage} 須提供 falsifier")
     exists = session.query(DebateArgument).filter_by(
         case_id=case_id, side=side, stage=stage).one_or_none()
@@ -91,19 +126,45 @@ def record_argument(session, *, case_id, side, stage, position, reasoning,
         cited_statutes=json.dumps(cited_statutes or [], ensure_ascii=False),
         cited_precedents=json.dumps(cited_precedents or [], ensure_ascii=False),
         falsifier=falsifier, model_id=model_id, created_at=_now_iso(),
+        structured_json=json.dumps(data, ensure_ascii=False) if data is not None else None,
     )
     session.add(row)
     session.commit()
     return row
 
 
-def record_question(session, *, case_id, question_text, target_side, based_on):
+def record_question(session, *, case_id, question_text, target_side, based_on, question_type=None,
+                    structured_json=None, _commit=True):
     if target_side not in VALID_SIDES:
         raise ValueError(f"非法 target_side: {target_side}")
-    if not based_on or not based_on.strip():
+    if not based_on or not (based_on.strip() if isinstance(based_on, str) else based_on):
         raise ValueError("based_on 為必填，訊問須回溯至具體論點，不得憑空生成")
-    row = CourtQuestion(case_id=case_id, question_text=question_text,
-                         target_side=target_side, based_on=based_on, created_at=_now_iso())
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    from engine.role_protocol import is_v2, validate_question
+    data = structured_json or {}
+    if is_v2(case):
+        data = {**data, **validate_question(session, case, question_text, target_side, based_on, question_type)}
+    row = CourtQuestion(case_id=case_id, question_text=question_text, question_type=question_type,
+                         target_side=target_side, based_on=based_on if isinstance(based_on, str) else json.dumps(based_on, ensure_ascii=False), created_at=_now_iso(),
+                         structured_json=json.dumps(data, ensure_ascii=False) if data else None)
+    session.add(row)
+    if _commit:
+        session.commit()
+    return row
+
+
+def record_judge_bundle(session, *, case_id, payload):
+    from engine.role_protocol import case_row, validate_judge_bundle, validate_question
+    case = case_row(session, case_id)
+    if session.query(JudgeBundle).filter_by(case_id=case_id).one_or_none():
+        raise ValueError(f'{case_id} 法官訊問已落地，不可覆寫')
+    validate_judge_bundle(session, case, payload)
+    for q in payload['questions']:
+        validate_question(session, case, q['question_text'], q['target_side'], q['based_on'], q.get('question_type'))
+    for q in payload['questions']:
+        record_question(session, case_id=case_id, question_text=q['question_text'], target_side=q['target_side'],
+                        based_on=q['based_on'], question_type=q.get('question_type'), structured_json=q, _commit=False)
+    row = JudgeBundle(case_id=case_id, structured_json=json.dumps(payload, ensure_ascii=False), created_at=_now_iso())
     session.add(row)
     session.commit()
     return row
@@ -112,10 +173,13 @@ def record_question(session, *, case_id, question_text, target_side, based_on):
 def _arg_to_dict(row):
     return {
         "side": row.side,
+        "stage": row.stage,
+        "position": row.position,
         "reasoning": row.reasoning,
         "falsifier": row.falsifier,
         "cited_statutes": json.loads(row.cited_statutes or "[]"),
         "cited_precedents": json.loads(row.cited_precedents or "[]"),
+        **json.loads(row.structured_json or '{}'),
     }
 
 
@@ -130,6 +194,15 @@ def finalize_case(session, *, case_id):
     stage3 = [_arg_to_dict(r) for r in rows if r.stage == 3]
     if len(stage3) < len(VALID_SIDES):
         raise ValueError(f"{case_id} 尚未雙方皆完成 stage3，無法 finalize")
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if case and case.represented_side:
+        from engine.aggregate import aggregate_role_items
+        from engine.role_protocol import judge_data
+        questions = [{'id': r.id, 'target_side': r.target_side, 'question_type': r.question_type,
+                      'question_text': r.question_text} for r in session.query(CourtQuestion).filter_by(case_id=case_id).order_by(CourtQuestion.id).all()]
+        return aggregate_role_items([_arg_to_dict(r) for r in rows], case.represented_side, questions,
+                                    judge_data(session, case_id).get('prep_items', []),
+                                    procedural_issues(latest_party_checks(session, case_id)))
     return {
         "weak_points": compile_weak_points(stage3),
         "position_drift": disagreement(stage1, stage3),
@@ -152,6 +225,25 @@ def pleading_materials(session, *, case_id, side):
     stage3 = {r.side: r for r in session.query(DebateArgument).filter_by(case_id=case_id, stage=3).all()}
     if side not in stage3:
         raise ValueError(f"{case_id} {side} 尚未完成 stage3,沒有撰狀素材;須先跑完攻防")
+    if case.represented_side:
+        from engine.role_protocol import facts_for, decoded, public_copy
+        if side != case.represented_side:
+            raise ValueError('新協議正式書狀僅可為代理方產生，對造請使用 report 的預演要點')
+        own = stage3[side]
+        data = decoded(own.structured_json)
+        asserted = [public_copy(i) for i in data.get('items', []) if i['status'] == 'asserted']
+        allowed_citations = list(dict.fromkeys(c for i in asserted for c in i.get('citations', [])))
+        statuses = {_citation_key(r.citation_text): r.status for r in session.query(CaseCitationCheck).filter_by(case_id=case_id).order_by(CaseCitationCheck.id).all()}
+        return {'case': {'case_id': case_id, 'case_type': case.case_type, 'claims': case.claims,
+                         'represented_side': case.represented_side, 'facts': facts_for(case), 'claim_amount': case.claim_amount,
+                         'parties': json.loads(case.parties_json) if case.parties_json else None},
+                'side': side, 'document_label': '起訴狀骨架' if side == 'plaintiff' else '預先準備的答辯狀草稿（起訴前）',
+                'own_stage3': {'claim_statement': data.get('claim_statement', ''),
+                               **({'rebuttal': data.get('rebuttal', '')} if side == 'defendant' else {}),
+                               'items': asserted,
+                               'citations': [{'citation_text': c, 'status': statuses.get(_citation_key(c), 'no_record')} for c in allowed_citations]},
+                'party_checks': latest_party_checks(session, case_id),
+                'procedural_issues': procedural_issues(latest_party_checks(session, case_id))}
     other = next(s for s in VALID_SIDES if s != side)
     status_by_key = {}
     for r in session.query(CitationVerification).all():
@@ -180,15 +272,27 @@ def pleading_materials(session, *, case_id, side):
 
 
 def record_verdict(session, *, case_id, verdict_main_text, verdict_reasoning, risk_map,
-                    mechanical_anchor_json, protocol_version, citations_used):
+                    mechanical_anchor_json, protocol_version, citations_used, structured_json=None):
     if session.query(Verdict).filter_by(case_id=case_id).one_or_none():
         raise ValueError(f"{case_id} 判決已落地，不可覆寫")
-    _assert_all_published(session, citations_used)
+    from engine.role_protocol import is_v2, decoded, validate_verdict, PROTOCOL_VERSION
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    data = None
+    if is_v2(case):
+        data = decoded(structured_json)
+        anchors = finalize_case(session, case_id=case_id)
+        data = validate_verdict(session, case, data, anchors)
+        mechanical_anchor_json = anchors
+        protocol_version = PROTOCOL_VERSION
+        _assert_all_published(session, citations_used, case_id=case_id)
+    else:
+        _assert_all_published(session, citations_used)
     row = Verdict(
         case_id=case_id, verdict_main_text=verdict_main_text, verdict_reasoning=verdict_reasoning,
         risk_map=json.dumps(risk_map, ensure_ascii=False),
         mechanical_anchor_json=json.dumps(mechanical_anchor_json, ensure_ascii=False),
         protocol_version=protocol_version, created_at=_now_iso(),
+        structured_json=json.dumps(data, ensure_ascii=False) if data is not None else None,
     )
     session.add(row)
     session.commit()
@@ -200,13 +304,33 @@ def pleading_side(row):
     return row.side or 'plaintiff'
 
 
-def record_pleading(session, *, case_id, draft_text, citations_used, side='plaintiff'):
+def record_pleading(session, *, case_id, draft_text, citations_used, side='plaintiff', claim_breakdown=None):
     """side=plaintiff 為民事起訴狀骨架，defendant 為民事答辯狀骨架；兩方走同一道查證閘門。"""
     if side not in VALID_SIDES:
         raise ValueError(f"非法 side: {side}")
-    _assert_all_published(session, citations_used)
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    breakdown = None
+    warnings = []
+    if case and case.represented_side:
+        if side != case.represented_side:
+            raise ValueError('正式書狀僅能為代理方產生，對造模擬請產預演要點（非書狀）')
+        if side == 'plaintiff':
+            import re
+            banned = re.findall(r'被告主張|被告抗辯|被告自承|被告或將|本方|對造|stage|輪次|前輪|法官訊問|訊問攻防', draft_text, re.IGNORECASE)
+            if banned:
+                raise ValueError(f'起訴狀不得混入對方說法或模擬流程用語：{sorted(set(banned))}')
+        from engine.role_protocol import validate_breakdown
+        breakdown = validate_breakdown(session, case, claim_breakdown or [])
+        warnings = breakdown['warnings']
+        if breakdown['pending']:
+            draft_text += '\n\n律師附註：待確認後再決定是否請求\n' + '\n'.join(f'{p["name"]}：{p["amount"]} 元（待確認；不計入訴之聲明）' for p in breakdown['pending'])
+        _assert_all_published(session, citations_used, case_id=case_id)
+    else:
+        _assert_all_published(session, citations_used)
     row = PleadingDraft(case_id=case_id, draft_text=draft_text, side=side,
-                         citation_verification_status='published', generated_at=_now_iso())
+                         citation_verification_status='published', generated_at=_now_iso(),
+                         claim_breakdown_json=json.dumps(breakdown, ensure_ascii=False) if breakdown is not None else None,
+                         warnings_json=json.dumps(warnings, ensure_ascii=False) if warnings else None)
     session.add(row)
     session.commit()
     return row
@@ -267,8 +391,30 @@ def _find_citation_row(session, citation_text):
     return None
 
 
-def _assert_all_published(session, citations_used):
+def _assert_all_published(session, citations_used, case_id=None):
     if not citations_used:
+        return
+    from engine.verify import citation_warning
+    historical = [c for c in citations_used if (citation_warning(c) or {}).get('status') == 'version_unverified']
+    if historical:
+        raise ValueError(f'歷史法規為 version_unverified，不能借用現行條文 published 紀錄：{historical}')
+    if case_id is not None:
+        latest = {}
+        for row in session.query(CaseCitationCheck).filter_by(case_id=case_id).order_by(CaseCitationCheck.id).all():
+            latest[_citation_key(row.citation_text)] = row
+        unpublished = []
+        for citation in citations_used:
+            row = latest.get(_citation_key(citation))
+            if row is None or row.status != 'published':
+                unpublished.append(citation)
+                continue
+            metadata = json.loads(row.metadata_json or '{}')
+            if metadata.get('supports_proposition') is False or metadata.get('document_identity') is False or metadata.get('existence') is False:
+                unpublished.append(citation)
+            elif parse_citation(citation)['type'] == 'judgment' and metadata.get('supports_proposition') is not True:
+                unpublished.append(citation)
+        if unpublished:
+            raise ValueError(f'以下引用尚無本案最新 published 且支持命題的查證紀錄，拒絕落地：{unpublished}')
         return
     all_rows = session.query(CitationVerification).all()
     by_key = {}
@@ -294,6 +440,21 @@ def upsert_citation(session, *, citation_text, source_type, status='draft',
     row.primary_source_url = primary_source_url
     row.verifier_run_id = verifier_run_id
     row.verified_at = _now_iso() if status in ('fact_checked', 'published') else None
+    session.commit()
+    return row
+
+
+def record_case_citation_check(session, case_id, result, verifier_run_id=None):
+    """每案每次保存查證，不覆寫其他案件或共用快取的實質支持判斷。"""
+    import uuid
+    if not session.query(Case).filter_by(case_id=case_id).one_or_none():
+        raise ValueError(f'找不到案件 {case_id}')
+    row = CaseCitationCheck(case_id=case_id, citation_text=result['citation_text'], status=result['status'],
+                            source_file=result.get('source_file'), checked_at=_now_iso(),
+                            verifier_run_id=verifier_run_id or str(uuid.uuid4()),
+                            support_note=json.dumps(result.get('support_note') or result.get('reason') or result.get('error'), ensure_ascii=False),
+                            metadata_json=json.dumps(result, ensure_ascii=False))
+    session.add(row)
     session.commit()
     return row
 

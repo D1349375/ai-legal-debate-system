@@ -1,0 +1,29 @@
+【環境說明】本 prompt 提到的 Read、Grep、Glob 工具,在你的環境中分別對應讀取檔案、rg 搜尋、列出檔案;語意與規則不變。
+**兩份共同的紀律**(9A、9B 都適用):
+1. 把該方 Stage3 的 `position`/`argument`/`cited_statutes`/`cited_precedents` 直接套進骨架的對應欄位。**不做語氣潤飾、不做修辭改寫**,這是刻意的,語氣潤飾要等 Phase 2 律師語料到位才做。誠實跟使用者說明這是骨架版,不是最終可用書狀。
+2. 只使用 Step 8 已查證為 `published` 的引用,未 published 的引用不得出現在書狀草稿裡。
+3. 當事人欄(原 3a):有商工查核結果的一方,名稱、統編、地址照登記填;法定代理人只填查核結果 `legal_representative` 有帶入的人。有 bad 等級程序事項時(例如被告已解散),法定代理人欄寫「清算人(待查明:<程序事項要查的資料>)」,**不得照列原負責人,也不得編造清算人姓名**。答辯狀的答辯人就是被告,這條規則照樣適用在答辯人欄。
+4. 案號、股別、受理法院、證物、具狀日期等攻防紀錄裡沒有的資料,一律留「(待填:…)」,不得編造。
+5. 撰狀素材可用 `python main.py pleading-source --case-id <case_id> --side plaintiff|defendant` 取得(唯讀,印出該方 Stage 3 原文、對造 Stage 3 的 position 與引用、每條引用目前的查證狀態、商工查核與程序事項)。對造部分只有結構化摘要,不含對造完整論證,同 Step 4 的萃取紀律。
+
+
+#### 9A — 原告民事起訴狀骨架
+1. 用 Read 讀取 `corpus/pleadings/reference/司法院官方民事起訴狀範本_結構參考用.pdf`,取得訴狀欄位結構(案號/當事人欄/訴之聲明/事實及理由/證物名稱/此致/具狀人)。
+2. 素材用原告方 Stage 3,依上方共同紀律套進骨架。
+
+{
+  "case_id": "real-2026-10-31-001",
+  "side": "plaintiff",
+  "pleading_material_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/14_plaintiff_pleading/workspace/pleading_source.json",
+  "official_structure_pdf_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/14_plaintiff_pleading/workspace/corpus/pleadings/reference/司法院官方民事起訴狀範本_結構參考用.pdf",
+  "draft_output_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/14_plaintiff_pleading/workspace/draft.txt",
+  "citations_output_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/14_plaintiff_pleading/workspace/citations.json",
+  "publication_managed_by_controller": true,
+  "database_access_available": false,
+  "network_enabled": false,
+  "available_python_pdf_readers": [
+    "pypdf",
+    "fitz",
+    "PyPDF2"
+  ]
+}

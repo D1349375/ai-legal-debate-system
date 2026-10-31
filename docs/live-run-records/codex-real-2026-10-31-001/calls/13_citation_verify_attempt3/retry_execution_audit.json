@@ -1,0 +1,1133 @@
+{
+  "audit_at_utc": "2026-10-31T08:04:53.118298+00:00",
+  "case_id": "real-2026-10-31-001",
+  "attempt": 3,
+  "call": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3",
+  "scope": "Bookkeeping and automated byte/structure comparison only. No holdout, case merits, citation-support conclusions, main.py, model, verifier or network execution by auditor. SQLite queries, when made, are read-only. Evaluation archives are hashed without inspecting their contents.",
+  "process_status": "process_finished",
+  "process_exit_code": 0,
+  "process_exit_zero_is_not_step8_pass": true,
+  "checks": [
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/prompt.txt",
+      "check": "exact_previous_prompt_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/call_manifest.json",
+      "check": "original_bindings_and_input_hash_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/case.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_stages.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/verdict.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_citations.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/citation_provenance.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/final_use_precedents.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/runbook_task_source.md",
+      "check": "frozen_runbook_task_bytes",
+      "passed": true
+    },
+    {
+      "path": "main.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/aggregate.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/court_map.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/gcis.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_issues.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_rules.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/stance_rag.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/verify.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "database/db.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "database/schema.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/judge_question_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage1_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage2_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage3_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/verdict_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/permission_config.json",
+      "check": "docs_and_root_denied",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/permission_config.json",
+      "check": "clean_artifact_workspace_writable_frozen_input_copies_readonly",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/permission_config.json",
+      "check": "only_six_frozen_files_and_current_workspace_under_docs",
+      "passed": true,
+      "detail": [
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_citations.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_stages.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/case.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/citation_provenance.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/final_use_precedents.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/verdict.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/all_citations.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/all_stages.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/case.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/citation_provenance.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/final_use_precedents.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/verdict.json"
+      ]
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/permission_config.json",
+      "check": "documented_db_parent_write_with_existing_file_exceptions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/permission_config.json",
+      "check": "future_new_filename_capability_disclosed",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/eval.md",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/eval_annotations.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/machine_checks.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/run_statistics.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/run_manifest.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/controller_state.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/step8_status.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/delivery_validation.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/before_retry/codex-real-cases-summary.md",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "01_p_s1"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "02_d_s1"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "03_p_s1_attempt2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "04_d_s1_attempt2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "05_judge_questions"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "06_p_s2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "07_d_s2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "08_p_s3"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "09_d_s3"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "10_judge_verdict"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "11_citation_verify"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "only_step8_retry_calls_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/call_manifest.json",
+      "check": "fresh_original_model_effort",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/permission_config.json",
+      "check": "argv_profile_equality",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/call_manifest.json",
+      "check": "explicit_nested_agents_disabled",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/call_manifest.json",
+      "check": "official_network_scope_and_general_web_disabled",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/call_manifest.json",
+      "check": "host_and_shell_startup_telemetry_optout",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/execution_manifest.json",
+      "check": "disposable_sqlite_preflight_record_pass",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/managed_network_smoke/execution_manifest.json",
+      "check": "managed_network_startup_telemetry_probe_record_pass",
+      "passed": true
+    }
+  ],
+  "mechanical_check_failures": [],
+  "input_string_count": 73,
+  "planned_docket_identities": 5,
+  "baseline": {
+    "recorded_at": "2026-10-31T07:44:55.019553+00:00",
+    "published_rows": 65,
+    "case_verdict_rows": 0,
+    "case_pleading_rows": 0,
+    "database_files": [
+      "codex_runs.db",
+      "db.py",
+      "legal_debate.db",
+      "schema.py",
+      "__pycache__"
+    ]
+  },
+  "preflight_evidence": {
+    "sqlite_manifest": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/execution_manifest.json",
+    "sqlite_stdout": {
+      "sqlite_commit_reopen_rollback": true,
+      "repeated_commit": true,
+      "sidecar_observed": true,
+      "negative_checks": {
+        "db.py_write_denied": true,
+        "db.py_delete_denied": true,
+        "schema.py_write_denied": true,
+        "schema.py_delete_denied": true,
+        "formal_sentinel_read_denied": true
+      },
+      "no_main_or_verify_invoked": true,
+      "network_requests_in_program": 0
+    },
+    "telemetry_smoke_manifest": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/managed_network_smoke/execution_manifest.json",
+    "telemetry_smoke_stdout": {
+      "PowerShellTelemetryCanSend": false,
+      "ExplicitNetworkRequests": 0,
+      "OptOutAtStartup": "1"
+    },
+    "scope": "Existing host-probe records inspected; no probes rerun by auditor."
+  },
+  "database_inventory_after_or_current": [
+    "__pycache__",
+    "codex_runs.db",
+    "db.py",
+    "legal_debate.db",
+    "schema.py",
+    "其他輸出"
+  ],
+  "database_names_added_since_baseline": [
+    "其他輸出"
+  ],
+  "database_names_removed_since_baseline": [],
+  "database_state_after_retry": {
+    "snapshot_at_utc": "2026-10-31T08:04:53.192088+00:00",
+    "read_only": true,
+    "global_citation_rows": 65,
+    "global_source_status_counts": [
+      {
+        "source_type": "judgment",
+        "status": "published",
+        "count": 5
+      },
+      {
+        "source_type": "statute",
+        "status": "published",
+        "count": 60
+      }
+    ],
+    "case_verdict_rows": 0,
+    "case_pleading_rows": 0,
+    "citation_rows_are_shared_not_case_owned": true
+  },
+  "trace": {
+    "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/stream.jsonl",
+    "sha256": "fe58f4df232389f1982a76947d6e375e2ebdeab92daf6ec34e6c0161b858fa38",
+    "bad_json_lines": [],
+    "stderr_path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/stderr.log",
+    "stderr_sha256": "b92246fd13b1c8adc493f7fe2f592086abf3d4ff0503412c23d0738e14715dfd",
+    "stderr_lines": [
+      "2026-10-31T07:56:21.878555Z  WARN codex_core::shell_snapshot: Failed to create shell snapshot for powershell: Shell snapshot not supported yet for PowerShell",
+      "2026-10-31T07:58:51.245922Z  WARN codex_sandboxing::violation: recorded sandbox violation: resource=filesystem backend=windows_mxc reason=failed_to_write_file path=unknown",
+      "2026-10-31T07:58:51.246381Z ERROR codex_core::tools::router: error=Exit code: 1",
+      "Wall time: 1.4 seconds",
+      "Output:",
+      "Failed to write file C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\13_citation_verify_attempt3\\workspace\\mechanical_verification_initial.json",
+      "",
+      "2026-10-31T07:59:57.319009Z  WARN codex_sandboxing::violation: recorded sandbox violation: resource=filesystem backend=windows_mxc reason=failed_to_write_file path=unknown",
+      "2026-10-31T07:59:57.319602Z ERROR codex_core::tools::router: error=Exit code: 1",
+      "Wall time: 1.6 seconds",
+      "Output:",
+      "Failed to write file C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\database\\其他輸出\\2026-10-31_real-2026-10-31-001_引用查證\\mechanical_verification.json",
+      "",
+      "2026-10-31T08:00:59.974989Z ERROR codex_models_manager::manager: failed to refresh available models: request timed out"
+    ]
+  },
+  "commands": [
+    {
+      "line": 5,
+      "item_id": "item_1",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/main.py' -TotalCount 240\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e9253aadb4247d83af01a6270de1d8676cdc927e6e83eba315b26c3f62c8e938",
+      "output_chars": 10403,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 8,
+      "item_id": "item_2",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'engine/verify.py','database/db.py' -Encoding utf8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "3b4c0d63421d455619ddb51ce61f38d83df8458295669bbeb82fc8dec9dee7ad",
+      "output_chars": 24457,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 9,
+      "item_id": "item_3",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/all_citations.json','docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/final_use_precedents.json','docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace/citation_provenance.json' -Encoding utf8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "4facaa7293fecc3069274516e3835e8f0e3ec4185ad60cbe93f846bc0cdde5c4",
+      "output_chars": 28145,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 14,
+      "item_id": "item_5",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command 'rg --files corpus'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "49939605371d8a8581a03163121628d72a34cacaa06ff756e4ee1a1889d857a3",
+      "output_chars": 113675,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 15,
+      "item_id": "item_6",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/verdict.json','docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/case.json' -Encoding utf8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "a5854c0c0e2d803e069fb50db097679c0eac11b6f394e5decf0a003f02698ed9",
+      "output_chars": 20918,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 16,
+      "item_id": "item_7",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'engine/verify.py' -Encoding utf8 -TotalCount 250\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e529eacce0fdd7c12d04cee49d98399db150186af044710b0ab46b810d133d65",
+      "output_chars": 10288,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 19,
+      "item_id": "item_9",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport json, pathlib, hashlib\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\nq=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/workspace')\nfor n in ['case.json','all_stages.json','verdict.json','all_citations.json','citation_provenance.json','final_use_precedents.json']:\n    d=json.loads((p/n).read_text(encoding='utf-8'))\n    print(n, 'type=',type(d).__name__, 'count=',len(d), 'keys=', list(d) if isinstance(d,dict) else '', 'copy_equal=', (p/n).read_bytes()==(q/n).read_bytes())\nv=json.loads((p/'verdict.json').read_text(encoding='utf-8'))\nprint('VERDICT ANALYSIS\\\\n'+v['verdict_analysis'])\nprint('CITATIONS',json.dumps(v['citations_used'],ensure_ascii=False))\nprint('CASE', (p/'case.json').read_text(encoding='utf-8'))\ns=json.loads((p/'all_stages.json').read_text(encoding='utf-8'))\nprint('STAGE STRUCTURE', json.dumps({k:list(v) if isinstance(v,dict) else type(v).__name__ for k,v in s.items()},ensure_ascii=False) if isinstance(s,dict) else [list(v) for v in s])\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "7151453e35c457b2f305c4f5a106fd13dc50135e6b32ff187cf095022cc95bdf",
+      "output_chars": 6811,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 21,
+      "item_id": "item_10",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"rg --files corpus/judgments -g 'TPSV,115,台上,65,*' -g 'TPSV,115,台上,336,*' -g 'TPSV,115,台上,386,*' -g 'TPSV,115,台上,206,*' -g 'TPSV,115,台上,561,*'\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "765f9ba78619c7d6b1747e4f88e54c297c3d7d8c188fc8773b4f482f1d0c3ffc",
+      "output_chars": 518,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 24,
+      "item_id": "item_11",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,206,20260312,1.txt','corpus/judgments/TPSV,115,台上,561,20260422,1.txt' -Encoding utf8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3d4bb5abbe7677adc5d0dc054d2c31304b8d4fbe1e32bc3c61bee3f3a53fc42",
+      "output_chars": 8868,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 25,
+      "item_id": "item_12",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,65,20260304,1.txt','corpus/judgments/TPSV,115,台上,336,20260416,1.txt','corpus/judgments/TPSV,115,台上,386,20260319,1.txt' -Encoding utf8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "c0c54c490bd4745c9eb33be9b46f122d06c35bbf7767620271d229dffdcf4e4f",
+      "output_chars": 11617,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 26,
+      "item_id": "item_4",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:LEGALDEBATE_DB_URL = '\"'sqlite:///database/codex_runs.db'\n\"'$env:PYTHONDONTWRITEBYTECODE = '\"'1'\n\"'$env:PYTHONIOENCODING = '\"'utf-8'\n\"'$citationsToVerify = @(Get-Content -LiteralPath '\"'docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_citations.json' -Raw -Encoding utf8 | ConvertFrom-Json)\npython -B main.py verify @citationsToVerify\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "7e41f107ce65a41e3bd387b4663bc17b1f50762aa25ce6580b7349b320427e47",
+      "output_chars": 28726,
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 1
+    },
+    {
+      "line": 28,
+      "item_id": "item_13",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,336,20260416,1.txt' -Encoding utf8 | Select-Object -Skip 240\nGet-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,386,20260319,1.txt' -Encoding utf8\nGet-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,206,20260312,1.txt' -Encoding utf8 -TotalCount 70\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "3dedcec939f8e724e2dfce986e85d1b4713fbe5b0e06e9e0036b0c33d0defa0f",
+      "output_chars": 4249,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 30,
+      "item_id": "item_14",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport json, pathlib, re\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\ns=json.loads((p/'all_stages.json').read_text(encoding='utf-8'))\nv=json.loads((p/'verdict.json').read_text(encoding='utf-8'))\na=json.loads((p/'all_citations.json').read_text(encoding='utf-8'))\nfound={}; legal=[]; strings=[]\ndef walk(x,path):\n    if isinstance(x,dict):\n        for k,v in x.items():\n            if k in ('cited_statutes','cited_precedents','citations_used','legal_basis'):\n                if k=='legal_basis': legal.append({'path':path+'.'+k,'value':v})\n                for c in v if isinstance(v,list) else [v]:\n                    if isinstance(c,str): found.setdefault(c,[]).append(path+'.'+k)\n            walk(v,path+'.'+k)\n    elif isinstance(x,list):\n        for i,v in enumerate(x): walk(v,f'{path}[{i}]')\n    elif isinstance(x,str): strings.append((path,x))\nwalk(s,'all_stages'); walk(v,'verdict')\nprint('AUDIT',json.dumps({'found_count':len(found),'missing_from_all_citations':sorted(set(found)-set(a)),'extra_in_all_citations':sorted(set(a)-set(found)),'legal_basis':legal,'procedural_issues':v['mechanical_anchor_json'].get('procedural_issues')},ensure_ascii=False))\nfor path,x in strings:\n    if path.startswith('all_stages.stage3') or path.startswith('all_stages.judge_questions'):\n        if any(t in x for t in ('台上','legal_basis','法律依據')):\n            print(path)\n            for para in re.split(r'\\\\n+',x):\n                if '台上' in para: print(para)\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "db996435eb3939e34db71e0adb5f06b241b018c2c8e7d40c47bd86a10040e753",
+      "output_chars": 1749,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 32,
+      "item_id": "item_15",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport urllib.request,time,json\nu='https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95'\nt=time.monotonic()\ntry:\n    with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=5) as r:\n        b=r.read(); print(json.dumps({'status':r.status,'bytes':len(b),'seconds':round(time.monotonic()-t,2),'has_law_article':b'law-article' in b}))\nexcept Exception as e:\n    print(json.dumps({'error':str(e),'type':type(e).__name__,'seconds':round(time.monotonic()-t,2)},ensure_ascii=False))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "df31caf07a60d4a73dcd22a7d05521be5faf80be5891885721b132c3f47f8efe",
+      "output_chars": 75,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 34,
+      "item_id": "item_16",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,336,20260416,1.txt' -Encoding utf8 | Select-Object -Skip 208 -First 40\nGet-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,65,20260304,1_source.json','corpus/judgments/TPSV,115,台上,336,20260416,1_source.json','corpus/judgments/TPSV,115,台上,386,20260319,1_source.json','corpus/judgments/TPSV,115,台上,206,20260312,1_source.json','corpus/judgments/TPSV,115,台上,561,20260422,1_source.json' -Encoding utf8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "fb906591be267cc9cc3682f8b65e5fda8684984c762ebb321a29c106b5131805",
+      "output_chars": 2442,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 39,
+      "item_id": "item_19",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:LEGALDEBATE_DB_URL = '\"'sqlite:///database/codex_runs.db'\n\"'$env:PYTHONDONTWRITEBYTECODE = '\"'1'\n\"'$env:PYTHONIOENCODING = '\"'utf-8'\npython -B main.py verify '民法第130條'\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e6c56c3dbde7d5d54daa5699b4cc0e1dc73cd5275c2e147f69be3ee77351b166",
+      "output_chars": 320,
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 1
+    },
+    {
+      "line": 41,
+      "item_id": "item_20",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport pathlib,json\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\ns=json.loads((p/'all_stages.json').read_text(encoding='utf-8'))\nfor side,d in s['stage3'].items():\n    print(side)\n    print(d['argument'])\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e4b460835c1caa5739c9595b409d69de17978589a11acd525e3f2361dc48f4e0",
+      "output_chars": 11695,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 43,
+      "item_id": "item_21",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:LEGALDEBATE_DB_URL = '\"'sqlite:///database/codex_runs.db'\n\"'$env:PYTHONDONTWRITEBYTECODE = '\"'1'\n\"'$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport json,pathlib,sqlite3,re,hashlib\nfrom engine.verify import parse_citation,STATUTE_CITATION_RE,JUDGMENT_CITATION_RE\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\na=json.loads((p/'all_citations.json').read_text(encoding='utf-8'))\ns=json.loads((p/'all_stages.json').read_text(encoding='utf-8')); v=json.loads((p/'verdict.json').read_text(encoding='utf-8'))\ndef key(c): return json.dumps(parse_citation(c),sort_keys=True,ensure_ascii=False)\nkeys={key(c) for c in a}\nmissing={}\ndef walk(x,path):\n    if isinstance(x,dict):\n        for k,t in x.items(): walk(t,path+'.'+k)\n    elif isinstance(x,list):\n        for i,t in enumerate(x): walk(t,f'{path}[{i}]')\n    elif isinstance(x,str):\n        for pattern in (STATUTE_CITATION_RE,JUDGMENT_CITATION_RE):\n            for m in pattern.finditer(x):\n                if key(m.group()) not in keys: missing.setdefault(m.group(),[]).append(path)\nwalk(s,'all_stages');walk(v,'verdict')\nprint(json.dumps({'unique_strings':len(a),'unique_identities':len(keys),'statute_identities':len({key(c) for c in a if parse_citation(c)['type']=='statute'}),'judgment_identities':len({key(c) for c in a if parse_citation(c)['type']=='judgment'}),'body_citations_missing':missing},ensure_ascii=False))\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True);con.row_factory=sqlite3.Row\nprint('tables', [r[0] for r in con.execute(\\\"select name from sqlite_master where type='table'\\\")])\nprint('verification_schema', [dict(r) for r in con.execute('pragma table_info(citation_verifications)')])\nprint('INPUT_HASHES',json.dumps({n:hashlib.sha256((p/n).read_bytes()).hexdigest() for n in ['case.json','all_stages.json','verdict.json','all_citations.json','citation_provenance.json','final_use_precedents.json']}))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "6ef891233257fb127f2eb0907b813bf8d2c6992373984f8b45739520faa323e9",
+      "output_chars": 1524,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 48,
+      "item_id": "item_24",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\nNew-Item -ItemType Directory -Path 'database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證' -Force | Select-Object FullName\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "10367f6861b5cde773290ea56accd26271d600e0e2172d05c82fce233304f66a",
+      "output_chars": 133,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 50,
+      "item_id": "item_25",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport sqlite3,json,pathlib\nfrom engine.verify import parse_citation\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\na=json.loads((p/'all_citations.json').read_text(encoding='utf-8'));v=json.loads((p/'verdict.json').read_text(encoding='utf-8'))\ndef k(t):return json.dumps(parse_citation(t),sort_keys=True,ensure_ascii=False)\nkeys={k(c) for c in a}\nc=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True);c.row_factory=sqlite3.Row\nrows=[dict(r) for r in c.execute('select * from citation_verifications') if k(r['citation_text']) in keys]\nby={}\nfor r in rows:by.setdefault(k(r['citation_text']),[]).append(r)\nprint(json.dumps({'matching_rows':len(rows),'unique_matching_identities':len(by),'missing':[x for x in a if k(x) not in by],'not_published':[r for r in rows if r['status']\"'!='\"'published'],'duplicates':{x:y for x,y in by.items() if len(y)>1},'verdict_gate_pass':all(k(x) in by and all(r['status']=='published' for r in by[k(x)]) for x in v['citations_used']),'verdict_count':c.execute('select count(*) from verdicts where case_id=?',('real-2026-10-31-001',)).fetchone()[0],'pleading_count':c.execute('select count(*) from pleading_drafts where case_id=?',('real-2026-10-31-001',)).fetchone()[0]},ensure_ascii=False))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "1c700633cde58e9855b6d049dc34cdf18b7051c971a9ab180457f5daa4014779",
+      "output_chars": 179,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 52,
+      "item_id": "item_26",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport pathlib,hashlib,json\nspec=[('65','20260304',['本院之判斷','是被上訴人依民法第359條規定']),('336','20260416',['本院判斷','是增建物非必屬違建','能否','第360條']),('386','20260319',['但未為解除契約','應認其上訴為不合法']),('206','20260312',['次按催告','若足以辨認','四、廢棄']),('561','20260422',['本院之判斷','當事人已證明','與應證事實','說理論證'])]\nfor no,date,terms in spec:\n    p=pathlib.Path(f'corpus/judgments/TPSV,115,台上,{no},{date},1.txt')\n    lines=p.read_text(encoding='utf-8').splitlines()\n    print(json.dumps({'no':no,'path':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'lines':len(lines),'anchors':[{'line':i+1,'text':line.strip()} for i,line in enumerate(lines) if any(t in line for t in terms)]},ensure_ascii=False))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "123a21d5f7cf30c2138ac8f139ba2e1a828878c9197e9a24ca23f1e92e3557c9",
+      "output_chars": 1656,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 54,
+      "item_id": "item_27",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::WriteAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_initial.json', '[\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"92\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=92\\\",\n    \\\"matched_text\\\": \\\"第 92 條\\\\n因被詐欺或被脅迫而為意思表示者，表意人得撤銷其意思表示。但詐欺係由第三人所為者，以相對人明知其事實或可得而知者為限，始得撤銷之。\\\\n被詐欺而為之意思表示，其撤銷不得以之對抗善意第三人。\\\",\n    \\\"citation_text\\\": \\\"民法第92條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"93\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=93\\\",\n    \\\"matched_text\\\": \\\"第 93 條\\\\n前條之撤銷，應於發見詐欺或脅迫終止後，一年內為之。但自意思表示後，經過十年，不得撤銷。\\\",\n    \\\"citation_text\\\": \\\"民法第93條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"95\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95\\\",\n    \\\"matched_text\\\": \\\"第 95 條\\\\n非對話而為意思表示者，其意思表示，以通知達到相對人時，發生效力。但撤回之通知，同時或先時到達者，不在此限。\\\\n表意人於發出通知後死亡或喪失行為能力或其行為能力受限制者，其意思表示，不因之失其效力。\\\",\n    \\\"citation_text\\\": \\\"民法第95條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"98\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=98\\\",\n    \\\"matched_text\\\": \\\"第 98 條\\\\n解釋意思表示，應探求當事人之真意，不得拘泥於所用之辭句。\\\",\n    \\\"citation_text\\\": \\\"民法第98條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"114\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=114\\\",\n    \\\"matched_text\\\": \\\"第 114 條\\\\n法律行為經撤銷者，視為自始無效。\\\\n當事人知其得撤銷或可得而知者，其法律行為撤銷時，準用前條之規定。\\\",\n    \\\"citation_text\\\": \\\"民法第114條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"125\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=125\\\",\n    \\\"matched_text\\\": \\\"第 125 條\\\\n請求權，因十五年間不行使而消滅。但法律所定期間較短者，依其規定。\\\",\n    \\\"citation_text\\\": \\\"民法第125條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"128\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=128\\\",\n    \\\"matched_text\\\": \\\"第 128 條\\\\n消滅時效，自請求權可行使時起算。以不行為為目的之請求權，自為行為時起算。\\\",\n    \\\"citation_text\\\": \\\"民法第128條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"153\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=153\\\",\n    \\\"matched_text\\\": \\\"第 153 條\\\\n當事人互相表示意思一致者，無論其為明示或默示，契約即為成立。\\\\n當事人對於必要之點，意思一致，而對於非必要之點，未經表示意思者，推定其契約為成立，關於該非必要之點，當事人意思不一致時，法院應依其事件之性質定之。\\\",\n    \\\"citation_text\\\": \\\"民法第153條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"179\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=179\\\",\n    \\\"matched_text\\\": \\\"第 179 條\\\\n無法律上之原因而受利益，致他人受損害者，應返還其利益。雖有法律上之原因，而其後已不存在者，亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第179條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"184\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=184\\\",\n    \\\"matched_text\\\": \\\"第 184 條\\\\n因故意或過失，不法侵害他人之權利者，負損害賠償責任。故意以背於善良風俗之方法，加損害於他人者亦同。\\\\n違反保護他人之法律，致生損害於他人者，負賠償責任。但能證明其行為無過失者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第184條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"185\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=185\\\",\n    \\\"matched_text\\\": \\\"第 185 條\\\\n數人共同不法侵害他人之權利者，連帶負損害賠償責任。不能知其中孰為加害人者亦同。\\\\n造意人及幫助人，視為共同行為人。\\\",\n    \\\"citation_text\\\": \\\"民法第185條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"197\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=197\\\",\n    \\\"matched_text\\\": \\\"第 197 條\\\\n因侵權行為所生之損害賠償請求權，自請求權人知有損害及賠償義務人時起，二年間不行使而消滅，自有侵權行為時起，逾十年者亦同。\\\\n損害賠償之義務人，因侵權行為受利益，致被害人受損害者，於前項時效完成後，仍應依關於不當得利之規定，返還其所受之利益於被害人。\\\",\n    \\\"citation_text\\\": \\\"民法第197條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"203\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=203\\\",\n    \\\"matched_text\\\": \\\"第 203 條\\\\n應付利息之債務，其利率未經約定，亦無法律可據者，週年利率為百分之五。\\\",\n    \\\"citation_text\\\": \\\"民法第203條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"213\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=213\\\",\n    \\\"matched_text\\\": \\\"第 213 條\\\\n負損害賠償責任者，除法律另有規定或契約另有訂定外，應回復他方損害發生前之原狀。\\\\n因回復原狀而應給付金錢者，自損害發生時起，加給利息。\\\\n第一項情形，債權人得請求支付回復原狀所必要之費用，以代回復原狀。\\\",\n    \\\"citation_text\\\": \\\"民法第213條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"215\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=215\\\",\n    \\\"matched_text\\\": \\\"第 215 條\\\\n不能回復原狀或回復顯有重大困難者，應以金錢賠償其損害。\\\",\n    \\\"citation_text\\\": \\\"民法第215條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"216\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=216\\\",\n    \\\"matched_text\\\": \\\"第 216 條\\\\n損害賠償，除法律另有規定或契約另有訂定外，應以填補債權人所受損害及所失利益為限。\\\\n依通常情形，或依已定之計劃、設備或其他特別情事，可得預期之利益，視為所失利益。\\\",\n    \\\"citation_text\\\": \\\"民法第216條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"217\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=217\\\",\n    \\\"matched_text\\\": \\\"第 217 條\\\\n損害之發生或擴大，被害人與有過失者，法院得減輕賠償金額，或免除之。\\\\n重大之損害原因，為債務人所不及知，而被害人不預促其注意或怠於避免或減少損害者，為與有過失。\\\\n前二項之規定，於被害人之代理人或使用人與有過失者，準用之。\\\",\n    \\\"citation_text\\\": \\\"民法第217條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"220\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingl', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 56,
+      "item_id": "item_28",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_initial.json', 'e.aspx?pcode=B0000001&flno=220\\\",\n    \\\"matched_text\\\": \\\"第 220 條\\\\n債務人就其故意或過失之行為，應負責任。\\\\n過失之責任，依事件之特性而有輕重，如其事件非予債務人以利益者，應從輕酌定。\\\",\n    \\\"citation_text\\\": \\\"民法第220條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"224\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=224\\\",\n    \\\"matched_text\\\": \\\"第 224 條\\\\n債務人之代理人或使用人，關於債之履行有故意或過失時，債務人應與自己之故意或過失負同一責任。但當事人另有訂定者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第224條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"226\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=226\\\",\n    \\\"matched_text\\\": \\\"第 226 條\\\\n因可歸責於債務人之事由，致給付不能者，債權人得請求賠償損害。\\\\n前項情形，給付一部不能者，若其他部分之履行，於債權人無利益時，債權人得拒絕該部之給付，請求全部不履行之損害賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第226條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"227\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=227\\\",\n    \\\"matched_text\\\": \\\"第 227 條\\\\n因可歸責於債務人之事由，致為不完全給付者，債權人得依關於給付遲延或給付不能之規定行使其權利。\\\\n因不完全給付而生前項以外之損害者，債權人並得請求賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第227條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"229\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=229\\\",\n    \\\"matched_text\\\": \\\"第 229 條\\\\n給付有確定期限者，債務人自期限屆滿時起，負遲延責任。\\\\n給付無確定期限者，債務人於債權人得請求給付時，經其催告而未為給付，自受催告時起，負遲延責任。其經債權人起訴而送達訴狀，或依督促程序送達支付命令，或為其他相類之行為者，與催告有同一之效力。\\\\n前項催告定有期限者，債務人自期限屆滿時起負遲延責任。\\\",\n    \\\"citation_text\\\": \\\"民法第229條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"230\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=230\\\",\n    \\\"matched_text\\\": \\\"第 230 條\\\\n因不可歸責於債務人之事由，致未為給付者，債務人不負遲延責任。\\\",\n    \\\"citation_text\\\": \\\"民法第230條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"231\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=231\\\",\n    \\\"matched_text\\\": \\\"第 231 條\\\\n債務人遲延者，債權人得請求其賠償因遲延而生之損害。\\\\n前項債務人，在遲延中，對於因不可抗力而生之損害，亦應負責。但債務人證明縱不遲延給付，而仍不免發生損害者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第231條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"232\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=232\\\",\n    \\\"matched_text\\\": \\\"第 232 條\\\\n遲延後之給付，於債權人無利益者，債權人得拒絕其給付，並得請求賠償因不履行而生之損害。\\\",\n    \\\"citation_text\\\": \\\"民法第232條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"233\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=233\\\",\n    \\\"matched_text\\\": \\\"第 233 條\\\\n遲延之債務，以支付金錢為標的者，債權人得請求依法定利率計算之遲延利息。但約定利率較高者，仍從其約定利率。\\\\n對於利息，無須支付遲延利息。\\\\n前二項情形，債權人證明有其他損害者，並得請求賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第233條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"254\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=254\\\",\n    \\\"matched_text\\\": \\\"第 254 條\\\\n契約當事人之一方遲延給付者，他方當事人得定相當期限催告其履行，如於期限內不履行時，得解除其契約。\\\",\n    \\\"citation_text\\\": \\\"民法第254條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"256\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=256\\\",\n    \\\"matched_text\\\": \\\"第 256 條\\\\n債權人於有第二百二十六條之情形時，得解除其契約。\\\",\n    \\\"citation_text\\\": \\\"民法第256條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"258\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=258\\\",\n    \\\"matched_text\\\": \\\"第 258 條\\\\n解除權之行使，應向他方當事人以意思表示為之。\\\\n契約當事人之一方有數人者，前項意思表示，應由其全體或向其全體為之。\\\\n解除契約之意思表示，不得撤銷。\\\",\n    \\\"citation_text\\\": \\\"民法第258條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"259\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=259\\\",\n    \\\"matched_text\\\": \\\"第 259 條\\\\n契約解除時，當事人雙方回復原狀之義務，除法律另有規定或契約另有訂定外，依左列之規定：\\\\n一、由他方所受領之給付物，應返還之。\\\\n二、受領之給付為金錢者，應附加自受領時起之利息償還之。\\\\n三、受領之給付為勞務或為物之使用者，應照受領時之價額，以金錢償還之。\\\\n四、受領之給付物生有孳息者，應返還之。\\\\n五、就返還之物，已支出必要或有益之費用，得於他方受返還時所得利益之限度內，請求其返還。\\\\n六、應返還之物有毀損、滅失或因其他事由，致不能返還者，應償還其價額。\\\",\n    \\\"citation_text\\\": \\\"民法第259條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"260\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=260\\\",\n    \\\"matched_text\\\": \\\"第 260 條\\\\n解除權之行使，不妨礙損害賠償之請求。\\\",\n    \\\"citation_text\\\": \\\"民法第260條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"261\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=261\\\",\n    \\\"matched_text\\\": \\\"第 261 條\\\\n當事人因契約解除而生之相互義務，準用第二百六十四條至第二百六十七條之規定。\\\",\n    \\\"citation_text\\\": \\\"民法第261條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"264\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=264\\\",\n    \\\"matched_text\\\": \\\"第 264 條\\\\n因契約互負債務者，於他方當事人未為對待給付前，得拒絕自己之給付。但自己有先為給付之義務者，不在此限。\\\\n他方當事人已為部分之給付時，依其情形，如拒絕自己之給付有違背誠實及信用方法者，不得拒絕自己之給付。\\\",\n    \\\"citation_text\\\": \\\"民法第264條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"354\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=354\\\",\n    \\\"matched_text\\\": \\\"第 354 條\\\\n物之出賣人對於買受人，應擔保其物依第三百七十三條之規定危險移轉於買受人時無滅失或減少其價值之瑕疵，亦無滅失或減少其通常效用或契約預定效用之瑕疵。但減少之程度，無關重要者，不得視為瑕疵。\\\\n出賣人並應擔保其物於危險移轉時，具有其所保證之品質。\\\",\n    \\\"citation_text\\\": \\\"民法第354條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"355\\\",\n    \\\"primary_source_url\\\": ', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 58,
+      "item_id": "item_29",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_initial.json', '\\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=355\\\",\n    \\\"matched_text\\\": \\\"第 355 條\\\\n買受人於契約成立時，知其物有前條第一項所稱之瑕疵者，出賣人不負擔保之責。\\\\n買受人因重大過失，而不知有前條第一項所稱之瑕疵者，出賣人如未保證其無瑕疵時，不負擔保之責。但故意不告知其瑕疵者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第355條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"356\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=356\\\",\n    \\\"matched_text\\\": \\\"第 356 條\\\\n買受人應按物之性質，依通常程序從速檢查其所受領之物。如發見有應由出賣人負擔保責任之瑕疵時，應即通知出賣人。\\\\n買受人怠於為前項之通知者，除依通常之檢查不能發見之瑕疵外，視為承認其所受領之物。\\\\n不能即知之瑕疵，至日後發見者，應即通知出賣人，怠於為通知者，視為承認其所受領之物。\\\",\n    \\\"citation_text\\\": \\\"民法第356條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"357\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=357\\\",\n    \\\"matched_text\\\": \\\"第 357 條\\\\n前條規定，於出賣人故意不告知瑕疵於買受人者，不適用之。\\\",\n    \\\"citation_text\\\": \\\"民法第357條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"359\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=359\\\",\n    \\\"matched_text\\\": \\\"第 359 條\\\\n買賣因物有瑕疵，而出賣人依前五條之規定，應負擔保之責者，買受人得解除其契約或請求減少其價金。但依情形，解除契約顯失公平者，買受人僅得請求減少價金。\\\",\n    \\\"citation_text\\\": \\\"民法第359條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"360\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=360\\\",\n    \\\"matched_text\\\": \\\"第 360 條\\\\n買賣之物，缺少出賣人所保證之品質者，買受人得不解除契約或請求減少價金，而請求不履行之損害賠償；出賣人故意不告知物之瑕疵者亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第360條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"365\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=365\\\",\n    \\\"matched_text\\\": \\\"第 365 條\\\\n買受人因物有瑕疵，而得解除契約或請求減少價金者，其解除權或請求權，於買受人依第三百五十六條規定為通知後六個月間不行使或自物之交付時起經過五年而消滅。\\\\n前項關於六個月期間之規定，於出賣人故意不告知瑕疵者，不適用之。\\\",\n    \\\"citation_text\\\": \\\"民法第365條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"366\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=366\\\",\n    \\\"matched_text\\\": \\\"第 366 條\\\\n以特約免除或限制出賣人關於權利或物之瑕疵擔保義務者，如出賣人故意不告知其瑕疵，其特約為無效。\\\",\n    \\\"citation_text\\\": \\\"民法第366條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"373\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=373\\\",\n    \\\"matched_text\\\": \\\"第 373 條\\\\n買賣標的物之利益及危險，自交付時起，均由買受人承受負擔，但契約另有訂定者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第373條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民事訴訟法\\\",\n    \\\"article_no\\\": \\\"222\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=222\\\",\n    \\\"matched_text\\\": \\\"第 222 條\\\\n法院為判決時，應斟酌全辯論意旨及調查證據之結果，依自由心證判斷事實之真偽。但別有規定者，不在此限。\\\\n當事人已證明受有損害而不能證明其數額或證明顯有重大困難者，法院應審酌一切情況，依所得心證定其數額。\\\\n法院依自由心證判斷事實之真偽，不得違背論理及經驗法則。\\\\n得心證之理由，應記明於判決。\\\",\n    \\\"citation_text\\\": \\\"民事訴訟法第222條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民事訴訟法\\\",\n    \\\"article_no\\\": \\\"277\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=277\\\",\n    \\\"matched_text\\\": \\\"第 277 條\\\\n當事人主張有利於己之事實者，就其事實有舉證之責任。但法律別有規定，或依其情形顯失公平者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民事訴訟法第277條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"65\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,65,20260304,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第65號\\\\n\\\\n上  訴  人  莊瑞樘                                                                   \\\\n\\\\n訴訟代理人  林正旺律師\\\\n\\\\n被 上訴 人  翁以軒                                    \\\\n\\\\n訴訟代理人  錢政銘律師\\\\n\\\\n上列當事人間請求減少價金事件，上訴人\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第65號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"336\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,336,20260416,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第336號\\\\n\\\\n上  訴  人  巫 靜 宜                          \\\\n\\\\n訴訟代理人  陳 樹 村律師\\\\n\\\\n            梁 詠 晴律師\\\\n\\\\n被 上訴 人  丁陳秀蘭                                \\\\n\\\\n            陳 秀 玉                     \\\\n\\\\n          \\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第336號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"386\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,386,20260319,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事裁定\\\\n\\\\n115年度台上字第386號\\\\n\\\\n上  訴  人  黃俊宏                                    \\\\n\\\\n訴訟代理人  蘇士恒律師\\\\n\\\\n被 上訴 人  侯琪（原名侯盰岄）\\\\n\\\\n\\\\n\\\\n訴訟代理人  陳建州律師\\\\n\\\\n上列當事人間請求損害賠償等事件，上訴人對於中華民國114年1\\\\n\\\\n2月16日臺灣高等法院第二審判決（114年度海商上字第2號），\\\\n\\\\n提起上訴，本院裁定如下\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第386號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"71\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=71\\\",\n    \\\"matched_text\\\": \\\"第 71 條\\\\n法律行為，違反強制或禁止之規定者，無效。但其規定並不以之為無效者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第71條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"129\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=129\\\",\n    \\\"matched_text\\\": \\\"第 129 條\\\\n消滅時效，因左列事由而中斷：\\\\n一、請求。\\\\n二、承認。\\\\n三、起訴。\\\\n左列事項，與起訴有同一效力：\\\\n一、依督促程序，聲請發支付命令。\\\\n二、聲請調解或提付仲裁。\\\\n三、申報和解債權或破產債權。\\\\n四、告知訴訟。\\\\n五、開始執行行為或聲請強制執行。\\\",\n    \\\"citation_text\\\": \\\"民法第129條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"verification_failed\\\",\n    \\\"reason\\\": \\\"', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 60,
+      "item_id": "item_30",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_initial.json', '<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1000)>\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"130\\\",\n    \\\"citation_text\\\": \\\"民法第130條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"144\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=144\\\",\n    \\\"matched_text\\\": \\\"第 144 條\\\\n時效完成後，債務人得拒絕給付。\\\\n請求權已經時效消滅，債務人仍為履行之給付者，不得以不知時效為理由，請求返還；其以契約承認該債務或提出擔保者亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第144條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"199\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=199\\\",\n    \\\"matched_text\\\": \\\"第 199 條\\\\n債權人基於債之關係，得向債務人請求給付。\\\\n給付，不以有財產價格者為限。\\\\n不作為亦得為給付。\\\",\n    \\\"citation_text\\\": \\\"民法第199條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"205\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205\\\",\n    \\\"matched_text\\\": \\\"第 205 條\\\\n約定利率，超過週年百分之十六者，超過部分之約定，無效。\\\",\n    \\\"citation_text\\\": \\\"民法第205條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"214\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=214\\\",\n    \\\"matched_text\\\": \\\"第 214 條\\\\n應回復原狀者，如經債權人定相當期限催告後，逾期不為回復時，債權人得請求以金錢賠償其損害。\\\",\n    \\\"citation_text\\\": \\\"民法第214條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"216-1\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=216-1\\\",\n    \\\"matched_text\\\": \\\"第 216-1 條\\\\n基於同一原因事實受有損害並受有利益者，其請求之賠償金額，應扣除所受之利益。\\\",\n    \\\"citation_text\\\": \\\"民法第216條之1\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"247-1\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=247-1\\\",\n    \\\"matched_text\\\": \\\"第 247-1 條\\\\n依照當事人一方預定用於同類契約之條款而訂定之契約，為左列各款之約定，按其情形顯失公平者，該部分約定無效：\\\\n一、免除或減輕預定契約條款之當事人之責任者。\\\\n二、加重他方當事人之責任者。\\\\n三、使他方當事人拋棄權利或限制其行使權利者。\\\\n四、其他於他方當事人有重大不利益者。\\\",\n    \\\"citation_text\\\": \\\"民法第247條之1\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"334\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=334\\\",\n    \\\"matched_text\\\": \\\"第 334 條\\\\n二人互負債務，而其給付種類相同，並均屆清償期者，各得以其債務，與他方之債務，互為抵銷。但依債之性質不能抵銷或依當事人之特約不得抵銷者，不在此限。\\\\n前項特約，不得對抗善意第三人。\\\",\n    \\\"citation_text\\\": \\\"民法第334條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"335\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=335\\\",\n    \\\"matched_text\\\": \\\"第 335 條\\\\n抵銷，應以意思表示，向他方為之。其相互間債之關係，溯及最初得為抵銷時，按照抵銷數額而消滅。\\\\n前項意思表示，附有條件或期限者，無效。\\\",\n    \\\"citation_text\\\": \\\"民法第335條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"928\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=928\\\",\n    \\\"matched_text\\\": \\\"第 928 條\\\\n稱留置權者，謂債權人占有他人之動產，而其債權之發生與該動產有牽連關係，於債權已屆清償期未受清償時，得留置該動產之權。\\\\n債權人因侵權行為或其他不法之原因而占有動產者，不適用前項之規定。其占有之始明知或因重大過失而不知該動產非為債務人所有者，亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第928條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"94\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=94\\\",\n    \\\"matched_text\\\": \\\"第 94 條\\\\n對話人為意思表示者，其意思表示，以相對人了解時，發生效力。\\\",\n    \\\"citation_text\\\": \\\"民法第94條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"103\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=103\\\",\n    \\\"matched_text\\\": \\\"第 103 條\\\\n代理人於代理權限內，以本人名義所為之意思表示，直接對本人發生效力。\\\\n前項規定，於應向本人為意思表示，而向其代理人為之者，準用之。\\\",\n    \\\"citation_text\\\": \\\"民法第103條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"170\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=170\\\",\n    \\\"matched_text\\\": \\\"第 170 條\\\\n無代理權人以代理人之名義所為之法律行為，非經本人承認，對於本人不生效力。\\\\n前項情形，法律行為之相對人，得定相當期限，催告本人確答是否承認，如本人逾期未為確答者，視為拒絕承認。\\\",\n    \\\"citation_text\\\": \\\"民法第170條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"206\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,206,20260312,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第206號\\\\n\\\\n上  訴  人  李俊宏                              \\\\n\\\\n訴訟代理人  陳樹村律師\\\\n\\\\n            劉佳宜律師\\\\n\\\\n被 上訴 人  國群營造有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  林凱苓        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年9月\\\\n\\\\n10日臺灣高等法院高雄分院第二審判決（113年度上字\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第206號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"561\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,561,20260422,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第561號\\\\n\\\\n上  訴  人  順耀建設股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  施順耀        \\\\n\\\\n訴訟代理人  朱俊雄律師\\\\n\\\\n被 上訴 人  瑞助營造股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  邵明斌        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年12\\\\n\\\\n月17日臺灣高等法院第二審判決（114年度重上字第269號），提\\\\n\\\\n起一部上訴，本院判決\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第561號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"169\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=169\\\",\n    \\\"matched_text\\\": \\\"第 169 條\\\\n由自己之行為表示以代理權授與他人，或知他人表示為其代理人而不為反對之表示者，對於第三人應負授權人之責任。但第三人明知其無代理權或可得而知者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第169條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"213\\\",\n   ', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 62,
+      "item_id": "item_31",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_initial.json', ' \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=213\\\",\n    \\\"matched_text\\\": \\\"第 213 條\\\\n負損害賠償責任者，除法律另有規定或契約另有訂定外，應回復他方損害發生前之原狀。\\\\n因回復原狀而應給付金錢者，自損害發生時起，加給利息。\\\\n第一項情形，債權人得請求支付回復原狀所必要之費用，以代回復原狀。\\\",\n    \\\"citation_text\\\": \\\"民法第213條第3項\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"227\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=227\\\",\n    \\\"matched_text\\\": \\\"第 227 條\\\\n因可歸責於債務人之事由，致為不完全給付者，債權人得依關於給付遲延或給付不能之規定行使其權利。\\\\n因不完全給付而生前項以外之損害者，債權人並得請求賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第227條第1項\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民事訴訟法\\\",\n    \\\"article_no\\\": \\\"222\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=222\\\",\n    \\\"matched_text\\\": \\\"第 222 條\\\\n法院為判決時，應斟酌全辯論意旨及調查證據之結果，依自由心證判斷事實之真偽。但別有規定者，不在此限。\\\\n當事人已證明受有損害而不能證明其數額或證明顯有重大困難者，法院應審酌一切情況，依所得心證定其數額。\\\\n法院依自由心證判斷事實之真偽，不得違背論理及經驗法則。\\\\n得心證之理由，應記明於判決。\\\",\n    \\\"citation_text\\\": \\\"民事訴訟法第222條第2項\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"65\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,65,20260304,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第65號\\\\n\\\\n上  訴  人  莊瑞樘                                                                   \\\\n\\\\n訴訟代理人  林正旺律師\\\\n\\\\n被 上訴 人  翁以軒                                    \\\\n\\\\n訴訟代理人  錢政銘律師\\\\n\\\\n上列當事人間請求減少價金事件，上訴人\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第65號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"336\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,336,20260416,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第336號\\\\n\\\\n上  訴  人  巫 靜 宜                          \\\\n\\\\n訴訟代理人  陳 樹 村律師\\\\n\\\\n            梁 詠 晴律師\\\\n\\\\n被 上訴 人  丁陳秀蘭                                \\\\n\\\\n            陳 秀 玉                     \\\\n\\\\n          \\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第336號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"386\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,386,20260319,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事裁定\\\\n\\\\n115年度台上字第386號\\\\n\\\\n上  訴  人  黃俊宏                                    \\\\n\\\\n訴訟代理人  蘇士恒律師\\\\n\\\\n被 上訴 人  侯琪（原名侯盰岄）\\\\n\\\\n\\\\n\\\\n訴訟代理人  陳建州律師\\\\n\\\\n上列當事人間請求損害賠償等事件，上訴人對於中華民國114年1\\\\n\\\\n2月16日臺灣高等法院第二審判決（114年度海商上字第2號），\\\\n\\\\n提起上訴，本院裁定如下\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第386號裁定\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"206\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,206,20260312,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第206號\\\\n\\\\n上  訴  人  李俊宏                              \\\\n\\\\n訴訟代理人  陳樹村律師\\\\n\\\\n            劉佳宜律師\\\\n\\\\n被 上訴 人  國群營造有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  林凱苓        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年9月\\\\n\\\\n10日臺灣高等法院高雄分院第二審判決（113年度上字\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第206號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"561\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,561,20260422,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第561號\\\\n\\\\n上  訴  人  順耀建設股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  施順耀        \\\\n\\\\n訴訟代理人  朱俊雄律師\\\\n\\\\n被 上訴 人  瑞助營造股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  邵明斌        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年12\\\\n\\\\n月17日臺灣高等法院第二審判決（114年度重上字第269號），提\\\\n\\\\n起一部上訴，本院判決\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第561號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  }\n]\n', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 64,
+      "item_id": "item_32",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::WriteAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_retry.json', '[\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"130\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=130\\\",\n    \\\"matched_text\\\": \\\"第 130 條\\\\n時效因請求而中斷者，若於請求後六個月內不起訴，視為不中斷。\\\",\n    \\\"citation_text\\\": \\\"民法第130條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  }\n]\n', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 66,
+      "item_id": "item_33",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::WriteAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_final.json', '[\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"92\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=92\\\",\n    \\\"matched_text\\\": \\\"第 92 條\\\\n因被詐欺或被脅迫而為意思表示者，表意人得撤銷其意思表示。但詐欺係由第三人所為者，以相對人明知其事實或可得而知者為限，始得撤銷之。\\\\n被詐欺而為之意思表示，其撤銷不得以之對抗善意第三人。\\\",\n    \\\"citation_text\\\": \\\"民法第92條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"93\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=93\\\",\n    \\\"matched_text\\\": \\\"第 93 條\\\\n前條之撤銷，應於發見詐欺或脅迫終止後，一年內為之。但自意思表示後，經過十年，不得撤銷。\\\",\n    \\\"citation_text\\\": \\\"民法第93條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"95\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95\\\",\n    \\\"matched_text\\\": \\\"第 95 條\\\\n非對話而為意思表示者，其意思表示，以通知達到相對人時，發生效力。但撤回之通知，同時或先時到達者，不在此限。\\\\n表意人於發出通知後死亡或喪失行為能力或其行為能力受限制者，其意思表示，不因之失其效力。\\\",\n    \\\"citation_text\\\": \\\"民法第95條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"98\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=98\\\",\n    \\\"matched_text\\\": \\\"第 98 條\\\\n解釋意思表示，應探求當事人之真意，不得拘泥於所用之辭句。\\\",\n    \\\"citation_text\\\": \\\"民法第98條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"114\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=114\\\",\n    \\\"matched_text\\\": \\\"第 114 條\\\\n法律行為經撤銷者，視為自始無效。\\\\n當事人知其得撤銷或可得而知者，其法律行為撤銷時，準用前條之規定。\\\",\n    \\\"citation_text\\\": \\\"民法第114條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"125\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=125\\\",\n    \\\"matched_text\\\": \\\"第 125 條\\\\n請求權，因十五年間不行使而消滅。但法律所定期間較短者，依其規定。\\\",\n    \\\"citation_text\\\": \\\"民法第125條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"128\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=128\\\",\n    \\\"matched_text\\\": \\\"第 128 條\\\\n消滅時效，自請求權可行使時起算。以不行為為目的之請求權，自為行為時起算。\\\",\n    \\\"citation_text\\\": \\\"民法第128條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"153\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=153\\\",\n    \\\"matched_text\\\": \\\"第 153 條\\\\n當事人互相表示意思一致者，無論其為明示或默示，契約即為成立。\\\\n當事人對於必要之點，意思一致，而對於非必要之點，未經表示意思者，推定其契約為成立，關於該非必要之點，當事人意思不一致時，法院應依其事件之性質定之。\\\",\n    \\\"citation_text\\\": \\\"民法第153條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"179\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=179\\\",\n    \\\"matched_text\\\": \\\"第 179 條\\\\n無法律上之原因而受利益，致他人受損害者，應返還其利益。雖有法律上之原因，而其後已不存在者，亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第179條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"184\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=184\\\",\n    \\\"matched_text\\\": \\\"第 184 條\\\\n因故意或過失，不法侵害他人之權利者，負損害賠償責任。故意以背於善良風俗之方法，加損害於他人者亦同。\\\\n違反保護他人之法律，致生損害於他人者，負賠償責任。但能證明其行為無過失者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第184條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"185\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=185\\\",\n    \\\"matched_text\\\": \\\"第 185 條\\\\n數人共同不法侵害他人之權利者，連帶負損害賠償責任。不能知其中孰為加害人者亦同。\\\\n造意人及幫助人，視為共同行為人。\\\",\n    \\\"citation_text\\\": \\\"民法第185條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"197\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=197\\\",\n    \\\"matched_text\\\": \\\"第 197 條\\\\n因侵權行為所生之損害賠償請求權，自請求權人知有損害及賠償義務人時起，二年間不行使而消滅，自有侵權行為時起，逾十年者亦同。\\\\n損害賠償之義務人，因侵權行為受利益，致被害人受損害者，於前項時效完成後，仍應依關於不當得利之規定，返還其所受之利益於被害人。\\\",\n    \\\"citation_text\\\": \\\"民法第197條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"203\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=203\\\",\n    \\\"matched_text\\\": \\\"第 203 條\\\\n應付利息之債務，其利率未經約定，亦無法律可據者，週年利率為百分之五。\\\",\n    \\\"citation_text\\\": \\\"民法第203條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"213\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=213\\\",\n    \\\"matched_text\\\": \\\"第 213 條\\\\n負損害賠償責任者，除法律另有規定或契約另有訂定外，應回復他方損害發生前之原狀。\\\\n因回復原狀而應給付金錢者，自損害發生時起，加給利息。\\\\n第一項情形，債權人得請求支付回復原狀所必要之費用，以代回復原狀。\\\",\n    \\\"citation_text\\\": \\\"民法第213條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"215\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=215\\\",\n    \\\"matched_text\\\": \\\"第 215 條\\\\n不能回復原狀或回復顯有重大困難者，應以金錢賠償其損害。\\\",\n    \\\"citation_text\\\": \\\"民法第215條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"216\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=216\\\",\n    \\\"matched_text\\\": \\\"第 216 條\\\\n損害賠償，除法律另有規定或契約另有訂定外，應以填補債權人所受損害及所失利益為限。\\\\n依通常情形，或依已定之計劃、設備或其他特別情事，可得預期之利益，視為所失利益。\\\",\n    \\\"citation_text\\\": \\\"民法第216條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"217\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=217\\\",\n    \\\"matched_text\\\": \\\"第 217 條\\\\n損害之發生或擴大，被害人與有過失者，法院得減輕賠償金額，或免除之。\\\\n重大之損害原因，為債務人所不及知，而被害人不預促其注意或怠於避免或減少損害者，為與有過失。\\\\n前二項之規定，於被害人之代理人或使用人與有過失者，準用之。\\\",\n    \\\"citation_text\\\": \\\"民法第217條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"220\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingl', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 68,
+      "item_id": "item_34",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_final.json', 'e.aspx?pcode=B0000001&flno=220\\\",\n    \\\"matched_text\\\": \\\"第 220 條\\\\n債務人就其故意或過失之行為，應負責任。\\\\n過失之責任，依事件之特性而有輕重，如其事件非予債務人以利益者，應從輕酌定。\\\",\n    \\\"citation_text\\\": \\\"民法第220條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"224\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=224\\\",\n    \\\"matched_text\\\": \\\"第 224 條\\\\n債務人之代理人或使用人，關於債之履行有故意或過失時，債務人應與自己之故意或過失負同一責任。但當事人另有訂定者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第224條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"226\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=226\\\",\n    \\\"matched_text\\\": \\\"第 226 條\\\\n因可歸責於債務人之事由，致給付不能者，債權人得請求賠償損害。\\\\n前項情形，給付一部不能者，若其他部分之履行，於債權人無利益時，債權人得拒絕該部之給付，請求全部不履行之損害賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第226條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"227\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=227\\\",\n    \\\"matched_text\\\": \\\"第 227 條\\\\n因可歸責於債務人之事由，致為不完全給付者，債權人得依關於給付遲延或給付不能之規定行使其權利。\\\\n因不完全給付而生前項以外之損害者，債權人並得請求賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第227條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"229\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=229\\\",\n    \\\"matched_text\\\": \\\"第 229 條\\\\n給付有確定期限者，債務人自期限屆滿時起，負遲延責任。\\\\n給付無確定期限者，債務人於債權人得請求給付時，經其催告而未為給付，自受催告時起，負遲延責任。其經債權人起訴而送達訴狀，或依督促程序送達支付命令，或為其他相類之行為者，與催告有同一之效力。\\\\n前項催告定有期限者，債務人自期限屆滿時起負遲延責任。\\\",\n    \\\"citation_text\\\": \\\"民法第229條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"230\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=230\\\",\n    \\\"matched_text\\\": \\\"第 230 條\\\\n因不可歸責於債務人之事由，致未為給付者，債務人不負遲延責任。\\\",\n    \\\"citation_text\\\": \\\"民法第230條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"231\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=231\\\",\n    \\\"matched_text\\\": \\\"第 231 條\\\\n債務人遲延者，債權人得請求其賠償因遲延而生之損害。\\\\n前項債務人，在遲延中，對於因不可抗力而生之損害，亦應負責。但債務人證明縱不遲延給付，而仍不免發生損害者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第231條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"232\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=232\\\",\n    \\\"matched_text\\\": \\\"第 232 條\\\\n遲延後之給付，於債權人無利益者，債權人得拒絕其給付，並得請求賠償因不履行而生之損害。\\\",\n    \\\"citation_text\\\": \\\"民法第232條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"233\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=233\\\",\n    \\\"matched_text\\\": \\\"第 233 條\\\\n遲延之債務，以支付金錢為標的者，債權人得請求依法定利率計算之遲延利息。但約定利率較高者，仍從其約定利率。\\\\n對於利息，無須支付遲延利息。\\\\n前二項情形，債權人證明有其他損害者，並得請求賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第233條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"254\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=254\\\",\n    \\\"matched_text\\\": \\\"第 254 條\\\\n契約當事人之一方遲延給付者，他方當事人得定相當期限催告其履行，如於期限內不履行時，得解除其契約。\\\",\n    \\\"citation_text\\\": \\\"民法第254條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"256\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=256\\\",\n    \\\"matched_text\\\": \\\"第 256 條\\\\n債權人於有第二百二十六條之情形時，得解除其契約。\\\",\n    \\\"citation_text\\\": \\\"民法第256條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"258\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=258\\\",\n    \\\"matched_text\\\": \\\"第 258 條\\\\n解除權之行使，應向他方當事人以意思表示為之。\\\\n契約當事人之一方有數人者，前項意思表示，應由其全體或向其全體為之。\\\\n解除契約之意思表示，不得撤銷。\\\",\n    \\\"citation_text\\\": \\\"民法第258條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"259\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=259\\\",\n    \\\"matched_text\\\": \\\"第 259 條\\\\n契約解除時，當事人雙方回復原狀之義務，除法律另有規定或契約另有訂定外，依左列之規定：\\\\n一、由他方所受領之給付物，應返還之。\\\\n二、受領之給付為金錢者，應附加自受領時起之利息償還之。\\\\n三、受領之給付為勞務或為物之使用者，應照受領時之價額，以金錢償還之。\\\\n四、受領之給付物生有孳息者，應返還之。\\\\n五、就返還之物，已支出必要或有益之費用，得於他方受返還時所得利益之限度內，請求其返還。\\\\n六、應返還之物有毀損、滅失或因其他事由，致不能返還者，應償還其價額。\\\",\n    \\\"citation_text\\\": \\\"民法第259條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"260\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=260\\\",\n    \\\"matched_text\\\": \\\"第 260 條\\\\n解除權之行使，不妨礙損害賠償之請求。\\\",\n    \\\"citation_text\\\": \\\"民法第260條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"261\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=261\\\",\n    \\\"matched_text\\\": \\\"第 261 條\\\\n當事人因契約解除而生之相互義務，準用第二百六十四條至第二百六十七條之規定。\\\",\n    \\\"citation_text\\\": \\\"民法第261條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"264\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=264\\\",\n    \\\"matched_text\\\": \\\"第 264 條\\\\n因契約互負債務者，於他方當事人未為對待給付前，得拒絕自己之給付。但自己有先為給付之義務者，不在此限。\\\\n他方當事人已為部分之給付時，依其情形，如拒絕自己之給付有違背誠實及信用方法者，不得拒絕自己之給付。\\\",\n    \\\"citation_text\\\": \\\"民法第264條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"354\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=354\\\",\n    \\\"matched_text\\\": \\\"第 354 條\\\\n物之出賣人對於買受人，應擔保其物依第三百七十三條之規定危險移轉於買受人時無滅失或減少其價值之瑕疵，亦無滅失或減少其通常效用或契約預定效用之瑕疵。但減少之程度，無關重要者，不得視為瑕疵。\\\\n出賣人並應擔保其物於危險移轉時，具有其所保證之品質。\\\",\n    \\\"citation_text\\\": \\\"民法第354條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"355\\\",\n    \\\"primary_source_url\\\": ', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 70,
+      "item_id": "item_35",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_final.json', '\\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=355\\\",\n    \\\"matched_text\\\": \\\"第 355 條\\\\n買受人於契約成立時，知其物有前條第一項所稱之瑕疵者，出賣人不負擔保之責。\\\\n買受人因重大過失，而不知有前條第一項所稱之瑕疵者，出賣人如未保證其無瑕疵時，不負擔保之責。但故意不告知其瑕疵者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第355條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"356\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=356\\\",\n    \\\"matched_text\\\": \\\"第 356 條\\\\n買受人應按物之性質，依通常程序從速檢查其所受領之物。如發見有應由出賣人負擔保責任之瑕疵時，應即通知出賣人。\\\\n買受人怠於為前項之通知者，除依通常之檢查不能發見之瑕疵外，視為承認其所受領之物。\\\\n不能即知之瑕疵，至日後發見者，應即通知出賣人，怠於為通知者，視為承認其所受領之物。\\\",\n    \\\"citation_text\\\": \\\"民法第356條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"357\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=357\\\",\n    \\\"matched_text\\\": \\\"第 357 條\\\\n前條規定，於出賣人故意不告知瑕疵於買受人者，不適用之。\\\",\n    \\\"citation_text\\\": \\\"民法第357條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"359\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=359\\\",\n    \\\"matched_text\\\": \\\"第 359 條\\\\n買賣因物有瑕疵，而出賣人依前五條之規定，應負擔保之責者，買受人得解除其契約或請求減少其價金。但依情形，解除契約顯失公平者，買受人僅得請求減少價金。\\\",\n    \\\"citation_text\\\": \\\"民法第359條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"360\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=360\\\",\n    \\\"matched_text\\\": \\\"第 360 條\\\\n買賣之物，缺少出賣人所保證之品質者，買受人得不解除契約或請求減少價金，而請求不履行之損害賠償；出賣人故意不告知物之瑕疵者亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第360條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"365\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=365\\\",\n    \\\"matched_text\\\": \\\"第 365 條\\\\n買受人因物有瑕疵，而得解除契約或請求減少價金者，其解除權或請求權，於買受人依第三百五十六條規定為通知後六個月間不行使或自物之交付時起經過五年而消滅。\\\\n前項關於六個月期間之規定，於出賣人故意不告知瑕疵者，不適用之。\\\",\n    \\\"citation_text\\\": \\\"民法第365條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"366\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=366\\\",\n    \\\"matched_text\\\": \\\"第 366 條\\\\n以特約免除或限制出賣人關於權利或物之瑕疵擔保義務者，如出賣人故意不告知其瑕疵，其特約為無效。\\\",\n    \\\"citation_text\\\": \\\"民法第366條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"373\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=373\\\",\n    \\\"matched_text\\\": \\\"第 373 條\\\\n買賣標的物之利益及危險，自交付時起，均由買受人承受負擔，但契約另有訂定者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第373條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民事訴訟法\\\",\n    \\\"article_no\\\": \\\"222\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=222\\\",\n    \\\"matched_text\\\": \\\"第 222 條\\\\n法院為判決時，應斟酌全辯論意旨及調查證據之結果，依自由心證判斷事實之真偽。但別有規定者，不在此限。\\\\n當事人已證明受有損害而不能證明其數額或證明顯有重大困難者，法院應審酌一切情況，依所得心證定其數額。\\\\n法院依自由心證判斷事實之真偽，不得違背論理及經驗法則。\\\\n得心證之理由，應記明於判決。\\\",\n    \\\"citation_text\\\": \\\"民事訴訟法第222條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民事訴訟法\\\",\n    \\\"article_no\\\": \\\"277\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=277\\\",\n    \\\"matched_text\\\": \\\"第 277 條\\\\n當事人主張有利於己之事實者，就其事實有舉證之責任。但法律別有規定，或依其情形顯失公平者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民事訴訟法第277條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"65\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,65,20260304,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第65號\\\\n\\\\n上  訴  人  莊瑞樘                                                                   \\\\n\\\\n訴訟代理人  林正旺律師\\\\n\\\\n被 上訴 人  翁以軒                                    \\\\n\\\\n訴訟代理人  錢政銘律師\\\\n\\\\n上列當事人間請求減少價金事件，上訴人\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第65號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"336\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,336,20260416,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第336號\\\\n\\\\n上  訴  人  巫 靜 宜                          \\\\n\\\\n訴訟代理人  陳 樹 村律師\\\\n\\\\n            梁 詠 晴律師\\\\n\\\\n被 上訴 人  丁陳秀蘭                                \\\\n\\\\n            陳 秀 玉                     \\\\n\\\\n          \\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第336號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"386\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,386,20260319,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事裁定\\\\n\\\\n115年度台上字第386號\\\\n\\\\n上  訴  人  黃俊宏                                    \\\\n\\\\n訴訟代理人  蘇士恒律師\\\\n\\\\n被 上訴 人  侯琪（原名侯盰岄）\\\\n\\\\n\\\\n\\\\n訴訟代理人  陳建州律師\\\\n\\\\n上列當事人間請求損害賠償等事件，上訴人對於中華民國114年1\\\\n\\\\n2月16日臺灣高等法院第二審判決（114年度海商上字第2號），\\\\n\\\\n提起上訴，本院裁定如下\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第386號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"71\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=71\\\",\n    \\\"matched_text\\\": \\\"第 71 條\\\\n法律行為，違反強制或禁止之規定者，無效。但其規定並不以之為無效者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第71條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"129\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=129\\\",\n    \\\"matched_text\\\": \\\"第 129 條\\\\n消滅時效，因左列事由而中斷：\\\\n一、請求。\\\\n二、承認。\\\\n三、起訴。\\\\n左列事項，與起訴有同一效力：\\\\n一、依督促程序，聲請發支付命令。\\\\n二、聲請調解或提付仲裁。\\\\n三、申報和解債權或破產債權。\\\\n四、告知訴訟。\\\\n五、開始執行行為或聲請強制執行。\\\",\n    \\\"citation_text\\\": \\\"民法第129條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n   ', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 72,
+      "item_id": "item_36",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_final.json', ' \\\"article_no\\\": \\\"130\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=130\\\",\n    \\\"matched_text\\\": \\\"第 130 條\\\\n時效因請求而中斷者，若於請求後六個月內不起訴，視為不中斷。\\\",\n    \\\"citation_text\\\": \\\"民法第130條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"144\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=144\\\",\n    \\\"matched_text\\\": \\\"第 144 條\\\\n時效完成後，債務人得拒絕給付。\\\\n請求權已經時效消滅，債務人仍為履行之給付者，不得以不知時效為理由，請求返還；其以契約承認該債務或提出擔保者亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第144條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"199\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=199\\\",\n    \\\"matched_text\\\": \\\"第 199 條\\\\n債權人基於債之關係，得向債務人請求給付。\\\\n給付，不以有財產價格者為限。\\\\n不作為亦得為給付。\\\",\n    \\\"citation_text\\\": \\\"民法第199條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"205\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205\\\",\n    \\\"matched_text\\\": \\\"第 205 條\\\\n約定利率，超過週年百分之十六者，超過部分之約定，無效。\\\",\n    \\\"citation_text\\\": \\\"民法第205條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"214\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=214\\\",\n    \\\"matched_text\\\": \\\"第 214 條\\\\n應回復原狀者，如經債權人定相當期限催告後，逾期不為回復時，債權人得請求以金錢賠償其損害。\\\",\n    \\\"citation_text\\\": \\\"民法第214條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"216-1\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=216-1\\\",\n    \\\"matched_text\\\": \\\"第 216-1 條\\\\n基於同一原因事實受有損害並受有利益者，其請求之賠償金額，應扣除所受之利益。\\\",\n    \\\"citation_text\\\": \\\"民法第216條之1\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"247-1\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=247-1\\\",\n    \\\"matched_text\\\": \\\"第 247-1 條\\\\n依照當事人一方預定用於同類契約之條款而訂定之契約，為左列各款之約定，按其情形顯失公平者，該部分約定無效：\\\\n一、免除或減輕預定契約條款之當事人之責任者。\\\\n二、加重他方當事人之責任者。\\\\n三、使他方當事人拋棄權利或限制其行使權利者。\\\\n四、其他於他方當事人有重大不利益者。\\\",\n    \\\"citation_text\\\": \\\"民法第247條之1\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"334\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=334\\\",\n    \\\"matched_text\\\": \\\"第 334 條\\\\n二人互負債務，而其給付種類相同，並均屆清償期者，各得以其債務，與他方之債務，互為抵銷。但依債之性質不能抵銷或依當事人之特約不得抵銷者，不在此限。\\\\n前項特約，不得對抗善意第三人。\\\",\n    \\\"citation_text\\\": \\\"民法第334條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"335\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=335\\\",\n    \\\"matched_text\\\": \\\"第 335 條\\\\n抵銷，應以意思表示，向他方為之。其相互間債之關係，溯及最初得為抵銷時，按照抵銷數額而消滅。\\\\n前項意思表示，附有條件或期限者，無效。\\\",\n    \\\"citation_text\\\": \\\"民法第335條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"928\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=928\\\",\n    \\\"matched_text\\\": \\\"第 928 條\\\\n稱留置權者，謂債權人占有他人之動產，而其債權之發生與該動產有牽連關係，於債權已屆清償期未受清償時，得留置該動產之權。\\\\n債權人因侵權行為或其他不法之原因而占有動產者，不適用前項之規定。其占有之始明知或因重大過失而不知該動產非為債務人所有者，亦同。\\\",\n    \\\"citation_text\\\": \\\"民法第928條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"94\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=94\\\",\n    \\\"matched_text\\\": \\\"第 94 條\\\\n對話人為意思表示者，其意思表示，以相對人了解時，發生效力。\\\",\n    \\\"citation_text\\\": \\\"民法第94條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"103\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=103\\\",\n    \\\"matched_text\\\": \\\"第 103 條\\\\n代理人於代理權限內，以本人名義所為之意思表示，直接對本人發生效力。\\\\n前項規定，於應向本人為意思表示，而向其代理人為之者，準用之。\\\",\n    \\\"citation_text\\\": \\\"民法第103條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"170\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=170\\\",\n    \\\"matched_text\\\": \\\"第 170 條\\\\n無代理權人以代理人之名義所為之法律行為，非經本人承認，對於本人不生效力。\\\\n前項情形，法律行為之相對人，得定相當期限，催告本人確答是否承認，如本人逾期未為確答者，視為拒絕承認。\\\",\n    \\\"citation_text\\\": \\\"民法第170條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"206\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,206,20260312,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第206號\\\\n\\\\n上  訴  人  李俊宏                              \\\\n\\\\n訴訟代理人  陳樹村律師\\\\n\\\\n            劉佳宜律師\\\\n\\\\n被 上訴 人  國群營造有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  林凱苓        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年9月\\\\n\\\\n10日臺灣高等法院高雄分院第二審判決（113年度上字\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第206號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"561\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,561,20260422,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第561號\\\\n\\\\n上  訴  人  順耀建設股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  施順耀        \\\\n\\\\n訴訟代理人  朱俊雄律師\\\\n\\\\n被 上訴 人  瑞助營造股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  邵明斌        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年12\\\\n\\\\n月17日臺灣高等法院第二審判決（114年度重上字第269號），提\\\\n\\\\n起一部上訴，本院判決\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第561號\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"169\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=169\\\",\n    \\\"matched_text\\\": \\\"第 169 條\\\\n由自己之行為表示以代理權授與他人，或知他人表示為其代理人而不為反對之表示者，對於第三人應負授權人之責任。但第三人明知其無代理權或可得而知者，不在此限。\\\",\n    \\\"citation_text\\\": \\\"民法第169條\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 74,
+      "item_id": "item_37",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_final.json', '\\\",\n    \\\"article_no\\\": \\\"213\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=213\\\",\n    \\\"matched_text\\\": \\\"第 213 條\\\\n負損害賠償責任者，除法律另有規定或契約另有訂定外，應回復他方損害發生前之原狀。\\\\n因回復原狀而應給付金錢者，自損害發生時起，加給利息。\\\\n第一項情形，債權人得請求支付回復原狀所必要之費用，以代回復原狀。\\\",\n    \\\"citation_text\\\": \\\"民法第213條第3項\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民法\\\",\n    \\\"article_no\\\": \\\"227\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=227\\\",\n    \\\"matched_text\\\": \\\"第 227 條\\\\n因可歸責於債務人之事由，致為不完全給付者，債權人得依關於給付遲延或給付不能之規定行使其權利。\\\\n因不完全給付而生前項以外之損害者，債權人並得請求賠償。\\\",\n    \\\"citation_text\\\": \\\"民法第227條第1項\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"law_name\\\": \\\"民事訴訟法\\\",\n    \\\"article_no\\\": \\\"222\\\",\n    \\\"primary_source_url\\\": \\\"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=222\\\",\n    \\\"matched_text\\\": \\\"第 222 條\\\\n法院為判決時，應斟酌全辯論意旨及調查證據之結果，依自由心證判斷事實之真偽。但別有規定者，不在此限。\\\\n當事人已證明受有損害而不能證明其數額或證明顯有重大困難者，法院應審酌一切情況，依所得心證定其數額。\\\\n法院依自由心證判斷事實之真偽，不得違背論理及經驗法則。\\\\n得心證之理由，應記明於判決。\\\",\n    \\\"citation_text\\\": \\\"民事訴訟法第222條第2項\\\",\n    \\\"source_type\\\": \\\"statute\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"65\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,65,20260304,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第65號\\\\n\\\\n上  訴  人  莊瑞樘                                                                   \\\\n\\\\n訴訟代理人  林正旺律師\\\\n\\\\n被 上訴 人  翁以軒                                    \\\\n\\\\n訴訟代理人  錢政銘律師\\\\n\\\\n上列當事人間請求減少價金事件，上訴人\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第65號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"336\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,336,20260416,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第336號\\\\n\\\\n上  訴  人  巫 靜 宜                          \\\\n\\\\n訴訟代理人  陳 樹 村律師\\\\n\\\\n            梁 詠 晴律師\\\\n\\\\n被 上訴 人  丁陳秀蘭                                \\\\n\\\\n            陳 秀 玉                     \\\\n\\\\n          \\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第336號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"386\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,386,20260319,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事裁定\\\\n\\\\n115年度台上字第386號\\\\n\\\\n上  訴  人  黃俊宏                                    \\\\n\\\\n訴訟代理人  蘇士恒律師\\\\n\\\\n被 上訴 人  侯琪（原名侯盰岄）\\\\n\\\\n\\\\n\\\\n訴訟代理人  陳建州律師\\\\n\\\\n上列當事人間請求損害賠償等事件，上訴人對於中華民國114年1\\\\n\\\\n2月16日臺灣高等法院第二審判決（114年度海商上字第2號），\\\\n\\\\n提起上訴，本院裁定如下\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第386號裁定\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"206\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,206,20260312,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第206號\\\\n\\\\n上  訴  人  李俊宏                              \\\\n\\\\n訴訟代理人  陳樹村律師\\\\n\\\\n            劉佳宜律師\\\\n\\\\n被 上訴 人  國群營造有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  林凱苓        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年9月\\\\n\\\\n10日臺灣高等法院高雄分院第二審判決（113年度上字\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第206號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  },\n  {\n    \\\"status\\\": \\\"published\\\",\n    \\\"jyear\\\": \\\"115\\\",\n    \\\"jcase\\\": \\\"台上\\\",\n    \\\"jno\\\": \\\"561\\\",\n    \\\"source_file\\\": \\\"C:\\\\\\\\Users\\\\\\\\berto\\\\\\\\Desktop\\\\\\\\my\\\\\\\\personal\\\\\\\\ai-legal-debate-system\\\\\\\\engine\\\\\\\\..\\\\\\\\corpus\\\\\\\\judgments\\\\\\\\TPSV,115,台上,561,20260422,1.txt\\\",\n    \\\"matched_text\\\": \\\"最高法院民事判決\\\\n\\\\n115年度台上字第561號\\\\n\\\\n上  訴  人  順耀建設股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  施順耀        \\\\n\\\\n訴訟代理人  朱俊雄律師\\\\n\\\\n被 上訴 人  瑞助營造股份有限公司\\\\n\\\\n\\\\n\\\\n法定代理人  邵明斌        \\\\n\\\\n上列當事人間請求損害賠償事件，上訴人對於中華民國114年12\\\\n\\\\n月17日臺灣高等法院第二審判決（114年度重上字第269號），提\\\\n\\\\n起一部上訴，本院判決\\\",\n    \\\"verified_via\\\": \\\"local_corpus\\\",\n    \\\"citation_text\\\": \\\"最高法院115年度台上字第561號判決\\\",\n    \\\"source_type\\\": \\\"judgment\\\"\n  }\n]\n', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 76,
+      "item_id": "item_38",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::WriteAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/verification_report.json', '{\n  \\\"case_id\\\": \\\"real-2026-10-31-001\\\",\n  \\\"verification_date\\\": \\\"2026-10-31\\\",\n  \\\"timezone\\\": \\\"Asia/Taipei\\\",\n  \\\"task\\\": \\\"Step 8 引用存在性、文字及最終判例實質相關性查核\\\",\n  \\\"verification_context\\\": {\n    \\\"authored_prior_arguments_or_verdict_in_this_context\\\": false,\n    \\\"created_nested_subagent\\\": false,\n    \\\"available_subagent_creation_tool\\\": false,\n    \\\"note\\\": \\\"本回合從Step 8查證任務開始，未參與原論證或判決撰寫。環境未提供另啟subagent工具，本回合未另啟巢狀代理；主流程是否已將本回合以獨立subagent啟動，須由主流程啟動紀錄確認。\\\"\n  },\n  \\\"inputs\\\": {\n    \\\"case.json\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/case.json\\\",\n    \\\"all_stages.json\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_stages.json\\\",\n    \\\"verdict.json\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/verdict.json\\\",\n    \\\"all_citations.json\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_citations.json\\\",\n    \\\"citation_provenance.json\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/citation_provenance.json\\\",\n    \\\"final_use_precedents.json\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/final_use_precedents.json\\\"\n  },\n  \\\"coverage\\\": {\n    \\\"unique_original_strings\\\": 73,\n    \\\"unique_identities\\\": 65,\n    \\\"statute_identities\\\": 60,\n    \\\"judgment_identities\\\": 5,\n    \\\"final_use_precedent_strings\\\": 10,\n    \\\"final_use_precedent_identities\\\": 5,\n    \\\"verdict_citations\\\": 24,\n    \\\"structured_citations_missing\\\": [],\n    \\\"body_citation_identities_missing\\\": [],\n    \\\"legal_basis_fields_found\\\": [],\n    \\\"procedural_issues_empty\\\": true,\n    \\\"procedural_note\\\": \\\"空issues及登記資料null不表示程序已經查核無虞；本次沒有另列程序法律依據。\\\",\n    \\\"input_copy_identical\\\": true\n  },\n  \\\"mechanical\\\": {\n    \\\"command\\\": \\\"python -B main.py verify <73個原始引用字串，以位置參數傳入>\\\",\n    \\\"env\\\": {\n      \\\"LEGALDEBATE_DB_URL\\\": \\\"sqlite:///database/codex_runs.db\\\",\n      \\\"PYTHONDONTWRITEBYTECODE\\\": \\\"1\\\",\n      \\\"PYTHONIOENCODING\\\": \\\"utf-8\\\"\n    },\n    \\\"exit_code\\\": 0,\n    \\\"initial_published\\\": 72,\n    \\\"initial_failures\\\": [\n      {\n        \\\"citation\\\": \\\"民法第130條\\\",\n        \\\"reason\\\": \\\"<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1000)>\\\"\n      }\n    ],\n    \\\"retry\\\": {\n      \\\"command\\\": \\\"python -B main.py verify 民法第130條\\\",\n      \\\"exit_code\\\": 0,\n      \\\"result\\\": \\\"published\\\"\n    },\n    \\\"final_passed_strings\\\": 73,\n    \\\"final_failed_strings\\\": 0,\n    \\\"evidence_files\\\": [\n      \\\"mechanical_verification_initial.json\\\",\n      \\\"mechanical_verification_retry.json\\\",\n      \\\"mechanical_verification_final.json\\\"\n    ],\n    \\\"pinpoint_checks\\\": [\n      {\n        \\\"citation\\\": \\\"民法第213條第3項\\\",\n        \\\"status\\\": \\\"pass\\\",\n        \\\"note\\\": \\\"官網第三項為必要回復費用替代回復原狀。\\\"\n      },\n      {\n        \\\"citation\\\": \\\"民法第227條第1項\\\",\n        \\\"status\\\": \\\"pass\\\",\n        \\\"note\\\": \\\"官網第一項為可歸責不完全給付，依遲延或不能給付規定行使權利。\\\"\n      },\n      {\n        \\\"citation\\\": \\\"民事訴訟法第222條第2項\\\",\n        \\\"status\\\": \\\"pass\\\",\n        \\\"note\\\": \\\"官網第二項為已證明損害但數額難證時酌定。\\\"\n      },\n      {\n        \\\"citation\\\": \\\"民法第216條之1、民法第247條之1\\\",\n        \\\"status\\\": \\\"pass\\\",\n        \\\"note\\\": \\\"分別查詢216-1及247-1子條文，並非母條。\\\"\n      }\n    ]\n  },\n  \\\"substantive_reviews\\\": [\n    {\n      \\\"no\\\": \\\"65\\\",\n      \\\"date\\\": \\\"20260304\\\",\n      \\\"kind\\\": \\\"判決\\\",\n      \\\"sha256\\\": \\\"04017fc6d8dfca30b9daef9712ebfd0fa999c5162b30293a72f3e60bf7ba3439\\\",\n      \\\"lines\\\": 269,\n      \\\"case_subject\\\": \\\"請求減少價金；非自然死亡特別約定及減價後返還溢付款。\\\",\n      \\\"claim_checked\\\": \\\"有效減價後，對實際溢付價金依民法第179條請求返還。\\\",\n      \\\"evidence_lines\\\": [\n        219,\n        223\n      ],\n      \\\"quote\\\": \\\"是被上訴人依民法第359條規定，請求減少價金，並就溢付之價金(即減少價金額)，依同法第179條規定，請求返還本息，即屬有據。\\\",\n      \\\"assessment\\\": \\\"判決本院判斷直接支持此返還結構。現有判決及Stage 3均已明確排除將該案付清價金、非自然死亡約定及18%比例直接移植，引用相關性通過。\\\",\n      \\\"limits\\\": \\\"不能證明本案價金已付清、漏水造成永久貶值或任何確定減價比例。\\\",\n      \\\"citation\\\": \\\"最高法院115年度台上字第65號判決\\\",\n      \\\"aliases\\\": [\n        \\\"最高法院115年度台上字第65號\\\",\n        \\\"最高法院115年度台上字第65號判決\\\"\n      ],\n      \\\"source_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,65,20260304,1.txt\\\",\n      \\\"source_metadata_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,65,20260304,1_source.json\\\",\n      \\\"full_text_read\\\": true,\n      \\\"status\\\": \\\"pass\\\",\n      \\\"scope\\\": \\\"所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。\\\"\n    },\n    {\n      \\\"no\\\": \\\"336\\\",\n      \\\"date\\\": \\\"20260416\\\",\n      \\\"kind\\\": \\\"判決\\\",\n      \\\"sha256\\\": \\\"22582788056ace8704045126cfb6cc13e11b8ddb8ccde166f1c501a8bdf1e682\\\",\n      \\\"lines\\\": 269,\n      \\\"case_subject\\\": \\\"請求減少價金等；知悉增建能否推認知悉違建。\\\",\n      \\\"claim_checked\\\": \\\"知情範圍須有證據，不得由已揭露的一種現象臆測買方知悉全部隱藏瑕疵。\\\",\n      \\\"evidence_lines\\\": [\n        175,\n        243\n      ],\n      \\\"quote\\\": \\\"是增建物非必屬違建物。\\\",\n      \\\"assessment\\\": \\\"本院判斷否定未詳查證據即推論買方知悉違建，足供本案檢驗壁癌揭露與特定漏水知情之推論方式。原引用已指出案由差異，並未宣稱買方必然不知情，引用相關性通過。\\\",\n      \\\"limits\\\": \\\"不能直接證明本案不知漏水；對民法第360條、第227條僅要求闡明原請求，未認定賠償成立。\\\",\n      \\\"citation\\\": \\\"最高法院115年度台上字第336號判決\\\",\n      \\\"aliases\\\": [\n        \\\"最高法院115年度台上字第336號\\\",\n        \\\"最高法院115年度台上字第336號判決\\\"\n      ],\n      \\\"source_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,336,20260416,1.txt\\\",\n      \\\"source_metadata_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,336,20260416,1_source.json\\\",\n      \\\"full_text_read\\\": true,\n      \\\"status\\\": \\\"pass\\\",\n      \\\"scope\\\": \\\"所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。\\\"\n    },\n    {\n      \\\"no\\\": \\\"386\\\",\n      \\\"date\\\": \\\"20260319\\\",\n      \\\"kind\\\": \\\"裁定\\\",\n      \\\"sha256\\\": \\\"6b986e1e6ff117b6ae7989d4f2bde4c9187f341588e8693d9fc131e6214e8eaa\\\",\n      \\\"lines\\\": 165,\n      \\\"case_subject\\\": \\\"請求損害賠償等；漁船噸位超標、解除表示及第三審上訴合法性。\\\",\n      \\\"claim_checked\\\": \\\"僅提示瑕疵通知、形成權行使、受領代理權與表示到達應予區分。\\\",\n      \\\"evidence_lines\\\": [\n        103,\n        141\n      ],\n      \\\"quote\\\": \\\"但未為解除契約', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 78,
+      "item_id": "item_39",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::AppendAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/verification_report.json', '之意思表示。\\\",\n      \\\"assessment\\\": \\\"理由二轉述原審認定通知瑕疵未等於解除、代書未受權且未轉達，並以第三審上訴不合法駁回。現有判決及Stage 3已如實註明轉述與程序性裁定，不將其當成最高法院就本案減價作成實體判斷，有限提示用途通過。\\\",\n      \\\"limits\\\": \\\"不得升格為最高法院實體判例規則，亦不能據此判定本案仲介無權、減價逾期或已及時生效。\\\",\n      \\\"citation\\\": \\\"最高法院115年度台上字第386號裁定\\\",\n      \\\"aliases\\\": [\n        \\\"最高法院115年度台上字第386號\\\",\n        \\\"最高法院115年度台上字第386號裁定\\\"\n      ],\n      \\\"source_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,386,20260319,1.txt\\\",\n      \\\"source_metadata_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,386,20260319,1_source.json\\\",\n      \\\"full_text_read\\\": true,\n      \\\"status\\\": \\\"pass\\\",\n      \\\"scope\\\": \\\"所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。\\\"\n    },\n    {\n      \\\"no\\\": \\\"206\\\",\n      \\\"date\\\": \\\"20260312\\\",\n      \\\"kind\\\": \\\"判決\\\",\n      \\\"sha256\\\": \\\"6c25a2bd33751131bfcdaa73e7399a47e1adbd94414c6cdb9f69cfa8137f7411\\\",\n      \\\"lines\\\": 331,\n      \\\"case_subject\\\": \\\"請求損害賠償；承攬廠房誤建基地、遷移後管線瑕疵與定期催修。\\\",\n      \\\"claim_checked\\\": \\\"催告內容足以辨認給付標的即可，不應割裂函件與先前口頭通知觀察。\\\",\n      \\\"evidence_lines\\\": [\n        185,\n        197\n      ],\n      \\\"quote\\\": \\\"債權人催告之內容若足以辨認債務人應為給付之標的，即生催告之效力。\\\",\n      \\\"assessment\\\": \\\"本院於廢棄發回部分明示該一般催告原則，支持反對要求逐項列盡地下管件的主張。判決及被告Stage 3已明確排除直接移植承攬修補義務，引用相關性通過。\\\",\n      \\\"limits\\\": \\\"仍須證明本案實際催告內容、到達與相應給付義務；催修不當然等於減價表示。\\\",\n      \\\"citation\\\": \\\"最高法院115年度台上字第206號判決\\\",\n      \\\"aliases\\\": [\n        \\\"最高法院115年度台上字第206號\\\",\n        \\\"最高法院115年度台上字第206號判決\\\"\n      ],\n      \\\"source_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,206,20260312,1.txt\\\",\n      \\\"source_metadata_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,206,20260312,1_source.json\\\",\n      \\\"full_text_read\\\": true,\n      \\\"status\\\": \\\"pass\\\",\n      \\\"scope\\\": \\\"所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。\\\"\n    },\n    {\n      \\\"no\\\": \\\"561\\\",\n      \\\"date\\\": \\\"20260422\\\",\n      \\\"kind\\\": \\\"判決\\\",\n      \\\"sha256\\\": \\\"ff2d5d3f15da881e734a73a6ad1fc94317ce54c2e3c6c2e27f2270b8b9d5ec2d\\\",\n      \\\"lines\\\": 213,\n      \\\"case_subject\\\": \\\"請求損害賠償；不當假扣押所生商譽損害及損害數額酌定。\\\",\n      \\\"claim_checked\\\": \\\"民事訴訟法第222條第2項須先證明損害，且有客觀數額證明困難，酌定須有相關具體因素、計算標準及可受檢驗的說理。\\\",\n      \\\"evidence_lines\\\": [\n        137,\n        155\n      ],\n      \\\"quote\\\": \\\"應秉公平原則，採擷符合該條項規範意旨、一般法律原則，且與應證事實具有實質關聯之具體事項，作為衡量因素及計算標準\\\",\n      \\\"assessment\\\": \\\"本院明示一般數額酌定標準，與原判決及雙方Stage 3的程序命題一致；未以商譽個案替代本案損害證明，引用相關性通過。\\\",\n      \\\"limits\\\": \\\"不能補足本案責任、損害存在、有效減價、付款或確定本金之證據。\\\",\n      \\\"citation\\\": \\\"最高法院115年度台上字第561號判決\\\",\n      \\\"aliases\\\": [\n        \\\"最高法院115年度台上字第561號\\\",\n        \\\"最高法院115年度台上字第561號判決\\\"\n      ],\n      \\\"source_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,561,20260422,1.txt\\\",\n      \\\"source_metadata_file\\\": \\\"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,561,20260422,1_source.json\\\",\n      \\\"full_text_read\\\": true,\n      \\\"status\\\": \\\"pass\\\",\n      \\\"scope\\\": \\\"所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。\\\"\n    }\n  ],\n  \\\"database_check\\\": {\n    \\\"database\\\": \\\"database/codex_runs.db\\\",\n    \\\"matching_rows\\\": 65,\n    \\\"unique_matching_identities\\\": 65,\n    \\\"all_statuses_published\\\": true,\n    \\\"missing\\\": [],\n    \\\"unpublished\\\": [],\n    \\\"duplicate_identities\\\": [],\n    \\\"verdict_citation_db_gate_pass\\\": true,\n    \\\"case_verdict_rows\\\": 0,\n    \\\"case_pleading_rows\\\": 0\n  },\n  \\\"citation_gate\\\": {\n    \\\"all_citation_checks_passed\\\": true,\n    \\\"failed_citations\\\": [],\n    \\\"unverifiable_final_precedents\\\": [],\n    \\\"citation_prerequisite_for_steps7_and9\\\": \\\"pass_for_reviewed_text\\\",\n    \\\"independent_subagent_launch_evidence\\\": \\\"not_confirmed_from_this_context\\\",\n    \\\"note\\\": \\\"引用內容關卡通過；主流程仍須以啟動紀錄確認獨立subagent結構性要求。未在本回合執行verdict落地或訴狀草擬。Step 9若新增引用、改變引用用途或編輯引用，須重新查核，不能沿用本報告概括放行。\\\"\n  },\n  \\\"source_edits_made\\\": false\n}\n', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 80,
+      "item_id": "item_40",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$ErrorActionPreference = '\"'Stop'\n[System.IO.File]::WriteAllText('C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/verification_report.md', '案件 real-2026-10-31-001｜Step 8 引用查核紀錄（2026-10-31）\n\n引用內容查核通過：73 個原始引用字串，依法律引用身分去重為 65 項（60 個法條、5 件裁判）。5 件最終判例均已讀取本地全文，與所提供判決及 Stage 3 的限縮援引命題相符。\n\n已執行 python -B main.py verify，73 個引用均以位置參數傳入，資料庫為 sqlite:///database/codex_runs.db。首次 72 項通過；民法第130條發生 SSL UNEXPECTED_EOF_WHILE_READING，對同一原始引用重試後通過，未改寫引用。完整官方條文及CLI結果見三份 mechanical_verification JSON。\n\n已遞迴核對各階段 cited_statutes、cited_precedents、判決 citations_used，並掃描正文完整引用，沒有遺漏。未發現額外 legal_basis；程序錨點 issues 為空，不代表兩造程序身分已查核完成。\n\n| 裁判 | 原文及可採命題 | 現有引用結論 |\n| --- | --- | --- |\n| 115台上65判決 | [全文第219行](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,65,20260304,1.txt:219)；有效減價後，對實際溢付價金依民法第179條請求返還。 | 通過。不能證明本案價金已付清、漏水造成永久貶值或任何確定減價比例。 |\n| 115台上336判決 | [全文第175行](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,336,20260416,1.txt:175)；知情範圍須有證據，不得由已揭露的一種現象臆測買方知悉全部隱藏瑕疵。 | 通過。不能直接證明本案不知漏水；對民法第360條、第227條僅要求闡明原請求，未認定賠償成立。 |\n| 115台上386裁定 | [全文第103行](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,386,20260319,1.txt:103)；僅提示瑕疵通知、形成權行使、受領代理權與表示到達應予區分。 | 通過。不得升格為最高法院實體判例規則，亦不能據此判定本案仲介無權、減價逾期或已及時生效。 |\n| 115台上206判決 | [全文第185行](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,206,20260312,1.txt:185)；催告內容足以辨認給付標的即可，不應割裂函件與先前口頭通知觀察。 | 通過。仍須證明本案實際催告內容、到達與相應給付義務；催修不當然等於減價表示。 |\n| 115台上561判決 | [全文第137行](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,561,20260422,1.txt:137)；民事訴訟法第222條第2項須先證明損害，且有客觀數額證明困難，酌定須有相關具體因素、計算標準及可受檢驗的說理。 | 通過。不能補足本案責任、損害存在、有效減價、付款或確定本金之證據。 |\n\n資料庫覆核：65 個引用身分各有一筆紀錄，全部為 published，沒有遺漏、未發布或重複身分。判決的24個 citations_used 均可通過資料庫引用關卡。本案 verdicts 與 pleading_drafts 仍均為0筆，本回合僅完成查核。\n\n獨立性紀錄：本回合未參與原論證或判決撰寫，從 Step 8 查證任務開始。環境沒有另啟 subagent 工具，故本回合未另啟巢狀代理；主流程是否已將本回合以獨立 subagent 啟動，仍須由主流程的啟動紀錄確認。引用內容通過不替代此結構性要求。\n\n後續 Step 9 僅能在已核對命題範圍內採用上述判例；尚未提供的訴狀文字不在本報告範圍。新增引用、改變用途或編輯引用須重新查核，編輯引用依規則重置 draft。\n\n原始引用、攻防及判決檔均未改寫。逐件案由、爭點、支持段落、全文 SHA-256 及查核結論詳見 verification_report.json。\n', [System.Text.UTF8Encoding]::new(\"'$false))'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_chars": 0,
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 83,
+      "item_id": "item_42",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:PYTHONIOENCODING = '\"'utf-8'\n@'\nimport pathlib,json,hashlib,re\nout=pathlib.Path('database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證')\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\nr=json.loads((out/'verification_report.json').read_text(encoding='utf-8'))\ni=json.loads((out/'mechanical_verification_initial.json').read_text(encoding='utf-8'))\nt=json.loads((out/'mechanical_verification_retry.json').read_text(encoding='utf-8'))\nf=json.loads((out/'mechanical_verification_final.json').read_text(encoding='utf-8'))\na=json.loads((p/'all_citations.json').read_text(encoding='utf-8'))\nassert [x['citation_text'] for x in f]==a\nassert len(f)==73 and all(x['status']=='published' for x in f)\nassert sum(x['status']=='verification_failed' for x in i)==1\nassert t[0]['citation_text']=='民法第130條' and t[0]['status']=='published'\nfor item in r['substantive_reviews']:\n    s=pathlib.Path(item['source_file']); data=s.read_bytes()\n    assert hashlib.sha256(data).hexdigest()==item['sha256']\n    assert re.sub(r'\\\\s+','',item['quote']) in re.sub(r'\\\\s+','',data.decode('utf-8')),item['no']\nexpected={'case.json':'055b00dacc00dff763d70037919ce942f6e80cc584b355fae8140223b87627e4','all_stages.json':'18385a088b1cf56e59dfd016c8f3c61577457b8148dc587c7f18b892a7616d22','verdict.json':'57b30d8fe077a2d94658abf3d2c8b5bb2a122b5974cae9bb028bb3f6b9779c37','all_citations.json':'c190b149712abef44ea5b8ced03725056633945aafbb64f94a4edfa9b13b88dd','citation_provenance.json':'dcf53b23d99dcec4a59536a86862eeeeebcc3c3bb21ce4f53fa4cfce3777d321','final_use_precedents.json':'42bd72c71e6f7758eac7aa51ce376a28e78c61ae97ab793d52593bea2221388b'}\nassert all(hashlib.sha256((p/n).read_bytes()).hexdigest()==h for n,h in expected.items())\nprint(json.dumps({'artifact_integrity':'pass','final_passed_strings':len(f),'full_text_quotes_verified':len(r['substantive_reviews']),'input_files_unchanged':len(expected),'saved_files':sorted(x.name for x in out.iterdir() if x.is_file())},ensure_ascii=False))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "da47db799d3836668393655424eed7cacc3093ffe89cdf66eb34d0d24b4d849a",
+      "output_chars": 307,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    }
+  ],
+  "collaboration_trace_metadata": [],
+  "actor_assertions_not_execution_proof": [
+    {
+      "line": 3,
+      "item_id": "item_0",
+      "text_sha256": "493368dbdee36bba5915408d402b92a5ac95cc6ac23156ba12414181ce368ab2",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 17,
+      "item_id": "item_8",
+      "text_sha256": "852603dba9878959f9a8b8fcf1500014031e32a74e9dd29ca2fb4e20a0cc60a3",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 35,
+      "item_id": "item_17",
+      "text_sha256": "6c389210e31c64122cf46f864039b94986b6eccf8c1cf12360b7eaf84b4df7a5",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 44,
+      "item_id": "item_22",
+      "text_sha256": "89372ff6a90b03f1b6e1e3366c9a6d242aff036982f0f8b14523e33576597c63",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 81,
+      "item_id": "item_41",
+      "text_sha256": "d94363fcc1eab7cba11215189bf54eb9e72c509bfbdb1f48345fab5935987cda",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 84,
+      "item_id": "item_43",
+      "text_sha256": "344b1d3c326c6f2e331e1c8f53ffdd272726ffffb9364c0b88b13762774de998",
+      "used_as_execution_proof": false
+    }
+  ],
+  "verifier_results": {
+    "observed_payloads": 2,
+    "complete_input_covering_arrays": 1,
+    "latest_observed_distinct_citation_texts": 73,
+    "latest_observed_status_counts": {
+      "published": 73
+    },
+    "raw_files": [
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/raw_verifier_result_01.json",
+        "sha256": "250bece6f3340ae888a1132d01d4f5912fc334caa1c81dbdbff78be577202633",
+        "stream_line": 26,
+        "item_id": "item_4",
+        "result_count": 73,
+        "status_counts": {
+          "published": 72,
+          "verification_failed": 1
+        },
+        "complete_input_coverage": true
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/raw_verifier_result_02.json",
+        "sha256": "de5b1add5466ff7aa29fe086808be8e98a6c9e4a37a2952001d7f2c1ada87e2c",
+        "stream_line": 39,
+        "item_id": "item_19",
+        "result_count": 1,
+        "status_counts": {
+          "published": 1
+        },
+        "complete_input_coverage": false
+      }
+    ],
+    "cache_baseline_published_rows": 65,
+    "baseline_is_not_fresh_retry_verification": true
+  },
+  "fulltext_read_proof": [
+    {
+      "file": "corpus/judgments/TPSV,115,台上,206,20260312,1.txt",
+      "file_sha256": "6c25a2bd33751131bfcdaa73e7399a47e1adbd94414c6cdb9f69cfa8137f7411",
+      "file_bytes": 12387,
+      "stream_line": 24,
+      "item_id": "item_11",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,561,20260422,1.txt",
+      "file_sha256": "ff2d5d3f15da881e734a73a6ad1fc94317ce54c2e3c6c2e27f2270b8b9d5ec2d",
+      "file_bytes": 7722,
+      "stream_line": 24,
+      "item_id": "item_11",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,336,20260416,1.txt",
+      "file_sha256": "22582788056ace8704045126cfb6cc13e11b8ddb8ccde166f1c501a8bdf1e682",
+      "file_bytes": 9704,
+      "stream_line": 25,
+      "item_id": "item_12",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,386,20260319,1.txt",
+      "file_sha256": "6b986e1e6ff117b6ae7989d4f2bde4c9187f341588e8693d9fc131e6214e8eaa",
+      "file_bytes": 6042,
+      "stream_line": 25,
+      "item_id": "item_12",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,65,20260304,1.txt",
+      "file_sha256": "04017fc6d8dfca30b9daef9712ebfd0fa999c5162b30293a72f3e60bf7ba3439",
+      "file_bytes": 10209,
+      "stream_line": 25,
+      "item_id": "item_12",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,386,20260319,1.txt",
+      "file_sha256": "6b986e1e6ff117b6ae7989d4f2bde4c9187f341588e8693d9fc131e6214e8eaa",
+      "file_bytes": 6042,
+      "stream_line": 28,
+      "item_id": "item_13",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    }
+  ],
+  "fulltext_proof_limit": "Complete text output proves visibility, not semantic support. Missing nested child/tool outputs cannot be reconstructed from child or actor assertions.",
+  "limitations": [
+    "Database parent write permits future new filenames; existing source/formal DB exceptions and inventory checks are recorded.",
+    "Only the parent call trace/stderr available here are audited. Failed tool routes, nested child context outputs or dropped analytics may leave invocation/result gaps.",
+    "Fresh context, raw published statuses, DB rows and substantive citation support are separate questions; no overall Step8 pass is declared by this audit.",
+    "Existing official-network authorization persists, general web search remains disabled, and the prior MXC host-loopback limitation remains."
+  ],
+  "nested_execution_evidence": {
+    "agents_enabled_argv_setting": false,
+    "disable_nested_agents_requested": true,
+    "thread_references": {},
+    "successful_spawn_records_visible": false,
+    "child_spawn_success_and_prompts_independently_reconstructable": false,
+    "role_transition_assessment": "No nested collaboration event or child-related stderr reference observed.",
+    "parent_full_text_read_evidence_count": 6,
+    "parent_raw_verifier_payloads": 2
+  },
+  "gate_adoption_recommendation": "RAW_EXISTENCE_AND_READ_EVIDENCE_AVAILABLE_SEMANTIC_GATE_NOT_ASSESSED",
+  "output_placement_deviation": {
+    "outside_workspace_artifacts": [
+      {
+        "path": "database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_final.json",
+        "bytes": 40423,
+        "sha256": "fb7ba4d59fa440b94a89ad4c614003024aa75b14d9794cfead6f4504818cc996",
+        "new_file_outside_current_artifact_workspace": true,
+        "valid_json": true,
+        "result_rows": 73,
+        "matches_observed_raw_payloads": [],
+        "matches_latest_results_derived_from_actual_payloads": true
+      },
+      {
+        "path": "database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_initial.json",
+        "bytes": 40330,
+        "sha256": "90388195c4e65ce4336a4b0cf20f98db2853de924e477bfef8e7d6278adbc319",
+        "new_file_outside_current_artifact_workspace": true,
+        "valid_json": true,
+        "result_rows": 73,
+        "matches_observed_raw_payloads": [
+          26
+        ],
+        "matches_latest_results_derived_from_actual_payloads": false
+      },
+      {
+        "path": "database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/mechanical_verification_retry.json",
+        "bytes": 383,
+        "sha256": "a3a3e8357bf0c089217b7ecc8d83d419e0ca8abbc69c1ef8973cc253d0898609",
+        "new_file_outside_current_artifact_workspace": true,
+        "valid_json": true,
+        "result_rows": 1,
+        "matches_observed_raw_payloads": [
+          39
+        ],
+        "matches_latest_results_derived_from_actual_payloads": false
+      },
+      {
+        "path": "database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/verification_report.json",
+        "bytes": 12974,
+        "sha256": "9b44766e070a4174879f96ab7cec04a2fb4e0ee1cc7c7158543a6cbbd8419947",
+        "new_file_outside_current_artifact_workspace": true
+      },
+      {
+        "path": "database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/verification_report.md",
+        "bytes": 3804,
+        "sha256": "c926fefcb623732f1d2febf240820953cd213b3e899c20d3a6fcac79a09dd3d0",
+        "new_file_outside_current_artifact_workspace": true
+      }
+    ],
+    "database_subdirectory_creation_events": [
+      48
+    ],
+    "limit": "These are copied/model-authored artifact files, not additional verifier executions. Auditor did not move, delete or modify them."
+  },
+  "direct_http_diagnostics_outside_engine": [
+    {
+      "line": 32,
+      "item_id": "item_15",
+      "command_sha256": "ba23add9c785aed62d51fef98a3b6de8921bfd271d16f14fd0b01316b2213417",
+      "classification": "Direct official-site transport diagnostic outside existing verification engine, not ordinary legal web search."
+    }
+  ],
+  "raw_verifier_payload_provenance": [
+    {
+      "line": 26,
+      "item_id": "item_4",
+      "output_char_start": 0,
+      "output_char_end": 28724,
+      "count": 73,
+      "status_counts": {
+        "published": 72,
+        "verification_failed": 1
+      },
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "command_exit_code": 0
+    },
+    {
+      "line": 39,
+      "item_id": "item_19",
+      "output_char_start": 0,
+      "output_char_end": 318,
+      "count": 1,
+      "status_counts": {
+        "published": 1
+      },
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "command_exit_code": 0
+    }
+  ]
+}

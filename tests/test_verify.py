@@ -108,4 +108,4 @@ class TestStatuteLiveVerification:
 
     def test_unknown_law_name(self):
         result = verify_statute_citation("外星人保護法", "1")
-        assert result["status"] == "unknown_law"
+        assert result["status"] == "unsupported_law"

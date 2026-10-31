@@ -1,0 +1,14 @@
+[
+  {
+    "id": "real-001-01",
+    "step": "pleading_plaintiff",
+    "field": "text",
+    "quote": "（二）正面回應對造最強論點。對造要求先確定各項請求的事實、法律路徑、表示範圍及可核算金額，再駁回經調查仍未證明部分。",
+    "pattern": "P2",
+    "category": "流程有誤",
+    "evidence": "交接文件2.2將場景限定為起訴前、被告尚不知將被起訴；但原告起訴狀在此明述已回應對造的最強論點。該句精確出自p_s3.json.argument，再由calls/14_plaintiff_pleading/workspace/pleading_source.json的own_stage3.argument原樣傳入draft，收集稿與writer稿逐byte相同。frozen_SKILL.md:97及105要求直接套入原告Stage3且不得修辭改寫，frozen_templates/stage3_prompt.txt要求正面回應對造，因而把合法的模擬辯論反駁移植到起訴狀。首次錯誤發生於Step9原告起訴狀；Stage3中的回應本身合理，不為滿足逐hop規則而誤標其為錯誤。此鏈只有一個發生錯誤的邏輯步驟；writer、收集稿及DB為同一步驟的保存副本，不重複計數。其他同源的輪次、對造已收斂及前階段補正語句合併視為同一時序問題。這是來源忠實但用途時序不合，並非新增案情或憑空捏造對造說法。",
+    "is_inference": false,
+    "severity": "中",
+    "chain": "real-001-P2-stage3-to-complaint"
+  }
+]

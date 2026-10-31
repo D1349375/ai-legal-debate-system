@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "last_message_exists": true,
+  "adopted_result": "failure report only; reported counts require trace corroboration",
+  "role_reported_status_counts": {
+    "published": 108,
+    "unparseable": 3
+  },
+  "persisted_publication": false,
+  "reason": "Unsupported statute parsing, unverified historical law version, and SQLite journal write failure."
+}

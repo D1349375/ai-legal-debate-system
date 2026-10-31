@@ -1,0 +1,72 @@
+[
+  {
+    "id": "real-002-01",
+    "step": "last_message",
+    "field": "text",
+    "source_file": "calls/11_citation_verify/last_message.txt",
+    "protocol_step": "step8_attempt1_citation_verify",
+    "quote": "民法債編施行法第10條之1 | 解析器不支援，無法完成機械查證",
+    "pattern": "其他",
+    "category": "流程有誤",
+    "evidence": "保留第一次Step8回報：法名白名單不涵蓋民法債編施行法與銀行法；新call12原始第51、53、54項直接證實三個標準格式引用unparseable。本段是流程缺口證據，不是回報文字不實或法條不存在。全鏈：s1_plaintiff合法待查候選→施行法跨六份攻防及verdict、銀行法至s2_defendant→第一次Step8解析不足回報→重試同型失敗（real-002-03）→三項保守留draft、停止。本次新結果不能回填成第一次完整批次已執行；上游合法候選及末端阻擋不是錯誤。",
+    "is_inference": false,
+    "severity": "中",
+    "chain": "real-002-parser-coverage"
+  },
+  {
+    "id": "real-002-02",
+    "step": "last_message",
+    "field": "text",
+    "source_file": "calls/11_citation_verify/last_message.txt",
+    "protocol_step": "step8_attempt1_citation_verify",
+    "quote": "但第1945號機械查證誤命中承受訴訟裁定；已另核對",
+    "pattern": "其他",
+    "category": "流程有誤",
+    "evidence": "保留第一次Step8的證據限制：當時只有錯配回報及先前離線重現，未保留該次原始verifier payload，本筆仍為推論。5月13日實體判決理由五確有撤銷前契約有效命題。全鏈：角色正確引用實體判決→第一次疑似錯配回報（本筆）→call12原始第61、108項證實同型錯配（real-002-04）→全文核對並將同字號來源metadata改指5月13日判決。新實證不能回填成第一次已讀何檔；沒有錯誤法律結論傳入書狀。",
+    "is_inference": true,
+    "severity": "中",
+    "chain": "real-002-docket-file-match"
+  },
+  {
+    "id": "real-002-03",
+    "step": "step8_retry_citation_verify",
+    "field": "text",
+    "source_file": "calls/12_citation_verify_attempt2/workspace/verification_report.md",
+    "protocol_step": "step8_attempt2_citation_verify",
+    "quote": "上述三項 unparseable 屬查證引擎涵蓋不足，並非認定法條不存在。",
+    "pattern": "其他",
+    "category": "流程有誤",
+    "evidence": "call12原始verification_raw_results.json第51、53、54項分別對民法債編施行法第10條之1、銀行法第29條及第29條之1回unparseable。本引文是報告正確識別流程缺口的證據，不是法條無效或模型杜撰。全鏈：原告Stage1標準候選（施行法後續至六份攻防與verdict；銀行法亦見被告Stage2）→第一次Step8回報→本次原始解析失敗→查證角色以既有upsert留三項draft→gate blocked。上游候選及末端保守處置不另增錯誤跳數。",
+    "is_inference": false,
+    "severity": "中",
+    "chain": "real-002-parser-coverage"
+  },
+  {
+    "id": "real-002-04",
+    "step": "step8_retry_citation_verify",
+    "field": "/61/source_file",
+    "source_file": "calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+    "protocol_step": "step8_attempt2_citation_verify",
+    "quote": "TPSV,114,台上,1945,20260304,2.txt",
+    "pattern": "其他",
+    "category": "流程有誤",
+    "evidence": "本次原始第61項以及附判決後綴的第108項均published但source_file指3月4日承受訴訟裁定，實際回傳已證實。該程序裁定不論契約效力；5月13日實體判決理由五確有原稿命題。全鏈：s1_plaintiff→s2_defendant→s3_plaintiff及verdict正確實體引用→第一次Step8疑似錯配→本次引擎兩別名字串取錯檔→獨立全文查核→以既有upsert改同字號來源metadata為20260513,1，未改引用文字。兩別名是同一缺陷的重複結果，不虛增為兩個法律錯誤；沒有造成書狀幻覺。",
+    "is_inference": false,
+    "severity": "中",
+    "chain": "real-002-docket-file-match"
+  },
+  {
+    "id": "real-002-05",
+    "step": "step8_retry_citation_verify",
+    "field": "/22/matched_text",
+    "source_file": "calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+    "protocol_step": "step8_attempt2_citation_verify",
+    "quote": "約定利率，超過週年百分之十六者，超過部分之約定，無效。",
+    "pattern": "其他",
+    "category": "流程有誤",
+    "evidence": "原始第22項以published回傳真實現行民法205文字；流程缺口是無歷史版本維度，不能證明角色標待查的108年20%及超額無請求權候選已通過，並非現行文字虛構。此與三個法名unparseable不同：205可解析且連線成功，仍缺時間涵蓋。全鏈：p_s1/d_s1舊法待核→p_s2/d_s2條件試算→p_s3/d_s3及verdict仍標待查→本次只驗現行16%並published→查證角色識別版本不足，以既有upsert將205降draft、清空verified_at→四項draft使gate blocked。試算未成已證債額；沒有證據判定舊法候選法律效果本身錯誤。",
+    "is_inference": false,
+    "severity": "中",
+    "chain": "real-002-historical-version-coverage"
+  }
+]

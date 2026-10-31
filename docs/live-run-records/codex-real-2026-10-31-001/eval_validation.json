@@ -1,0 +1,18 @@
+{
+  "canonical_outputs_available": 8,
+  "judge_question_count": 14,
+  "annotations_format": "JSON array",
+  "annotation_count": 0,
+  "quote_checks": "N/A: no evidence-supported annotations to validate",
+  "annotation_checker_result": {
+    "status": "N/A",
+    "reason": "no annotations",
+    "items": [],
+    "scope": "Mechanical validity only; error labels and evidence are not adjudicated"
+  },
+  "markdown_local_links_checked": 8,
+  "missing_links": [],
+  "source_judgment_sha256": "ff63c66f5aaeef9f8fe0946cac20f1f55a05d8c3778fb9fec662b2b861a6fb11",
+  "source_sha256_matches_record": true,
+  "evaluation_limits": "No main.py, verifier, model, network or DB execution by evaluator; only local artifact reading/audit and report writing. No publication or pleadings generated."
+}

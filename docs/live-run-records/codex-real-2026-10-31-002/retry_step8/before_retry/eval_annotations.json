@@ -1,0 +1,30 @@
+[
+  {
+    "id": "real-002-01",
+    "step": "last_message",
+    "field": "text",
+    "source_file": "calls/11_citation_verify/last_message.txt",
+    "protocol_step": "step8_citation_verify",
+    "quote": "民法債編施行法第10條之1 | 解析器不支援，無法完成機械查證",
+    "pattern": "其他",
+    "category": "流程有誤",
+    "evidence": "本段是查證者回報流程缺口的證據，不是指回報文字不實。parse_citation的法規名稱白名單沒有民法債編施行法或銀行法，離線重現對民法債編施行法第10條之1、銀行法第29條、銀行法第29條之1均回傳unknown。Stage1範本容許依法律知識提出標準格式候選，後續卻無法處理這三個合法格式字串；第一個可見失敗回報在Step8。此為產品解析覆蓋缺口，非模型捏造法條，亦非SQLite或啟動環境錯誤。108/3實際整批回傳數未獲原始payload佐證，與本項可離線驗證的三字串解析結果分開。",
+    "is_inference": false,
+    "severity": "中",
+    "chain": "real-002-parser-coverage"
+  },
+  {
+    "id": "real-002-02",
+    "step": "last_message",
+    "field": "text",
+    "source_file": "calls/11_citation_verify/last_message.txt",
+    "protocol_step": "step8_citation_verify",
+    "quote": "但第1945號機械查證誤命中承受訴訟裁定；已另核對",
+    "pattern": "其他",
+    "category": "流程有誤",
+    "evidence": "本段是查證者指出錯配的證據；實際Step8原始verifier payload未保留於可見trace，故該次確實回傳哪份文件仍屬推論。離線重現同一engine.verify.verify_judgment_citation(114,台上,1945)，其依os.listdir取第一份的規則選到TPSV,114,台上,1945,20260304,2.txt（僅承受訴訟），不能支持受詐欺契約撤銷前有效；TPSV,114,台上,1945,20260513,1.txt實體判決理由五確有該命題。這是相同字號多文件配對流程風險，不是原告或法官杜撰命題，也不是13件判例中一件實質無關。第一個可見錯配回報在Step8；未見錯誤實體結論向verdict或書狀傳播。",
+    "is_inference": true,
+    "severity": "中",
+    "chain": "real-002-docket-file-match"
+  }
+]

@@ -3,7 +3,8 @@
 > 撰寫：2026-10-31。分支：`role-separation-redesign`（自 `ui-backend-integration` @ aeb618e 分出）。
 > 這份是實作用（改哪些檔、怎麼驗證）。給組員看的白話版是 [改動點](redesign-change-points.md)。兩份同步更新；各步驟標「已定案」的是已討論完的。
 > 依據：08-08 三案逐步標註（61 筆，3 案）、gcis 四次實跑、Codex 跑 real-2026-10-31-001／002 的紀錄與評估（含 Step 8 重試）。
-> 注意：61 筆的逐筆清單不在 repo 內（Codex 評估與 `docs/live-run-records/` 都找不到），簡報引用這個數字前要補上出處。
+> 注意：61 筆是歷史標註筆數，逐筆清單與計數規則不在 repo 內，不得當作已核實錯誤數或錯誤率分母。重試後案號特徵命中為001：13次、002：12次，均源自source_note；不是13/12個法律幻覺。詳見 `docs/live-run-records/codex-real-cases-summary.md`。
+> 範圍修訂（依使用者最新指示）：五項新增查證工程移至【B】；既有 `_assert_all_published` 已強制評估與書狀的實際採用引用查證，需修改的是 prose 的全部候選總閘門。正式僅重跑002，001保留P2固定反例。
 > 每一步寫：**現在的問題（證據）→ 改什麼 → 改哪些檔 → 怎麼驗證**。標 **【A】** 的在決賽報告前做，標 **【B】** 的報告後做。
 
 ---
@@ -321,7 +322,7 @@
 
 **已定案（2026-10-31 討論）**：內容比對分三層，前兩層（案由與文件類型、原文摘句）由程式做；案由不同不自動擋，標「需說明」並要求寫類推理由；前兩層涵蓋所有判例引用，第三層只做最後採用的。
 
-**補充（2026-10-31，依 Codex 重試紀錄）**：歷史版本查詢仍放【B】，但【A】先讓「驗不了」有自己的狀態，不再標成通過。閘門規則：`unsupported_law`、`version_unverified` 不擋評估發布，但不得進書狀，並在回報列為「律師待核」。這樣 real-002 重跑才走得到 Step 9。
+**補充（2026-10-31，依 Codex 重試紀錄）**：歷史版本查詢仍放【B】，但【A】先讓「驗不了」有自己的狀態，不再標成通過。總流程不要求全部候選通過：`unsupported_law`、`version_unverified` 等未過候選列律師待核，評估可繼續；正式實際採用的評估/書狀引用仍須通過既有 `_assert_all_published`，歷史版本不得當成published。這樣 real-002 重跑才走得到 Step 9。
 
 **改什麼**
 1. **【A】** 文件身分：回傳所有同字號候選；多於一份時要求呼叫端指定日期，或回傳 `ambiguous` 不得 `published`。
@@ -344,11 +345,11 @@
 7. **【A】** 查證範圍（已定案）：
    - 第一、二層：Stage 1–3 與評估中的**所有**判例引用都做，因為 Stage 2、3 新增的引用會進到對方摘要。在 `record` 落地時就做，不等 Step 8。
    - 第三層：只對最後進到評估或書狀的引用做，控制成本。
-8. **【A】** 歷史版本狀態：引用文字含過去年度或「修正前」（例如「108年民法第205條」），或角色在 item 註明適用舊法時，回傳 `version_unverified`，不得 `published`。適用上述閘門規則。
-9. **【A】** 閘門由程式判斷：新增 `python main.py verify-gate --case-id <id>`，依 `case_citation_checks` 判斷能否放行，未通過時回傳非 0 並列出原因。`cmd_verdict`、`record_pleading` 落地前都呼叫同一個判斷；書狀的 `citations_used` 只能是該案 `published` 的引用。
-10. **【A】** 暫時性錯誤自動重試：連線類錯誤（SSL、逾時）自動重試 2–3 次；仍失敗回傳 `network_error`，和查無（`not_found`）分開，報告照實列出。
-11. **【A】** 查證結果只能透過固定指令寫入：新增 `python main.py record-verification --case-id <id> --json <file>`，讀 `verify_prompt.txt` 的結構化輸出，寫進 `case_citation_checks`。全域快取只存「存在與否」；版本、文件身分、是否支持命題等判斷只寫進每案紀錄，不改全域快取。查證角色不得直接呼叫 `upsert_citation`。
-12. **【A】** 法規在落地時就檢查：`record` 落地 Stage 1–3 時，也對法條跑 `parse_citation`。`unsupported_law` 當場標記並回給角色（不拒絕落地），讓它知道這條到 Step 8 會列為律師待核。
+8. **【A】** 歷史版本狀態：引用文字含過去年度或「修正前」（例如「108年民法第205條」），或角色在 item 註明適用舊法時，回傳 `version_unverified`，不得 `published`。本輪總閘門不再要求所有候選通過：未過者列律師待核，評估可繼續；實際採用的評估/書狀引用仍由既有 `_assert_all_published` 檢查，歷史版本不得當 published。
+9. **【B，依 Codex 紀錄發現】** 新總閘門指令（本輪不做）：新增 `python main.py verify-gate --case-id <id>`，依 `case_citation_checks` 判斷能否放行，未通過時回傳非 0 並列出原因。`cmd_verdict`、`record_pleading` 落地前都呼叫同一個判斷；書狀的 `citations_used` 只能是該案 `published` 的引用。
+10. **【B，依 Codex 紀錄發現】** 暫時性錯誤自動重試：連線類錯誤（SSL、逾時）自動重試 2–3 次；仍失敗回傳 `network_error`，和查無（`not_found`）分開，報告照實列出。
+11. **【B，依 Codex 紀錄發現】** 查證結果只能透過專用指令寫入：新增 `python main.py record-verification --case-id <id> --json <file>`，讀 `verify_prompt.txt` 的結構化輸出，寫進 `case_citation_checks`。全域快取只存「存在與否」；版本、文件身分、是否支持命題等判斷只寫進每案紀錄，不改全域快取。查證角色不得直接呼叫 `upsert_citation`。
+12. **【B，依 Codex 紀錄發現】** 法規在每輪落地時就檢查：`record` 落地 Stage 1–3 時，也對法條跑 `parse_citation`。`unsupported_law` 當場標記並回給角色（不拒絕落地），讓它知道這條到 Step 8 會列為律師待核。
 13. **【B】** 歷史條文版本查詢（查官方舊法全文）。
 
 **檔案**：`engine/verify.py`、`database/schema.py`、`database/db.py`、`main.py`、`tests/test_verify.py`、`tests/test_db.py`
@@ -360,8 +361,8 @@
 - 案由不同且 `analogy_reason` 為空，被擋下；有填則標「需說明」。
 - 用 08-08 test-002 的 115 台上 447（醫療糾紛上訴駁回裁定，被當車禍依據）當反例。
 - 「108年民法第205條」回傳 `version_unverified`，不是 `published`。
-- 閘門：有 `unsupported_law`／`version_unverified` 時，`verify-gate` 允許評估發布；書狀引用含這類條文時拒絕落地。有 `not_found`、`ambiguous` 或 `network_error` 時回傳非 0。
-- 模擬 SSL 錯誤：先重試，仍失敗時回 `network_error`。
+- 總流程：未通過的候選列律師待核、不阻評估繼續；正式實際採用的引用仍須 published。`verify-gate` 驗證留【B】。
+- 模擬SSL/逾時的自動重試驗證留【B】；本輪由調度員手動重試一次並記錄。
 - A 案的查證判斷不改 B 案看到的狀態（每案紀錄互相獨立）。
 
 ## Step 9 — 書狀骨架
@@ -397,13 +398,13 @@
    - 代理被告：9B「預先準備的答辯狀草稿」（只支援起訴前，標題標明）；另產「對方可能起訴要點（預演用，非書狀）」。9B 的「對原告主張之陳述」素材是被告 Stage 3 的 `rebuttal`，這在答辯狀是正當用途。
    - UI 的書狀選擇改為依代理方顯示可選項目。
 5. 9C 補產規則同上；舊案件（無 `represented_side`）維持現行 9A／9B 行為。
-6. `record_pleading` 檢查 `citations` 必須是字串陣列，且每筆都能在該案 `case_citation_checks` 找到 `published` 紀錄（同 Step 8 第 9 點）；格式不對就拒絕並說明正確格式，不靠調度員轉換。
+6. 引用實際採用的published檢查保留。**【B，依 Codex 紀錄發現】** 新增citations字串陣列格式檢查，報告後再做；本輪調度員維持既有格式轉換並記錄。
 
 **檔案**：`SKILL.md` Step 9、`main.py cmd_pleading_source`、`database/db.py record_pleading`、`database/schema.py`（`pleading_drafts` 存 `claim_breakdown`）、`ui/app.js`
 **驗證**：
 - 用 08-08 test-002 起訴狀（第一段即寫「被告主張…」）與 003 起訴狀（留著「本方」）當反例，應被擋下。
 - 用 Codex real-001 的原告起訴狀（`docs/live-run-records/codex-real-2026-10-31-001/pleading_draft_plaintiff.txt`）當固定測試案例，應被擋下。這是換模型、真實案件後唯一實際發生的 P2，而 real-002 原本沒產生書狀，沒有前後可比，所以 P2 的修正效果用這個測試證明，不靠重跑。
-- `citations` 傳物件陣列時被拒絕。
+- 【B】新增物件陣列格式拒絕測試；本輪不新增此格式驗收。
 - 明細加總不符時有警示；`to_confirm` 的金額出現在律師附註而非訴之聲明。
 - 代理原告時不會產生 9B 格式的答辯狀。
 
@@ -468,17 +469,17 @@
 
 ## 執行順序（決賽前，報告日在 11/7 之後）
 
-**已定案（2026-10-31 討論）**：分三層，每層做完都可單獨合併；UI 放第三層（取代 Step 1「UI 這週一起改」的決定）。全部估約 7.5–8.5 天，不含重跑與評估（依 Codex 重試紀錄補了 Step 8 第 8–12 點，多半天）。
+**已定案（2026-10-31 討論）**：分三層，每層做完都可單獨合併；UI 放第三層（取代 Step 1「UI 這週一起改」的決定）。全部估約7–8天，不含重跑與評估；依最新時間限制篩選，Step8五項新增工程移至【B】。
 
 | 層 | 工作 | 對應步驟 | 估時 |
 |---|---|---|---|
-| **第一層：重跑最低需求** | ① 查證修正：文件身分、白名單、每案紀錄、第一二層比對、`verify_prompt.txt`、`version_unverified`、`verify-gate`、自動重試、`record-verification`、落地時檢查法規 | Step 8 | 1.5 天 |
+| **第一層：重跑最低需求** | ① 查證修正：文件身分、白名單、每案紀錄、第一二層比對、`verify_prompt.txt`、`version_unverified`；prose總閘門調整 | Step 8 | 1 天 |
 | | ② 案件欄位、`role-view`（事實編號、去 `source_note`）、程序別警示；**不含 UI** | Step 1 | 半天 |
 | | ③ items、`internal_notes`、`precedent_notes`、狀態轉移與撤回檢查、程式摘要、三準則 | Step 2、4、5 | 1.5 天 |
 | | ④ 法官 `question_type`、`prep_items`、`issues`、「自承」檢查 | Step 3 | 半天 |
 | | ⑤ 錨點改寫（`defeat_conditions`、`pending`、`status_changes`、`citation_set_change`） | Step 6 | 半天 |
 | | ⑥ 評估只改約束、覆蓋檢查、「待確認」字眼檢查；表格留第二層 | Step 7 一部分 | 半天 |
-| | ⑦ 9A 素材與字樣檢查（含「對造」與流程用語）、引用格式檢查、001 起訴狀固定測試、依代理方決定產出 | Step 9 一部分 | 半天 |
+| | ⑦ 9A 素材與字樣檢查（含「對造」與流程用語）、001 起訴狀固定測試、依代理方決定產出 | Step 9 一部分 | 半天 |
 | | ⑧ `SKILL.md` 改寫；pytest 全過；real-002 輸入轉換與調度設定；重跑並依指標評估 | 驗證計畫 | 半天＋重跑 |
 | **第二層** | 逐爭點表格與參考等級；金額明細；`report` 指令 | Step 7、9、10 | 1.5–2 天 |
 | **第三層** | UI：建案表單、總覽、評估表格、改名、引述帶出原文、書狀選項 | Step 1、6、7、9、10 | 1.5 天 |
@@ -487,3 +488,7 @@
 - 第一層 ③ 是核心：Step 4、5 的撤回檢查擋住 real-002 的時效問題，是前後對照圖的主角。
 - 重跑在背景執行，同時做簡報。
 - 簡報不依賴重跑結果：重跑成功是加分的一張對照圖；沒跑完就以本計畫當「修正架構」那一張的內容；畫面用設計示意圖代替。
+
+### 實作串接補註（獨立程式審查後）
+
+本輪沒有新增延期的專用寫入指令。為使原定三層查證能在正式UI流程使用，既有 `verify` 提供 `--prepare-only [--candidate-json ...]` 唯讀清單及 `--review-json` 接收獨立結果，重新比對本次機械證據後只寫本案支持性；不能把僅字號存在的結果冒充全文支持。UI編輯/匯出同樣沿用既有本案落地檢查，歷史版本限定不能在抽取與去重時消失。

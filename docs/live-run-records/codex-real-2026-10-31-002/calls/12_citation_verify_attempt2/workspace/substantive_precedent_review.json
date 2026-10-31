@@ -1,0 +1,618 @@
+{
+  "case_id": "real-2026-10-31-002",
+  "reviewer_context": "本回合專責獨立查證，未產生被查核之攻防或判決；可用工具無再開subagent介面，未宣稱另啟動其他agent。",
+  "full_text_document_count": 15,
+  "unique_precedent_count": 13,
+  "verdict_precedent_count": 4,
+  "all_claims_supported_with_limits": true,
+  "records": [
+    {
+      "citation": "最高法院114年度台上字第2031號",
+      "aliases": [
+        "最高法院114年度台上字第2031號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260514",
+      "jid": "TPSV,114,台上,2031,20260514,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,2031,20260514,1.txt",
+      "source_sha256": "c7a3604b827bcd1bfbf533f9b06d9d0e23ce5005b21b2aa0355b14ed033d09c4",
+      "read_in_full": true,
+      "case_issue": "損害賠償；不實財報與銀行授信",
+      "source_section": "理由四",
+      "claim_checked": "不實事實重要性與意思形成的因果關係；不要求詐術為唯一動機。",
+      "supporting_quote": "不真實之事實是否重要而有影響意思之形成，應以該事實與表意人自由形成意思之過程有無因果關係為斷。",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "可支持詐欺信賴因果的審查方法；不證明本案機器人虛構、乙知情或甲交付。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C2031%2C20260514%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院114年度台上字第2031號": [
+          {
+            "step": "s1_plaintiff",
+            "field": "cited_precedents",
+            "index": 0
+          },
+          {
+            "step": "s2_defendant",
+            "field": "cited_precedents",
+            "index": 0
+          },
+          {
+            "step": "s3_plaintiff",
+            "field": "cited_precedents",
+            "index": 0
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院114年度台上字第1945號",
+      "aliases": [
+        "最高法院114年度台上字第1945號",
+        "最高法院114年度台上字第1945號判決"
+      ],
+      "in_verdict_citations_used": true,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260513",
+      "jid": "TPSV,114,台上,1945,20260513,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1945,20260513,1.txt",
+      "source_sha256": "425f13576edfc3868f439e7e4eb0b549f1c823760744e33edbce7ba6a3e48943",
+      "read_in_full": true,
+      "case_issue": "確認本票債權不存在等；受詐欺契約效力與契約不成立",
+      "source_section": "理由五",
+      "claim_checked": "受詐欺但尚未撤銷的有效契約，與意思未合致而自始未成立，應區別。",
+      "supporting_quote": "被詐欺而締結契約者，在表意人依法撤銷其意思表示之前，契約仍為有效；當事人之意思表示未合致者，其契約則自始未成立",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "支持契約給付與不當得利的條件分流；不判定本案已撤銷或契約未成立。不得使用同案號115年3月4日承受訴訟裁定代替。",
+      "other_same_number_documents_read": [
+        {
+          "file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1945,20260304,2.txt",
+          "sha256": "ec5be6596fb687a48891b60a310ea559090b83b2089226c6686e6e4dbacd12cc",
+          "read_in_full": true,
+          "disposition": "同案號其他程序裁定，不支持本次實體命題"
+        }
+      ],
+      "engine_source_matches_selected_full_text": false,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C1945%2C20260513%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院114年度台上字第1945號": [
+          {
+            "step": "s1_plaintiff",
+            "field": "cited_precedents",
+            "index": 1
+          },
+          {
+            "step": "s2_defendant",
+            "field": "cited_precedents",
+            "index": 1
+          },
+          {
+            "step": "s3_plaintiff",
+            "field": "cited_precedents",
+            "index": 1
+          }
+        ],
+        "最高法院114年度台上字第1945號判決": [
+          {
+            "step": "verdict",
+            "field": "citations_used",
+            "index": 24
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院114年度台上字第1939號",
+      "aliases": [
+        "最高法院114年度台上字第1939號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260409",
+      "jid": "TPSV,114,台上,1939,20260409,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1939,20260409,1.txt",
+      "source_sha256": "1d9a582414d607566582555d7be1c55a3fcf01f68024c1ecc248e34a8020a657",
+      "read_in_full": true,
+      "case_issue": "塗銷所有權移轉登記等；農地借名與給付型不當得利",
+      "source_section": "理由五",
+      "claim_checked": "先辨明給付關係當事人及受益歸屬。",
+      "supporting_quote": "給付關係之當事人究為何人？自有詳加研求之必要。",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "支持辨明指定第三人受領與給付歸屬；土地登記利益不等於本案錢包或10顆之受益已證。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C1939%2C20260409%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院114年度台上字第1939號": [
+          {
+            "step": "s1_plaintiff",
+            "field": "cited_precedents",
+            "index": 2
+          },
+          {
+            "step": "s1_defendant",
+            "field": "cited_precedents",
+            "index": 1
+          },
+          {
+            "step": "s2_plaintiff",
+            "field": "cited_precedents",
+            "index": 1
+          },
+          {
+            "step": "s2_defendant",
+            "field": "cited_precedents",
+            "index": 2
+          },
+          {
+            "step": "s3_plaintiff",
+            "field": "cited_precedents",
+            "index": 2
+          },
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 1
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院115年度台上字第561號",
+      "aliases": [
+        "最高法院115年度台上字第561號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260422",
+      "jid": "TPSV,115,台上,561,20260422,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,561,20260422,1.txt",
+      "source_sha256": "ff2d5d3f15da881e734a73a6ad1fc94317ce54c2e3c6c2e27f2270b8b9d5ec2d",
+      "read_in_full": true,
+      "case_issue": "損害賠償；不當假扣押致商譽受損",
+      "source_section": "理由四㈠",
+      "claim_checked": "損害額酌定須先證明有損害，且數額客觀不能或重大困難證明，並須具體說理。",
+      "supporting_quote": "係以當事人已證明受有損害，然有客觀上不能證明其數額或證明顯有重大困難之情事",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "可支持第222條第2項之限制；不得用酌定補足交幣、收益或責任成立之證明。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C115%2C%E5%8F%B0%E4%B8%8A%2C561%2C20260422%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院115年度台上字第561號": [
+          {
+            "step": "s1_plaintiff",
+            "field": "cited_precedents",
+            "index": 3
+          },
+          {
+            "step": "s2_defendant",
+            "field": "cited_precedents",
+            "index": 3
+          },
+          {
+            "step": "s3_plaintiff",
+            "field": "cited_precedents",
+            "index": 3
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院114年度台上字第1131號",
+      "aliases": [
+        "最高法院114年度台上字第1131號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260527",
+      "jid": "TPSV,114,台上,1131,20260527,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1131,20260527,1.txt",
+      "source_sha256": "c23c5e739eee95bcac9000805579d17ad3a4d0d8798e56fc85d179c61f784dd0",
+      "read_in_full": true,
+      "case_issue": "侵權行為損害賠償；英國旅店投資及非法收受存款",
+      "source_section": "理由四",
+      "claim_checked": "應按實質檢驗向多數或不特定人吸收資金及顯不相當報酬，不能僅因境外簽約或揭露風險即否定。",
+      "supporting_quote": "凡向多數人或不特定之人收受款項或吸收資金，而約定或給付與本金顯不相當之紅利、利息、股息或其他報酬者",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "草稿只用以說明規範與候選退場界線，未認本案已違反銀行法；本裁判不能取代銀行法兩條的獨立機械查證。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C1131%2C20260527%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院114年度台上字第1131號": [
+          {
+            "step": "s1_plaintiff",
+            "field": "cited_precedents",
+            "index": 4
+          },
+          {
+            "step": "s2_defendant",
+            "field": "cited_precedents",
+            "index": 4
+          },
+          {
+            "step": "s3_plaintiff",
+            "field": "cited_precedents",
+            "index": 4
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院114年度台上字第1071號",
+      "aliases": [
+        "最高法院114年度台上字第1071號",
+        "最高法院114年度台上字第1071號判決"
+      ],
+      "in_verdict_citations_used": true,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260318",
+      "jid": "TPSV,114,台上,1071,20260318,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1071,20260318,1.txt",
+      "source_sha256": "3a6b134fef1105d77960dab526c4c925e6b9aba401c7512aef767cd5424513a1",
+      "read_in_full": true,
+      "case_issue": "夫妻剩餘財產分配；另含匯款140萬元返還",
+      "source_section": "理由四㈡、四㈢",
+      "claim_checked": "受領給付致損獲證後，被告應具體說明受領原因，終局舉證責任不因而轉換。",
+      "supporting_quote": "惟尚非因此使上開舉證責任發生轉換，自不待言。",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "可支持具體陳述及闡明義務；前提仍是受領致損已證，不能以本案答辯欠缺直接認定不當得利。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C1071%2C20260318%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院114年度台上字第1071號": [
+          {
+            "step": "s2_defendant",
+            "field": "cited_precedents",
+            "index": 5
+          },
+          {
+            "step": "s3_plaintiff",
+            "field": "cited_precedents",
+            "index": 5
+          },
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 6
+          }
+        ],
+        "最高法院114年度台上字第1071號判決": [
+          {
+            "step": "verdict",
+            "field": "citations_used",
+            "index": 23
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院115年度台上字第521號",
+      "aliases": [
+        "最高法院115年度台上字第521號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260513",
+      "jid": "TPSV,115,台上,521,20260513,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,521,20260513,1.txt",
+      "source_sha256": "a5ce0bf031601c10bbd80638df18ac3b1d187b0a58ca261fa9c1fd25fb160ba1",
+      "read_in_full": true,
+      "case_issue": "損害賠償；非法棄置廢棄物、時效中斷與連帶債務",
+      "source_section": "理由五㈠至㈢",
+      "claim_checked": "非對話請求須到達債務人；起算與損害範圍不能任意延後；共同債務人的時效效果需查明。",
+      "supporting_quote": "以非對話意思通知為請求者，須通知達到債務人，始中斷時效之進行",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "支持查核催討到達及期間；不證明本案日期、中斷成立或時效已完成。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C115%2C%E5%8F%B0%E4%B8%8A%2C521%2C20260513%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院115年度台上字第521號": [
+          {
+            "step": "s1_defendant",
+            "field": "cited_precedents",
+            "index": 0
+          },
+          {
+            "step": "s2_plaintiff",
+            "field": "cited_precedents",
+            "index": 0
+          },
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 0
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院114年度台上字第2167號",
+      "aliases": [
+        "最高法院114年度台上字第2167號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260507",
+      "jid": "TPSV,114,台上,2167,20260507,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,2167,20260507,1.txt",
+      "source_sha256": "8b4e9e0d08493a865fe128bfc1775292675038c74d32de11fb80c88ef85ba27c",
+      "read_in_full": true,
+      "case_issue": "返還價金等；設備遲延、替代設備價差及營運所失利益",
+      "source_section": "理由四",
+      "claim_checked": "損害範圍依實際損害；最大許可產量不能直接視為實際銷售量計算所失利益。",
+      "supporting_quote": "基於「有損害斯有賠償」之原理，仍應以債權人實際所受之損害為準。",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "支持損害數額及所失利益的證據要求；不支持固定契約給付須先實際獲利。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C2167%2C20260507%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院114年度台上字第2167號": [
+          {
+            "step": "s1_defendant",
+            "field": "cited_precedents",
+            "index": 2
+          },
+          {
+            "step": "s2_plaintiff",
+            "field": "cited_precedents",
+            "index": 2
+          },
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 2
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院113年度台上字第2221號",
+      "aliases": [
+        "最高法院113年度台上字第2221號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260402",
+      "jid": "TPSV,113,台上,2221,20260402,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,113,台上,2221,20260402,1.txt",
+      "source_sha256": "e78bfbc1e9ffd2bbd5a2fbdad67fb6bde728c3c4c3ae80ef6d3a1c01260885ff",
+      "read_in_full": true,
+      "case_issue": "損害賠償；看護疏失、與有過失及死亡因果",
+      "source_section": "理由四",
+      "claim_checked": "過失相抵須有助成損害的行為及相當因果關係，不能抽象減責。",
+      "supporting_quote": "所謂被害人與有過失，須被害人之行為助成損害之發生或擴大，就結果之發生為共同原因之一",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "可支持撤除欠缺事證的過失相抵；不證明本案投資人有過失，也未一概否定所有特殊體質因素之評價。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C113%2C%E5%8F%B0%E4%B8%8A%2C2221%2C20260402%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院113年度台上字第2221號": [
+          {
+            "step": "s1_defendant",
+            "field": "cited_precedents",
+            "index": 3
+          },
+          {
+            "step": "s2_plaintiff",
+            "field": "cited_precedents",
+            "index": 3
+          },
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 3
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院114年度台上字第1738號",
+      "aliases": [
+        "最高法院114年度台上字第1738號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260429",
+      "jid": "TPSV,114,台上,1738,20260429,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,114,台上,1738,20260429,1.txt",
+      "source_sha256": "662e1355fba9c2ad7917da6620701e82567426d2e0e71c5f1793185a2e16c85c",
+      "read_in_full": true,
+      "case_issue": "清償債務等；合資挖以太幣、LINE結算、合資清算",
+      "source_section": "理由四",
+      "claim_checked": "單純沈默不當然是默示同意；須查明對話合意與合資結算清算。",
+      "supporting_quote": "若單純之沈默，則除有特別之情事足認為同意外，不得認係默示之同意。",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "支持完整解釋LINE對話；不證明本案有合資關係、無固定承諾或必須清算。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C1738%2C20260429%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院114年度台上字第1738號": [
+          {
+            "step": "s1_defendant",
+            "field": "cited_precedents",
+            "index": 4
+          },
+          {
+            "step": "s2_plaintiff",
+            "field": "cited_precedents",
+            "index": 4
+          },
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 4
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院115年度台上字第207號",
+      "aliases": [
+        "最高法院115年度台上字第207號",
+        "最高法院115年度台上字第207號裁定"
+      ],
+      "in_verdict_citations_used": true,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "裁定",
+      "judgment_date": "20260325",
+      "jid": "TPSV,115,台上,207,20260325,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,207,20260325,1.txt",
+      "source_sha256": "35b03a5733e7507fb85e2e6b9862a8afba2b358db8c3f2a41aeb03c031b00f03",
+      "read_in_full": true,
+      "case_issue": "給付工程款；第三審上訴不合法及證明妨礙前提",
+      "source_section": "理由二末段",
+      "claim_checked": "無故意滅失隱匿證據之認定，亦未命提出文書時，不能逕用第282條之1或第345條。",
+      "supporting_quote": "原審並未認定世達公司有故意將證據滅失、隱匿或致礙難使用之情",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "末段確有程序命題，故不因工程案由而排除相關性；不得擴張為未交程式即推定詐欺，也不能混淆第282條之1與第345條各自要件。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C115%2C%E5%8F%B0%E4%B8%8A%2C207%2C20260325%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院115年度台上字第207號": [
+          {
+            "step": "s2_plaintiff",
+            "field": "cited_precedents",
+            "index": 5
+          },
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 5
+          }
+        ],
+        "最高法院115年度台上字第207號裁定": [
+          {
+            "step": "verdict",
+            "field": "citations_used",
+            "index": 26
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院115年度台上字第192號",
+      "aliases": [
+        "最高法院115年度台上字第192號",
+        "最高法院115年度台上字第192號判決"
+      ],
+      "in_verdict_citations_used": true,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "判決",
+      "judgment_date": "20260325",
+      "jid": "TPSV,115,台上,192,20260325,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,192,20260325,1.txt",
+      "source_sha256": "72cd436548d5db55ece79961ff84785b2568358d5c968af83591380683b46e0f",
+      "read_in_full": true,
+      "case_issue": "給付貨款及預付款返還；間接事實與舉證",
+      "source_section": "理由四㈠",
+      "claim_checked": "債權發生原因可用間接事實證明；本證達相當程度後對造需提出足以推翻或動搖的資料。",
+      "supporting_quote": "足以推認該待證事實存在之間接事實，即無不可，非以直接證明該待證事實為必要。",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "可援一般證明方法，不可移植帳務事實證明本案詐欺；同日擴張之訴裁定非此命題來源。",
+      "other_same_number_documents_read": [
+        {
+          "file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,192,20260325,2.txt",
+          "sha256": "0d4dbba48e7072db9a7237795c729bc2db8609caa0f3c5d2628780cd1b4c5060",
+          "read_in_full": true,
+          "disposition": "同案號其他程序裁定，不支持本次實體命題"
+        }
+      ],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C115%2C%E5%8F%B0%E4%B8%8A%2C192%2C20260325%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院115年度台上字第192號": [
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 7
+          }
+        ],
+        "最高法院115年度台上字第192號判決": [
+          {
+            "step": "verdict",
+            "field": "citations_used",
+            "index": 25
+          }
+        ]
+      }
+    },
+    {
+      "citation": "最高法院115年度台上字第459號",
+      "aliases": [
+        "最高法院115年度台上字第459號"
+      ],
+      "in_verdict_citations_used": false,
+      "scope": "提供的 final_use_precedents 清單",
+      "document_type": "裁定",
+      "judgment_date": "20260527",
+      "jid": "TPSV,115,台上,459,20260527,1",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,459,20260527,1.txt",
+      "source_sha256": "9782bbff49d25bef677647861b3114eb609bd098a33a8d6a76fbbc51c17f4ce4",
+      "read_in_full": true,
+      "case_issue": "清償借款；第三審上訴不合法",
+      "source_section": "理由二",
+      "claim_checked": "裁定轉述原審就108年至110年7月19日採20%，110年7月20日起採16%的計算。",
+      "supporting_quote": "自110年7月20日（修正民法第205條規定施行日）起至111年6月2日止（強制執行清償日）按年息16%",
+      "quote_whitespace_normalized_match": true,
+      "relevance_result": "pass_with_stated_limits",
+      "limits": "僅對草稿「原審如此計算、仍待核實舊法」的描述通過；不能作為已獨立核驗108年舊法全文、超額無請求權效果或施行法第10條之1的依據。",
+      "other_same_number_documents_read": [],
+      "engine_source_matches_selected_full_text": true,
+      "official_reference_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C115%2C%E5%8F%B0%E4%B8%8A%2C459%2C20260527%2C1&ot=in",
+      "official_url_note": "依本地裁判JID構造的回查連結；本回合未另發HTTP請求。",
+      "source_provenance": {
+        "最高法院115年度台上字第459號": [
+          {
+            "step": "s3_defendant",
+            "field": "cited_precedents",
+            "index": 8
+          }
+        ]
+      }
+    }
+  ]
+}

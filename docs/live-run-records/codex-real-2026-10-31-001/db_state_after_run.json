@@ -1,0 +1,58 @@
+{
+  "recorded_at_utc": "2026-10-31T07:12:24.942283+00:00",
+  "database_path": "database/codex_runs.db",
+  "access": "SQLite URI mode=ro; PRAGMA query_only=ON; SELECT/metadata queries only; transaction rolled back; no project module import.",
+  "database_sha256_before": "1f72dc3814474e2790e2946f654e1129974922c3b4f10ec16f3b9b7eaf386231",
+  "database_sha256_after": "1f72dc3814474e2790e2946f654e1129974922c3b4f10ec16f3b9b7eaf386231",
+  "database_bytes_unchanged_during_audit": true,
+  "case_id": "real-2026-10-31-001",
+  "case_owned_row_counts": {
+    "cases": 1,
+    "debate_arguments": 6,
+    "court_questions": 14,
+    "verdicts": 0,
+    "pleading_drafts": 0,
+    "party_checks": 0,
+    "live_runs": 0
+  },
+  "global_table_counts": {
+    "cases": 2,
+    "citation_verifications": 65,
+    "court_questions": 27,
+    "debate_arguments": 12,
+    "live_runs": 0,
+    "party_checks": 0,
+    "pleading_drafts": 0,
+    "verdicts": 0
+  },
+  "global_citation_status_counts": [
+    {
+      "source_type": "judgment",
+      "status": "published",
+      "count": 5
+    },
+    {
+      "source_type": "statute",
+      "status": "published",
+      "count": 60
+    }
+  ],
+  "global_primary_source_url_host_counts": {
+    "law.moj.gov.tw": 60,
+    "(no URL)": 5
+  },
+  "global_verified_at_range": [
+    "2026-10-31T06:59:55Z",
+    "2026-10-31T07:03:25Z"
+  ],
+  "global_verifier_run_id_null_count": 65,
+  "citation_attribution_limit": "citation_verifications has no case_id and all current verifier_run_id values are NULL; global rows are not case-owned counts.",
+  "input_membership_only": {
+    "input_strings": 73,
+    "canonical_identities": 65,
+    "exact_input_strings_present_in_global_db": 65,
+    "input_strings_with_published_canonical_identity": 73,
+    "canonical_identities_present_published": 65
+  },
+  "publication_conclusion": "No verdict or pleading rows exist for this case. Global citation statuses alone do not establish Step8 completion or substantive support."
+}

@@ -1,0 +1,144 @@
+{
+  "captured_at": "2026-10-31T08:33:50.350718+00:00",
+  "case_counts": {
+    "cases": [
+      {
+        "case_id": "real-2026-10-31-001",
+        "n": 1
+      },
+      {
+        "case_id": "real-2026-10-31-002",
+        "n": 1
+      }
+    ],
+    "debate_arguments": [
+      {
+        "case_id": "real-2026-10-31-001",
+        "n": 6
+      },
+      {
+        "case_id": "real-2026-10-31-002",
+        "n": 6
+      }
+    ],
+    "court_questions": [
+      {
+        "case_id": "real-2026-10-31-001",
+        "n": 14
+      },
+      {
+        "case_id": "real-2026-10-31-002",
+        "n": 13
+      }
+    ],
+    "verdicts": [
+      {
+        "case_id": "real-2026-10-31-001",
+        "n": 1
+      }
+    ],
+    "pleading_drafts": [
+      {
+        "case_id": "real-2026-10-31-001",
+        "n": 2
+      }
+    ]
+  },
+  "database_inventory": [
+    [
+      "codex_runs.db",
+      503808
+    ],
+    [
+      "db.py",
+      16124
+    ],
+    [
+      "legal_debate.db",
+      241664
+    ],
+    [
+      "schema.py",
+      7167
+    ],
+    [
+      "__pycache__",
+      "dir"
+    ],
+    [
+      "其他輸出",
+      "dir"
+    ]
+  ],
+  "citation_status_counts": [
+    {
+      "status": "draft",
+      "n": 4
+    },
+    {
+      "status": "published",
+      "n": 123
+    }
+  ],
+  "draft_citations": [
+    {
+      "id": 52,
+      "citation_text": "民法第205條",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205",
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    },
+    {
+      "id": 125,
+      "citation_text": "民法債編施行法第10條之1",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": null,
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    },
+    {
+      "id": 126,
+      "citation_text": "銀行法第29條",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": null,
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    },
+    {
+      "id": 127,
+      "citation_text": "銀行法第29條之1",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": null,
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    }
+  ],
+  "post_cleanup_inventory_captured_at": "2026-10-31T08:48:57.990989+00:00",
+  "post_cleanup_database_inventory": [
+    [
+      "codex_runs.db",
+      503808
+    ],
+    [
+      "db.py",
+      16124
+    ],
+    [
+      "legal_debate.db",
+      241664
+    ],
+    [
+      "schema.py",
+      7167
+    ],
+    [
+      "__pycache__",
+      "dir"
+    ]
+  ]
+}

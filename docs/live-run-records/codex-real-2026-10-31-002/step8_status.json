@@ -1,0 +1,35 @@
+{
+  "status": "failed_with_raw_execution_evidence",
+  "adopted_call": "12_citation_verify_attempt2",
+  "raw_initial_strings": 111,
+  "raw_initial_statuses": {
+    "published": 107,
+    "unparseable": 3,
+    "verification_failed": 1
+  },
+  "same_citation_retry": {
+    "citation": "民事訴訟法第195條",
+    "status": "published"
+  },
+  "mechanical_latest_string_statuses": {
+    "published": 108,
+    "unparseable": 3
+  },
+  "canonical_identities": 106,
+  "final_role_scope_decisions": {
+    "passed": 102,
+    "draft": 4
+  },
+  "parser_unparseable": [
+    "民法債編施行法第10條之1",
+    "銀行法第29條",
+    "銀行法第29條之1"
+  ],
+  "historical_version_unverified": [
+    "民法第205條 (108年版)"
+  ],
+  "verdict_published": false,
+  "pleadings_generated": false,
+  "raw_trace_available": true,
+  "note": "CLI verify exit0 is not an all-pass gate result. Role conservatively retained4draft entries; controller did not call verdict/pleading or remove citations."
+}

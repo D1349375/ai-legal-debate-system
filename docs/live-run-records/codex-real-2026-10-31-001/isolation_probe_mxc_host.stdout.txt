@@ -1,0 +1,1 @@
+{"allowed_case_read": true, "allowed_corpus_read": true, "other_run_file": "PermissionError", "withheld_file": "PermissionError", "source_attachment": "PermissionError"}

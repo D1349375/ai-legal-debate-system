@@ -1,0 +1,15 @@
+{
+  "recorded_at": "2026-10-31T07:44:54.971325+00:00",
+  "reason": "Preserve first-attempt evaluation before explicitly authorized Step8 retry",
+  "files_sha256": {
+    "eval.md": "5f984171dd4d21bf09813bb4ccf83e2714ab833954b7492e80a44b762aa7cc7c",
+    "eval_annotations.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+    "machine_checks.json": "b27a964d053077a902c07efae270404f829a18830a3a6fcaff26336dfec21842",
+    "run_statistics.json": "0c5ce7bbd3c58ead49b8f9f54334b4134f5bb67c99b2dea6729f8db5fd8d7b01",
+    "run_manifest.json": "37b02c6097a7533dc7109b6471995683d3c33e7fb48d9eb9b57c1422bcbd5f96",
+    "controller_state.json": "a319244151720eaf215e87e6a0f22e67aeb51aa9a705d71f6ac2d96801aa2177",
+    "step8_status.json": "2b0d05311aeeca19a7c6f767d0471409d8f9b384a927451c5e9af8d16f80f9c5",
+    "delivery_validation.json": "72562083d699aee501e46d45dcfcb006f446fc642ffc2954afcc85f311a2b6bd",
+    "codex-real-cases-summary.md": "450073056364d03256faf10f938196651eb9e8d37926d34ec7450fa710e017ad"
+  }
+}

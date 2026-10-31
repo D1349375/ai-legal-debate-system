@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-10-31T12:00:17.805828+00:00",
+  "model_called": false,
+  "checks": [
+    {
+      "argv": [
+        "C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "-c",
+        "import json,sqlalchemy,fastapi; print(json.dumps({\"sqlalchemy\":sqlalchemy.__version__,\"fastapi\":fastapi.__version__}))"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"sqlalchemy\": \"2.0.36\", \"fastapi\": \"0.115.2\"}\r\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "C:\\Users\\berto\\AppData\\Local\\OpenAI\\Codex\\bin\\2993767bd1dfb009\\codex.EXE",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "codex-cli 0.164.0-alpha.11.1\n",
+      "stderr": "WARNING: failed to clean up stale arg0 temp dirs: 存取被拒。 (os error 5)\nWARNING: proceeding, even though we could not create PATH aliases: 存取被拒。 (os error 5) at path \"C:\\\\Users\\\\berto\\\\.codex\\\\tmp\\\\arg0-windows\\\\codex-arg0bWe3uB\"\n"
+    }
+  ],
+  "passed": true,
+  "isolation": {
+    "root_default": "deny",
+    "network": false,
+    "nested_agents": false,
+    "runtime_sandbox_smoke_test": "未呼叫模型，須以正式第一call記錄實測結果"
+  }
+}

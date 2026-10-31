@@ -42,9 +42,15 @@ def make_client(db_url, tmp_path, monkeypatch, mode="full", enabled=True, **live
 
 
 def create(client, **over):
-    r = client.post("/api/cases", json={**CASE, **over})
-    assert r.status_code == 201, r.text
-    return r.json()["case_id"]
+    # 此檔驗證錄製協議的串流/取消/續跑，相容性fixture明確建成legacy；
+    # 新版建案HTTP契約另由test_role_ui_api與獨立驗收測試覆蓋。
+    from server import services
+    data = {**CASE, **over}
+    with client.app.state.live.factory() as session:
+        row = record_case(session, case_type=data["case_type"], facts_summary=data["facts_summary"],
+                          claims=data["claims"], parties={side:data[side] for side in ("plaintiff","defendant")},
+                          case_id=data.get("case_id") or services._next_case_id(session))
+        return row.case_id
 
 
 def run_to_end(client, case_id):

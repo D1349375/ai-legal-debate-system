@@ -1,0 +1,1793 @@
+{
+  "audit_kind": "bookkeeping_checkpoint_only",
+  "snapshot_started_at_utc": "2026-10-31T05:45:22.082568+00:00",
+  "snapshot_finished_at_utc": "2026-10-31T05:45:22.255031+00:00",
+  "role_call_status": "PASS",
+  "scope": "No case-merits evaluation, citation-merits check, original judgment attachment read, holdout read, role execution, main.py execution, or network request. Case inputs were read only as bytes for hash comparisons.",
+  "counts": {
+    "role_calls": 18,
+    "prompt_reconstructions": 18,
+    "input_hashes": 54,
+    "input_source_copies": 54,
+    "protected_hashes": 30,
+    "frozen_templates": 10,
+    "selected_wrappers": 10,
+    "raw_actor_fields": 48,
+    "event_final_outputs": 10,
+    "summaries": 8,
+    "question_wrappers": 27,
+    "unadopted_environment_failures": 4,
+    "pending_outputs": 4
+  },
+  "cases": [
+    {
+      "record_root": "docs/live-run-records/codex-real-2026-10-31-001",
+      "run_manifest": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "call_manifests": [
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/call_manifest.json"
+      ]
+    },
+    {
+      "record_root": "docs/live-run-records/codex-real-2026-10-31-002",
+      "run_manifest": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "call_manifests": [
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/call_manifest.json",
+        "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/call_manifest.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/run_manifest.json",
+      "check": "fixed_prefix_matches_handoff",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/case.json",
+      "check": "case_snapshot_hash",
+      "passed": true
+    },
+    {
+      "path": "data/cases/real-2026-10-31-001.json",
+      "check": "source_case_hash",
+      "passed": true
+    },
+    {
+      "path": "main.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/aggregate.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/court_map.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/gcis.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_issues.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_rules.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/stance_rag.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/verify.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "database/db.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "database/schema.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/judge_question_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage1_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage2_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage3_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/verdict_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/frozen_templates/judge_question_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/frozen_templates/stage1_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/frozen_templates/stage2_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/frozen_templates/stage3_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/frozen_templates/verdict_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1/call_manifest.json",
+      "check": "failed_call_has_no_selected_output",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/call_manifest.json",
+      "check": "failed_call_has_no_selected_output",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/p_s1.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 5
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/p_s1.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/03_p_s1_attempt2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/d_s1.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 5
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/d_s1.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/04_d_s1_attempt2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/workspace/stage1_all.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/workspace/stage1_all.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/stage1_all.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/judge_questions.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 2
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/judge_questions.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/05_judge_questions/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/p_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/opponent_s1_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/opponent_s1_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/d_s1_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/judge_questions.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/workspace/judge_questions.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/judge_questions.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/p_s2.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 6
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/p_s2.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/06_p_s2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/d_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/opponent_s1_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/opponent_s1_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/p_s1_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/judge_questions.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/workspace/judge_questions.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/judge_questions.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/d_s2.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 6
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/d_s2.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/07_d_s2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/own_s2.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/own_s2.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/p_s2.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/opponent_s2_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/opponent_s2_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/d_s2_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/p_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/own_s2.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/own_s2.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/d_s2.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/opponent_s2_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/opponent_s2_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/p_s2_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-001/d_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/p_s1_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/s1_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "p"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/d_s1_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/s1_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "d"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/p_s2_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/s2_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "p"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/d_s2_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/s2_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "d"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/stage1_all.json",
+      "check": "aggregate_preserves_raw_actor_json",
+      "passed": true,
+      "detail": "plaintiff"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/stage1_all.json",
+      "check": "aggregate_preserves_raw_actor_json",
+      "passed": true,
+      "detail": "defendant"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q01.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q02.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q03.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q04.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q05.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q06.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q07.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q08.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q09.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q10.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q11.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q12.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q13.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/q14.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "fixed_prefix_matches_handoff",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/case.json",
+      "check": "case_snapshot_hash",
+      "passed": true
+    },
+    {
+      "path": "data/cases/real-2026-10-31-002.json",
+      "check": "source_case_hash",
+      "passed": true
+    },
+    {
+      "path": "main.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/aggregate.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/court_map.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/gcis.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_issues.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_rules.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/stance_rag.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/verify.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "database/db.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "database/schema.py",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/judge_question_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage1_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage2_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage3_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/verdict_prompt.txt",
+      "check": "protected_initial_manifest_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/frozen_templates/judge_question_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/frozen_templates/stage1_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/frozen_templates/stage2_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/frozen_templates/stage3_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/frozen_templates/verdict_prompt.txt",
+      "check": "frozen_equals_repository_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1/call_manifest.json",
+      "check": "failed_call_has_no_selected_output",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1/call_manifest.json",
+      "check": "failed_call_has_no_selected_output",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/p_s1.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 5
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/p_s1.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/03_p_s1_attempt2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/d_s1.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 5
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/d_s1.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/04_d_s1_attempt2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/workspace/stage1_all.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/workspace/stage1_all.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/stage1_all.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/workspace/procedural_issues.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/workspace/procedural_issues.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/procedural_issues.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/judge_questions.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 2
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/judge_questions.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/05_judge_questions/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/p_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/opponent_s1_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/opponent_s1_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/d_s1_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/judge_questions.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/workspace/judge_questions.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/judge_questions.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/p_s2.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 6
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/p_s2.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/06_p_s2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/d_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/opponent_s1_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/opponent_s1_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/p_s1_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/judge_questions.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/workspace/judge_questions.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/judge_questions.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/d_s2.json",
+      "check": "all_raw_actor_fields_preserved_exactly",
+      "passed": true,
+      "detail": {
+        "raw_field_count": 6
+      }
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/d_s2.json",
+      "check": "only_controller_metadata_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/07_d_s2/stream.jsonl",
+      "check": "event_final_json_equals_last_message",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/own_s2.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/own_s2.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/p_s2.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/opponent_s2_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/opponent_s2_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/d_s2_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/p_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/prompt.txt",
+      "check": "exact_prefix_plus_frozen_template_substitutions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/call_manifest.json",
+      "check": "prompt_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/call_manifest.json",
+      "check": "template_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/call_manifest.json",
+      "check": "immutable_call_fields_match_run_manifest",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/case.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/case.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/case.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/own_s2.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/own_s2.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/d_s2.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/opponent_s2_summary.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/opponent_s2_summary.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/p_s2_summary.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/own_s1.json",
+      "check": "input_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3/workspace/own_s1.json",
+      "check": "input_copy_equals_source_bytes",
+      "passed": true,
+      "detail": "docs/live-run-records/codex-real-2026-10-31-002/d_s1.json"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/p_s1_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/s1_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "p"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/d_s1_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/s1_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "d"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/p_s2_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/s2_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "p"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/d_s2_summary.json",
+      "check": "verbatim_position_citations_and_exact_argument_substring",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/s2_summary_provenance.json",
+      "check": "summary_source_hash",
+      "passed": true,
+      "detail": "d"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/stage1_all.json",
+      "check": "aggregate_preserves_raw_actor_json",
+      "passed": true,
+      "detail": "plaintiff"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/stage1_all.json",
+      "check": "aggregate_preserves_raw_actor_json",
+      "passed": true,
+      "detail": "defendant"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q01.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q02.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q03.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q04.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q05.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q06.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q07.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q08.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q09.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q10.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q11.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q12.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/q13.json",
+      "check": "question_raw_fields_preserved",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "unadopted_environment_failure_calls": [
+    "docs/live-run-records/codex-real-2026-10-31-001/calls/01_p_s1",
+    "docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1",
+    "docs/live-run-records/codex-real-2026-10-31-002/calls/01_p_s1",
+    "docs/live-run-records/codex-real-2026-10-31-002/calls/02_d_s1"
+  ],
+  "pending_output_calls": [
+    {
+      "call": "docs/live-run-records/codex-real-2026-10-31-001/calls/08_p_s3",
+      "status": "process_finished"
+    },
+    {
+      "call": "docs/live-run-records/codex-real-2026-10-31-001/calls/09_d_s3",
+      "status": "process_finished"
+    },
+    {
+      "call": "docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3",
+      "status": "process_finished"
+    },
+    {
+      "call": "docs/live-run-records/codex-real-2026-10-31-002/calls/09_d_s3",
+      "status": "running"
+    }
+  ],
+  "limitations": [
+    "The four initial Stage1 calls are unadopted environmental failures; their incomplete output was not treated as current actor output.",
+    "Stage3 outputs pending at this snapshot are not covered by selected-output fidelity checks.",
+    "Summary checking establishes exact copied position/citations and an exact argument substring; it does not evaluate semantic completeness or whether the excerpt is the strongest argument.",
+    "Stage1 aggregates preserve raw actor fields and omit only controller-added case_id/stage/model_id metadata.",
+    "Protected-source checks compare the files listed in the initial run manifests; this is not an exhaustive filesystem-history audit."
+  ],
+  "infrastructure_probes": {
+    "capture_status": "INCOMPLETE_NOT_FULLY_AUDITABLE",
+    "saved_log_files": [
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe.stderr.txt",
+        "bytes": 345,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe.stdout.txt",
+        "bytes": 0,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_cli_shell.stderr.txt",
+        "bytes": 0,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_cli_shell.stdout.txt",
+        "bytes": 121,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_elevated.stderr.txt",
+        "bytes": 88,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_elevated.stdout.txt",
+        "bytes": 0,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_elevated_home_deny.stderr.txt",
+        "bytes": 99,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_elevated_home_deny.stdout.txt",
+        "bytes": 0,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_mxc.stderr.txt",
+        "bytes": 328,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_mxc.stdout.txt",
+        "bytes": 0,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_mxc_host.stderr.txt",
+        "bytes": 0,
+        "protected_path_or_filename_token_matches": []
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-001/isolation_probe_mxc_host.stdout.txt",
+        "bytes": 171,
+        "protected_path_or_filename_token_matches": []
+      }
+    ],
+    "saved_log_file_count": 12,
+    "saved_stdout_stderr_pairs": 6,
+    "saved_log_protected_token_scan": "No listed protected path or filename token found in the saved probe stdout/stderr files. Denial-result labels such as attachment/source_attachment/withheld are present and are not source contents.",
+    "missing_records": [
+      "No dedicated probe prompt records located.",
+      "No dedicated probe permission/config/argv manifests located.",
+      "No Codex JSONL event streams or separate final-message records located for probes."
+    ],
+    "conclusion": "Saved probe artifacts are stdout/stderr only, with empty/error or host-result output. Cannot reconstruct every probe invocation, inspect unsaved probe prompts/configs for protected tokens, or assert that every codex exec invocation was fully captured. Parent supplied no additional probe record paths. Probe record completeness is not covered by the role-call PASS."
+  }
+}

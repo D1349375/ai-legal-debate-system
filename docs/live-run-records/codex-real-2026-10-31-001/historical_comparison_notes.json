@@ -1,0 +1,30 @@
+{
+  "61_confirmed_errors": "未在repo查到逐筆清單、總數來源或計數規則；不能採為錯誤率基準",
+  "references": {
+    "P1": [
+      "docs/zh/e2e-test-report-2026-08-08.md:12",
+      "docs/zh/e2e-test-report-2026-08-08.md:46",
+      "demo/recorded_cases.json:84"
+    ],
+    "P2": [
+      "demo/recorded_cases.json:1438",
+      "demo/recorded_cases.json:1468"
+    ],
+    "P3": [
+      "demo/recorded_cases.json:604",
+      "demo/recorded_cases.json:613"
+    ],
+    "P4": [
+      "docs/zh/e2e-test-report-2026-08-08.md:48",
+      "docs/zh/e2e-test-report-2026-08-08.md:52",
+      "docs/zh/e2e-test-report-2026-08-08.md:146"
+    ],
+    "P5": [
+      "docs/live-run-records/run-4/d_s1.json",
+      "docs/live-run-records/run-4/q7.json",
+      "docs/live-run-records/run-4/d_s2.json"
+    ]
+  },
+  "source": "唯讀程序稽核助理核對舊報告與舊紀錄；未讀本輪角色或holdout",
+  "caution": "舊報告明確認定P4；其他現象可核對但不等同當時已完整人工標註。UI run-1/run-3不完整。"
+}

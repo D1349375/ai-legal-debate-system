@@ -1,0 +1,25 @@
+{
+  "status": "passed_with_execution_deviations",
+  "adopted_call": "13_citation_verify_attempt3",
+  "mechanical_published_strings": 73,
+  "canonical_identities": 65,
+  "final_precedent_documents": 5,
+  "raw_trace_available": true,
+  "verdict_published": true,
+  "deviations": [
+    "direct official HTTP diagnostic outside existing engine",
+    "artifact files written outside run folder then archived byte-for-byte"
+  ],
+  "pleadings_generated": true,
+  "published_pleading_sides": [
+    "plaintiff",
+    "defendant"
+  ],
+  "publication_evidence": [
+    "commands/retry13_record_verdict.stdout.txt",
+    "commands/retry13_record_pleading_plaintiff.stdout.txt",
+    "commands/retry13_record_pleading_defendant.stdout.txt"
+  ],
+  "publication_time_cache_canonical_published": 65,
+  "cache_note": "Later case002 conservatively downgraded shared candidate Civil Code205 for unverified historical version; 001 final verdict and pleading citation lists do not use205."
+}

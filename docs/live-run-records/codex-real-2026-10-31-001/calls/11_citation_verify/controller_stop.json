@@ -1,0 +1,9 @@
+{
+  "reason": "Stop at Step8 execution-environment errors per protocol; no verification result adopted; no verdict or pleadings published.",
+  "observed_errors": [
+    "managed proxy blocked dc.services.visualstudio.com background telemetry",
+    "SQLite journal/dedicated DB write access errors"
+  ],
+  "requested_stop_pid": 18108,
+  "recorded_at": "2026-10-31T07:04:35.358040+00:00"
+}

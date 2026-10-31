@@ -1,0 +1,1702 @@
+{
+  "scope": "Eight selected canonical outputs; anchor response excerpts excluded as identical copies",
+  "canonical_files": [
+    "p_s1.json",
+    "d_s1.json",
+    "p_s2.json",
+    "d_s2.json",
+    "p_s3.json",
+    "d_s3.json",
+    "judge_questions.json",
+    "verdict.json"
+  ],
+  "fact_candidates_unique": [
+    {
+      "kind": "amount",
+      "candidate": "974,000元",
+      "in_input": true,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.position",
+          "offset": 15
+        },
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 5813
+        },
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 6894
+        },
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 7688
+        },
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 8352
+        },
+        {
+          "source": "d_s2.json",
+          "field": "$.position",
+          "offset": 47
+        },
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 1531
+        },
+        {
+          "source": "d_s3.json",
+          "field": "$.position",
+          "offset": 45
+        },
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 4203
+        },
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 5368
+        },
+        {
+          "source": "d_s3.json",
+          "field": "$.falsifier",
+          "offset": 407
+        },
+        {
+          "source": "d_s3.json",
+          "field": "$.falsifier",
+          "offset": 444
+        },
+        {
+          "source": "judge_questions.json",
+          "field": "$.uncontested_points[3]",
+          "offset": 6
+        },
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[0].question_text",
+          "offset": 3
+        },
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[0].based_on",
+          "offset": 81
+        },
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[4].based_on",
+          "offset": 96
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.position",
+          "offset": 85
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 878
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 2546
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 2897
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 4315
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 5025
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 6877
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 7656
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.position",
+          "offset": 4
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 1255
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 1619
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 1657
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 6809
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 7736
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 8185
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 8725
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.position",
+          "offset": 13
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.position",
+          "offset": 33
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 806
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 1815
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 2294
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 2707
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 3961
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 5551
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_main_text",
+          "offset": 161
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 1961
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 3457
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 3955
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.risk_map.對原告不利之處[4]",
+          "offset": 29
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.risk_map.對被告不利之處[6]",
+          "offset": 53
+        }
+      ],
+      "manual_review": "input",
+      "review_note": "原始聲明總額；未擅自分項或當作已證明金額。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "應負責",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.position",
+          "offset": 52
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "date",
+      "candidate": "113年3月19日",
+      "in_input": true,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 1591
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 1715
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 2485
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 4185
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 3912
+        }
+      ],
+      "manual_review": "input_or_equivalent_format",
+      "review_note": "輸入中的締約／交屋／翌日發現日期；民國前綴不影響同一日期。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "date",
+      "candidate": "113年5月21日",
+      "in_input": true,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 1632
+        },
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[1].question_text",
+          "offset": 44
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 1791
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 2040
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 4287
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 3924
+        }
+      ],
+      "manual_review": "input_or_equivalent_format",
+      "review_note": "輸入中的締約／交屋／翌日發現日期；民國前綴不影響同一日期。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "date",
+      "candidate": "113年5月22日",
+      "in_input": true,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 2241
+        },
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 2252
+        },
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 2757
+        },
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 2969
+        },
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[3].question_text",
+          "offset": 34
+        },
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[3].based_on",
+          "offset": 19
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 2280
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 2644
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 6456
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 1754
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 1992
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 2755
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 2822
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 3343
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 3572
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 3806
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 5318
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 4570
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 1404
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.risk_map.建議補強證據[3]",
+          "offset": 6
+        }
+      ],
+      "manual_review": "input_or_equivalent_format",
+      "review_note": "輸入中的締約／交屋／翌日發現日期；民國前綴不影響同一日期。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "主張",
+      "in_input": true,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 73
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.position",
+          "offset": 2
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 1816
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "欠款",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 843
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "另稱",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 2383
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "未列分項",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 6376
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "可提出",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 7479
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "經闡明",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 8487
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "但仍須照片",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.argument",
+          "offset": 1886
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "date",
+      "candidate": "2026-10-31",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s1.json",
+          "field": "$.case_id",
+          "offset": 5
+        },
+        {
+          "source": "d_s2.json",
+          "field": "$.case_id",
+          "offset": 5
+        },
+        {
+          "source": "d_s3.json",
+          "field": "$.case_id",
+          "offset": 5
+        },
+        {
+          "source": "p_s1.json",
+          "field": "$.case_id",
+          "offset": 5
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.case_id",
+          "offset": 5
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.case_id",
+          "offset": 5
+        }
+      ],
+      "manual_review": "metadata",
+      "review_note": "case_id之日期，不是新案情日期。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "免責事實",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 671
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "摘要所",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 1451
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "回答",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 1575
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "知悉",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 1955
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "收受情形",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 2730
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "若照片",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s2.json",
+          "field": "$.argument",
+          "offset": 1824
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "若拆除前後照片",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s2.json",
+          "field": "$.falsifier",
+          "offset": 2
+        },
+        {
+          "source": "d_s3.json",
+          "field": "$.falsifier",
+          "offset": 2
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "目前",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 1502
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 3159
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "全額",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 2615
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "有利",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 3732
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "能否",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 4049
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "不必在",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 4639
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "也尚未",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "d_s3.json",
+          "field": "$.argument",
+          "offset": 5550
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "date",
+      "candidate": "民國113年3月19日",
+      "in_input": true,
+      "occurrences": [
+        {
+          "source": "judge_questions.json",
+          "field": "$.uncontested_points[0]",
+          "offset": 17
+        }
+      ],
+      "manual_review": "input_or_equivalent_format",
+      "review_note": "輸入中的締約／交屋／翌日發現日期；民國前綴不影響同一日期。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "年3月19日簽訂新北市房屋及坐落基地買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "judge_questions.json",
+          "field": "$.uncontested_points[0]",
+          "offset": 22
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "date",
+      "candidate": "民國113年5月21日",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "judge_questions.json",
+          "field": "$.uncontested_points[1]",
+          "offset": 6
+        }
+      ],
+      "manual_review": "input_or_equivalent_format",
+      "review_note": "輸入中的締約／交屋／翌日發現日期；民國前綴不影響同一日期。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "取得",
+      "in_input": true,
+      "occurrences": [
+        {
+          "source": "judge_questions.json",
+          "field": "$.uncontested_points[2]",
+          "offset": 5
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "請提出拆除前後照片",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[1].question_text",
+          "offset": 93
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "所稱",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[9].question_text",
+          "offset": 29
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "尚未",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "judge_questions.json",
+          "field": "$.questions[12].question_text",
+          "offset": 21
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 1332
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "date",
+      "candidate": "113年11月22日",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 2665
+        },
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 3625
+        },
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 4616
+        },
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 1447
+        }
+      ],
+      "manual_review": "conditional_legal_calculation",
+      "review_note": "以113年5月22日有效通知為假設計算六個月；文本明示前提及例外，未稱真實送達或確定逾期。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "不得",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 6711
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "另應調查買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 636
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "乙於113年3月19日簽訂房地買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 1713
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "原買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 3162
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "原告應保存拆除前後照片",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 6292
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "也不當然解除乙對甲的買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s1.json",
+          "field": "$.argument",
+          "offset": 7315
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "amount",
+      "candidate": "零元",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 1412
+        }
+      ],
+      "manual_review": "negated_inference",
+      "review_note": "「未知金額不等於零元」的否定句，不是新增損害金額。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "目前無法",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 3269
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "證明減價",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 3860
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "須檢驗其",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 6068
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "的費用",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 7368
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "舉證不足",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 7432
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "（三）E為買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 290
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "木地板腐爛如經照片",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 2062
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "本輪尚無照片",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 2150
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "報價或發票",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s2.json",
+          "field": "$.argument",
+          "offset": 6437
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "E1為買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "p_s3.json",
+          "field": "$.argument",
+          "offset": 197
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "及被告因",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 66
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "目前提出",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 900
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "主位",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 1232
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "反證",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 3105
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "已放棄",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.verdict_analysis",
+          "offset": 3864
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "陳述",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.risk_map.對原告不利之處[1]",
+          "offset": 19
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "person",
+      "candidate": "沒有反證",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.risk_map.對原告不利之處[7]",
+          "offset": 34
+        }
+      ],
+      "manual_review": "regex_false_positive",
+      "review_note": "中文角色標籤後的動詞或論證片語，不是新增人名；全文人工核對未見將此片語當姓名。",
+      "actual_error_established": false
+    },
+    {
+      "kind": "evidence",
+      "candidate": "完整買賣契約",
+      "in_input": false,
+      "occurrences": [
+        {
+          "source": "verdict.json",
+          "field": "$.risk_map.建議補強證據[1]",
+          "offset": 6
+        }
+      ],
+      "manual_review": "input_contract_or_requested_evidence",
+      "review_note": "契約已見輸入，或條件、要求補具、尚無資料的證據清單；不是宣稱卷內已有的新證據。",
+      "actual_error_established": false
+    }
+  ],
+  "admissions": [
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "sentence": "判決所稱「不以造成物理性損傷為必要」，係連結雙方就特殊情狀的約定；原審並有已付清價金及雙方不爭執18%減損比例的基礎。",
+      "terms": [
+        "不爭執"
+      ],
+      "offset": 957,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "最高法院115年度台上字第65號全文第三㈤；僅描述該案，並限制移用本案。",
+      "actual_error_established": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "sentence": "第65號案的非自然死亡特約、18%比例及不爭執基礎，均不能代替這些證明。",
+      "terms": [
+        "不爭執"
+      ],
+      "offset": 4879,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "最高法院115年度台上字第65號全文第三㈤；僅描述該案，並限制移用本案。",
+      "actual_error_established": false
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "sentence": "原文將「不以造成物理性損傷為必要」連結於雙方對特殊情狀的約定；該案另有付清價金及雙方不爭執18%減損比例的基礎。",
+      "terms": [
+        "不爭執"
+      ],
+      "offset": 3355,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "最高法院115年度台上字第65號全文第三㈤；僅描述該案，並限制移用本案。",
+      "actual_error_established": false
+    },
+    {
+      "source": "p_s1.json",
+      "step": "s1_plaintiff",
+      "field": "$.argument",
+      "sentence": "本階段以案件所載締約及交屋事實作分析前提；以下「已該當」不表示對造已自認。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 1599,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "否定自認／否定由法官提問推定撤回，或明示分析前提；不是虛構對造實際承認。",
+      "actual_error_established": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "sentence": "第65號案由為「請求減少價金事件」，核心是非自然死亡的特別約定及未告知；原審所採18%係該案鑑定且兩造不爭執的比例，並有付清價金的認定，本案不能移用其比例或付款前提。",
+      "terms": [
+        "不爭執"
+      ],
+      "offset": 1006,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "最高法院115年度台上字第65號全文第三㈤；僅描述該案，並限制移用本案。",
+      "actual_error_established": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "sentence": "法官詢問被告是否維持抗辯，不代表被告已撤回、已自認，或已有足以成立抗辯的文件。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 2640,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "否定自認／否定由法官提問推定撤回，或明示分析前提；不是虛構對造實際承認。",
+      "actual_error_established": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "sentence": "第65號有價金付清及18%比例不爭執的具體前提，本案目前兩者均缺，不能照搬其結果。",
+      "terms": [
+        "不爭執"
+      ],
+      "offset": 4588,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "最高法院115年度台上字第65號全文第三㈤；僅描述該案，並限制移用本案。",
+      "actual_error_established": false
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "sentence": "最高法院115年度台上字第65號案由為「請求減少價金事件」，實際爭點是屋內自殺後送醫死亡是否符合非自然死亡的特別約定；原文並載「已給付全部買賣價金」及市場減損比率18%「為兩造所不爭執」。",
+      "terms": [
+        "不爭執"
+      ],
+      "offset": 3069,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "最高法院115年度台上字第65號全文第三㈤；僅描述該案，並限制移用本案。",
+      "actual_error_established": false
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "sentence": "對造沒有自認全部瑕疵或金額，其免責抗辯尚未成立也不表示我方請求當然成立。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 3789,
+      "in_input": false,
+      "provenance": "requires_manual_review",
+      "manual_provenance": "否定自認／否定由法官提問推定撤回，或明示分析前提；不是虛構對造實際承認。",
+      "actual_error_established": false
+    }
+  ],
+  "network_candidates": [
+    {
+      "source": "calls/11_citation_verify/stream.jsonl",
+      "call": "11_citation_verify",
+      "line": 19,
+      "event_type": "item.started",
+      "location": "$.item.command",
+      "call_name": "command_execution",
+      "kind": "shell_network_candidate",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport urllib.request,time\nurl='https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95'\nstart=time.monotonic()\ntry:\n with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=12) as resp:\n  body=resp.read().decode('utf-8')\n  print({'status':resp.status,'article_marker':'<div class=\\\"law-article\\\">' in body,'elapsed_seconds':round(time.monotonic()-start,2)})\nexcept Exception as exc:\n print(type(exc).__name__,str(exc),'elapsed_seconds',round(time.monotonic()-start,2))\n'@ | python -B -\""
+    },
+    {
+      "source": "calls/11_citation_verify/stream.jsonl",
+      "call": "11_citation_verify",
+      "line": 20,
+      "event_type": "item.completed",
+      "location": "$.item.command",
+      "call_name": "command_execution",
+      "kind": "shell_network_candidate",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport urllib.request,time\nurl='https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95'\nstart=time.monotonic()\ntry:\n with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=12) as resp:\n  body=resp.read().decode('utf-8')\n  print({'status':resp.status,'article_marker':'<div class=\\\"law-article\\\">' in body,'elapsed_seconds':round(time.monotonic()-start,2)})\nexcept Exception as exc:\n print(type(exc).__name__,str(exc),'elapsed_seconds',round(time.monotonic()-start,2))\n'@ | python -B -\""
+    }
+  ],
+  "sensitive_hits": [
+    {
+      "source": "calls/01_p_s1/stream.jsonl",
+      "call": "01_p_s1",
+      "line": 13,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/02_d_s1/stream.jsonl",
+      "call": "02_d_s1",
+      "line": 15,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/03_p_s1_attempt2/stream.jsonl",
+      "call": "03_p_s1_attempt2",
+      "line": 5,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/04_d_s1_attempt2/stream.jsonl",
+      "call": "04_d_s1_attempt2",
+      "line": 7,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/05_judge_questions/stream.jsonl",
+      "call": "05_judge_questions",
+      "line": 5,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/06_p_s2/stream.jsonl",
+      "call": "06_p_s2",
+      "line": 5,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/07_d_s2/stream.jsonl",
+      "call": "07_d_s2",
+      "line": 5,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/08_p_s3/stream.jsonl",
+      "call": "08_p_s3",
+      "line": 5,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/09_d_s3/stream.jsonl",
+      "call": "09_d_s3",
+      "line": 5,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    },
+    {
+      "source": "calls/10_judge_verdict/stream.jsonl",
+      "call": "10_judge_verdict",
+      "line": 5,
+      "event_type": "item.completed",
+      "needle_id": "docket",
+      "locations": [
+        "$.item.aggregated_output"
+      ]
+    }
+  ],
+  "parse_errors": [],
+  "annotations_check": {
+    "status": "N/A",
+    "reason": "no annotations",
+    "items": [],
+    "scope": "Mechanical validity only; error labels and evidence are not adjudicated"
+  },
+  "limits": "Heuristic extraction and exact substring comparison; absence from case input does not establish hallucination.",
+  "primary_unified_scan": {
+    "file": "machine_checks.json",
+    "needle_count": 12,
+    "gold_feature_count": 6,
+    "streams": 11,
+    "parsed_events": 559,
+    "sensitive_hits": [
+      {
+        "source": "calls/01_p_s1/stream.jsonl",
+        "call": "01_p_s1",
+        "line": 13,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/02_d_s1/stream.jsonl",
+        "call": "02_d_s1",
+        "line": 15,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/03_p_s1_attempt2/stream.jsonl",
+        "call": "03_p_s1_attempt2",
+        "line": 5,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/04_d_s1_attempt2/stream.jsonl",
+        "call": "04_d_s1_attempt2",
+        "line": 7,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/05_judge_questions/stream.jsonl",
+        "call": "05_judge_questions",
+        "line": 5,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/06_p_s2/stream.jsonl",
+        "call": "06_p_s2",
+        "line": 5,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/07_d_s2/stream.jsonl",
+        "call": "07_d_s2",
+        "line": 5,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/08_p_s3/stream.jsonl",
+        "call": "08_p_s3",
+        "line": 5,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/09_d_s3/stream.jsonl",
+        "call": "09_d_s3",
+        "line": 5,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      },
+      {
+        "source": "calls/10_judge_verdict/stream.jsonl",
+        "call": "10_judge_verdict",
+        "line": 5,
+        "event_type": "item.completed",
+        "needle_id": "source_docket",
+        "locations": [
+          "$.item.aggregated_output"
+        ]
+      }
+    ],
+    "parse_errors": [],
+    "feature_exclusivity": "Unified orchestrator audit checked its six gold-defense features absent from frozen input and full corpus."
+  },
+  "supplemental_scan_note": "eval_machine_checks.json uses a different optional needle set (14 total, 8 features), not the primary 12/6 denominators; no independent entire-corpus exclusivity claim is made for the supplemental set."
+}

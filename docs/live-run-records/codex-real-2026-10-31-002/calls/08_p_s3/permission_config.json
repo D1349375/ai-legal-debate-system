@@ -1,0 +1,15 @@
+{
+  "filesystem": {
+    ":root": "deny",
+    ":minimal": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/08_p_s3/workspace": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus": "read",
+    "C:/Users/berto/AppData/Local/Programs/Python/Python312": "read",
+    "C:/Users/berto/AppData/Local/OpenAI/Codex/bin": "read",
+    "C:/Users/berto/.cache/codex-runtimes/codex-primary-runtime/dependencies": "read",
+    "C:/Users/berto/AppData/Local/Microsoft/WinGet/Links": "read",
+    "C:/Users/berto/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc": "read"
+  },
+  "network_enabled": false,
+  "windows_sandbox": "mxc"
+}

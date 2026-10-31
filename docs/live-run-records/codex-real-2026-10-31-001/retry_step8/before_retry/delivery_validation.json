@@ -1,0 +1,44 @@
+{
+  "validated_at": "2026-10-31T07:23:06.309118+00:00",
+  "cases": [
+    {
+      "case": "001",
+      "annotations": 0,
+      "inference_annotations": 0,
+      "quote_checks": 0,
+      "quote_result": "N/A-no-items",
+      "source_note_hits": 10,
+      "jsonl_parse_errors": 0,
+      "all_role_processes_ended": true,
+      "verdict_published": false,
+      "pleadings_generated": false
+    },
+    {
+      "case": "002",
+      "annotations": 2,
+      "inference_annotations": 1,
+      "quote_checks": 2,
+      "quote_result": "all-valid",
+      "source_note_hits": 10,
+      "jsonl_parse_errors": 0,
+      "all_role_processes_ended": true,
+      "verdict_published": false,
+      "pleadings_generated": false
+    }
+  ],
+  "local_links_checked": 26,
+  "broken_links": [],
+  "reports_sha256": {
+    "docs\\live-run-records\\codex-real-cases-summary.md": "450073056364d03256faf10f938196651eb9e8d37926d34ec7450fa710e017ad",
+    "docs\\live-run-records\\codex-real-2026-10-31-001\\eval.md": "5f984171dd4d21bf09813bb4ccf83e2714ab833954b7492e80a44b762aa7cc7c",
+    "docs\\live-run-records\\codex-real-2026-10-31-002\\eval.md": "e9e69d8268bdc0de4f0dbcfbf1dd19cbb27e2e234754fce7a247b186d337e61c"
+  },
+  "limitation": "Checks artifact integrity and quote substrings; does not turn incomplete Step8/9 into passing tests.",
+  "fresh_integrity_checks": {
+    "protected_hashes": 30,
+    "prompt_hashes": 22,
+    "exact_prompt_reconstructions": 22,
+    "input_copies": 72,
+    "preserved_actor_fields": 80
+  }
+}

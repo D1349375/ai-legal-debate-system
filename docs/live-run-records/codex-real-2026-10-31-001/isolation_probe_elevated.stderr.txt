@@ -1,0 +1,1 @@
+windows sandbox failed: elevated Windows sandbox requires effective `:root` read access

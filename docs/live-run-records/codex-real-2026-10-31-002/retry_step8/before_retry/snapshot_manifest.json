@@ -1,0 +1,14 @@
+{
+  "recorded_at": "2026-10-31T07:44:55.046766+00:00",
+  "reason": "Preserve first-attempt evaluation before explicitly authorized Step8 retry",
+  "files_sha256": {
+    "eval.md": "e9e69d8268bdc0de4f0dbcfbf1dd19cbb27e2e234754fce7a247b186d337e61c",
+    "eval_annotations.json": "24826cf7c88e37d2686c0a300f7d3e8304a0db3dae1bb2d2b4cd913d14a882c0",
+    "machine_checks.json": "4495b84669ce411393672091b029e13f9d7fc41212b363f00d578736585006a3",
+    "run_statistics.json": "8a4019d79074fc79eda0205ce3f48a99a64bbe55543dd44a209941b7be3eac6e",
+    "run_manifest.json": "1dd4fe59f4ff87ee49a7f2208ca0ff4a94641ac6cd7ac77b022b5935b59c8a2b",
+    "controller_state.json": "a319244151720eaf215e87e6a0f22e67aeb51aa9a705d71f6ac2d96801aa2177",
+    "step8_status.json": "f6f3acf594fd1beddb3b986f43c7dd681d62f8840e953e22a9d447293ea7c747",
+    "citation_verification.md": "9bc26e411468fe847c772c2b87f96bd08eb69169aa9a81cd09cdf4f32eb83049"
+  }
+}

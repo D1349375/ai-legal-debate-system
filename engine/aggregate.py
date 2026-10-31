@@ -68,3 +68,72 @@ def disagreement(stage1_arguments, stage3_arguments):
         intersection = set1 & set3
         drift[side] = round(1 - len(intersection) / len(union), 4)
     return drift
+
+
+def aggregate_role_items(arguments, represented_side, questions=None, prep_items=None, procedural_issues=None):
+    """v2 聚合：只取公開結構化欄位，不複製任何內部備註。"""
+    from engine.verify import parse_citation
+    opponent = next(s for s in VALID_SIDES if s != represented_side)
+    pending = {h: [] for h in ('own_client', 'opponent', 'third_party')}
+    conditions, changes = [], []
+    final = [a for a in arguments if a['stage'] == 3]
+
+    def add_pending(holder, text, source, item=None, hypothesis=False):
+        pending[holder].append({'id': f'pending:{holder}:{len(pending[holder])+1}', 'holder': holder,
+                                'text': text, 'source': source, 'item': item,
+                                'qualification': '待確認', 'is_hypothesis': hypothesis})
+
+    for arg in sorted(final, key=lambda a: a['side']):
+        side = arg['side']
+        for item in arg.get('items', []):
+            ref = f'{side}:{item["id"]}'
+            needs = item.get('needs_from_client', [])
+            for need in needs:
+                holder = need.get('holder', 'own_client' if side == represented_side else 'opponent') if isinstance(need, dict) else ('own_client' if side == represented_side else 'opponent')
+                text = need.get('text', '') if isinstance(need, dict) else need
+                add_pending(holder, text, f'{ref}@S3', ref, side == opponent)
+            if item.get('status') == 'to_confirm' and not needs:
+                add_pending('own_client' if side == represented_side else 'opponent', item['label'], f'{ref}@S3', ref, side == opponent)
+            for element in item.get('elements', []):
+                if element.get('state') == 'unknown':
+                    add_pending('own_client' if side == represented_side else 'opponent', element['element'], f'{ref}@S3', ref, side == opponent)
+        if side == opponent:
+            for condition in arg.get('defeat_conditions', []):
+                conditions.append({'id': f'defeat:{opponent}:{len(conditions)+1}', 'item': condition['item'],
+                                   'condition': condition.get('condition') or condition.get('text'),
+                                   'label': '代理方要準備的證據', 'is_hypothesis': True})
+    for question in questions or []:
+        if question.get('target_side') == represented_side and question.get('question_type') == 'factual':
+            add_pending('own_client', question['question_text'], f'question:{question["id"]}')
+    for prep in prep_items or []:
+        add_pending(prep['holder'], prep['hypothesis'] + '；準備：' + prep['prepare'], prep['id'], prep['affects'], True)
+    prior = {}
+    for arg in sorted(arguments, key=lambda a: (a['stage'], a['side'])):
+        for item in arg.get('items', []):
+            key = f'{arg["side"]}:{item["id"]}'
+            if key in prior and prior[key][1] != item['status']:
+                changes.append({'item': key, 'from_stage': prior[key][0], 'to_stage': arg['stage'],
+                                'from_status': prior[key][1], 'to_status': item['status'],
+                                'withdraw_reason': item.get('withdraw_reason')})
+            prior[key] = (arg['stage'], item['status'])
+
+    def canonical(citation):
+        parsed = parse_citation(citation)
+        if parsed['type'] == 'statute':
+            return ('statute', parsed['law_name'], parsed['article_no'])
+        if parsed['type'] == 'judgment':
+            return ('judgment', parsed['jyear'], parsed['jcase'], parsed['jno'])
+        return ('unknown', citation)
+
+    differences = {}
+    for side in VALID_SIDES:
+        first = next((a for a in arguments if a['side'] == side and a['stage'] == 1), None)
+        last = next((a for a in arguments if a['side'] == side and a['stage'] == 3), None)
+        if first is None or last is None:
+            differences[side] = None
+            continue
+        before = {canonical(c) for c in first.get('cited_statutes', []) + first.get('cited_precedents', [])}
+        after = {canonical(c) for c in last.get('cited_statutes', []) + last.get('cited_precedents', [])}
+        differences[side] = round(1-len(before & after)/len(before | after), 4) if before | after else 0.0
+    return {'defeat_conditions': conditions, 'pending': pending, 'status_changes': changes,
+            'citation_set_change': differences, 'procedural_issues': procedural_issues or {}}

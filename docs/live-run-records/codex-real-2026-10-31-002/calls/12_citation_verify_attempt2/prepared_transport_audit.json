@@ -1,0 +1,30 @@
+{
+  "audit_at_utc": "2026-10-31T08:17:19.247944+00:00",
+  "kind": "prepared_transport_binding_change_only",
+  "status": "prepared",
+  "checks": {
+    "old_prepared_prompt_copy_exact": true,
+    "old_prompt_hash_recorded": true,
+    "whole_current_prompt_is_different": true,
+    "manifest_does_not_claim_whole_prompt_identical": true,
+    "original_legal_task_bytes_identical": true,
+    "old_binding_values_unchanged": true,
+    "only_execution_environment_binding_added": true,
+    "current_prompt_reconstruction_exact": true,
+    "case_input_hashes_unchanged": true,
+    "explicit_engine_only_no_probe_no_general_search": true,
+    "output_paths_within_current_workspace": true,
+    "misplaced_output_parent_denied": true
+  },
+  "old_prompt_sha256": "3de5129019e43231efdb6019824722dd911ac2273ea66d170c26cab7df676a50",
+  "new_prompt_sha256": "1f0927de197bf804acd341946c76f40b0a2536a63dc00b60b6e05229e0b287e6",
+  "added_binding_keys": [
+    "execution_environment"
+  ],
+  "binding_changes_recorded": [
+    "Pass through already-approved engine-only network boundary",
+    "Specify run-folder artifact output paths"
+  ],
+  "execution_not_yet_audited": true,
+  "legal_source_unchanged_does_not_mean_whole_prompt_identical": true
+}

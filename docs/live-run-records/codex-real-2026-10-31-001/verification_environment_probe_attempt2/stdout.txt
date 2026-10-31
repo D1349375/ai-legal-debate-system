@@ -1,0 +1,4 @@
+original_source_imports=True
+LEGALDEBATE_DB_URL=sqlite:///database/codex_runs.db
+dedicated_db_open_rw=True; bytes_written=0; network_calls=0
+other_case_directory_denied=True

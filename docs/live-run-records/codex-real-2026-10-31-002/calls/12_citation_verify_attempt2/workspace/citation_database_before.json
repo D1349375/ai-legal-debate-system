@@ -1,0 +1,587 @@
+[
+  {
+    "id": 1,
+    "citation_text": "民法第93條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=93",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 2,
+    "citation_text": "民法第95條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 3,
+    "citation_text": "民法第98條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=98",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 4,
+    "citation_text": "民法第114條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=114",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 5,
+    "citation_text": "民法第125條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=125",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 6,
+    "citation_text": "民法第128條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=128",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 7,
+    "citation_text": "民法第153條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=153",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 8,
+    "citation_text": "民法第179條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=179",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 9,
+    "citation_text": "民法第184條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=184",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 10,
+    "citation_text": "民法第185條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=185",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 11,
+    "citation_text": "民法第197條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=197",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 12,
+    "citation_text": "民法第203條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=203",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 13,
+    "citation_text": "民法第213條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=213",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 14,
+    "citation_text": "民法第215條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=215",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 15,
+    "citation_text": "民法第216條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=216",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 16,
+    "citation_text": "民法第217條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=217",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 17,
+    "citation_text": "民法第220條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=220",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 18,
+    "citation_text": "民法第224條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=224",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 19,
+    "citation_text": "民法第226條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=226",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 20,
+    "citation_text": "民法第227條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=227",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 21,
+    "citation_text": "民法第229條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=229",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 22,
+    "citation_text": "民法第230條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=230",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 23,
+    "citation_text": "民法第231條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=231",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 24,
+    "citation_text": "民法第232條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=232",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 25,
+    "citation_text": "民法第233條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=233",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 26,
+    "citation_text": "民法第254條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=254",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 27,
+    "citation_text": "民法第256條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=256",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 28,
+    "citation_text": "民法第258條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=258",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 29,
+    "citation_text": "民法第259條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=259",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 30,
+    "citation_text": "民法第260條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=260",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 31,
+    "citation_text": "民法第261條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=261",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 32,
+    "citation_text": "民法第264條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=264",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 33,
+    "citation_text": "民法第354條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=354",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 34,
+    "citation_text": "民法第355條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=355",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 35,
+    "citation_text": "民法第356條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=356",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 36,
+    "citation_text": "民法第357條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=357",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 37,
+    "citation_text": "民法第359條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=359",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 38,
+    "citation_text": "民法第360條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=360",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 39,
+    "citation_text": "民法第365條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=365",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 40,
+    "citation_text": "民法第366條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=366",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 41,
+    "citation_text": "民法第373條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=373",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 42,
+    "citation_text": "民事訴訟法第222條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=222",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 43,
+    "citation_text": "民事訴訟法第277條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0010001&flno=277",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 44,
+    "citation_text": "最高法院115年度台上字第65號",
+    "source_type": "judgment",
+    "status": "published",
+    "primary_source_url": null,
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 45,
+    "citation_text": "最高法院115年度台上字第336號",
+    "source_type": "judgment",
+    "status": "published",
+    "primary_source_url": null,
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 46,
+    "citation_text": "最高法院115年度台上字第386號",
+    "source_type": "judgment",
+    "status": "published",
+    "primary_source_url": null,
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 47,
+    "citation_text": "民法第71條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=71",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 48,
+    "citation_text": "民法第129條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=129",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 49,
+    "citation_text": "民法第130條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=130",
+    "verified_at": "2026-10-31T07:59:07Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 50,
+    "citation_text": "民法第144條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=144",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 51,
+    "citation_text": "民法第199條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=199",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 52,
+    "citation_text": "民法第205條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 53,
+    "citation_text": "民法第214條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=214",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 54,
+    "citation_text": "民法第216條之1",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=216-1",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 55,
+    "citation_text": "民法第247條之1",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=247-1",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 56,
+    "citation_text": "民法第334條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=334",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 57,
+    "citation_text": "民法第335條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=335",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 58,
+    "citation_text": "民法第928條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=928",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 59,
+    "citation_text": "民法第94條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=94",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 60,
+    "citation_text": "民法第103條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=103",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 61,
+    "citation_text": "民法第170條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=170",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 62,
+    "citation_text": "最高法院115年度台上字第206號",
+    "source_type": "judgment",
+    "status": "published",
+    "primary_source_url": null,
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 63,
+    "citation_text": "最高法院115年度台上字第561號",
+    "source_type": "judgment",
+    "status": "published",
+    "primary_source_url": null,
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 64,
+    "citation_text": "民法第169條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=169",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  },
+  {
+    "id": 65,
+    "citation_text": "民法第92條",
+    "source_type": "statute",
+    "status": "published",
+    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=92",
+    "verified_at": "2026-10-31T07:57:50Z",
+    "verifier_run_id": null
+  }
+]

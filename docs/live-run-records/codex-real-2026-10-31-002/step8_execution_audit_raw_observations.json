@@ -1,0 +1,300 @@
+{
+  "recorded_at_utc": "2026-10-31T07:12:24.942283+00:00",
+  "scope": "Exact small bookkeeping/error tool outputs copied from Step8 stream; not a raw verifier-result log.",
+  "observations": [
+    {
+      "stream_line": 19,
+      "item_id": "item_8",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json\nfrom pathlib import Path\np=Path('docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace')\nx=json.loads((p/'citation_provenance.json').read_text(encoding='utf-8-sig'))\nprint(type(x).__name__)\nif isinstance(x,dict):\n print('TOTAL',len(x))\n for k,v in x.items():\n  if any(s in k for s in ['205','10條之1','銀行法','1945']): print(k,json.dumps(v,ensure_ascii=False))\nelse: print(json.dumps(x[:3],ensure_ascii=False))\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "dict\r\nTOTAL 111\r\n民法第205條 [{\"step\": \"s1_plaintiff\", \"field\": \"cited_statutes\", \"index\": 22}, {\"step\": \"s1_defendant\", \"field\": \"cited_statutes\", \"index\": 23}, {\"step\": \"s2_plaintiff\", \"field\": \"cited_statutes\", \"index\": 22}, {\"step\": \"s2_defendant\", \"field\": \"cited_statutes\", \"index\": 20}, {\"step\": \"s3_plaintiff\", \"field\": \"cited_statutes\", \"index\": 20}, {\"step\": \"s3_defendant\", \"field\": \"cited_statutes\", \"index\": 16}, {\"step\": \"verdict\", \"field\": \"citations_used\", \"index\": 13}]\r\n民法債編施行法第10條之1 [{\"step\": \"s1_plaintiff\", \"field\": \"cited_statutes\", \"index\": 51}, {\"step\": \"s1_defendant\", \"field\": \"cited_statutes\", \"index\": 62}, {\"step\": \"s2_plaintiff\", \"field\": \"cited_statutes\", \"index\": 41}, {\"step\": \"s2_defendant\", \"field\": \"cited_statutes\", \"index\": 29}, {\"step\": \"s3_plaintiff\", \"field\": \"cited_statutes\", \"index\": 30}, {\"step\": \"s3_defendant\", \"field\": \"cited_statutes\", \"index\": 28}, {\"step\": \"verdict\", \"field\": \"citations_used\", \"index\": 18}]\r\n銀行法第29條 [{\"step\": \"s1_plaintiff\", \"field\": \"cited_statutes\", \"index\": 53}, {\"step\": \"s2_defendant\", \"field\": \"cited_statutes\", \"index\": 30}]\r\n銀行法第29條之1 [{\"step\": \"s1_plaintiff\", \"field\": \"cited_statutes\", \"index\": 54}, {\"step\": \"s2_defendant\", \"field\": \"cited_statutes\", \"index\": 31}]\r\n最高法院114年度台上字第1945號 [{\"step\": \"s1_plaintiff\", \"field\": \"cited_precedents\", \"index\": 1}, {\"step\": \"s2_defendant\", \"field\": \"cited_precedents\", \"index\": 1}, {\"step\": \"s3_plaintiff\", \"field\": \"cited_precedents\", \"index\": 1}]\r\n最高法院114年度台上字第1945號判決 [{\"step\": \"verdict\", \"field\": \"citations_used\", \"index\": 24}]\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 25,
+          "char_end": 482,
+          "value": [
+            {
+              "step": "s1_plaintiff",
+              "field": "cited_statutes",
+              "index": 22
+            },
+            {
+              "step": "s1_defendant",
+              "field": "cited_statutes",
+              "index": 23
+            },
+            {
+              "step": "s2_plaintiff",
+              "field": "cited_statutes",
+              "index": 22
+            },
+            {
+              "step": "s2_defendant",
+              "field": "cited_statutes",
+              "index": 20
+            },
+            {
+              "step": "s3_plaintiff",
+              "field": "cited_statutes",
+              "index": 20
+            },
+            {
+              "step": "s3_defendant",
+              "field": "cited_statutes",
+              "index": 16
+            },
+            {
+              "step": "verdict",
+              "field": "citations_used",
+              "index": 13
+            }
+          ]
+        },
+        {
+          "char_start": 498,
+          "char_end": 955,
+          "value": [
+            {
+              "step": "s1_plaintiff",
+              "field": "cited_statutes",
+              "index": 51
+            },
+            {
+              "step": "s1_defendant",
+              "field": "cited_statutes",
+              "index": 62
+            },
+            {
+              "step": "s2_plaintiff",
+              "field": "cited_statutes",
+              "index": 41
+            },
+            {
+              "step": "s2_defendant",
+              "field": "cited_statutes",
+              "index": 29
+            },
+            {
+              "step": "s3_plaintiff",
+              "field": "cited_statutes",
+              "index": 30
+            },
+            {
+              "step": "s3_defendant",
+              "field": "cited_statutes",
+              "index": 28
+            },
+            {
+              "step": "verdict",
+              "field": "citations_used",
+              "index": 18
+            }
+          ]
+        },
+        {
+          "char_start": 965,
+          "char_end": 1097,
+          "value": [
+            {
+              "step": "s1_plaintiff",
+              "field": "cited_statutes",
+              "index": 53
+            },
+            {
+              "step": "s2_defendant",
+              "field": "cited_statutes",
+              "index": 30
+            }
+          ]
+        },
+        {
+          "char_start": 1109,
+          "char_end": 1241,
+          "value": [
+            {
+              "step": "s1_plaintiff",
+              "field": "cited_statutes",
+              "index": 54
+            },
+            {
+              "step": "s2_defendant",
+              "field": "cited_statutes",
+              "index": 31
+            }
+          ]
+        },
+        {
+          "char_start": 1262,
+          "char_end": 1463,
+          "value": [
+            {
+              "step": "s1_plaintiff",
+              "field": "cited_precedents",
+              "index": 1
+            },
+            {
+              "step": "s2_defendant",
+              "field": "cited_precedents",
+              "index": 1
+            },
+            {
+              "step": "s3_plaintiff",
+              "field": "cited_precedents",
+              "index": 1
+            }
+          ]
+        },
+        {
+          "char_start": 1486,
+          "char_end": 1547,
+          "value": [
+            {
+              "step": "verdict",
+              "field": "citations_used",
+              "index": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stream_line": 22,
+      "item_id": "item_10",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\nc=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps(c.execute('select status,count(*) from citation_verifications group by status').fetchall(),ensure_ascii=False))\nc.close()\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "[]\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 2,
+          "value": []
+        }
+      ]
+    },
+    {
+      "stream_line": 30,
+      "item_id": "item_15",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\nc=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps(c.execute('select status,count(*) from citation_verifications group by status').fetchall(),ensure_ascii=False))\nprint('verdict',c.execute('select count(*) from verdicts where case_id=?',('real-2026-10-31-002',)).fetchone()[0])\nprint('pleading',c.execute('select count(*) from pleading_drafts where case_id=?',('real-2026-10-31-002',)).fetchone()[0])\nc.close()\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "[]\r\nverdict 0\r\npleading 0\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 2,
+          "value": []
+        }
+      ]
+    },
+    {
+      "stream_line": 32,
+      "item_id": "item_16",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport json\nfrom pathlib import Path\nfor name in ['TPSV,114,台上,1945,20260513,1','TPSV,115,台上,192,20260325,1','TPSV,115,台上,207,20260325,1']:\n p=Path('corpus/judgments')/(name+'_source.json')\n print(name,json.dumps(json.loads(p.read_text(encoding='utf-8-sig')),ensure_ascii=False))\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "TPSV,114,台上,1945,20260513,1 {\"jid\": \"TPSV,114,台上,1945,20260513,1\", \"jyear\": \"114\", \"jcase\": \"台上\", \"jno\": \"1945\", \"jdate\": \"20260513\", \"jtitle\": \"請求確認本票債權不存在等\", \"full_type\": \"text\", \"source_pdf_url\": \"https://data.judicial.gov.tw/opendl/JDocFile/TPSV/114%2c%e5%8f%b0%e4%b8%8a%2c1945%2c20260513%2c1.pdf\", \"database\": \"司法院裁判書開放資料平臺(opendata.judicial.gov.tw,月封裝檔)\"}\r\nTPSV,115,台上,192,20260325,1 {\"jid\": \"TPSV,115,台上,192,20260325,1\", \"jyear\": \"115\", \"jcase\": \"台上\", \"jno\": \"192\", \"jdate\": \"20260325\", \"jtitle\": \"請求給付貨款\", \"full_type\": \"text\", \"source_pdf_url\": \"https://data.judicial.gov.tw/opendl/JDocFile/TPSV/115%2c%e5%8f%b0%e4%b8%8a%2c192%2c20260325%2c1.pdf\", \"database\": \"司法院裁判書開放資料平臺(opendata.judicial.gov.tw,月封裝檔)\"}\r\nTPSV,115,台上,207,20260325,1 {\"jid\": \"TPSV,115,台上,207,20260325,1\", \"jyear\": \"115\", \"jcase\": \"台上\", \"jno\": \"207\", \"jdate\": \"20260325\", \"jtitle\": \"請求給付工程款\", \"full_type\": \"text\", \"source_pdf_url\": \"https://data.judicial.gov.tw/opendl/JDocFile/TPSV/115%2c%e5%8f%b0%e4%b8%8a%2c207%2c20260325%2c1.pdf\", \"database\": \"司法院裁判書開放資料平臺(opendata.judicial.gov.tw,月封裝檔)\"}\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 28,
+          "char_end": 361,
+          "value": {
+            "jid": "TPSV,114,台上,1945,20260513,1",
+            "jyear": "114",
+            "jcase": "台上",
+            "jno": "1945",
+            "jdate": "20260513",
+            "jtitle": "請求確認本票債權不存在等",
+            "full_type": "text",
+            "source_pdf_url": "https://data.judicial.gov.tw/opendl/JDocFile/TPSV/114%2c%e5%8f%b0%e4%b8%8a%2c1945%2c20260513%2c1.pdf",
+            "database": "司法院裁判書開放資料平臺(opendata.judicial.gov.tw,月封裝檔)"
+          }
+        },
+        {
+          "char_start": 390,
+          "char_end": 714,
+          "value": {
+            "jid": "TPSV,115,台上,192,20260325,1",
+            "jyear": "115",
+            "jcase": "台上",
+            "jno": "192",
+            "jdate": "20260325",
+            "jtitle": "請求給付貨款",
+            "full_type": "text",
+            "source_pdf_url": "https://data.judicial.gov.tw/opendl/JDocFile/TPSV/115%2c%e5%8f%b0%e4%b8%8a%2c192%2c20260325%2c1.pdf",
+            "database": "司法院裁判書開放資料平臺(opendata.judicial.gov.tw,月封裝檔)"
+          }
+        },
+        {
+          "char_start": 743,
+          "char_end": 1068,
+          "value": {
+            "jid": "TPSV,115,台上,207,20260325,1",
+            "jyear": "115",
+            "jcase": "台上",
+            "jno": "207",
+            "jdate": "20260325",
+            "jtitle": "請求給付工程款",
+            "full_type": "text",
+            "source_pdf_url": "https://data.judicial.gov.tw/opendl/JDocFile/TPSV/115%2c%e5%8f%b0%e4%b8%8a%2c207%2c20260325%2c1.pdf",
+            "database": "司法院裁判書開放資料平臺(opendata.judicial.gov.tw,月封裝檔)"
+          }
+        }
+      ]
+    },
+    {
+      "stream_line": 35,
+      "item_id": "item_18",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport os,sqlite3,json\nfrom pathlib import Path\np=Path('database/codex_runs.db').resolve()\nprint('DB',str(p))\nfor suffix in ['','-journal','-shm','-wal']:\n q=Path(str(p)+suffix)\n print(q.name,'exists=',q.exists(),'size=',q.stat().st_size if q.exists() else None)\nc=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint('database_list',c.execute('pragma database_list').fetchall())\nprint('journal_mode',c.execute('pragma journal_mode').fetchall())\nprint('counts',c.execute('select status,count(*) from citation_verifications group by status').fetchall())\nc.close()\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "DB C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\database\\codex_runs.db\r\ncodex_runs.db exists= True size= 376832\r\ncodex_runs.db-journal exists= False size= None\r\ncodex_runs.db-shm exists= False size= None\r\ncodex_runs.db-wal exists= False size= None\r\ndatabase_list [(0, 'main', 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\database\\\\codex_runs.db')]\r\njournal_mode [('delete',)]\r\ncounts []\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 418,
+          "char_end": 420,
+          "value": []
+        }
+      ]
+    },
+    {
+      "stream_line": 37,
+      "item_id": "item_19",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command '$env:LEGALDEBATE_DB_URL = '\"'sqlite:///database/codex_runs.db'\n@'\nfrom database.db import get_session,upsert_citation\ns=get_session()\ntry:\n for citation in ['民法債編施行法第10條之1','銀行法第29條','銀行法第29條之1','民法第205條']:\n  r=upsert_citation(s,citation_text=citation,source_type='statute',status='draft',verifier_run_id='real-2026-10-31-002-step8')\n  print(r.citation_text,r.status)\nfinally:\n s.close()\n'@ | python -B -X utf8 -\"",
+      "exit_code": 1,
+      "raw_aggregated_output": "Traceback (most recent call last):\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\base.py\", line 1967, in _exec_single_context\r\n    self.dialect.do_execute(\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\default.py\", line 941, in do_execute\r\n    cursor.execute(statement, parameters)\r\nsqlite3.OperationalError: unable to open database file\r\n\r\nThe above exception was the direct cause of the following exception:\r\n\r\nTraceback (most recent call last):\r\n  File \"<stdin>\", line 5, in <module>\r\n  File \"C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\database\\db.py\", line 297, in upsert_citation\r\n    session.commit()\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\session.py\", line 2028, in commit\r\n    trans.commit(_to_root=True)\r\n  File \"<string>\", line 2, in commit\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\state_changes.py\", line 139, in _go\r\n    ret_value = fn(self, *arg, **kw)\r\n                ^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\session.py\", line 1313, in commit\r\n    self._prepare_impl()\r\n  File \"<string>\", line 2, in _prepare_impl\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\state_changes.py\", line 139, in _go\r\n    ret_value = fn(self, *arg, **kw)\r\n                ^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\session.py\", line 1288, in _prepare_impl\r\n    self.session.flush()\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\session.py\", line 4352, in flush\r\n    self._flush(objects)\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\session.py\", line 4487, in _flush\r\n    with util.safe_reraise():\r\n         ^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\util\\langhelpers.py\", line 146, in __exit__\r\n    raise exc_value.with_traceback(exc_tb)\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\session.py\", line 4448, in _flush\r\n    flush_context.execute()\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\unitofwork.py\", line 466, in execute\r\n    rec.execute(self)\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\unitofwork.py\", line 642, in execute\r\n    util.preloaded.orm_persistence.save_obj(\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\persistence.py\", line 93, in save_obj\r\n    _emit_insert_statements(\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\orm\\persistence.py\", line 1233, in _emit_insert_statements\r\n    result = connection.execute(\r\n             ^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\base.py\", line 1418, in execute\r\n    return meth(\r\n           ^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\sql\\elements.py\", line 515, in _execute_on_connection\r\n    return connection._execute_clauseelement(\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\base.py\", line 1640, in _execute_clauseelement\r\n    ret = self._execute_context(\r\n          ^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\base.py\", line 1846, in _execute_context\r\n    return self._exec_single_context(\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\base.py\", line 1986, in _exec_single_context\r\n    self._handle_dbapi_exception(\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\base.py\", line 2355, in _handle_dbapi_exception\r\n    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\base.py\", line 1967, in _exec_single_context\r\n    self.dialect.do_execute(\r\n  File \"C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\sqlalchemy\\engine\\default.py\", line 941, in do_execute\r\n    cursor.execute(statement, parameters)\r\nsqlalchemy.exc.OperationalError: (sqlite3.OperationalError) unable to open database file\r\n[SQL: INSERT INTO citation_verifications (citation_text, source_type, status, primary_source_url, verified_at, verifier_run_id) VALUES (?, ?, ?, ?, ?, ?)]\r\n[parameters: ('民法債編施行法第10條之1', 'statute', 'draft', None, None, 'real-2026-10-31-002-step8')]\r\n(Background on this error at: https://sqlalche.me/e/20/e3q8)\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 4353,
+          "char_end": 4356,
+          "value": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "stream_line": 39,
+      "item_id": "item_20",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nfrom pathlib import Path\np=Path('database/codex_runs.db-journal')\ntry:\n with p.open('xb'):\n  pass\n print('Created empty authorized SQLite journal path',p.resolve())\nexcept FileExistsError:\n print('Journal already exists; unchanged')\nexcept OSError as e:\n print(type(e).__name__,str(e))\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "PermissionError [Errno 13] Permission denied: 'database\\\\codex_runs.db-journal'\r\n",
+      "parsed_json_segments": []
+    },
+    {
+      "stream_line": 43,
+      "item_id": "item_22",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\nc=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nresult={'case_id':'real-2026-10-31-002','citation_verifications':c.execute('select count(*) from citation_verifications').fetchone()[0]}\nfor name in ['verdicts','pleading_drafts']:\n result[name]=c.execute('select count(*) from '+name+' where case_id=?',(result['case_id'],)).fetchone()[0]\nprint(json.dumps(result,ensure_ascii=False))\nc.close()\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "{\"case_id\": \"real-2026-10-31-002\", \"citation_verifications\": 0, \"verdicts\": 0, \"pleading_drafts\": 0}\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 100,
+          "value": {
+            "case_id": "real-2026-10-31-002",
+            "citation_verifications": 0,
+            "verdicts": 0,
+            "pleading_drafts": 0
+          }
+        }
+      ]
+    }
+  ]
+}

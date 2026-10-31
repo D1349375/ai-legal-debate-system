@@ -1,0 +1,19 @@
+{
+  "recorded_at": "2026-10-31T08:22:11.121953+00:00",
+  "case001_verdicts": 1,
+  "case001_pleadings": 2,
+  "global_citation_statuses": [
+    [
+      "published",
+      65
+    ]
+  ],
+  "database_entries": [
+    "codex_runs.db",
+    "db.py",
+    "legal_debate.db",
+    "schema.py",
+    "__pycache__",
+    "其他輸出"
+  ]
+}

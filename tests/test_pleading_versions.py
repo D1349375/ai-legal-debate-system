@@ -134,7 +134,7 @@ class TestVersions:
         v = save(client, DRAFT + "\n另依民法第184條及土地法第34條之1。").json()
         by = {c["citation_text"]: c for c in v["citation_check"]}
         assert by["民法第184條"]["status"] == "local_cache_only" and by["民法第184條"]["gate"] == "blocked"
-        assert by["土地法第34條之1"]["status"] == "unparseable" and "無法辨識" in by["土地法第34條之1"]["note"]
+        assert by["土地法第34條之1"]["status"] == "unsupported_law" and "尚未支援" in by["土地法第34條之1"]["note"]
         assert v["blocked_count"] == 2 and not v["exportable"]
         # 網路恢復後重新查證：只重查未通過者；認不得的寫法仍不放行
         monkeypatch.setattr(engine_verify, "verify_statute_citation",

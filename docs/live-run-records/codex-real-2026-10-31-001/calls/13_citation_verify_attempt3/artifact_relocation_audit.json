@@ -1,0 +1,40 @@
+{
+  "audit_at_utc": "2026-10-31T08:17:19.258933+00:00",
+  "kind": "artifact_relocation_integrity_only",
+  "source_directory_absent": true,
+  "items": [
+    {
+      "name": "mechanical_verification_final.json",
+      "destination": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/artifacts_relocated_from_database/mechanical_verification_final.json",
+      "matches_relocation_hash": true,
+      "matches_before_move_audit_hash": true
+    },
+    {
+      "name": "mechanical_verification_initial.json",
+      "destination": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/artifacts_relocated_from_database/mechanical_verification_initial.json",
+      "matches_relocation_hash": true,
+      "matches_before_move_audit_hash": true
+    },
+    {
+      "name": "mechanical_verification_retry.json",
+      "destination": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/artifacts_relocated_from_database/mechanical_verification_retry.json",
+      "matches_relocation_hash": true,
+      "matches_before_move_audit_hash": true
+    },
+    {
+      "name": "verification_report.json",
+      "destination": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/artifacts_relocated_from_database/verification_report.json",
+      "matches_relocation_hash": true,
+      "matches_before_move_audit_hash": true
+    },
+    {
+      "name": "verification_report.md",
+      "destination": "docs/live-run-records/codex-real-2026-10-31-001/calls/13_citation_verify_attempt3/artifacts_relocated_from_database/verification_report.md",
+      "matches_relocation_hash": true,
+      "matches_before_move_audit_hash": true
+    }
+  ],
+  "historical_output_placement_deviation_not_erased": true,
+  "auditor_did_not_modify_original_retry_audit": true,
+  "original_retry_audit_current_sha256": "90b9b20378f67834bfd628361b2a9402705d9da61e7ff23c1c2634221877717f"
+}

@@ -1,0 +1,87 @@
+{
+  "audit_at_utc": "2026-10-31T08:39:52.416960+00:00",
+  "access": "mode=ro; query_only; SELECT transaction only; rolled back; no project imports",
+  "database_sha256_before": "c52fa77baf0c623e57f4e1c3975adc375cfd7fe9ee763dcd8bd77ff79ace737e",
+  "database_sha256_after": "c52fa77baf0c623e57f4e1c3975adc375cfd7fe9ee763dcd8bd77ff79ace737e",
+  "database_bytes_unchanged_during_readonly_audit": true,
+  "case_id": "real-2026-10-31-002",
+  "case_owned_counts": {
+    "cases": 1,
+    "debate_arguments": 6,
+    "court_questions": 13,
+    "verdicts": 0,
+    "pleading_drafts": 0
+  },
+  "global_before_rows": 65,
+  "global_before_status_counts": {
+    "published": 65
+  },
+  "global_after_rows": 127,
+  "global_after_status_counts": {
+    "published": 123,
+    "draft": 4
+  },
+  "global_new_row_ids_since_before_count": 62,
+  "input_raw_strings": 111,
+  "input_canonical_identities": 106,
+  "scoped_canonical_missing": [],
+  "canonical_duplicate_rows": {},
+  "scoped_status_counts": {
+    "published": 102,
+    "draft": 4
+  },
+  "draft_rows": [
+    {
+      "id": 52,
+      "citation_text": "民法第205條",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205",
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    },
+    {
+      "id": 125,
+      "citation_text": "民法債編施行法第10條之1",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": null,
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    },
+    {
+      "id": 126,
+      "citation_text": "銀行法第29條",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": null,
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    },
+    {
+      "id": 127,
+      "citation_text": "銀行法第29條之1",
+      "source_type": "statute",
+      "status": "draft",
+      "primary_source_url": null,
+      "verified_at": null,
+      "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+    }
+  ],
+  "global_verifier_run_id_counts": {
+    "(NULL)": 122,
+    "codex-real-2026-10-31-002-step8-attempt2": 5
+  },
+  "case_attribution_limit": "Citation rows have no case_id. Input identity membership defines this scope; five actor-updated records carry the attempt run_id, while the rest cannot be exclusively attributed by row ownership.",
+  "actor_scoped_counts_match_readonly_database": true,
+  "actor_changes_count": 5,
+  "actor_mutation_trace": [
+    {
+      "stream_line": 85,
+      "item_id": "item_43",
+      "command_sha256": "5760c39c1818201443315505899c9f13ff767b40a75dddddee071e8ed9ee0d4f",
+      "exit_code": 0
+    }
+  ],
+  "citation_texts_in_actor_changes_unchanged": true
+}

@@ -1,0 +1,1 @@
+{"PowerShellTelemetryCanSend":false,"ExplicitNetworkRequests":0,"OptOutAtStartup":"1"}

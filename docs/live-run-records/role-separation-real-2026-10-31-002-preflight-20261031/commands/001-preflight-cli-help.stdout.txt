@@ -1,0 +1,26 @@
+usage: main.py [-h]
+               {case,record,finalize,issues,verify,verdict,pleading,pleading-source,role-view,summary,prep-list,report,serve,export-demo,party}
+               ...
+
+LegalDebate 落地 CLI
+
+positional arguments:
+  {case,record,finalize,issues,verify,verdict,pleading,pleading-source,role-view,summary,prep-list,report,serve,export-demo,party}
+    case                落地案件輸入
+    record              落地攻防論證或法官訊問(JSON 檔)
+    finalize            機械死穴彙整+分歧統計，印出判決錨點
+    issues              依案件的商工查核結果印出法官應依職權調查的程序事項
+    verify              引用查證
+    verdict             落地法官判決書
+    pleading            落地訴狀草稿
+    pleading-source     印出某一方的撰狀素材(Stage 3 原文、對造摘要、引用查證狀態)
+    role-view           由程式產出角色可見資料或使用者回報
+    summary             由程式產出角色可見資料或使用者回報
+    prep-list           由程式產出角色可見資料或使用者回報
+    report              由程式產出角色可見資料或使用者回報
+    serve               啟動 UI 後端(預設只綁本機 127.0.0.1)
+    export-demo         匯出錄製紀錄 fixture 到 demo/
+    party               依統編即時查核商工登記當事人
+
+options:
+  -h, --help            show this help message and exit

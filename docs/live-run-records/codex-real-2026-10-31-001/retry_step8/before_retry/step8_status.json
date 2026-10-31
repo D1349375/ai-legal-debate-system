@@ -1,0 +1,7 @@
+{
+  "status": "incomplete_environment_stop",
+  "last_message_exists": false,
+  "adopted_result": false,
+  "citation_statuses": "N/A",
+  "reason": "Controller stopped after managed-proxy/tool and SQLite access errors; no final verifier output."
+}

@@ -6,7 +6,7 @@ from database.db import get_session, record_case
 from server.app import create_app
 
 LOCAL = "http://127.0.0.1:8000"
-CASE = {"case_type": "買賣價金", "facts_summary": "原告於115年1月出賣貨物予被告，被告迄未給付價金。",
+CASE = {"represented_side": "plaintiff", "case_type": "買賣價金", "facts_summary": "原告於115年1月出賣貨物予被告，被告迄未給付價金。",
         "claims": "被告應給付原告新臺幣50萬元。",
         "plaintiff": {"name": "甲公司", "ban": "22099131"}, "defendant": {"name": "乙"}}
 

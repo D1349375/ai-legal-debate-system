@@ -1,0 +1,22 @@
+{
+  "filesystem": {
+    ":root": "deny",
+    ":minimal": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus": "read",
+    "C:/Users/berto/AppData/Local/Programs/Python/Python312": "read",
+    "C:/Users/berto/AppData/Local/OpenAI/Codex/bin": "read",
+    "C:/Users/berto/.cache/codex-runtimes/codex-primary-runtime/dependencies": "read",
+    "C:/Users/berto/AppData/Local/Microsoft/WinGet/Links": "read",
+    "C:/Users/berto/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/main.py": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/engine": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/db.py": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/schema.py": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db": "write",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db-journal": "write",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db-wal": "write",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/codex_runs.db-shm": "write"
+  },
+  "network_enabled": false,
+  "windows_sandbox": "mxc"
+}

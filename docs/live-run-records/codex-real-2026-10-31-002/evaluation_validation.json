@@ -1,0 +1,985 @@
+{
+  "method": "Offline post-run reproduction. No new model roles, main.py, network or DB writes.",
+  "annotation_quotes": [
+    {
+      "id": "real-002-01",
+      "source_file": "calls/11_citation_verify/last_message.txt",
+      "quote_length": 31,
+      "exact_substring": true,
+      "length_valid": true
+    },
+    {
+      "id": "real-002-02",
+      "source_file": "calls/11_citation_verify/last_message.txt",
+      "quote_length": 25,
+      "exact_substring": true,
+      "length_valid": true
+    }
+  ],
+  "existing_validator": {
+    "status": "checked",
+    "reason": null,
+    "items": [
+      {
+        "index": 0,
+        "id": "real-002-01",
+        "step": "last_message",
+        "field": "text",
+        "quote_length": 31,
+        "valid": true,
+        "matches": [
+          {
+            "source": "calls/11_citation_verify/last_message.txt",
+            "field": "text",
+            "offset": 189
+          }
+        ],
+        "errors": []
+      },
+      {
+        "index": 1,
+        "id": "real-002-02",
+        "step": "last_message",
+        "field": "text",
+        "quote_length": 25,
+        "valid": true,
+        "matches": [
+          {
+            "source": "calls/11_citation_verify/last_message.txt",
+            "field": "text",
+            "offset": 379
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "scope": "Mechanical validity only; error labels and evidence are not adjudicated"
+  },
+  "parser_reproduction": {
+    "民法債編施行法第10條之1": {
+      "type": "unknown"
+    },
+    "銀行法第29條": {
+      "type": "unknown"
+    },
+    "銀行法第29條之1": {
+      "type": "unknown"
+    }
+  },
+  "judgment_file_reproduction": {
+    "status": "published",
+    "jyear": "114",
+    "jcase": "台上",
+    "jno": "1945",
+    "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\..\\corpus\\judgments\\TPSV,114,台上,1945,20260304,2.txt",
+    "verified_via": "local_corpus"
+  },
+  "reproduction_caveat": "Current engine behavior is reproduced; missing actual Step8 raw verifier payload prevents proving identical runtime selection.",
+  "corpus_unique_dockets": 13,
+  "corpus_text_files": 15,
+  "canonical_admission_sentences": [
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "sentence": "一、本案資料將LINE說詞、轉幣、程式不存在及詐欺意圖均列為原告主張，不能逕視為被告自認。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 25,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "sentence": "對方摘要已承認5顆需要獨立依據，本輪爭點因此縮為其究竟選擇何種依據及提出何種證據。",
+      "terms": [
+        "已承認"
+      ],
+      "offset": 229,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "sentence": "我方承認Stage 1確實爭執了陳述歸屬、程式真實性及乙的認識，現逐項回答：①帳號是否由乙使用：卷內未見帳號識別、綁定或使用資料及乙本人核對說明，目前不能確認，故不作自認，也沒有提出帳號遭冒用的相反事實。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 2554,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "sentence": "②是否曾表示已有交易機器人：目前只有原告對話內容的轉述，未見原始訊息及乙本人答覆，本輪不作自認，亦無足以證明未曾表示的資料。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 2656,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "sentence": "（三）逐項排除矛盾：不以「乙非契約當事人」為既定事實，又拿乙的有效契約直接證成受領原因；不以原告尚未證明詐欺故意，就宣稱乙已證明無過失；不以未控制錢包排除可能的本人承諾或共同侵權；不以未證明交付為由拒絕所有假設性金額審查，也不把試算當作交付自認；不將時效後返還與二年侵權賠償混同；不因利息上限限制5顆而免除本金；不以撤除減免抗辯推論全部15顆成立。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 7115,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "sentence": "（十六）答辯與程序：原告主張不等於我方自認、具體陳述及受領原因說明、請求順序與聲明闡明。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 857,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "sentence": "（十六）原告主張不當然成為我方自認、請求順序與聲明應明確，均「仍站得住」。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 3084,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "sentence": "最高法院明言『沈默與默示意思表示不同』，不能僅以未爭執認定同意交付420顆，並要求查明合資結算清算。",
+      "terms": [
+        "未爭執"
+      ],
+      "offset": 4673,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "sentence": "不能要求乙創作原本不存在的紀錄，也不能把拒絕私人索取當作自認。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 2127,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "sentence": "對被告第3問，我方請乙分別答覆帳號使用、程式存在及15顆說法，不接受將三項事實混成一句籠統否認；但在其答覆到來前，不預作自認處理。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 2267,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "sentence": "若現有材料即為全部裁判基礎，且無合法自認、不爭執或其他足以認定的資料，應由我方承擔未證明要件的不利益。",
+      "terms": [
+        "自認",
+        "不爭執"
+      ],
+      "offset": 3657,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "sentence": "對造摘要承認缺少乙本人說明，尚未補充其使用帳號、發話角色、指定地址及受領安排；該欠缺不等於自認，也不能被概括的舉證責任語句永久替代。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 3727,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "sentence": "（十六）答辯與程序：原告主張不等於我方自認、具體陳述及受領原因說明、請求順序與聲明闡明。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 857,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "sentence": "（十六）原告主張不當然成為我方自認、請求順序與聲明應明確，均「仍站得住」。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 3084,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "sentence": "最高法院明言『沈默與默示意思表示不同』，不能僅以未爭執認定同意交付420顆，並要求查明合資結算清算。",
+      "terms": [
+        "未爭執"
+      ],
+      "offset": 4673,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[1].response_excerpt",
+      "sentence": "若現有材料即為全部裁判基礎，且無合法自認、不爭執或其他足以認定的資料，應由我方承擔未證明要件的不利益。",
+      "terms": [
+        "自認",
+        "不爭執"
+      ],
+      "offset": 3657,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[1].response_excerpt",
+      "sentence": "對造摘要承認缺少乙本人說明，尚未補充其使用帳號、發話角色、指定地址及受領安排；該欠缺不等於自認，也不能被概括的舉證責任語句永久替代。",
+      "terms": [
+        "自認"
+      ],
+      "offset": 3727,
+      "in_input": false,
+      "provenance": "requires_manual_review"
+    }
+  ],
+  "canonical_fact_candidates": [
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 2859,
+      "in_input": true
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 4769,
+      "in_input": true
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "110年7月20日",
+      "offset": 6057,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "amount",
+      "candidate": "新臺幣，",
+      "offset": 7284,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "主張",
+      "offset": 57,
+      "in_input": true
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "自認",
+      "offset": 67,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "須證明乙",
+      "offset": 129,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "所述承諾",
+      "offset": 3694,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "同時",
+      "offset": 3742,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "可能",
+      "offset": 8679,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "目前",
+      "offset": 9146,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "未能證明",
+      "offset": 9256,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.argument",
+      "kind": "evidence",
+      "candidate": "不能僅因沒有另發存證信函",
+      "offset": 8573,
+      "in_input": false
+    },
+    {
+      "source": "d_s1.json",
+      "step": "s1_defendant",
+      "field": "$.case_id",
+      "kind": "date",
+      "candidate": "2026-10-31",
+      "offset": 5,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年6月25日",
+      "offset": 2275,
+      "in_input": true
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年6月25日",
+      "offset": 5176,
+      "in_input": true
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月21日",
+      "offset": 5385,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "之招攬",
+      "offset": 2254,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "對話內容",
+      "offset": 2676,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "所述為假",
+      "offset": 3012,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "之轉幣",
+      "offset": 3057,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "目前尚無",
+      "offset": 4907,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "也可能",
+      "offset": 6418,
+      "in_input": false
+    },
+    {
+      "source": "d_s2.json",
+      "step": "s2_defendant",
+      "field": "$.case_id",
+      "kind": "date",
+      "candidate": "2026-10-31",
+      "offset": 5,
+      "in_input": false
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "110年7月19日",
+      "offset": 5834,
+      "in_input": false
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "110年7月20日",
+      "offset": 5850,
+      "in_input": false
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "主張不等",
+      "offset": 869,
+      "in_input": false
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "已作",
+      "offset": 3582,
+      "in_input": false
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.argument",
+      "kind": "evidence",
+      "candidate": "不能要求必須另發存證信函",
+      "offset": 2265,
+      "in_input": false
+    },
+    {
+      "source": "d_s3.json",
+      "step": "s3_defendant",
+      "field": "$.case_id",
+      "kind": "date",
+      "candidate": "2026-10-31",
+      "offset": 5,
+      "in_input": false
+    },
+    {
+      "source": "judge_questions.json",
+      "step": "judge_questions",
+      "field": "$.uncontested_points[0]",
+      "kind": "person",
+      "candidate": "請求",
+      "offset": 2,
+      "in_input": false
+    },
+    {
+      "source": "judge_questions.json",
+      "step": "judge_questions",
+      "field": "$.uncontested_points[2]",
+      "kind": "person",
+      "candidate": "知悉損害",
+      "offset": 34,
+      "in_input": false
+    },
+    {
+      "source": "judge_questions.json",
+      "step": "judge_questions",
+      "field": "$.questions[2].question_text",
+      "kind": "date",
+      "candidate": "108年6月25日",
+      "offset": 5,
+      "in_input": true
+    },
+    {
+      "source": "judge_questions.json",
+      "step": "judge_questions",
+      "field": "$.questions[2].based_on",
+      "kind": "date",
+      "candidate": "108年6月25日",
+      "offset": 95,
+      "in_input": true
+    },
+    {
+      "source": "judge_questions.json",
+      "step": "judge_questions",
+      "field": "$.questions[3].question_text",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 3,
+      "in_input": true
+    },
+    {
+      "source": "p_s1.json",
+      "step": "s1_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年6月25日",
+      "offset": 2030,
+      "in_input": true
+    },
+    {
+      "source": "p_s1.json",
+      "step": "s1_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 2264,
+      "in_input": true
+    },
+    {
+      "source": "p_s1.json",
+      "step": "s1_plaintiff",
+      "field": "$.argument",
+      "kind": "amount",
+      "candidate": "美元參",
+      "offset": 8349,
+      "in_input": false
+    },
+    {
+      "source": "p_s1.json",
+      "step": "s1_plaintiff",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "主張",
+      "offset": 1930,
+      "in_input": true
+    },
+    {
+      "source": "p_s1.json",
+      "step": "s1_plaintiff",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "的事實",
+      "offset": 9129,
+      "in_input": false
+    },
+    {
+      "source": "p_s1.json",
+      "step": "s1_plaintiff",
+      "field": "$.case_id",
+      "kind": "date",
+      "candidate": "2026-10-31",
+      "offset": 5,
+      "in_input": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年6月25日",
+      "offset": 1703,
+      "in_input": true
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 2418,
+      "in_input": true
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月21日",
+      "offset": 3421,
+      "in_input": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年6月25日",
+      "offset": 4975,
+      "in_input": true
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 4993,
+      "in_input": true
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "amount",
+      "candidate": "新臺幣，",
+      "offset": 7293,
+      "in_input": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "目前",
+      "offset": 4638,
+      "in_input": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "的事實",
+      "offset": 8247,
+      "in_input": false
+    },
+    {
+      "source": "p_s2.json",
+      "step": "s2_plaintiff",
+      "field": "$.case_id",
+      "kind": "date",
+      "candidate": "2026-10-31",
+      "offset": 5,
+      "in_input": false
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "115年5月13日",
+      "offset": 4303,
+      "in_input": false
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "115年3月4日",
+      "offset": 4428,
+      "in_input": false
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 4965,
+      "in_input": true
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "kind": "amount",
+      "candidate": "140萬元",
+      "offset": 3941,
+      "in_input": false
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.argument",
+      "kind": "person",
+      "candidate": "應舉證",
+      "offset": 4112,
+      "in_input": false
+    },
+    {
+      "source": "p_s3.json",
+      "step": "s3_plaintiff",
+      "field": "$.case_id",
+      "kind": "date",
+      "candidate": "2026-10-31",
+      "offset": 5,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 660,
+      "in_input": true
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "自己",
+      "offset": 359,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "數值略高",
+      "offset": 473,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "主張",
+      "offset": 686,
+      "in_input": true
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "本證",
+      "offset": 1124,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "最終",
+      "offset": 1743,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "針對",
+      "offset": 2202,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "的強抗辯",
+      "offset": 2645,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.verdict_analysis",
+      "kind": "person",
+      "candidate": "完全沒有",
+      "offset": 3182,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.risk_map.對原告不利之處[7]",
+      "kind": "person",
+      "candidate": "目前",
+      "offset": 22,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.risk_map.對被告不利之處[6]",
+      "kind": "person",
+      "candidate": "已放棄",
+      "offset": 43,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "kind": "date",
+      "candidate": "110年7月19日",
+      "offset": 5834,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "kind": "date",
+      "candidate": "110年7月20日",
+      "offset": 5850,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "kind": "person",
+      "candidate": "主張不等",
+      "offset": 869,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "kind": "person",
+      "candidate": "已作",
+      "offset": 3582,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[0].response_excerpt",
+      "kind": "evidence",
+      "candidate": "不能要求必須另發存證信函",
+      "offset": 2265,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[1].response_excerpt",
+      "kind": "date",
+      "candidate": "115年5月13日",
+      "offset": 4303,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[1].response_excerpt",
+      "kind": "date",
+      "candidate": "115年3月4日",
+      "offset": 4428,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[1].response_excerpt",
+      "kind": "date",
+      "candidate": "108年7月11日",
+      "offset": 4965,
+      "in_input": true
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[1].response_excerpt",
+      "kind": "amount",
+      "candidate": "140萬元",
+      "offset": 3941,
+      "in_input": false
+    },
+    {
+      "source": "verdict.json",
+      "step": "verdict",
+      "field": "$.mechanical_anchor_json.weak_points[1].response_excerpt",
+      "kind": "person",
+      "candidate": "應舉證",
+      "offset": 4112,
+      "in_input": false
+    }
+  ],
+  "all_quote_checks_pass": true,
+  "network": "No evaluator network calls"
+}

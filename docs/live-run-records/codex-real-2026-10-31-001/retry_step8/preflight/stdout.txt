@@ -1,0 +1,1 @@
+{"sqlite_commit_reopen_rollback": true, "repeated_commit": true, "sidecar_observed": true, "negative_checks": {"db.py_write_denied": true, "db.py_delete_denied": true, "schema.py_write_denied": true, "schema.py_delete_denied": true, "formal_sentinel_read_denied": true}, "no_main_or_verify_invoked": true, "network_requests_in_program": 0}

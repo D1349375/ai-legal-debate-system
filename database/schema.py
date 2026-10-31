@@ -14,6 +14,12 @@ class Case(Base):
     # UI 建立案件時才有:雙方當事人名稱/統編(JSON)與建立途徑。CLI 落地的舊案件為 NULL。
     parties_json = Column(Text, nullable=True)
     created_via = Column(String, nullable=True)  # NULL=CLI(main.py case) / 'ui'
+    represented_side = Column(String, nullable=True)
+    uncontested_facts = Column(Text, nullable=True)
+    plaintiff_facts = Column(Text, nullable=True)
+    defendant_facts = Column(Text, nullable=True)
+    claim_amount = Column(Integer, nullable=True)
+    protocol_version = Column(String, nullable=True)
 
 class DebateArgument(Base):
     __tablename__ = 'debate_arguments'
@@ -26,7 +32,8 @@ class DebateArgument(Base):
     reasoning = Column(Text, nullable=False)
     cited_statutes = Column(Text, nullable=True)  # JSON array of citation strings
     cited_precedents = Column(Text, nullable=True)  # JSON array of citation strings
-    falsifier = Column(Text, nullable=True)  # stage 2/3 必填
+    falsifier = Column(Text, nullable=True)  # v2: 僅對造公開 defeat_conditions；代理方 update_conditions 僅存內部備註
+    structured_json = Column(Text, nullable=True)
     model_id = Column(String, nullable=True)
     created_at = Column(String, nullable=False)
 
@@ -37,6 +44,8 @@ class CourtQuestion(Base):
     question_text = Column(Text, nullable=False)
     target_side = Column(String, nullable=False)  # plaintiff / defendant
     based_on = Column(Text, nullable=False)  # 回溯至具體論點，禁止憑空生成
+    question_type = Column(String, nullable=True)
+    structured_json = Column(Text, nullable=True)
     created_at = Column(String, nullable=False)
 
 class Verdict(Base):
@@ -52,6 +61,7 @@ class Verdict(Base):
     risk_map = Column(Text, nullable=False)  # JSON:對原告不利之處/對被告不利之處/建議補強證據
     mechanical_anchor_json = Column(Text, nullable=False)  # aggregate.py 輸出，法官敘述不得矛盾
     protocol_version = Column(String, nullable=False)
+    structured_json = Column(Text, nullable=True)
     created_at = Column(String, nullable=False)
 
 class CitationVerification(Base):
@@ -64,6 +74,27 @@ class CitationVerification(Base):
     primary_source_url = Column(String, nullable=True)
     verified_at = Column(String, nullable=True)
     verifier_run_id = Column(String, nullable=True)
+
+
+class CaseCitationCheck(Base):
+    __tablename__ = 'case_citation_checks'
+    id = Column(Integer, primary_key=True)
+    case_id = Column(String, nullable=False, index=True)
+    citation_text = Column(Text, nullable=False)
+    status = Column(String, nullable=False)
+    source_file = Column(Text, nullable=True)
+    checked_at = Column(String, nullable=False)
+    verifier_run_id = Column(String, nullable=False)
+    support_note = Column(Text, nullable=True)
+    metadata_json = Column(Text, nullable=True)
+
+
+class JudgeBundle(Base):
+    __tablename__ = 'judge_bundles'
+    id = Column(Integer, primary_key=True)
+    case_id = Column(String, nullable=False, unique=True)
+    structured_json = Column(Text, nullable=False)
+    created_at = Column(String, nullable=False)
 
 class PleadingDraft(Base):
     __tablename__ = 'pleading_drafts'
@@ -80,6 +111,8 @@ class PleadingDraft(Base):
     # 哪一方的書狀:plaintiff=民事起訴狀、defendant=民事答辯狀。2026-10-29 新增，之前的紀錄為 NULL,一律視同 plaintiff
     # (當時只產原告起訴狀)。律師編輯版沿用原稿的 side。
     side = Column(String, nullable=True)
+    claim_breakdown_json = Column(Text, nullable=True)
+    warnings_json = Column(Text, nullable=True)
 
 
 class PartyCheck(Base):

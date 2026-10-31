@@ -1,0 +1,11 @@
+{
+  "phase": "stopped_step8_failed_gate_evaluation_complete",
+  "active_calls": {},
+  "verdict_published": false,
+  "pleadings_generated": false,
+  "evaluation_waits_for_both_cases_roles_end": false,
+  "last_role_ended_at": "2026-10-31T08:31:48.911333+00:00",
+  "evaluation_completed": true,
+  "evaluation_completed_at": "2026-10-31T08:48:57.990989+00:00",
+  "actor_processes_ended": true
+}

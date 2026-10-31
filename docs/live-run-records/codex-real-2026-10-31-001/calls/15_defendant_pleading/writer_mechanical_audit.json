@@ -1,0 +1,76 @@
+{
+  "audit_at_utc": "2026-10-31T08:19:14.671059+00:00",
+  "kind": "writer_mechanical_only",
+  "case_id": "real-2026-10-31-001",
+  "side": "defendant",
+  "call": "docs/live-run-records/codex-real-2026-10-31-001/calls/15_defendant_pleading",
+  "process_status": "process_finished",
+  "process_exit_code": 0,
+  "status": "PASS",
+  "checks": {
+    "exact_selected_frozen_sections": true,
+    "task_hash": true,
+    "frozen_and_repository_skill_hash": true,
+    "exact_header_task_bindings_prompt": true,
+    "native_payload_value_equal": true,
+    "native_payload_byte_identical": true,
+    "native_payload_hash": true,
+    "official_pdf_byte_identical": true,
+    "workspace_write_inputs_readonly": true,
+    "only_workspace_and_its_inputs_in_project_accessible": true,
+    "argv_profile_matches": true,
+    "no_network": true,
+    "no_nested_agents": true,
+    "original_model_effort": true,
+    "publication_controller_binding": true,
+    "protected_source_hashes_unchanged": true,
+    "no_nested_activity_observed": true,
+    "no_writer_publication_command_observed": true,
+    "final_message_matches_stream": true,
+    "draft_and_citations_files_present": true,
+    "citations_output_is_json_array": true
+  },
+  "failures": [],
+  "selected_frozen_source_spans_1based_inclusive": [
+    [
+      96,
+      102
+    ],
+    [
+      111,
+      130
+    ]
+  ],
+  "separator_note": "Recorded separator whitespace checked exactly; no legal source text added or rewritten. Publication CLI intentionally remains the controller task.",
+  "native_source_log": "docs/live-run-records/codex-real-2026-10-31-001/commands/retry13_pleading_source_defendant.stdout.txt",
+  "native_material_keys": [
+    "case",
+    "side",
+    "own_stage3",
+    "opponent_stage3_summary",
+    "party_checks",
+    "procedural_issues",
+    "existing_system_drafts"
+  ],
+  "outputs": {
+    "draft.txt": {
+      "exists": true,
+      "sha256": "f8462cf2837cc5d037694e152370a8090cf46b35cc835f33ed115d7491504efc"
+    },
+    "citations.json": {
+      "exists": true,
+      "sha256": "dda8d2dc1133aff9e5e7288659840d3c1bec02b2d0ad2ca204c69240f60394d5"
+    }
+  },
+  "execution_metadata": {
+    "nested_events": [],
+    "writer_publication_command_events": [],
+    "nonzero_command_events": [],
+    "stderr_router_errors": []
+  },
+  "scope_limits": [
+    "No holdout or case/legal merits assessed; raw payloads and output files processed only for hashes, structure and transport capture.",
+    "Writer draft wording and substantive citation support are not assessed by this audit.",
+    "Writer completion is separate from controller publication and database gates."
+  ]
+}

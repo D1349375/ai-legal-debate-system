@@ -1,0 +1,238 @@
+{
+  "case_id": "real-2026-10-31-001",
+  "verification_date": "2026-10-31",
+  "timezone": "Asia/Taipei",
+  "task": "Step 8 引用存在性、文字及最終判例實質相關性查核",
+  "verification_context": {
+    "authored_prior_arguments_or_verdict_in_this_context": false,
+    "created_nested_subagent": false,
+    "available_subagent_creation_tool": false,
+    "note": "本回合從Step 8查證任務開始，未參與原論證或判決撰寫。環境未提供另啟subagent工具，本回合未另啟巢狀代理；主流程是否已將本回合以獨立subagent啟動，須由主流程啟動紀錄確認。"
+  },
+  "inputs": {
+    "case.json": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/case.json",
+    "all_stages.json": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_stages.json",
+    "verdict.json": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/verdict.json",
+    "all_citations.json": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_citations.json",
+    "citation_provenance.json": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/citation_provenance.json",
+    "final_use_precedents.json": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/final_use_precedents.json"
+  },
+  "coverage": {
+    "unique_original_strings": 73,
+    "unique_identities": 65,
+    "statute_identities": 60,
+    "judgment_identities": 5,
+    "final_use_precedent_strings": 10,
+    "final_use_precedent_identities": 5,
+    "verdict_citations": 24,
+    "structured_citations_missing": [],
+    "body_citation_identities_missing": [],
+    "legal_basis_fields_found": [],
+    "procedural_issues_empty": true,
+    "procedural_note": "空issues及登記資料null不表示程序已經查核無虞；本次沒有另列程序法律依據。",
+    "input_copy_identical": true
+  },
+  "mechanical": {
+    "command": "python -B main.py verify <73個原始引用字串，以位置參數傳入>",
+    "env": {
+      "LEGALDEBATE_DB_URL": "sqlite:///database/codex_runs.db",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONIOENCODING": "utf-8"
+    },
+    "exit_code": 0,
+    "initial_published": 72,
+    "initial_failures": [
+      {
+        "citation": "民法第130條",
+        "reason": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1000)>"
+      }
+    ],
+    "retry": {
+      "command": "python -B main.py verify 民法第130條",
+      "exit_code": 0,
+      "result": "published"
+    },
+    "final_passed_strings": 73,
+    "final_failed_strings": 0,
+    "evidence_files": [
+      "mechanical_verification_initial.json",
+      "mechanical_verification_retry.json",
+      "mechanical_verification_final.json"
+    ],
+    "pinpoint_checks": [
+      {
+        "citation": "民法第213條第3項",
+        "status": "pass",
+        "note": "官網第三項為必要回復費用替代回復原狀。"
+      },
+      {
+        "citation": "民法第227條第1項",
+        "status": "pass",
+        "note": "官網第一項為可歸責不完全給付，依遲延或不能給付規定行使權利。"
+      },
+      {
+        "citation": "民事訴訟法第222條第2項",
+        "status": "pass",
+        "note": "官網第二項為已證明損害但數額難證時酌定。"
+      },
+      {
+        "citation": "民法第216條之1、民法第247條之1",
+        "status": "pass",
+        "note": "分別查詢216-1及247-1子條文，並非母條。"
+      }
+    ]
+  },
+  "substantive_reviews": [
+    {
+      "no": "65",
+      "date": "20260304",
+      "kind": "判決",
+      "sha256": "04017fc6d8dfca30b9daef9712ebfd0fa999c5162b30293a72f3e60bf7ba3439",
+      "lines": 269,
+      "case_subject": "請求減少價金；非自然死亡特別約定及減價後返還溢付款。",
+      "claim_checked": "有效減價後，對實際溢付價金依民法第179條請求返還。",
+      "evidence_lines": [
+        219,
+        223
+      ],
+      "quote": "是被上訴人依民法第359條規定，請求減少價金，並就溢付之價金(即減少價金額)，依同法第179條規定，請求返還本息，即屬有據。",
+      "assessment": "判決本院判斷直接支持此返還結構。現有判決及Stage 3均已明確排除將該案付清價金、非自然死亡約定及18%比例直接移植，引用相關性通過。",
+      "limits": "不能證明本案價金已付清、漏水造成永久貶值或任何確定減價比例。",
+      "citation": "最高法院115年度台上字第65號判決",
+      "aliases": [
+        "最高法院115年度台上字第65號",
+        "最高法院115年度台上字第65號判決"
+      ],
+      "source_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,65,20260304,1.txt",
+      "source_metadata_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,65,20260304,1_source.json",
+      "full_text_read": true,
+      "status": "pass",
+      "scope": "所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。"
+    },
+    {
+      "no": "336",
+      "date": "20260416",
+      "kind": "判決",
+      "sha256": "22582788056ace8704045126cfb6cc13e11b8ddb8ccde166f1c501a8bdf1e682",
+      "lines": 269,
+      "case_subject": "請求減少價金等；知悉增建能否推認知悉違建。",
+      "claim_checked": "知情範圍須有證據，不得由已揭露的一種現象臆測買方知悉全部隱藏瑕疵。",
+      "evidence_lines": [
+        175,
+        243
+      ],
+      "quote": "是增建物非必屬違建物。",
+      "assessment": "本院判斷否定未詳查證據即推論買方知悉違建，足供本案檢驗壁癌揭露與特定漏水知情之推論方式。原引用已指出案由差異，並未宣稱買方必然不知情，引用相關性通過。",
+      "limits": "不能直接證明本案不知漏水；對民法第360條、第227條僅要求闡明原請求，未認定賠償成立。",
+      "citation": "最高法院115年度台上字第336號判決",
+      "aliases": [
+        "最高法院115年度台上字第336號",
+        "最高法院115年度台上字第336號判決"
+      ],
+      "source_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,336,20260416,1.txt",
+      "source_metadata_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,336,20260416,1_source.json",
+      "full_text_read": true,
+      "status": "pass",
+      "scope": "所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。"
+    },
+    {
+      "no": "386",
+      "date": "20260319",
+      "kind": "裁定",
+      "sha256": "6b986e1e6ff117b6ae7989d4f2bde4c9187f341588e8693d9fc131e6214e8eaa",
+      "lines": 165,
+      "case_subject": "請求損害賠償等；漁船噸位超標、解除表示及第三審上訴合法性。",
+      "claim_checked": "僅提示瑕疵通知、形成權行使、受領代理權與表示到達應予區分。",
+      "evidence_lines": [
+        103,
+        141
+      ],
+      "quote": "但未為解除契約之意思表示。",
+      "assessment": "理由二轉述原審認定通知瑕疵未等於解除、代書未受權且未轉達，並以第三審上訴不合法駁回。現有判決及Stage 3已如實註明轉述與程序性裁定，不將其當成最高法院就本案減價作成實體判斷，有限提示用途通過。",
+      "limits": "不得升格為最高法院實體判例規則，亦不能據此判定本案仲介無權、減價逾期或已及時生效。",
+      "citation": "最高法院115年度台上字第386號裁定",
+      "aliases": [
+        "最高法院115年度台上字第386號",
+        "最高法院115年度台上字第386號裁定"
+      ],
+      "source_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,386,20260319,1.txt",
+      "source_metadata_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,386,20260319,1_source.json",
+      "full_text_read": true,
+      "status": "pass",
+      "scope": "所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。"
+    },
+    {
+      "no": "206",
+      "date": "20260312",
+      "kind": "判決",
+      "sha256": "6c25a2bd33751131bfcdaa73e7399a47e1adbd94414c6cdb9f69cfa8137f7411",
+      "lines": 331,
+      "case_subject": "請求損害賠償；承攬廠房誤建基地、遷移後管線瑕疵與定期催修。",
+      "claim_checked": "催告內容足以辨認給付標的即可，不應割裂函件與先前口頭通知觀察。",
+      "evidence_lines": [
+        185,
+        197
+      ],
+      "quote": "債權人催告之內容若足以辨認債務人應為給付之標的，即生催告之效力。",
+      "assessment": "本院於廢棄發回部分明示該一般催告原則，支持反對要求逐項列盡地下管件的主張。判決及被告Stage 3已明確排除直接移植承攬修補義務，引用相關性通過。",
+      "limits": "仍須證明本案實際催告內容、到達與相應給付義務；催修不當然等於減價表示。",
+      "citation": "最高法院115年度台上字第206號判決",
+      "aliases": [
+        "最高法院115年度台上字第206號",
+        "最高法院115年度台上字第206號判決"
+      ],
+      "source_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,206,20260312,1.txt",
+      "source_metadata_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,206,20260312,1_source.json",
+      "full_text_read": true,
+      "status": "pass",
+      "scope": "所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。"
+    },
+    {
+      "no": "561",
+      "date": "20260422",
+      "kind": "判決",
+      "sha256": "ff2d5d3f15da881e734a73a6ad1fc94317ce54c2e3c6c2e27f2270b8b9d5ec2d",
+      "lines": 213,
+      "case_subject": "請求損害賠償；不當假扣押所生商譽損害及損害數額酌定。",
+      "claim_checked": "民事訴訟法第222條第2項須先證明損害，且有客觀數額證明困難，酌定須有相關具體因素、計算標準及可受檢驗的說理。",
+      "evidence_lines": [
+        137,
+        155
+      ],
+      "quote": "應秉公平原則，採擷符合該條項規範意旨、一般法律原則，且與應證事實具有實質關聯之具體事項，作為衡量因素及計算標準",
+      "assessment": "本院明示一般數額酌定標準，與原判決及雙方Stage 3的程序命題一致；未以商譽個案替代本案損害證明，引用相關性通過。",
+      "limits": "不能補足本案責任、損害存在、有效減價、付款或確定本金之證據。",
+      "citation": "最高法院115年度台上字第561號判決",
+      "aliases": [
+        "最高法院115年度台上字第561號",
+        "最高法院115年度台上字第561號判決"
+      ],
+      "source_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,561,20260422,1.txt",
+      "source_metadata_file": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus/judgments/TPSV,115,台上,561,20260422,1_source.json",
+      "full_text_read": true,
+      "status": "pass",
+      "scope": "所提供verdict及Stage 3既有限縮用途；不預先核准未見的Step 9新文字。"
+    }
+  ],
+  "database_check": {
+    "database": "database/codex_runs.db",
+    "matching_rows": 65,
+    "unique_matching_identities": 65,
+    "all_statuses_published": true,
+    "missing": [],
+    "unpublished": [],
+    "duplicate_identities": [],
+    "verdict_citation_db_gate_pass": true,
+    "case_verdict_rows": 0,
+    "case_pleading_rows": 0
+  },
+  "citation_gate": {
+    "all_citation_checks_passed": true,
+    "failed_citations": [],
+    "unverifiable_final_precedents": [],
+    "citation_prerequisite_for_steps7_and9": "pass_for_reviewed_text",
+    "independent_subagent_launch_evidence": "not_confirmed_from_this_context",
+    "note": "引用內容關卡通過；主流程仍須以啟動紀錄確認獨立subagent結構性要求。未在本回合執行verdict落地或訴狀草擬。Step 9若新增引用、改變引用用途或編輯引用，須重新查核，不能沿用本報告概括放行。"
+  },
+  "source_edits_made": false
+}

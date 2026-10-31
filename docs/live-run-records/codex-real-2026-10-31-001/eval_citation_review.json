@@ -1,0 +1,57 @@
+[
+  {
+    "citation": "最高法院115年度台上字第65號",
+    "file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,65,20260304,1.txt",
+    "bytes": 10209,
+    "sha256": "04017fc6d8dfca30b9daef9712ebfd0fa999c5162b30293a72f3e60bf7ba3439",
+    "read_scope": "full_text_including_parties_main_disposition_reasons_and_footer",
+    "subject": "非自然死亡告知約定、減價後返還溢付價金",
+    "relevance_review": "支持359減價後179返還的結構及非物理瑕疵的可能性；角色明確不移用18%、已付款及特殊約定到漏水案。",
+    "misuse_established": false,
+    "publication_action": "none; evaluation does not complete or replace Step8"
+  },
+  {
+    "citation": "最高法院115年度台上字第336號",
+    "file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,336,20260416,1.txt",
+    "bytes": 9704,
+    "sha256": "22582788056ace8704045126cfb6cc13e11b8ddb8ccde166f1c501a8bdf1e682",
+    "read_scope": "full_text_including_parties_main_disposition_reasons_and_footer",
+    "subject": "增建與違建知悉範圍、不得臆測、闡明請求基礎",
+    "relevance_review": "支持依證據區分知悉對象及不得由外觀無據擴張；不直接證明本案漏水或第360／227請求成立。",
+    "misuse_established": false,
+    "publication_action": "none; evaluation does not complete or replace Step8"
+  },
+  {
+    "citation": "最高法院115年度台上字第386號",
+    "file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,386,20260319,1.txt",
+    "bytes": 6042,
+    "sha256": "6b986e1e6ff117b6ae7989d4f2bde4c9187f341588e8693d9fc131e6214e8eaa",
+    "read_scope": "full_text_including_parties_main_disposition_reasons_and_footer",
+    "subject": "漁船噸位瑕疵、解除表示與代書權限；第三審上訴不合法裁定",
+    "relevance_review": "僅轉述原審的通知／解除／到達／期間問題作有限參考；角色已辨明非房屋減價實體判決，不以其證明本案已逾期。",
+    "misuse_established": false,
+    "publication_action": "none; evaluation does not complete or replace Step8"
+  },
+  {
+    "citation": "最高法院115年度台上字第206號",
+    "file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,206,20260312,1.txt",
+    "bytes": 12387,
+    "sha256": "6c25a2bd33751131bfcdaa73e7399a47e1adbd94414c6cdb9f69cfa8137f7411",
+    "read_scope": "full_text_including_parties_main_disposition_reasons_and_footer",
+    "subject": "廠房承攬蓋錯基地、遷移後管線瑕疵、催告識別標的及綜合證據",
+    "relevance_review": "一般催告內容足以辨識給付標的的理由可有限援用；角色明示不直接套承攬條文，不把催修視為減價。",
+    "misuse_established": false,
+    "publication_action": "none; evaluation does not complete or replace Step8"
+  },
+  {
+    "citation": "最高法院115年度台上字第561號",
+    "file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\corpus\\judgments\\TPSV,115,台上,561,20260422,1.txt",
+    "bytes": 7722,
+    "sha256": "ff2d5d3f15da881e734a73a6ad1fc94317ce54c2e3c6c2e27f2270b8b9d5ec2d",
+    "read_scope": "full_text_including_parties_main_disposition_reasons_and_footer",
+    "subject": "不當假扣押造成商譽損害、民訴222第2項酌定及說理",
+    "relevance_review": "一般數額酌定規則可援用；角色未把商譽損害、金額或個案結果當成本案漏水價差證明。",
+    "misuse_established": false,
+    "publication_action": "none; evaluation does not complete or replace Step8"
+  }
+]

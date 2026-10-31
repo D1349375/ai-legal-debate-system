@@ -1,0 +1,9 @@
+查證完成，**閘門未通過**：106項去重引用中，102項通過、4項維持 `draft`：
+
+- 銀行法第29條、第29條之1
+- 民法債編施行法第10條之1
+- 民法第205條的108年舊法版本
+
+13件裁判已完成全文相關性核對。未落地判決或草擬訴狀。
+
+[查證報告](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_report.md) · [原始結果](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_raw_results.json)

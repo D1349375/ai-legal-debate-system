@@ -1,0 +1,97 @@
+{
+  "validated_at": "2026-10-31T08:48:59.079865+00:00",
+  "cases": [
+    {
+      "case": "001",
+      "calls": 15,
+      "all_role_processes_ended": true,
+      "annotations": 1,
+      "inference_annotations": 0,
+      "problem_chains": 1,
+      "source_file_quote_checks": [
+        {
+          "id": "real-001-01",
+          "source": "pleading_draft_plaintiff.txt",
+          "field": "text",
+          "length": 58,
+          "offset": 5506,
+          "source_sha256": "e2eea7c2859dcddece7eb26033e360b198f5fc316b74f6dd0e6e7f46a17a35ec",
+          "valid": true
+        }
+      ],
+      "legacy_checker_unrecognized_sources": [],
+      "jsonl_parse_errors": [],
+      "source_note_hits": 13
+    },
+    {
+      "case": "002",
+      "calls": 12,
+      "all_role_processes_ended": true,
+      "annotations": 5,
+      "inference_annotations": 1,
+      "problem_chains": 3,
+      "source_file_quote_checks": [
+        {
+          "id": "real-002-01",
+          "source": "calls/11_citation_verify/last_message.txt",
+          "field": "text",
+          "length": 31,
+          "offset": 189,
+          "source_sha256": "9bc26e411468fe847c772c2b87f96bd08eb69169aa9a81cd09cdf4f32eb83049",
+          "valid": true
+        },
+        {
+          "id": "real-002-02",
+          "source": "calls/11_citation_verify/last_message.txt",
+          "field": "text",
+          "length": 25,
+          "offset": 379,
+          "source_sha256": "9bc26e411468fe847c772c2b87f96bd08eb69169aa9a81cd09cdf4f32eb83049",
+          "valid": true
+        },
+        {
+          "id": "real-002-03",
+          "source": "calls/12_citation_verify_attempt2/workspace/verification_report.md",
+          "field": "text",
+          "length": 37,
+          "offset": 1478,
+          "source_sha256": "9bd90f9a3ad905715486b1cb91010b2a2b0b22141ca90832b4c749838ba8d0ef",
+          "valid": true
+        },
+        {
+          "id": "real-002-04",
+          "source": "calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+          "field": "/61/source_file",
+          "length": 31,
+          "offset": 85,
+          "source_sha256": "e72e008d928d9c98c3a535fdd6c1f8614eaea1d08ed01a8544b18c7674ef07bc",
+          "valid": true
+        },
+        {
+          "id": "real-002-05",
+          "source": "calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+          "field": "/22/matched_text",
+          "length": 27,
+          "offset": 8,
+          "source_sha256": "e72e008d928d9c98c3a535fdd6c1f8614eaea1d08ed01a8544b18c7674ef07bc",
+          "valid": true
+        }
+      ],
+      "legacy_checker_unrecognized_sources": [
+        "real-002-03",
+        "real-002-04",
+        "real-002-05"
+      ],
+      "jsonl_parse_errors": [],
+      "source_note_hits": 12
+    }
+  ],
+  "reports_sha256": {
+    "docs/live-run-records/codex-real-cases-summary.md": "d6af8b1d2d28a96001bedd82b4c92b1dd260048f097806c0a003ad8e35ced73d",
+    "docs/live-run-records/codex-real-2026-10-31-001/eval.md": "e91bf7adae4249009af078e0b4ec7c361a892a37e243df039ec1c26f1cc875f5",
+    "docs/live-run-records/codex-real-2026-10-31-002/eval.md": "eaba5e1cf812ed26a8a61ca6d34b38c261f72c32e72c4b52a86a0579dc644142"
+  },
+  "local_links_checked": 35,
+  "broken_links": [],
+  "scope": "Integrity and literal quotes; labels require human review."
+}

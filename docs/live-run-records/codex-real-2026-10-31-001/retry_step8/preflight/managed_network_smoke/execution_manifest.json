@@ -1,0 +1,41 @@
+{
+  "kind": "no_model_managed_network_telemetry_optout_probe",
+  "argv": [
+    "codex",
+    "sandbox",
+    "-C",
+    "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\retry_step8\\preflight\\fixture",
+    "-P",
+    "legaldebate-role",
+    "-c",
+    "windows.sandbox=\"mxc\"",
+    "-c",
+    "default_permissions=\"legaldebate-role\"",
+    "-c",
+    "permissions.legaldebate-role.filesystem={\":root\" = \"deny\", \":minimal\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus\" = \"read\", \"C:/Users/berto/AppData/Local/Programs/Python/Python312\" = \"read\", \"C:/Users/berto/AppData/Local/OpenAI/Codex/bin\" = \"read\", \"C:/Users/berto/.cache/codex-runtimes/codex-primary-runtime/dependencies\" = \"read\", \"C:/Users/berto/AppData/Local/Microsoft/WinGet/Links\" = \"read\", \"C:/Users/berto/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/main.py\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/engine\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.claude\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.git\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.gitattributes\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.github\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.gitignore\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/.pytest_cache\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/data\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/demo\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/LICENSE\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/pytest.ini\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/README.md\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/requirements.txt\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/scripts\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/server\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/tests\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/ui\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/video\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database/codex_runs.db\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database/db.py\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database/legal_debate.db\" = \"deny\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database/schema.py\" = \"read\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database/codex_runs.db-journal\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database/codex_runs.db-wal\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/fixture/database/codex_runs.db-shm\" = \"write\", \"C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/probe.py\" = \"read\"}",
+    "-c",
+    "features.network_proxy=true",
+    "-c",
+    "permissions.legaldebate-role.network.enabled=true",
+    "-c",
+    "permissions.legaldebate-role.network.allow_local_binding=true",
+    "-c",
+    "permissions.legaldebate-role.network.allow_upstream_proxy=false",
+    "-c",
+    "permissions.legaldebate-role.network.domains={\"law.moj.gov.tw\" = \"allow\", \"judgment.judicial.gov.tw\" = \"allow\"}",
+    "--",
+    "C:/Users/berto/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe",
+    "-NoLogo",
+    "-NoProfile",
+    "-NonInteractive",
+    "-Command",
+    "$ErrorActionPreference='Stop'\nif ($env:POWERSHELL_TELEMETRY_OPTOUT -ne '1') { throw 'Missing startup opt-out' }\n$type=[System.Management.Automation.PSObject].Assembly.GetType('Microsoft.PowerShell.Telemetry.ApplicationInsightsTelemetry')\n$property=$type.GetProperty('CanSendTelemetry',[System.Reflection.BindingFlags]'Public,NonPublic,Static')\n$value=$property.GetValue($null)\nif ($value) { throw 'PowerShell telemetry remains enabled' }\nStart-Sleep -Milliseconds 1500\n@{PowerShellTelemetryCanSend=$value;OptOutAtStartup=$env:POWERSHELL_TELEMETRY_OPTOUT;ExplicitNetworkRequests=0}|ConvertTo-Json -Compress\n"
+  ],
+  "started_at": "2026-10-31T07:43:42.391795+00:00",
+  "env": {
+    "LEGALDEBATE_DB_URL": "sqlite:///database/codex_runs.db",
+    "POWERSHELL_TELEMETRY_OPTOUT": "1"
+  },
+  "exit_code": 0,
+  "ended_at": "2026-10-31T07:43:45.199762+00:00"
+}

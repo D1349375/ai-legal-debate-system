@@ -14,7 +14,7 @@ from urllib.parse import quote, urlsplit
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from database.db import default_db_path, make_session_factory
 from database.schema import Case
@@ -54,10 +54,27 @@ class PartyInput(BaseModel):
 class CreateCaseRequest(BaseModel):
     case_id: str | None = Field(default=None, max_length=64)
     case_type: str = Field(min_length=1, max_length=60)
-    facts_summary: str = Field(min_length=10, max_length=20000)
+    represented_side: Literal["plaintiff", "defendant"]
+    facts_summary: str = Field(default="", min_length=10, max_length=20000)
+    uncontested_facts: str = Field(default="", max_length=20000)
+    plaintiff_facts: str = Field(default="", max_length=20000)
+    defendant_facts: str = Field(default="", max_length=20000)
+    claim_amount: int | None = Field(default=None, ge=0, strict=True)
     claims: str = Field(min_length=2, max_length=5000)
     plaintiff: PartyInput
     defendant: PartyInput
+
+    @model_validator(mode="after")
+    def facts_present(self):
+        if len("\n".join((self.facts_summary, self.uncontested_facts,
+                          self.plaintiff_facts, self.defendant_facts)).strip()) < 10:
+            raise ValueError("請填寫至少十字的案件事實，僅填實際掌握的資料")
+        return self
+
+
+class ProcedurePreviewRequest(BaseModel):
+    claim_amount: int | None = Field(default=None, ge=0, strict=True)
+    claims: str = Field(default="", max_length=5000)
 
 
 class RunRequest(BaseModel):
@@ -182,10 +199,27 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
         try:
             case_id = services.create_case(db, case_type=req.case_type, facts_summary=req.facts_summary,
                                            claims=req.claims, parties=parties,
-                                           case_id=(req.case_id or "").strip() or None, cases_dir=cases_dir)
+                                           case_id=(req.case_id or "").strip() or None, cases_dir=cases_dir,
+                                           represented_side=req.represented_side, uncontested_facts=req.uncontested_facts,
+                                           plaintiff_facts=req.plaintiff_facts, defendant_facts=req.defendant_facts,
+                                           claim_amount=req.claim_amount)
         except ValueError as e:
             raise HTTPException(409, str(e))
-        return {"case_id": case_id, "parties": parties}
+        from engine.role_protocol import procedure_warning
+        return {"case_id": case_id, "parties": parties,
+                "procedure_warning": procedure_warning(req.claim_amount, req.claims)}
+
+    @app.post("/api/cases/procedure-preview")
+    def procedure_preview(req: ProcedurePreviewRequest):
+        from engine.role_protocol import procedure_warning
+        return {"stage": "起訴前", **procedure_warning(req.claim_amount, req.claims)}
+
+    @app.get("/api/cases/{case_id}/report")
+    def case_report(case_id: str, db=Depends(get_db)):
+        if db.query(Case).filter_by(case_id=case_id).one_or_none() is None:
+            raise HTTPException(404, f"找不到案件:{case_id}")
+        from engine.role_protocol import build_report
+        return build_report(db, case_id)
 
     @app.post("/api/cases/{case_id}/runs", status_code=201, dependencies=[Depends(local_only)])
     def start_run(case_id: str, req: RunRequest | None = None, resume: bool = Query(False)):

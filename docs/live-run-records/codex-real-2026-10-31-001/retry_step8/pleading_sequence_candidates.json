@@ -1,0 +1,3124 @@
+{
+  "case_id": "real-2026-10-31-001",
+  "kind": "bookkeeping_only_step9_sequence_and_literal_transport_candidates",
+  "created_at_utc": "2026-10-31T08:34:21.529294+00:00",
+  "scope": "No P2 or legal-validity decision is made in this mechanical candidate file. No role, main.py, model, network or database write was run. Candidate extraction and name/date/money checks are heuristic, not hallucination verdicts.",
+  "offset_convention": "Zero-based Unicode code-point start; exclusive end; original decoded text preserving line endings. UTF-8 byte positions exclude any BOM. Line/column are one-based. Source-field offsets refer to parsed JSON string values.",
+  "protocol_reference": {
+    "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\frozen_SKILL.md",
+    "lines_1based_inclusive": [
+      [
+        91,
+        110
+      ],
+      [
+        112,
+        135
+      ]
+    ],
+    "rules": [
+      "Step9 common1: directly place own Stage3 position/argument/citations, without rhetorical rewriting.",
+      "Step9 common4: unknown case number, court, evidence, date remain pending placeholders.",
+      "9B5: opponent position and claims verbatim; own corresponding paragraphs only."
+    ],
+    "note": "Chronological wording copied from Stage3 is recorded for later evaluation; literal fidelity does not decide suitability for a pre-suit complaint."
+  },
+  "protected_source_hash_checks": [
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\main.py",
+      "expected_sha256": "e341885a7f4803ae899b250526043909c0295d94833554a4b6f23398711fbf7c",
+      "actual_sha256": "e341885a7f4803ae899b250526043909c0295d94833554a4b6f23398711fbf7c",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\aggregate.py",
+      "expected_sha256": "b4e16ef71f1f2d91cc26dbf36d6b8912159d86027f509e64e091c92e9c3ff567",
+      "actual_sha256": "b4e16ef71f1f2d91cc26dbf36d6b8912159d86027f509e64e091c92e9c3ff567",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\court_map.py",
+      "expected_sha256": "acecfab9eed886dc8cf4aab8d67ceb7a5d8b314573367fe19ff36ef3886a5962",
+      "actual_sha256": "acecfab9eed886dc8cf4aab8d67ceb7a5d8b314573367fe19ff36ef3886a5962",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\gcis.py",
+      "expected_sha256": "fab83a5316cde3be7dbc1594fe06db42214ace767f82a98b298fbef8ad15996d",
+      "actual_sha256": "fab83a5316cde3be7dbc1594fe06db42214ace767f82a98b298fbef8ad15996d",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\party_issues.py",
+      "expected_sha256": "3ebfa4ac83b7fb71163d38e7ad0dec1c78f821e6ce596dbfdc928d04e3772b14",
+      "actual_sha256": "3ebfa4ac83b7fb71163d38e7ad0dec1c78f821e6ce596dbfdc928d04e3772b14",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\party_rules.py",
+      "expected_sha256": "0bf0d3fbefe1391ca96ef2f7a48e8fac5f4414016fa11d45057fef44b017af3f",
+      "actual_sha256": "0bf0d3fbefe1391ca96ef2f7a48e8fac5f4414016fa11d45057fef44b017af3f",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\stance_rag.py",
+      "expected_sha256": "266876db8194927ea9515b8219278365305138040251c5eef911141a4809c660",
+      "actual_sha256": "266876db8194927ea9515b8219278365305138040251c5eef911141a4809c660",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\verify.py",
+      "expected_sha256": "baec2ee52555cb15faed9edae59cb93e348bd18b8d8ee7fbb67003f0863898f1",
+      "actual_sha256": "baec2ee52555cb15faed9edae59cb93e348bd18b8d8ee7fbb67003f0863898f1",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\database\\db.py",
+      "expected_sha256": "b69ca9f84f9a7ef5c05e1f0dc1d36452c15a6732ff5a2ab9a9ca384609b2f7c3",
+      "actual_sha256": "b69ca9f84f9a7ef5c05e1f0dc1d36452c15a6732ff5a2ab9a9ca384609b2f7c3",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\database\\schema.py",
+      "expected_sha256": "80b6d20ef26c407fe0ce70f3d75270f06c58c8c0ab5aff033eabec9d9cc07fa1",
+      "actual_sha256": "80b6d20ef26c407fe0ce70f3d75270f06c58c8c0ab5aff033eabec9d9cc07fa1",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\.claude\\skills\\legal-debate\\templates\\judge_question_prompt.txt",
+      "expected_sha256": "a54dcb2dab71d0b2ee0d30ed72b824dfb70852f73583d4625d25a424083650c9",
+      "actual_sha256": "a54dcb2dab71d0b2ee0d30ed72b824dfb70852f73583d4625d25a424083650c9",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\.claude\\skills\\legal-debate\\templates\\stage1_prompt.txt",
+      "expected_sha256": "199a55a68385834f40a863d0ee4c2b2c86616edf6b1e1eea5c1102cf32a57c79",
+      "actual_sha256": "199a55a68385834f40a863d0ee4c2b2c86616edf6b1e1eea5c1102cf32a57c79",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\.claude\\skills\\legal-debate\\templates\\stage2_prompt.txt",
+      "expected_sha256": "26af9e1fd31e5d21eb07e84b57c15a706eace72d9682970d33784119ef4a4b32",
+      "actual_sha256": "26af9e1fd31e5d21eb07e84b57c15a706eace72d9682970d33784119ef4a4b32",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\.claude\\skills\\legal-debate\\templates\\stage3_prompt.txt",
+      "expected_sha256": "b98330a9881f0cb4cf6dba24f0007389986fb38d5dc6136e44a9c76705eb1d4b",
+      "actual_sha256": "b98330a9881f0cb4cf6dba24f0007389986fb38d5dc6136e44a9c76705eb1d4b",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\.claude\\skills\\legal-debate\\templates\\verdict_prompt.txt",
+      "expected_sha256": "14e65652bee09ec35c1697a6dd5b8c68270a6f41db27ccac1cf4c27cae81d5d3",
+      "actual_sha256": "14e65652bee09ec35c1697a6dd5b8c68270a6f41db27ccac1cf4c27cae81d5d3",
+      "unchanged": true
+    }
+  ],
+  "cases": [
+    {
+      "side": "plaintiff",
+      "call": "14_plaintiff_pleading",
+      "draft_path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\pleading_draft_plaintiff.txt",
+      "draft_sha256": "e2eea7c2859dcddece7eb26033e360b198f5fc316b74f6dd0e6e7f46a17a35ec",
+      "source_path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\14_plaintiff_pleading\\workspace\\pleading_source.json",
+      "source_sha256": "0399caa87029b4de58c4fb2906ff287842570b600d8f996a403efd7d8f2e8de8",
+      "collected_draft_byte_identical_to_writer": true,
+      "material_hash_checks": [
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\14_plaintiff_pleading\\workspace\\pleading_source.json",
+          "expected_sha256": "0399caa87029b4de58c4fb2906ff287842570b600d8f996a403efd7d8f2e8de8",
+          "actual_sha256": "0399caa87029b4de58c4fb2906ff287842570b600d8f996a403efd7d8f2e8de8",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\14_plaintiff_pleading\\workspace\\corpus\\pleadings\\reference\\司法院官方民事起訴狀範本_結構參考用.pdf",
+          "expected_sha256": "c3f877126fdcf46d9198b72c250fcdaff7096a1b20798a4b24a1cc9f6126462c",
+          "actual_sha256": "c3f877126fdcf46d9198b72c250fcdaff7096a1b20798a4b24a1cc9f6126462c",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\14_plaintiff_pleading\\prompt.txt",
+          "expected_sha256": "2e59570b743775ba685bcb17d8dbafde0cd5575428eb8aae00bbf5b38c430c4e",
+          "actual_sha256": "2e59570b743775ba685bcb17d8dbafde0cd5575428eb8aae00bbf5b38c430c4e",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\14_plaintiff_pleading\\runbook_task_source.md",
+          "expected_sha256": "3d220984561aaa314a70ce6c272aafab3ea6543b03103edf075455182f3dbe89",
+          "actual_sha256": "3d220984561aaa314a70ce6c272aafab3ea6543b03103edf075455182f3dbe89",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\.claude\\skills\\legal-debate\\SKILL.md",
+          "expected_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "actual_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\frozen_SKILL.md",
+          "expected_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "actual_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "unchanged": true
+        }
+      ],
+      "literal_field_fidelity": [
+        {
+          "field": "own_stage3.position",
+          "characters": 287,
+          "sha256_utf8": "40abb4305ea36e9ee4e4c730b00a7949576f90b8cf6ca08638fdaee32cbba471",
+          "exact_occurrences_in_draft": [
+            {
+              "start": 1072,
+              "end": 1359,
+              "line_1based": 52,
+              "column_1based": 1,
+              "utf8_byte_start": 2650,
+              "utf8_byte_end": 3463
+            }
+          ],
+          "exact_present": true,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 0,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact original string present."
+        },
+        {
+          "field": "own_stage3.argument",
+          "characters": 5947,
+          "sha256_utf8": "44442c9595710d433ae3da06699596f1f5abdbe7c7d95501c74e045c62d50942",
+          "exact_occurrences_in_draft": [],
+          "exact_present": false,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 41,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact content; source LF is rendered as CRLF in writer draft. No other text normalization used."
+        },
+        {
+          "field": "case.facts_summary",
+          "characters": 416,
+          "sha256_utf8": "f957281e03cf772d77937e3b45ed15500869a20a5f666489892227f75145762e",
+          "exact_occurrences_in_draft": [],
+          "exact_present": false,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 6,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact content; source LF is rendered as CRLF in writer draft. No other text normalization used."
+        },
+        {
+          "field": "case.claims",
+          "characters": 51,
+          "sha256_utf8": "c1b116a92cc94d918685b8bcff52a966eb18d6a72852d1e2e5a33e089ce5446e",
+          "exact_occurrences_in_draft": [
+            {
+              "start": 982,
+              "end": 1033,
+              "line_1based": 49,
+              "column_1based": 1,
+              "utf8_byte_start": 2444,
+              "utf8_byte_end": 2579
+            }
+          ],
+          "exact_present": true,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 0,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact original string present."
+        },
+        {
+          "field": "opponent_stage3_summary.position",
+          "characters": 182,
+          "sha256_utf8": "588569a50d5ccc5482610d242f6bf70b69fc5d9c000c2a90c36edafee48834d5",
+          "exact_occurrences_in_draft": [],
+          "exact_present": false,
+          "present_after_only_source_LF_to_draft_CRLF": false,
+          "source_LF_count": 0,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Not present as a full field; omission may be expected for this side."
+        }
+      ],
+      "sequence_candidates": [
+        {
+          "id": "plaintiff-sequence-01",
+          "quote": "Stage 3 position、argument及引用名稱均依原文保留，未作語氣潤飾或修辭改寫。",
+          "character_count": 49,
+          "draft_offsets": [
+            {
+              "start": 36,
+              "end": 85,
+              "line_1based": 2,
+              "column_1based": 26,
+              "utf8_byte_start": 104,
+              "utf8_byte_end": 203
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-02",
+          "quote": "二、最終立場及主備位次序（Stage 3 position 原文）",
+          "character_count": 33,
+          "draft_offsets": [
+            {
+              "start": 1037,
+              "end": 1070,
+              "line_1based": 51,
+              "column_1based": 1,
+              "utf8_byte_start": 2583,
+              "utf8_byte_end": 2648
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-03",
+          "quote": "對造要求駁回經調查仍未證明的要件或數額，我方原則接受；",
+          "character_count": 27,
+          "draft_offsets": [
+            {
+              "start": 1247,
+              "end": 1274,
+              "line_1based": 52,
+              "column_1based": 176,
+              "utf8_byte_start": 3127,
+              "utf8_byte_end": 3208
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.position",
+              "offsets": [
+                {
+                  "start": 175,
+                  "end": 202,
+                  "line_1based": 1,
+                  "column_1based": 176,
+                  "utf8_byte_start": 477,
+                  "utf8_byte_end": 558
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-04",
+          "quote": "【原告論證（Stage 3 argument 原文）】",
+          "character_count": 27,
+          "draft_offsets": [
+            {
+              "start": 1881,
+              "end": 1908,
+              "line_1based": 68,
+              "column_1based": 1,
+              "utf8_byte_start": 4887,
+              "utf8_byte_end": 4934
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-05",
+          "quote": "本輪已依序讀取案件事實、我方Stage 2全文、對造Stage 2結構化摘要，並回讀我方Stage 1全文。",
+          "character_count": 54,
+          "draft_offsets": [
+            {
+              "start": 1929,
+              "end": 1983,
+              "line_1based": 70,
+              "column_1based": 1,
+              "utf8_byte_start": 4989,
+              "utf8_byte_end": 5109
+            }
+          ],
+          "markers": [
+            "Stage 1",
+            "Stage 2",
+            "對造",
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 18,
+                  "end": 72,
+                  "line_1based": 2,
+                  "column_1based": 1,
+                  "utf8_byte_start": 52,
+                  "utf8_byte_end": 172
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-06",
+          "quote": "這些事項均納入以下結案，不因未出現在Stage 2的position便視為不存在。",
+          "character_count": 41,
+          "draft_offsets": [
+            {
+              "start": 2433,
+              "end": 2474,
+              "line_1based": 71,
+              "column_1based": 137,
+              "utf8_byte_start": 6381,
+              "utf8_byte_end": 6474
+            }
+          ],
+          "markers": [
+            "Stage 2"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 521,
+                  "end": 562,
+                  "line_1based": 3,
+                  "column_1based": 137,
+                  "utf8_byte_start": 1443,
+                  "utf8_byte_end": 1536
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-07",
+          "quote": "（三）C1品質保證賠償【未經檢驗】、C2故意不告知賠償【未經檢驗】：兩輪均未取得保證文字或乙知悉特定漏水而故意不告知的資料。",
+          "character_count": 62,
+          "draft_offsets": [
+            {
+              "start": 2840,
+              "end": 2902,
+              "line_1based": 77,
+              "column_1based": 1,
+              "utf8_byte_start": 7516,
+              "utf8_byte_end": 7694
+            }
+          ],
+          "markers": [
+            "兩輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 922,
+                  "end": 984,
+                  "line_1based": 9,
+                  "column_1based": 1,
+                  "utf8_byte_start": 2572,
+                  "utf8_byte_end": 2750
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-08",
+          "quote": "D2不能補正【未經檢驗】、D3遲延後給付無利益【未經檢驗】：沒有工程或其他事實足以支持其特殊前提，本輪不扶正。",
+          "character_count": 55,
+          "draft_offsets": [
+            {
+              "start": 3015,
+              "end": 3070,
+              "line_1based": 78,
+              "column_1based": 65,
+              "utf8_byte_start": 8025,
+              "utf8_byte_end": 8182
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 1096,
+                  "end": 1151,
+                  "line_1based": 10,
+                  "column_1based": 65,
+                  "utf8_byte_start": 3080,
+                  "utf8_byte_end": 3237
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-09",
+          "quote": "本輪不再保留Stage 2的條件第三備位，理由是最後仍無可具體審理的獨立合意內容，不是認定乙已證明從無協議。",
+          "character_count": 54,
+          "draft_offsets": [
+            {
+              "start": 3241,
+              "end": 3295,
+              "line_1based": 79,
+              "column_1based": 88,
+              "utf8_byte_start": 8669,
+              "utf8_byte_end": 8817
+            }
+          ],
+          "markers": [
+            "Stage 2",
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 1321,
+                  "end": 1375,
+                  "line_1based": 11,
+                  "column_1based": 88,
+                  "utf8_byte_start": 3723,
+                  "utf8_byte_end": 3871
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-10",
+          "quote": "（六）F1瑕疵解除【未經檢驗】、F2催告解除【未經檢驗】、F3給付不能解除【未經檢驗】：解除原因、意思表示、期間及相互返還內容均未具體化，且與本輪保留房地的救濟選擇不同，均不啟用。",
+          "character_count": 90,
+          "draft_offsets": [
+            {
+              "start": 3297,
+              "end": 3387,
+              "line_1based": 80,
+              "column_1based": 1,
+              "utf8_byte_start": 8819,
+              "utf8_byte_end": 9077
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 1376,
+                  "end": 1466,
+                  "line_1based": 12,
+                  "column_1based": 1,
+                  "utf8_byte_start": 3872,
+                  "utf8_byte_end": 4130
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-11",
+          "quote": "（七）G1乙詐欺撤銷返還【未經檢驗】、G2第三人詐欺撤銷返還【未經檢驗】：欺罔、交易因果、乙對第三人欺罔的知情、撤銷期間及表示皆未證明，且撤銷返還與本輪維持交易的立場不同，均不啟用。",
+          "character_count": 91,
+          "draft_offsets": [
+            {
+              "start": 3432,
+              "end": 3523,
+              "line_1based": 81,
+              "column_1based": 1,
+              "utf8_byte_start": 9208,
+              "utf8_byte_end": 9473
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 1510,
+                  "end": 1601,
+                  "line_1based": 13,
+                  "column_1based": 1,
+                  "utf8_byte_start": 4260,
+                  "utf8_byte_end": 4525
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-12",
+          "quote": "對造指出974,000元尚欠可核算依據【仍站得住】，我方接受；",
+          "character_count": 31,
+          "draft_offsets": [
+            {
+              "start": 4216,
+              "end": 4247,
+              "line_1based": 85,
+              "column_1based": 266,
+              "utf8_byte_start": 11500,
+              "utf8_byte_end": 11579
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2290,
+                  "end": 2321,
+                  "line_1based": 17,
+                  "column_1based": 266,
+                  "utf8_byte_start": 6548,
+                  "utf8_byte_end": 6627
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-13",
+          "quote": "第五，本輪不主張已證明不能補正或補正無利益；",
+          "character_count": 22,
+          "draft_offsets": [
+            {
+              "start": 4724,
+              "end": 4746,
+              "line_1based": 89,
+              "column_1based": 233,
+              "utf8_byte_start": 12938,
+              "utf8_byte_end": 13004
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2794,
+                  "end": 2816,
+                  "line_1based": 21,
+                  "column_1based": 233,
+                  "utf8_byte_start": 7982,
+                  "utf8_byte_end": 8048
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-14",
+          "quote": "四、步驟四：引用查核、對造最強論點及最終論證。",
+          "character_count": 23,
+          "draft_offsets": [
+            {
+              "start": 4859,
+              "end": 4882,
+              "line_1based": 91,
+              "column_1based": 1,
+              "utf8_byte_start": 13335,
+              "utf8_byte_end": 13404
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2927,
+                  "end": 2950,
+                  "line_1based": 23,
+                  "column_1based": 1,
+                  "utf8_byte_start": 8377,
+                  "utf8_byte_end": 8446
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-15",
+          "quote": "本輪不新增請求方向；新依據的需求限於釐清",
+          "character_count": 20,
+          "draft_offsets": [
+            {
+              "start": 4897,
+              "end": 4917,
+              "line_1based": 92,
+              "column_1based": 14,
+              "utf8_byte_start": 13445,
+              "utf8_byte_end": 13505
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2964,
+                  "end": 2984,
+                  "line_1based": 24,
+                  "column_1based": 14,
+                  "utf8_byte_start": 8486,
+                  "utf8_byte_end": 8546
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-16",
+          "quote": "新依據的需求限於釐清責任與數額的裁判分工，以及對造所列減免事由。",
+          "character_count": 32,
+          "draft_offsets": [
+            {
+              "start": 4907,
+              "end": 4939,
+              "line_1based": 92,
+              "column_1based": 24,
+              "utf8_byte_start": 13475,
+              "utf8_byte_end": 13571
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2974,
+                  "end": 3006,
+                  "line_1based": 24,
+                  "column_1based": 24,
+                  "utf8_byte_start": 8516,
+                  "utf8_byte_end": 8612
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-17",
+          "quote": "已全文讀取對造四份引用，並以本地法規核對最終所需條文；",
+          "character_count": 27,
+          "draft_offsets": [
+            {
+              "start": 4939,
+              "end": 4966,
+              "line_1based": 92,
+              "column_1based": 56,
+              "utf8_byte_start": 13571,
+              "utf8_byte_end": 13652
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3006,
+                  "end": 3033,
+                  "line_1based": 24,
+                  "column_1based": 56,
+                  "utf8_byte_start": 8612,
+                  "utf8_byte_end": 8693
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-18",
+          "quote": "原文並載「已給付全部買賣價金」及市場減損比率18%「為兩造所不爭執」。",
+          "character_count": 35,
+          "draft_offsets": [
+            {
+              "start": 5062,
+              "end": 5097,
+              "line_1based": 93,
+              "column_1based": 60,
+              "utf8_byte_start": 13918,
+              "utf8_byte_end": 14017
+            }
+          ],
+          "markers": [
+            "不爭執"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3128,
+                  "end": 3163,
+                  "line_1based": 25,
+                  "column_1based": 60,
+                  "utf8_byte_start": 8958,
+                  "utf8_byte_end": 9057
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-19",
+          "quote": "對造摘要沒有把各裁判逐一對應到特定命題，故目前沒有依據指控其確實張冠李戴。",
+          "character_count": 37,
+          "draft_offsets": [
+            {
+              "start": 5534,
+              "end": 5571,
+              "line_1based": 97,
+              "column_1based": 1,
+              "utf8_byte_start": 15266,
+              "utf8_byte_end": 15377
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3596,
+                  "end": 3633,
+                  "line_1based": 29,
+                  "column_1based": 1,
+                  "utf8_byte_start": 10302,
+                  "utf8_byte_end": 10413
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-20",
+          "quote": "（二）正面回應對造最強論點。對造要求先確",
+          "character_count": 20,
+          "draft_offsets": [
+            {
+              "start": 5603,
+              "end": 5623,
+              "line_1based": 98,
+              "column_1based": 1,
+              "utf8_byte_start": 15469,
+              "utf8_byte_end": 15529
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3664,
+                  "end": 3684,
+                  "line_1based": 30,
+                  "column_1based": 1,
+                  "utf8_byte_start": 10504,
+                  "utf8_byte_end": 10564
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-21",
+          "quote": "對造要求先確定各項請求的事實、法律路徑、表示範圍及可核算金額，再駁回經調查仍未證明部分。",
+          "character_count": 44,
+          "draft_offsets": [
+            {
+              "start": 5617,
+              "end": 5661,
+              "line_1based": 98,
+              "column_1based": 15,
+              "utf8_byte_start": 15511,
+              "utf8_byte_end": 15643
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3678,
+                  "end": 3722,
+                  "line_1based": 30,
+                  "column_1based": 15,
+                  "utf8_byte_start": 10546,
+                  "utf8_byte_end": 10678
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-22",
+          "quote": "這是有效的舉證攻擊，我方接受其核心，亦承認對造已不再以概括免責或抽象重複計價要求全案駁回，不能繼續將那些已收斂的立場當作主要攻擊對象。",
+          "character_count": 67,
+          "draft_offsets": [
+            {
+              "start": 5661,
+              "end": 5728,
+              "line_1based": 98,
+              "column_1based": 59,
+              "utf8_byte_start": 15643,
+              "utf8_byte_end": 15844
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3722,
+                  "end": 3789,
+                  "line_1based": 30,
+                  "column_1based": 59,
+                  "utf8_byte_start": 10678,
+                  "utf8_byte_end": 10879
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-23",
+          "quote": "對造沒有自認全部瑕疵或金額，其免責抗辯尚未成立也不表示我方請求當然成立。",
+          "character_count": 36,
+          "draft_offsets": [
+            {
+              "start": 5728,
+              "end": 5764,
+              "line_1based": 98,
+              "column_1based": 126,
+              "utf8_byte_start": 15844,
+              "utf8_byte_end": 15952
+            }
+          ],
+          "markers": [
+            "對造",
+            "自認"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3789,
+                  "end": 3825,
+                  "line_1based": 30,
+                  "column_1based": 126,
+                  "utf8_byte_start": 10879,
+                  "utf8_byte_end": 10987
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-24",
+          "quote": "本輪仍須釐清的裁判界線，是「責任或損害存在未證明」與「責任、損害已證明而僅數額難證」不同。",
+          "character_count": 45,
+          "draft_offsets": [
+            {
+              "start": 5766,
+              "end": 5811,
+              "line_1based": 99,
+              "column_1based": 1,
+              "utf8_byte_start": 15954,
+              "utf8_byte_end": 16089
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3826,
+                  "end": 3871,
+                  "line_1based": 31,
+                  "column_1based": 1,
+                  "utf8_byte_start": 10988,
+                  "utf8_byte_end": 11123
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-25",
+          "quote": "對造所列第216條之1及第217條，須分別查明同一原因所生利益，以及甲對損害發生或擴大的具體過失；",
+          "character_count": 49,
+          "draft_offsets": [
+            {
+              "start": 7242,
+              "end": 7291,
+              "line_1based": 106,
+              "column_1based": 95,
+              "utf8_byte_start": 20104,
+              "utf8_byte_end": 20237
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 5295,
+                  "end": 5344,
+                  "line_1based": 38,
+                  "column_1based": 95,
+                  "utf8_byte_start": 15131,
+                  "utf8_byte_end": 15264
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-26",
+          "quote": "前兩輪沒有提出當事人姓名、法人代表或登記名義的特定程序補正，本案亦未提供此類官方資料，故沒有可據以宣稱已補正的姓名或文件。",
+          "character_count": 61,
+          "draft_offsets": [
+            {
+              "start": 7368,
+              "end": 7429,
+              "line_1based": 107,
+              "column_1based": 14,
+              "utf8_byte_start": 20464,
+              "utf8_byte_end": 20647
+            }
+          ],
+          "markers": [
+            "前兩輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 5420,
+                  "end": 5481,
+                  "line_1based": 39,
+                  "column_1based": 14,
+                  "utf8_byte_start": 15490,
+                  "utf8_byte_end": 15673
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-27",
+          "quote": "本輪完成的是法律路徑次序及不重複填補範圍的陳述整理，不能當作原訴明細已補齊或法院已准許訴之變更、追加、擴張。",
+          "character_count": 54,
+          "draft_offsets": [
+            {
+              "start": 7429,
+              "end": 7483,
+              "line_1based": 107,
+              "column_1based": 75,
+              "utf8_byte_start": 20647,
+              "utf8_byte_end": 20809
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 5481,
+                  "end": 5535,
+                  "line_1based": 39,
+                  "column_1based": 75,
+                  "utf8_byte_start": 15673,
+                  "utf8_byte_end": 15835
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-28",
+          "quote": "Stage 2要求補明的原起訴974,000元計算、各項請求範圍、起訴及送達日期、估價形成時間仍屬待補正或待補證，所需資料為原起訴狀與附件、歷次書狀、送達證書、原始報價及估價委託與成果。",
+          "character_count": 93,
+          "draft_offsets": [
+            {
+              "start": 7485,
+              "end": 7578,
+              "line_1based": 108,
+              "column_1based": 1,
+              "utf8_byte_start": 20811,
+              "utf8_byte_end": 21062
+            }
+          ],
+          "markers": [
+            "Stage 2"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 5536,
+                  "end": 5629,
+                  "line_1based": 40,
+                  "column_1based": 1,
+                  "utf8_byte_start": 15836,
+                  "utf8_byte_end": 16087
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "plaintiff-sequence-29",
+          "quote": "由原告 Stage 3 citations 中 published 項目依原名列入）】",
+          "character_count": 43,
+          "draft_offsets": [
+            {
+              "start": 7923,
+              "end": 7966,
+              "line_1based": 112,
+              "column_1based": 22,
+              "utf8_byte_start": 22035,
+              "utf8_byte_end": 22104
+            },
+            {
+              "start": 8277,
+              "end": 8320,
+              "line_1based": 145,
+              "column_1based": 24,
+              "utf8_byte_start": 22691,
+              "utf8_byte_end": 22760
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        }
+      ],
+      "entity_candidates": {
+        "dates": [
+          {
+            "text": "民國113年3月19日",
+            "draft_offsets": [
+              {
+                "start": 1487,
+                "end": 1498,
+                "line_1based": 60,
+                "column_1based": 33,
+                "utf8_byte_start": 3773,
+                "utf8_byte_end": 3794
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "case.facts_summary",
+                "offsets": [
+                  {
+                    "start": 32,
+                    "end": 43,
+                    "line_1based": 1,
+                    "column_1based": 33,
+                    "utf8_byte_start": 96,
+                    "utf8_byte_end": 117
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          },
+          {
+            "text": "113年5月21日",
+            "draft_offsets": [
+              {
+                "start": 1507,
+                "end": 1516,
+                "line_1based": 60,
+                "column_1based": 53,
+                "utf8_byte_start": 3821,
+                "utf8_byte_end": 3836
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "case.facts_summary",
+                "offsets": [
+                  {
+                    "start": 52,
+                    "end": 61,
+                    "line_1based": 1,
+                    "column_1based": 53,
+                    "utf8_byte_start": 144,
+                    "utf8_byte_end": 159
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          },
+          {
+            "text": "113年5月22日",
+            "draft_offsets": [
+              {
+                "start": 1531,
+                "end": 1540,
+                "line_1based": 61,
+                "column_1based": 11,
+                "utf8_byte_start": 3877,
+                "utf8_byte_end": 3892
+              },
+              {
+                "start": 6514,
+                "end": 6523,
+                "line_1based": 103,
+                "column_1based": 2,
+                "utf8_byte_start": 18088,
+                "utf8_byte_end": 18103
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "case.facts_summary",
+                "offsets": [
+                  {
+                    "start": 75,
+                    "end": 84,
+                    "line_1based": 2,
+                    "column_1based": 11,
+                    "utf8_byte_start": 199,
+                    "utf8_byte_end": 214
+                  }
+                ]
+              },
+              {
+                "field": "own_stage3.argument",
+                "offsets": [
+                  {
+                    "start": 4570,
+                    "end": 4579,
+                    "line_1based": 35,
+                    "column_1based": 2,
+                    "utf8_byte_start": 13118,
+                    "utf8_byte_end": 13133
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          },
+          {
+            "text": "113年11月22日",
+            "draft_offsets": [
+              {
+                "start": 6560,
+                "end": 6570,
+                "line_1based": 103,
+                "column_1based": 48,
+                "utf8_byte_start": 18214,
+                "utf8_byte_end": 18230
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "own_stage3.argument",
+                "offsets": [
+                  {
+                    "start": 4616,
+                    "end": 4626,
+                    "line_1based": 35,
+                    "column_1based": 48,
+                    "utf8_byte_start": 13244,
+                    "utf8_byte_end": 13260
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          }
+        ],
+        "money": [
+          {
+            "text": "新臺幣974,000元",
+            "draft_offsets": [
+              {
+                "start": 154,
+                "end": 165,
+                "line_1based": 6,
+                "column_1based": 11,
+                "utf8_byte_start": 360,
+                "utf8_byte_end": 379
+              },
+              {
+                "start": 990,
+                "end": 1001,
+                "line_1based": 49,
+                "column_1based": 9,
+                "utf8_byte_start": 2468,
+                "utf8_byte_end": 2487
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "case.claims",
+                "offsets": [
+                  {
+                    "start": 8,
+                    "end": 19,
+                    "line_1based": 1,
+                    "column_1based": 9,
+                    "utf8_byte_start": 24,
+                    "utf8_byte_end": 43
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          },
+          {
+            "text": "974,000元",
+            "draft_offsets": [
+              {
+                "start": 157,
+                "end": 165,
+                "line_1based": 6,
+                "column_1based": 14,
+                "utf8_byte_start": 369,
+                "utf8_byte_end": 379
+              },
+              {
+                "start": 993,
+                "end": 1001,
+                "line_1based": 49,
+                "column_1based": 12,
+                "utf8_byte_start": 2477,
+                "utf8_byte_end": 2487
+              },
+              {
+                "start": 1085,
+                "end": 1093,
+                "line_1based": 52,
+                "column_1based": 14,
+                "utf8_byte_start": 2689,
+                "utf8_byte_end": 2699
+              },
+              {
+                "start": 1105,
+                "end": 1113,
+                "line_1based": 52,
+                "column_1based": 34,
+                "utf8_byte_start": 2735,
+                "utf8_byte_end": 2745
+              },
+              {
+                "start": 2722,
+                "end": 2730,
+                "line_1based": 75,
+                "column_1based": 117,
+                "utf8_byte_start": 7188,
+                "utf8_byte_end": 7198
+              },
+              {
+                "start": 3739,
+                "end": 3747,
+                "line_1based": 83,
+                "column_1based": 53,
+                "utf8_byte_start": 10091,
+                "utf8_byte_end": 10101
+              },
+              {
+                "start": 4220,
+                "end": 4228,
+                "line_1based": 85,
+                "column_1based": 270,
+                "utf8_byte_start": 11512,
+                "utf8_byte_end": 11522
+              },
+              {
+                "start": 4637,
+                "end": 4645,
+                "line_1based": 89,
+                "column_1based": 146,
+                "utf8_byte_start": 12691,
+                "utf8_byte_end": 12701
+              },
+              {
+                "start": 5901,
+                "end": 5909,
+                "line_1based": 99,
+                "column_1based": 136,
+                "utf8_byte_start": 16339,
+                "utf8_byte_end": 16349
+              },
+              {
+                "start": 7500,
+                "end": 7508,
+                "line_1based": 108,
+                "column_1based": 16,
+                "utf8_byte_start": 20842,
+                "utf8_byte_end": 20852
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "case.claims",
+                "offsets": [
+                  {
+                    "start": 11,
+                    "end": 19,
+                    "line_1based": 1,
+                    "column_1based": 12,
+                    "utf8_byte_start": 33,
+                    "utf8_byte_end": 43
+                  }
+                ]
+              },
+              {
+                "field": "own_stage3.position",
+                "offsets": [
+                  {
+                    "start": 13,
+                    "end": 21,
+                    "line_1based": 1,
+                    "column_1based": 14,
+                    "utf8_byte_start": 39,
+                    "utf8_byte_end": 49
+                  },
+                  {
+                    "start": 33,
+                    "end": 41,
+                    "line_1based": 1,
+                    "column_1based": 34,
+                    "utf8_byte_start": 85,
+                    "utf8_byte_end": 95
+                  }
+                ]
+              },
+              {
+                "field": "own_stage3.argument",
+                "offsets": [
+                  {
+                    "start": 806,
+                    "end": 814,
+                    "line_1based": 7,
+                    "column_1based": 117,
+                    "utf8_byte_start": 2246,
+                    "utf8_byte_end": 2256
+                  },
+                  {
+                    "start": 1815,
+                    "end": 1823,
+                    "line_1based": 15,
+                    "column_1based": 53,
+                    "utf8_byte_start": 5141,
+                    "utf8_byte_end": 5151
+                  },
+                  {
+                    "start": 2294,
+                    "end": 2302,
+                    "line_1based": 17,
+                    "column_1based": 270,
+                    "utf8_byte_start": 6560,
+                    "utf8_byte_end": 6570
+                  },
+                  {
+                    "start": 2707,
+                    "end": 2715,
+                    "line_1based": 21,
+                    "column_1based": 146,
+                    "utf8_byte_start": 7735,
+                    "utf8_byte_end": 7745
+                  },
+                  {
+                    "start": 3961,
+                    "end": 3969,
+                    "line_1based": 31,
+                    "column_1based": 136,
+                    "utf8_byte_start": 11373,
+                    "utf8_byte_end": 11383
+                  },
+                  {
+                    "start": 5551,
+                    "end": 5559,
+                    "line_1based": 40,
+                    "column_1based": 16,
+                    "utf8_byte_start": 15867,
+                    "utf8_byte_end": 15877
+                  }
+                ]
+              },
+              {
+                "field": "opponent_stage3_summary.position",
+                "offsets": [
+                  {
+                    "start": 45,
+                    "end": 53,
+                    "line_1based": 1,
+                    "column_1based": 46,
+                    "utf8_byte_start": 135,
+                    "utf8_byte_end": 145
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          }
+        ],
+        "labeled_party_name_fields": [
+          {
+            "text": "原告：(待填:原告真實姓名或登記名稱；素材代稱為甲)",
+            "draft_offsets": [
+              {
+                "start": 169,
+                "end": 195,
+                "line_1based": 8,
+                "column_1based": 1,
+                "utf8_byte_start": 383,
+                "utf8_byte_end": 455
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": [
+              "甲"
+            ]
+          },
+          {
+            "text": "法定代理人：(待填:是否有法定代理需求及查核結果)",
+            "draft_offsets": [
+              {
+                "start": 491,
+                "end": 516,
+                "line_1based": 23,
+                "column_1based": 1,
+                "utf8_byte_start": 1199,
+                "utf8_byte_end": 1268
+              },
+              {
+                "start": 842,
+                "end": 867,
+                "line_1based": 40,
+                "column_1based": 1,
+                "utf8_byte_start": 2088,
+                "utf8_byte_end": 2157
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          },
+          {
+            "text": "被告：(待填:被告真實姓名或登記名稱；素材代稱為乙)",
+            "draft_offsets": [
+              {
+                "start": 520,
+                "end": 546,
+                "line_1based": 25,
+                "column_1based": 1,
+                "utf8_byte_start": 1272,
+                "utf8_byte_end": 1344
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": [
+              "乙"
+            ]
+          },
+          {
+            "text": "法定代理人：(待填:是否有法定代理需求及查核結果)",
+            "draft_offsets": [
+              {
+                "start": 491,
+                "end": 516,
+                "line_1based": 23,
+                "column_1based": 1,
+                "utf8_byte_start": 1199,
+                "utf8_byte_end": 1268
+              },
+              {
+                "start": 842,
+                "end": 867,
+                "line_1based": 40,
+                "column_1based": 1,
+                "utf8_byte_start": 2088,
+                "utf8_byte_end": 2157
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          },
+          {
+            "text": "具狀人：(待填:具狀人姓名或名稱及簽名蓋章)",
+            "draft_offsets": [
+              {
+                "start": 8514,
+                "end": 8536,
+                "line_1based": 158,
+                "column_1based": 1,
+                "utf8_byte_start": 23200,
+                "utf8_byte_end": 23260
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          },
+          {
+            "text": "撰狀人：(待填:撰狀人姓名及簽名蓋章)",
+            "draft_offsets": [
+              {
+                "start": 8538,
+                "end": 8557,
+                "line_1based": 159,
+                "column_1based": 1,
+                "utf8_byte_start": 23262,
+                "utf8_byte_end": 23313
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          }
+        ],
+        "name_scan_limit": "Checks explicit party/representative/writer identity fields and pending placeholders; not a general named-entity recognizer and not proof against all unknown names anywhere in text."
+      },
+      "citation_transport": {
+        "role_array_count": 35,
+        "role_item_shape": [
+          "dict"
+        ],
+        "controller_array_count": 35,
+        "controller_all_strings": true,
+        "projection": "citation_text literal projection, order preserved",
+        "projected_role_texts_equal_controller": true,
+        "projected_role_texts_equal_own_source_texts": true,
+        "new_or_modified_citation_texts": [],
+        "note": "Serialization shape and controller publication handoff are dispatch details; role-provided status is not used here to infer native publication or legal validity."
+      },
+      "dispatch_note": {
+        "source_sections": [
+          "Step9 common rules",
+          "9A items1-2"
+        ],
+        "writer_task_omits_controller_publication_section": true,
+        "plaintiff_9A3_citation_schema_note_omitted_from_writer_task": true,
+        "assessment": "Recorded harness/dispatch detail; not automatically a product error."
+      },
+      "draft_line_endings": {
+        "CRLF": 159,
+        "standalone_LF": 0
+      }
+    },
+    {
+      "side": "defendant",
+      "call": "15_defendant_pleading",
+      "draft_path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\pleading_draft_defendant.txt",
+      "draft_sha256": "f8462cf2837cc5d037694e152370a8090cf46b35cc835f33ed115d7491504efc",
+      "source_path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\15_defendant_pleading\\workspace\\pleading_source.json",
+      "source_sha256": "5485d1f90c3e8ecaf69453365e8d47e3942327ad4a7b67e919eb6dece214d013",
+      "collected_draft_byte_identical_to_writer": true,
+      "material_hash_checks": [
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\15_defendant_pleading\\workspace\\pleading_source.json",
+          "expected_sha256": "5485d1f90c3e8ecaf69453365e8d47e3942327ad4a7b67e919eb6dece214d013",
+          "actual_sha256": "5485d1f90c3e8ecaf69453365e8d47e3942327ad4a7b67e919eb6dece214d013",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\15_defendant_pleading\\workspace\\corpus\\pleadings\\reference\\司法院官方民事起訴狀範本_結構參考用.pdf",
+          "expected_sha256": "c3f877126fdcf46d9198b72c250fcdaff7096a1b20798a4b24a1cc9f6126462c",
+          "actual_sha256": "c3f877126fdcf46d9198b72c250fcdaff7096a1b20798a4b24a1cc9f6126462c",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\15_defendant_pleading\\prompt.txt",
+          "expected_sha256": "64b0abe861cf7c1e3f1ab6913e09af79c6b1916be7f1c681d72488e86af3c763",
+          "actual_sha256": "64b0abe861cf7c1e3f1ab6913e09af79c6b1916be7f1c681d72488e86af3c763",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\15_defendant_pleading\\runbook_task_source.md",
+          "expected_sha256": "421e63f0aa1d572dc49264f023f8ab1caf1f83649d81a8c774eb1a09f0f9b5c9",
+          "actual_sha256": "421e63f0aa1d572dc49264f023f8ab1caf1f83649d81a8c774eb1a09f0f9b5c9",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\.claude\\skills\\legal-debate\\SKILL.md",
+          "expected_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "actual_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "unchanged": true
+        },
+        {
+          "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\frozen_SKILL.md",
+          "expected_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "actual_sha256": "ad6ba275354bbf712fb5962b2e162f52f03952953a3532ab7a09d8848b8c0fb7",
+          "unchanged": true
+        }
+      ],
+      "literal_field_fidelity": [
+        {
+          "field": "own_stage3.position",
+          "characters": 182,
+          "sha256_utf8": "588569a50d5ccc5482610d242f6bf70b69fc5d9c000c2a90c36edafee48834d5",
+          "exact_occurrences_in_draft": [
+            {
+              "start": 3584,
+              "end": 3766,
+              "line_1based": 89,
+              "column_1based": 1,
+              "utf8_byte_start": 9896,
+              "utf8_byte_end": 10416
+            }
+          ],
+          "exact_present": true,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 0,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact original string present."
+        },
+        {
+          "field": "own_stage3.argument",
+          "characters": 5647,
+          "sha256_utf8": "36f92280947042f0746136790670ee6fd65c7cb0deddb8c1a8cf8280878b7ac3",
+          "exact_occurrences_in_draft": [],
+          "exact_present": false,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 34,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact content; source LF is rendered as CRLF in writer draft. No other text normalization used."
+        },
+        {
+          "field": "case.facts_summary",
+          "characters": 416,
+          "sha256_utf8": "f957281e03cf772d77937e3b45ed15500869a20a5f666489892227f75145762e",
+          "exact_occurrences_in_draft": [],
+          "exact_present": false,
+          "present_after_only_source_LF_to_draft_CRLF": false,
+          "source_LF_count": 6,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Not present as a full field; omission may be expected for this side."
+        },
+        {
+          "field": "case.claims",
+          "characters": 51,
+          "sha256_utf8": "c1b116a92cc94d918685b8bcff52a966eb18d6a72852d1e2e5a33e089ce5446e",
+          "exact_occurrences_in_draft": [
+            {
+              "start": 1044,
+              "end": 1095,
+              "line_1based": 37,
+              "column_1based": 1,
+              "utf8_byte_start": 2808,
+              "utf8_byte_end": 2943
+            }
+          ],
+          "exact_present": true,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 0,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact original string present."
+        },
+        {
+          "field": "opponent_stage3_summary.position",
+          "characters": 287,
+          "sha256_utf8": "40abb4305ea36e9ee4e4c730b00a7949576f90b8cf6ca08638fdaee32cbba471",
+          "exact_occurrences_in_draft": [
+            {
+              "start": 753,
+              "end": 1040,
+              "line_1based": 35,
+              "column_1based": 1,
+              "utf8_byte_start": 1991,
+              "utf8_byte_end": 2804
+            }
+          ],
+          "exact_present": true,
+          "present_after_only_source_LF_to_draft_CRLF": true,
+          "source_LF_count": 0,
+          "source_CRLF_count": 0,
+          "fidelity_note": "Exact original string present."
+        }
+      ],
+      "sequence_candidates": [
+        {
+          "id": "defendant-sequence-01",
+          "quote": "本稿為 Stage 3 原文套入之骨架版，不是最終可用書狀。",
+          "character_count": 30,
+          "draft_offsets": [
+            {
+              "start": 69,
+              "end": 99,
+              "line_1based": 7,
+              "column_1based": 1,
+              "utf8_byte_start": 171,
+              "utf8_byte_end": 243
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-02",
+          "quote": "答辯聲明第三項是否保留，以及固定聲明、結論與被告 Stage 3 僅請求駁回未證明部分之立場的一致性，均待律師確認。",
+          "character_count": 58,
+          "draft_offsets": [
+            {
+              "start": 144,
+              "end": 202,
+              "line_1based": 7,
+              "column_1based": 76,
+              "utf8_byte_start": 378,
+              "utf8_byte_end": 534
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-03",
+          "quote": "對造要求駁回經調查仍未證明的要件或數額，我方原則接受；",
+          "character_count": 27,
+          "draft_offsets": [
+            {
+              "start": 928,
+              "end": 955,
+              "line_1based": 35,
+              "column_1based": 176,
+              "utf8_byte_start": 2468,
+              "utf8_byte_end": 2549
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "opponent_stage3_summary.position",
+              "offsets": [
+                {
+                  "start": 175,
+                  "end": 202,
+                  "line_1based": 1,
+                  "column_1based": 176,
+                  "utf8_byte_start": 477,
+                  "utf8_byte_end": 558
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-04",
+          "quote": "(被告 Stage 3 未表示意見,待律師補充)",
+          "character_count": 24,
+          "draft_offsets": [
+            {
+              "start": 1136,
+              "end": 1160,
+              "line_1based": 42,
+              "column_1based": 1,
+              "utf8_byte_start": 3046,
+              "utf8_byte_end": 3094
+            },
+            {
+              "start": 1200,
+              "end": 1224,
+              "line_1based": 45,
+              "column_1based": 1,
+              "utf8_byte_start": 3202,
+              "utf8_byte_end": 3250
+            },
+            {
+              "start": 3331,
+              "end": 3355,
+              "line_1based": 72,
+              "column_1based": 1,
+              "utf8_byte_start": 9361,
+              "utf8_byte_end": 9409
+            },
+            {
+              "start": 3384,
+              "end": 3408,
+              "line_1based": 75,
+              "column_1based": 1,
+              "utf8_byte_start": 9484,
+              "utf8_byte_end": 9532
+            },
+            {
+              "start": 3428,
+              "end": 3452,
+              "line_1based": 78,
+              "column_1based": 1,
+              "utf8_byte_start": 9580,
+              "utf8_byte_end": 9628
+            },
+            {
+              "start": 3474,
+              "end": 3498,
+              "line_1based": 81,
+              "column_1based": 1,
+              "utf8_byte_start": 9682,
+              "utf8_byte_end": 9730
+            },
+            {
+              "start": 3520,
+              "end": 3544,
+              "line_1based": 84,
+              "column_1based": 1,
+              "utf8_byte_start": 9784,
+              "utf8_byte_end": 9832
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-05",
+          "quote": "證。本輪沒有新增工程、契約或通訊證據。\r",
+          "character_count": 20,
+          "draft_offsets": [
+            {
+              "start": 1308,
+              "end": 1328,
+              "line_1based": 48,
+              "column_1based": 66,
+              "utf8_byte_start": 3490,
+              "utf8_byte_end": 3548
+            },
+            {
+              "start": 4376,
+              "end": 4396,
+              "line_1based": 96,
+              "column_1based": 66,
+              "utf8_byte_start": 12060,
+              "utf8_byte_end": 12118
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-06",
+          "quote": "結構與耐久性影響的證明爭執【仍站得住】，但對造已明示僅作估價理由，本方不再假設另請一筆本金。",
+          "character_count": 46,
+          "draft_offsets": [
+            {
+              "start": 2431,
+              "end": 2477,
+              "line_1based": 61,
+              "column_1based": 87,
+              "utf8_byte_start": 6761,
+              "utf8_byte_end": 6899
+            },
+            {
+              "start": 5949,
+              "end": 5995,
+              "line_1based": 104,
+              "column_1based": 87,
+              "utf8_byte_start": 16719,
+              "utf8_byte_end": 16857
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2141,
+                  "end": 2187,
+                  "line_1based": 13,
+                  "column_1based": 87,
+                  "utf8_byte_start": 6249,
+                  "utf8_byte_end": 6387
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-07",
+          "quote": "對造已採主備位，本方目前無資料指認實際重複項目，不請法院先扣固定比例。",
+          "character_count": 35,
+          "draft_offsets": [
+            {
+              "start": 2859,
+              "end": 2894,
+              "line_1based": 62,
+              "column_1based": 175,
+              "utf8_byte_start": 8033,
+              "utf8_byte_end": 8138
+            },
+            {
+              "start": 8874,
+              "end": 8909,
+              "line_1based": 123,
+              "column_1based": 175,
+              "utf8_byte_start": 25163,
+              "utf8_byte_end": 25268
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 5047,
+                  "end": 5082,
+                  "line_1based": 32,
+                  "column_1based": 175,
+                  "utf8_byte_start": 14674,
+                  "utf8_byte_end": 14779
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-08",
+          "quote": "【被告 Stage 3 position 原文】",
+          "character_count": 24,
+          "draft_offsets": [
+            {
+              "start": 3558,
+              "end": 3582,
+              "line_1based": 88,
+              "column_1based": 1,
+              "utf8_byte_start": 9858,
+              "utf8_byte_end": 9894
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-09",
+          "quote": "【被告 Stage 3 argument 原文】",
+          "character_count": 24,
+          "draft_offsets": [
+            {
+              "start": 3770,
+              "end": 3794,
+              "line_1based": 91,
+              "column_1based": 1,
+              "utf8_byte_start": 10420,
+              "utf8_byte_end": 10456
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-10",
+          "quote": "步驟一：重建Stage1及Stage2完整候選清單。",
+          "character_count": 26,
+          "draft_offsets": [
+            {
+              "start": 3796,
+              "end": 3822,
+              "line_1based": 92,
+              "column_1based": 1,
+              "utf8_byte_start": 10458,
+              "utf8_byte_end": 10512
+            }
+          ],
+          "markers": [
+            "Stage1",
+            "Stage2"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 0,
+                  "end": 26,
+                  "line_1based": 1,
+                  "column_1based": 1,
+                  "utf8_byte_start": 0,
+                  "utf8_byte_end": 54
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-11",
+          "quote": "本方已依序讀取案件事實、自己Stage2全文及對造Stage2結構化摘要，並回讀自己Stage1全文。",
+          "character_count": 51,
+          "draft_offsets": [
+            {
+              "start": 3824,
+              "end": 3875,
+              "line_1based": 93,
+              "column_1based": 1,
+              "utf8_byte_start": 10514,
+              "utf8_byte_end": 10631
+            }
+          ],
+          "markers": [
+            "Stage1",
+            "Stage2",
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 27,
+                  "end": 78,
+                  "line_1based": 2,
+                  "column_1based": 1,
+                  "utf8_byte_start": 55,
+                  "utf8_byte_end": 172
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-12",
+          "quote": "兩輪候選重建如下，不以Stage2的position取代完整清單：A組為瑕疵存在、重要性、危險移轉時點及各房因果關係，另含買方知悉、重大過失、檢查通知與通知受領；",
+          "character_count": 81,
+          "draft_offsets": [
+            {
+              "start": 3875,
+              "end": 3956,
+              "line_1based": 93,
+              "column_1based": 52,
+              "utf8_byte_start": 10631,
+              "utf8_byte_end": 10844
+            }
+          ],
+          "markers": [
+            "Stage2",
+            "兩輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 78,
+                  "end": 159,
+                  "line_1based": 2,
+                  "column_1based": 52,
+                  "utf8_byte_start": 172,
+                  "utf8_byte_end": 385
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-13",
+          "quote": "G組為侵權的三種構成、減價以外的不當得利、解除後返還與另行賠償，以及Stage2曾提及但未啟用的詐欺撤銷；",
+          "character_count": 53,
+          "draft_offsets": [
+            {
+              "start": 4149,
+              "end": 4202,
+              "line_1based": 93,
+              "column_1based": 326,
+              "utf8_byte_start": 11413,
+              "utf8_byte_end": 11558
+            }
+          ],
+          "markers": [
+            "Stage2"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 352,
+                  "end": 405,
+                  "line_1based": 2,
+                  "column_1based": 326,
+                  "utf8_byte_start": 954,
+                  "utf8_byte_end": 1099
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-14",
+          "quote": "完整契約與相應事實皆欠缺，本輪全部不啟用；",
+          "character_count": 21,
+          "draft_offsets": [
+            {
+              "start": 5446,
+              "end": 5467,
+              "line_1based": 101,
+              "column_1based": 85,
+              "utf8_byte_start": 15228,
+              "utf8_byte_end": 15291
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 1641,
+                  "end": 1662,
+                  "line_1based": 10,
+                  "column_1based": 85,
+                  "utf8_byte_start": 4761,
+                  "utf8_byte_end": 4824
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-15",
+          "quote": "（七）G組：侵權之權利侵害、故意背於善良風俗、違反保護他人法律三條路徑，逐項均【未經檢驗】，欠缺各自具體事實，且對造已表示不啟用，不再延伸。",
+          "character_count": 70,
+          "draft_offsets": [
+            {
+              "start": 5621,
+              "end": 5691,
+              "line_1based": 103,
+              "column_1based": 1,
+              "utf8_byte_start": 15743,
+              "utf8_byte_end": 15951
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 1814,
+                  "end": 1884,
+                  "line_1based": 12,
+                  "column_1based": 1,
+                  "utf8_byte_start": 5274,
+                  "utf8_byte_end": 5482
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-16",
+          "quote": "本輪均不啟用，不將它們與維持買賣並列為既成效果。",
+          "character_count": 24,
+          "draft_offsets": [
+            {
+              "start": 5837,
+              "end": 5861,
+              "line_1based": 103,
+              "column_1based": 217,
+              "utf8_byte_start": 16389,
+              "utf8_byte_end": 16461
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2030,
+                  "end": 2054,
+                  "line_1based": 12,
+                  "column_1based": 217,
+                  "utf8_byte_start": 5920,
+                  "utf8_byte_end": 5992
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-17",
+          "quote": "未經檢驗的積極免責與扣減候選退出本輪裁判理由，不再用「保留」二字暗示其已有證據。",
+          "character_count": 40,
+          "draft_offsets": [
+            {
+              "start": 6380,
+              "end": 6420,
+              "line_1based": 108,
+              "column_1based": 63,
+              "utf8_byte_start": 17980,
+              "utf8_byte_end": 18100
+            }
+          ],
+          "markers": [
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 2568,
+                  "end": 2608,
+                  "line_1based": 17,
+                  "column_1based": 63,
+                  "utf8_byte_start": 7506,
+                  "utf8_byte_end": 7626
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-18",
+          "quote": "步驟四：查核引用後，正面回應對造最強論點並整合最終論證。",
+          "character_count": 28,
+          "draft_offsets": [
+            {
+              "start": 6829,
+              "end": 6857,
+              "line_1based": 111,
+              "column_1based": 1,
+              "utf8_byte_start": 19315,
+              "utf8_byte_end": 19399
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3014,
+                  "end": 3042,
+                  "line_1based": 20,
+                  "column_1based": 1,
+                  "utf8_byte_start": 8838,
+                  "utf8_byte_end": 8922
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-19",
+          "quote": "本輪先決定僅核對既有法律路徑、對造新增引用及終局核算所需依據，再檢索法規與裁判；",
+          "character_count": 40,
+          "draft_offsets": [
+            {
+              "start": 6872,
+              "end": 6912,
+              "line_1based": 112,
+              "column_1based": 14,
+              "utf8_byte_start": 19440,
+              "utf8_byte_end": 19560
+            }
+          ],
+          "markers": [
+            "對造",
+            "本輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3056,
+                  "end": 3096,
+                  "line_1based": 21,
+                  "column_1based": 14,
+                  "utf8_byte_start": 8962,
+                  "utf8_byte_end": 9082
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-20",
+          "quote": "對造引用的五件裁判均已讀取全文。其摘要未",
+          "character_count": 20,
+          "draft_offsets": [
+            {
+              "start": 6920,
+              "end": 6940,
+              "line_1based": 112,
+              "column_1based": 62,
+              "utf8_byte_start": 19584,
+              "utf8_byte_end": 19644
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3104,
+                  "end": 3124,
+                  "line_1based": 21,
+                  "column_1based": 62,
+                  "utf8_byte_start": 9106,
+                  "utf8_byte_end": 9166
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-21",
+          "quote": "該案另有付清價金及雙方不爭執18%減損比例的基礎。",
+          "character_count": 25,
+          "draft_offsets": [
+            {
+              "start": 7204,
+              "end": 7229,
+              "line_1based": 114,
+              "column_1based": 76,
+              "utf8_byte_start": 20388,
+              "utf8_byte_end": 20457
+            }
+          ],
+          "markers": [
+            "不爭執"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3386,
+                  "end": 3411,
+                  "line_1based": 23,
+                  "column_1based": 76,
+                  "utf8_byte_start": 9908,
+                  "utf8_byte_end": 9977
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-22",
+          "quote": "對造主張先依原訴及通知確定權利行使範圍，再依工程與同條件估價判斷，且某一路徑失敗不概括排除其他獨立請求。",
+          "character_count": 52,
+          "draft_offsets": [
+            {
+              "start": 7781,
+              "end": 7833,
+              "line_1based": 118,
+              "column_1based": 13,
+              "utf8_byte_start": 22049,
+              "utf8_byte_end": 22205
+            }
+          ],
+          "markers": [
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 3959,
+                  "end": 4011,
+                  "line_1based": 27,
+                  "column_1based": 13,
+                  "utf8_byte_start": 11565,
+                  "utf8_byte_end": 11721
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-23",
+          "quote": "前兩輪未提出姓名、法定代理人或登記資格欠缺的起訴程序抗辯，現有資料亦無登記原件可據，不宣稱此類事項已補正。",
+          "character_count": 53,
+          "draft_offsets": [
+            {
+              "start": 9079,
+              "end": 9132,
+              "line_1based": 125,
+              "column_1based": 11,
+              "utf8_byte_start": 25746,
+              "utf8_byte_end": 25905
+            }
+          ],
+          "markers": [
+            "前兩輪"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 5250,
+                  "end": 5303,
+                  "line_1based": 34,
+                  "column_1based": 11,
+                  "utf8_byte_start": 15255,
+                  "utf8_byte_end": 15414
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-24",
+          "quote": "就前輪要求釐清的請求結構，對造摘要已表明主備位次序，並說明結構及耐久性僅作估價理由；",
+          "character_count": 42,
+          "draft_offsets": [
+            {
+              "start": 9132,
+              "end": 9174,
+              "line_1based": 125,
+              "column_1based": 64,
+              "utf8_byte_start": 25905,
+              "utf8_byte_end": 26031
+            }
+          ],
+          "markers": [
+            "前輪",
+            "對造"
+          ],
+          "exact_upstream_matches": [
+            {
+              "field": "own_stage3.argument",
+              "offsets": [
+                {
+                  "start": 5303,
+                  "end": 5345,
+                  "line_1based": 34,
+                  "column_1based": 64,
+                  "utf8_byte_start": 15414,
+                  "utf8_byte_end": 15540
+                }
+              ]
+            }
+          ],
+          "literal_source_match": true,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-25",
+          "quote": "【被告 Stage 3 法條引用；素材查",
+          "character_count": 20,
+          "draft_offsets": [
+            {
+              "start": 9481,
+              "end": 9501,
+              "line_1based": 128,
+              "column_1based": 1,
+              "utf8_byte_start": 26926,
+              "utf8_byte_end": 26968
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-26",
+          "quote": "【被告 Stage 3 裁判引用；素材查",
+          "character_count": 20,
+          "draft_offsets": [
+            {
+              "start": 9777,
+              "end": 9797,
+              "line_1based": 158,
+              "column_1based": 1,
+              "utf8_byte_start": 27492,
+              "utf8_byte_end": 27534
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        },
+        {
+          "id": "defendant-sequence-27",
+          "quote": "下列僅列被告 Stage 3 argument 明確提及、尚待補充或調閱之資料，不表示已取得或已提出。",
+          "character_count": 51,
+          "draft_offsets": [
+            {
+              "start": 9952,
+              "end": 10003,
+              "line_1based": 169,
+              "column_1based": 1,
+              "utf8_byte_start": 27877,
+              "utf8_byte_end": 27994
+            }
+          ],
+          "markers": [
+            "Stage 3"
+          ],
+          "exact_upstream_matches": [],
+          "literal_source_match": false,
+          "classification_pending": true
+        }
+      ],
+      "entity_candidates": {
+        "dates": [],
+        "money": [
+          {
+            "text": "974,000元",
+            "draft_offsets": [
+              {
+                "start": 766,
+                "end": 774,
+                "line_1based": 35,
+                "column_1based": 14,
+                "utf8_byte_start": 2030,
+                "utf8_byte_end": 2040
+              },
+              {
+                "start": 786,
+                "end": 794,
+                "line_1based": 35,
+                "column_1based": 34,
+                "utf8_byte_start": 2076,
+                "utf8_byte_end": 2086
+              },
+              {
+                "start": 1055,
+                "end": 1063,
+                "line_1based": 37,
+                "column_1based": 12,
+                "utf8_byte_start": 2841,
+                "utf8_byte_end": 2851
+              },
+              {
+                "start": 2952,
+                "end": 2960,
+                "line_1based": 64,
+                "column_1based": 6,
+                "utf8_byte_start": 8298,
+                "utf8_byte_end": 8308
+              },
+              {
+                "start": 3629,
+                "end": 3637,
+                "line_1based": 89,
+                "column_1based": 46,
+                "utf8_byte_start": 10031,
+                "utf8_byte_end": 10041
+              },
+              {
+                "start": 8026,
+                "end": 8034,
+                "line_1based": 119,
+                "column_1based": 147,
+                "utf8_byte_start": 22780,
+                "utf8_byte_end": 22790
+              },
+              {
+                "start": 9197,
+                "end": 9205,
+                "line_1based": 125,
+                "column_1based": 129,
+                "utf8_byte_start": 26100,
+                "utf8_byte_end": 26110
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "case.claims",
+                "offsets": [
+                  {
+                    "start": 11,
+                    "end": 19,
+                    "line_1based": 1,
+                    "column_1based": 12,
+                    "utf8_byte_start": 33,
+                    "utf8_byte_end": 43
+                  }
+                ]
+              },
+              {
+                "field": "own_stage3.position",
+                "offsets": [
+                  {
+                    "start": 45,
+                    "end": 53,
+                    "line_1based": 1,
+                    "column_1based": 46,
+                    "utf8_byte_start": 135,
+                    "utf8_byte_end": 145
+                  }
+                ]
+              },
+              {
+                "field": "own_stage3.argument",
+                "offsets": [
+                  {
+                    "start": 4203,
+                    "end": 4211,
+                    "line_1based": 28,
+                    "column_1based": 147,
+                    "utf8_byte_start": 12295,
+                    "utf8_byte_end": 12305
+                  },
+                  {
+                    "start": 5368,
+                    "end": 5376,
+                    "line_1based": 34,
+                    "column_1based": 129,
+                    "utf8_byte_start": 15609,
+                    "utf8_byte_end": 15619
+                  }
+                ]
+              },
+              {
+                "field": "own_stage3.falsifier",
+                "offsets": [
+                  {
+                    "start": 407,
+                    "end": 415,
+                    "line_1based": 1,
+                    "column_1based": 408,
+                    "utf8_byte_start": 1209,
+                    "utf8_byte_end": 1219
+                  },
+                  {
+                    "start": 444,
+                    "end": 452,
+                    "line_1based": 1,
+                    "column_1based": 445,
+                    "utf8_byte_start": 1306,
+                    "utf8_byte_end": 1316
+                  }
+                ]
+              },
+              {
+                "field": "opponent_stage3_summary.position",
+                "offsets": [
+                  {
+                    "start": 13,
+                    "end": 21,
+                    "line_1based": 1,
+                    "column_1based": 14,
+                    "utf8_byte_start": 39,
+                    "utf8_byte_end": 49
+                  },
+                  {
+                    "start": 33,
+                    "end": 41,
+                    "line_1based": 1,
+                    "column_1based": 34,
+                    "utf8_byte_start": 85,
+                    "utf8_byte_end": 95
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          },
+          {
+            "text": "新臺幣974,000元",
+            "draft_offsets": [
+              {
+                "start": 1052,
+                "end": 1063,
+                "line_1based": 37,
+                "column_1based": 9,
+                "utf8_byte_start": 2832,
+                "utf8_byte_end": 2851
+              }
+            ],
+            "exact_source_matches": [
+              {
+                "field": "case.claims",
+                "offsets": [
+                  {
+                    "start": 8,
+                    "end": 19,
+                    "line_1based": 1,
+                    "column_1based": 9,
+                    "utf8_byte_start": 24,
+                    "utf8_byte_end": 43
+                  }
+                ]
+              }
+            ],
+            "not_in_any_source_field": false
+          }
+        ],
+        "labeled_party_name_fields": [
+          {
+            "text": "答辯人（即被告）：(待填:被告真實姓名或名稱；案件資料代稱為乙)",
+            "draft_offsets": [
+              {
+                "start": 206,
+                "end": 238,
+                "line_1based": 9,
+                "column_1based": 1,
+                "utf8_byte_start": 538,
+                "utf8_byte_end": 628
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": [
+              "乙"
+            ]
+          },
+          {
+            "text": "法定代理人：(待填:被告是否需法定代理人及其姓名；不適用時刪除)",
+            "draft_offsets": [
+              {
+                "start": 328,
+                "end": 360,
+                "line_1based": 13,
+                "column_1based": 1,
+                "utf8_byte_start": 864,
+                "utf8_byte_end": 954
+              },
+              {
+                "start": 10625,
+                "end": 10657,
+                "line_1based": 195,
+                "column_1based": 1,
+                "utf8_byte_start": 29586,
+                "utf8_byte_end": 29676
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          },
+          {
+            "text": "訴訟代理人：(待填:被告訴訟代理人姓名；未委任時刪除)",
+            "draft_offsets": [
+              {
+                "start": 393,
+                "end": 420,
+                "line_1based": 15,
+                "column_1based": 1,
+                "utf8_byte_start": 1039,
+                "utf8_byte_end": 1114
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          },
+          {
+            "text": "被答辯人（即原告）：(待填:原告真實姓名或名稱；案件資料代稱為甲)",
+            "draft_offsets": [
+              {
+                "start": 465,
+                "end": 498,
+                "line_1based": 18,
+                "column_1based": 1,
+                "utf8_byte_start": 1231,
+                "utf8_byte_end": 1324
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": [
+              "甲"
+            ]
+          },
+          {
+            "text": "法定代理人：(待填:原告是否需法定代理人及其姓名；不適用時刪除)",
+            "draft_offsets": [
+              {
+                "start": 588,
+                "end": 620,
+                "line_1based": 22,
+                "column_1based": 1,
+                "utf8_byte_start": 1560,
+                "utf8_byte_end": 1650
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          },
+          {
+            "text": "具狀人：答辯人（被告） (待填:被告真實姓名或名稱；案件資料代稱為乙)（簽名或蓋章）",
+            "draft_offsets": [
+              {
+                "start": 10581,
+                "end": 10623,
+                "line_1based": 194,
+                "column_1based": 1,
+                "utf8_byte_start": 29466,
+                "utf8_byte_end": 29584
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": [
+              "乙"
+            ]
+          },
+          {
+            "text": "法定代理人：(待填:被告是否需法定代理人及其姓名；不適用時刪除)（簽名或蓋章）",
+            "draft_offsets": [
+              {
+                "start": 10625,
+                "end": 10664,
+                "line_1based": 195,
+                "column_1based": 1,
+                "utf8_byte_start": 29586,
+                "utf8_byte_end": 29697
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          },
+          {
+            "text": "撰狀人（訴訟代理人）：(待填:被告訴訟代理人姓名；未委任時刪除)（簽名或蓋章）",
+            "draft_offsets": [
+              {
+                "start": 10666,
+                "end": 10705,
+                "line_1based": 196,
+                "column_1based": 1,
+                "utf8_byte_start": 29699,
+                "utf8_byte_end": 29810
+              }
+            ],
+            "value_contains_pending_placeholder": true,
+            "source_aliases_in_value": []
+          }
+        ],
+        "name_scan_limit": "Checks explicit party/representative/writer identity fields and pending placeholders; not a general named-entity recognizer and not proof against all unknown names anywhere in text."
+      },
+      "citation_transport": {
+        "role_array_count": 33,
+        "role_item_shape": [
+          "str"
+        ],
+        "controller_array_count": 33,
+        "controller_all_strings": true,
+        "projection": "identity string array",
+        "projected_role_texts_equal_controller": true,
+        "projected_role_texts_equal_own_source_texts": true,
+        "new_or_modified_citation_texts": [],
+        "note": "Serialization shape and controller publication handoff are dispatch details; role-provided status is not used here to infer native publication or legal validity."
+      },
+      "dispatch_note": {
+        "source_sections": [
+          "Step9 common rules",
+          "9B throughitem7"
+        ],
+        "writer_task_omits_controller_publication_section": true,
+        "plaintiff_9A3_citation_schema_note_omitted_from_writer_task": false,
+        "assessment": "Recorded harness/dispatch detail; not automatically a product error."
+      },
+      "draft_line_endings": {
+        "CRLF": 196,
+        "standalone_LF": 0
+      }
+    }
+  ],
+  "frozen_case_hash_check": {
+    "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\case.json",
+    "expected_sha256": "055b00dacc00dff763d70037919ce942f6e80cc584b355fae8140223b87627e4",
+    "actual_sha256": "055b00dacc00dff763d70037919ce942f6e80cc584b355fae8140223b87627e4",
+    "unchanged": true
+  },
+  "summary": {
+    "protected_source_files_checked": 15,
+    "all_protected_source_files_unchanged": true,
+    "all_writer_material_hashes_unchanged": true,
+    "both_collected_drafts_byte_identical_to_writer": true,
+    "both_own_position_and_argument_exactly_preserved": false,
+    "candidate_counts": {
+      "plaintiff": 29,
+      "defendant": 27
+    },
+    "unmatched_date_or_money_candidates": 0,
+    "citations_literal_transport_pass": true,
+    "both_own_position_and_argument_preserved_after_only_LF_to_CRLF": true,
+    "fidelity_note": "Own position strings are exact; each full argument is exact after LF-to-CRLF line-ending rendering only. Raw whole-argument substring checks are false because of line endings, not paraphrase."
+  }
+}

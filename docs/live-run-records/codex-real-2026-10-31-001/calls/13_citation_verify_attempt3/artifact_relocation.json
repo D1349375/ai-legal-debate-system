@@ -1,0 +1,27 @@
+{
+  "destination": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\13_citation_verify_attempt3\\artifacts_relocated_from_database",
+  "files": [
+    {
+      "relative": "\\mechanical_verification_final.json",
+      "sha256": "FB7BA4D59FA440B94A89AD4C614003024AA75B14D9794CFEAD6F4504818CC996"
+    },
+    {
+      "relative": "\\mechanical_verification_initial.json",
+      "sha256": "90388195C4E65CE4336A4B0CF20F98DB2853DE924E477BFEF8E7D6278ADBC319"
+    },
+    {
+      "relative": "\\mechanical_verification_retry.json",
+      "sha256": "A3A3E8357BF0C089217B7ECC8D83D419E0CA8ABBC69C1EF8973CC253D0898609"
+    },
+    {
+      "relative": "\\verification_report.json",
+      "sha256": "9B44766E070A4174879F96AB7CEC04A2FB4E0EE1CC7C7158543A6CBBD8419947"
+    },
+    {
+      "relative": "\\verification_report.md",
+      "sha256": "C926FEFCB623732F1D2FEBF240820953CD213B3E899C20D3A6FCAC79A09DD3D0"
+    }
+  ],
+  "source": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\database\\其他輸出\\2026-10-31_real-2026-10-31-001_引用查證",
+  "content_preserved": true
+}

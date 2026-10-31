@@ -1,0 +1,55 @@
+{
+  "scope": "Static inspection of bundled managed assembly metadata and IL. The inspected telemetry/helper methods were not invoked as tests. No model, main.py, verifier, database transaction, or network request was executed for this inspection.",
+  "observed_at_utc": "2026-10-31T07:39:02.585909+00:00",
+  "assembly": {
+    "path": "C:\\Users\\berto\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\System.Management.Automation.dll",
+    "sha256": "2d8af026e589c5603629bfc3e7c57265b4167b12eca3ae549c6a6c3ca7e4967b"
+  },
+  "inspection_method": "System.Reflection.Metadata PEReader over File.OpenRead; inspect TypeDefinition/MethodDefinition and decoded IL. No Assembly.Load of the target assembly file or invocation of the inspected telemetry/helper methods.",
+  "environment": {
+    "name": "POWERSHELL_TELEMETRY_OPTOUT",
+    "value": "1",
+    "must_be_set": "Before starting the new pwsh process. Also set in the host process before launching codex so subprocess startup inherits it. Setting it only inside the later -Command body is too late to guarantee startup opt-out.",
+    "codex_config_toml": "[shell_environment_policy.set]\nPOWERSHELL_TELEMETRY_OPTOUT = \"1\"",
+    "host_powershell_assignment": "$env:POWERSHELL_TELEMETRY_OPTOUT = '1'"
+  },
+  "observations": [
+    {
+      "method": "Microsoft.PowerShell.Telemetry.ApplicationInsightsTelemetry..cctor",
+      "il": [
+        "IL_0015 ldstr \"POWERSHELL_TELEMETRY_OPTOUT\"",
+        "IL_001A ldc.i4.0",
+        "IL_001B call GetEnvironmentVariableAsBool",
+        "IL_0020 brtrue.s IL_0033",
+        "IL_0033 ldc.i4.0",
+        "IL_0034 call set_CanSendTelemetry",
+        "IL_0039 call get_CanSendTelemetry",
+        "IL_003E brfalse.s IL_004B",
+        "IL_004B call get_CanSendTelemetry",
+        "IL_0050 brtrue.s IL_0053",
+        "IL_0052 ret"
+      ],
+      "meaning": "The environment value is read during static initialization with default false. A true opt-out value sets CanSendTelemetry false and returns before the subsequent telemetry initialization body."
+    },
+    {
+      "method": "System.Management.Automation.Utils.GetEnvironmentVariableAsBool",
+      "il": [
+        "IL_0001 call GetEnvironmentVariable",
+        "IL_001F ldc.i4.1",
+        "IL_0020 bne.un.s IL_0040",
+        "IL_002B ldc.i4.s 0x31 (ASCII character 1)",
+        "IL_002D bne.un.s IL_0031",
+        "IL_002F ldc.i4.1",
+        "IL_0030 ret"
+      ],
+      "meaning": "A single-character environment value 1 is explicitly accepted as true. Other accepted values were not needed for this recommendation."
+    }
+  ],
+  "limits": [
+    "Bundled text/documentation search found no local explanation of this variable; the evidence is the installed implementation IL.",
+    "This proves the installed PowerShell implementation supports this opt-out. It is not an execution test that the retry has zero telemetry attempts.",
+    "Opt-out applies to PowerShell telemetry; it is not evidence that every unrelated component or SDK telemetry source is disabled.",
+    "No need to allow dc.services.visualstudio.com; retain the existing network restrictions.",
+    "If shell environment include filters are configured, they must retain this injected variable; environment configuration does not make a variable immutable."
+  ]
+}

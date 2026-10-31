@@ -1,0 +1,663 @@
+{
+  "recorded_at_utc": "2026-10-31T07:12:24.942283+00:00",
+  "case_id": "real-2026-10-31-001",
+  "scope": "Execution/bookkeeping only; no holdout, original judgment attachments, legal merits or citation-support conclusions read/evaluated; no network/main.py/role execution or database writes by this auditor.",
+  "sources": {
+    "stream": {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/stream.jsonl",
+      "sha256": "28dd24fb8d2527f7e278ef0c7a55f82dfa09c8f0566dd781348a590da3a9da8f",
+      "all_lines_parsed": true,
+      "invalid_json_lines": []
+    },
+    "stderr": {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/stderr.log",
+      "sha256": "076511737842455b9703add781de5b46a23c1822649ec621d1e54c564fc471e1",
+      "lines_read": 12
+    },
+    "call_manifest": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/call_manifest.json",
+    "raw_observations": "docs/live-run-records/codex-real-2026-10-31-001/step8_execution_audit_raw_observations.json"
+  },
+  "process_outcome": {
+    "exit_code": 4294967295,
+    "ended_at": "2026-10-31T07:04:40.522691+00:00",
+    "turn_completed_event_present": false,
+    "last_message_present": false,
+    "process_exit_zero_is_not_verification_pass": true,
+    "verification_completed_and_passed": false,
+    "controller_stop_record": "docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/controller_stop.json"
+  },
+  "visible_execution_records": [
+    {
+      "stream_line": 5,
+      "item_id": "item_1",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/all_citations.json', 'docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/citation_provenance.json', 'docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace/final_use_precedents.json' -Raw\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "0684b29b39f1bfdc2a12826f8927160faa042b8e4fac54e12ca0425ec18ad4ff",
+      "output_chars": 28151,
+      "source_read_not_invocation": true,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 7,
+      "item_id": "item_2",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json\nfrom pathlib import Path\np=Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\nfor name in ['case','all_stages','verdict']:\n d=json.loads((p/(name+'.json')).read_text(encoding='utf-8-sig'))\n print(name, type(d).__name__, list(d) if isinstance(d,dict) else 'length='+str(len(d)))\n if name=='verdict': print(json.dumps(d,ensure_ascii=False,indent=2))\n if name=='all_stages':\n  if isinstance(d,dict):\n   for k,v in d.items(): print(k, type(v).__name__, list(v) if isinstance(v,dict) else 'length='+str(len(v)))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "6ffa6be4feafe2aa313c99aaf1167d0f13a95ad0b51c24d6b57eccea2e90272d",
+      "output_chars": 20688,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 10,
+      "item_id": "item_4",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"rg -n 'def .*verify|verify_citation|published|upsert|candidate|LEGALDEBATE_DB_URL|create_all|init_db' main.py engine database/db.py database/schema.py\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "3cf38aea7adaa20eb63dfaec3472aec2f04cf5480e40f28992809680bcbb2941",
+      "output_chars": 4870,
+      "source_read_not_invocation": true,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 11,
+      "item_id": "item_3",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'database/schema.py', 'database/db.py' -Raw\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "0d15d0f46dd5aceb4adc1295da41e968ad98dd3eb47bc25391ac8e1ed78f53df",
+      "output_chars": 19967,
+      "source_read_not_invocation": true,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 14,
+      "item_id": "item_6",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'engine/verify.py' -Raw\nGet-Content -LiteralPath 'main.py' -TotalCount 115\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "404b03701325e3146c125f8055f6decf7fc32a6fae73f8d33409b054a5fcd2c2",
+      "output_chars": 15082,
+      "source_read_not_invocation": true,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 15,
+      "item_id": "item_5",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\ncon.row_factory=sqlite3.Row\nprint('citation_status_counts', [dict(r) for r in con.execute('select status,count(*) as count from citation_verifications group by status')])\nfor table in ['verdicts','pleading_drafts']:\n print(table, con.execute('select count(*) from '+table+' where case_id=?',('real-2026-10-31-001',)).fetchone()[0])\nprint('judgments',json.dumps([dict(r) for r in con.execute(\\\"select * from citation_verifications where source_type='judgment'\\\")],ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "7a191cb5b0ec88e817836a2ba9763367ab1db9f25a20e04837ef9deee67db706",
+      "output_chars": 72,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 18,
+      "item_id": "item_8",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json\nfrom pathlib import Path\nfrom collections import Counter\nfrom engine.verify import parse_citation\np=Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\nrefs=json.loads((p/'all_citations.json').read_text(encoding='utf-8-sig'))\nkeys={tuple(parse_citation(c).items()) for c in refs}\nprint(json.dumps({'raw_unique':len(set(refs)),'raw_types':dict(Counter(parse_citation(c)['type'] for c in refs)),'canonical_unique':len(keys),'canonical_types':dict(Counter(dict(k)['type'] for k in keys))},ensure_ascii=False))\nv=json.loads((p/'verdict.json').read_text(encoding='utf-8-sig'))\nprint('verdict_unique',len(set(v['citations_used'])))\nprint('procedural_issues',json.dumps(v['mechanical_anchor_json']['procedural_issues'],ensure_ascii=False))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "4a8e6d0155df19c7526469de3c29b7d97c3fe2009ca77df2a5065fdaf3b6e75c",
+      "output_chars": 445,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": true,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 20,
+      "item_id": "item_9",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport urllib.request,time\nurl='https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95'\nstart=time.monotonic()\ntry:\n with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=12) as resp:\n  body=resp.read().decode('utf-8')\n  print({'status':resp.status,'article_marker':'<div class=\\\"law-article\\\">' in body,'elapsed_seconds':round(time.monotonic()-start,2)})\nexcept Exception as exc:\n print(type(exc).__name__,str(exc),'elapsed_seconds',round(time.monotonic()-start,2))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "89816315969bf2eb51a67c0ddb82caafcc18a83265aef94e1a7923e6fc938447",
+      "output_chars": 65,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": true,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 23,
+      "item_id": "item_11",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport sqlite3,json\nfrom pathlib import Path\np=Path('database/codex_runs.db').resolve()\ncon=sqlite3.connect('file:'+p.as_posix()+'?mode=ro',uri=True)\nprint(json.dumps({'path':str(p),'journal_mode':con.execute('pragma journal_mode').fetchone()[0],'locking_mode':con.execute('pragma locking_mode').fetchone()[0],'citations':con.execute('select count(*) from citation_verifications').fetchone()[0],'files':{s:Path(str(p)+s).exists() for s in ['','-journal','-wal','-shm']}},ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "759e685d62ddf13ea860b45f428b32c3bf6b8fd01cc238467451d4e1bcb00216",
+      "output_chars": 240,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 25,
+      "item_id": "item_12",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nfrom pathlib import Path\np=Path('database/codex_runs.db-journal').resolve()\ntry:\n with p.open('xb'):\n  pass\n print('Prepared empty authorized journal:',p)\nexcept FileExistsError:\n print('Journal already exists; unchanged')\nexcept OSError as exc:\n print(type(exc).__name__,str(exc))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "18b4f81aaaa450b94db66d75005c3e3f6f6d2659209556eba277be8f69facf2f",
+      "output_chars": 146,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 27,
+      "item_id": "item_13",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nfrom pathlib import Path\np=Path('database/codex_runs.db').resolve()\ntry:\n with p.open('r+b'):\n  print('Authorized existing database is writable; no bytes changed')\nexcept OSError as exc:\n print(type(exc).__name__,str(exc))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e29a80532b61d1f270700c66c82c93e3c16cfdd1f6ec99895d3cd2e1a791aad5",
+      "output_chars": 60,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 34,
+      "item_id": "item_17",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps({'citations':con.execute('select status,count(*) from citation_verifications group by status').fetchall(),'case_verdicts':con.execute('select count(*) from verdicts where case_id=?',('real-2026-10-31-001',)).fetchone()[0],'case_pleadings':con.execute('select count(*) from pleading_drafts where case_id=?',('real-2026-10-31-001',)).fetchone()[0]}))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "69fee1048ecf29dfb6e012663715af4e003410eb7b24484f831febb4520ebb62",
+      "output_chars": 60,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 48,
+      "item_id": "item_25",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps([dict(zip(['source_type','status','count'],r)) for r in con.execute('select source_type,status,count(*) from citation_verifications group by source_type,status')],ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "7196ad5bd5d180534a0c904b5a9e88fc57af6e7f57c7a304843e7eba000119a3",
+      "output_chars": 66,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 55,
+      "item_id": "item_29",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps([dict(zip(['source_type','status','count'],r)) for r in con.execute('select source_type,status,count(*) from citation_verifications group by source_type,status')],ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "469ef7e89d64e8e70f305e9100c84abac9f0aefd60396111df00b3f46bf7034f",
+      "output_chars": 130,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": false,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    },
+    {
+      "stream_line": 60,
+      "item_id": "item_32",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport json,sqlite3\nfrom pathlib import Path\nfrom engine.verify import parse_citation\np=Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\nrefs=json.loads((p/'all_citations.json').read_text(encoding='utf-8-sig'))\nverdict=json.loads((p/'verdict.json').read_text(encoding='utf-8-sig'))\ndef key(c): return tuple(parse_citation(c).items())\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nrows=con.execute('select citation_text,source_type,status from citation_verifications').fetchall()\nbykey={key(c):status for c,typ,status in rows}\nprint(json.dumps({'case_id':'real-2026-10-31-001','input_strings':len(refs),'identities':len(set(map(key,refs))),'database_rows':len(rows),'status_counts':con.execute('select source_type,status,count(*) from citation_verifications group by source_type,status').fetchall(),'missing_or_unpublished':[c for c in refs if bykey.get(key(c))\"'!='\"'published'],'verdict_missing_or_unpublished':[c for c in verdict['citations_used'] if bykey.get(key(c))\"'!='\"'published'],'case_verdict_count':con.execute('select count(*) from verdicts where case_id=?',('real-2026-10-31-001',)).fetchone()[0],'case_pleading_count':con.execute('select count(*) from pleading_drafts where case_id=?',('real-2026-10-31-001',)).fetchone()[0]},ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "bd5b70df013a180cbdc4e8e468ad1306f2dc4ac923ddcc291f7df1402c508968",
+      "output_chars": 294,
+      "source_read_not_invocation": false,
+      "visible_main_py_verify_invocation": false,
+      "visible_direct_verification_api_invocation": false,
+      "parse_citation_only": true,
+      "direct_official_http_probe_outside_engine": false,
+      "json_verifier_result_rows": 0
+    }
+  ],
+  "exact_main_py_verify": {
+    "visible_command_event_matches": [],
+    "visible_stderr_command_payload_matches": [],
+    "attempted_or_completed_exact_command": "NOT_RECONSTRUCTABLE_FROM_AVAILABLE_TRACE",
+    "limit": "No exact command/arguments or final CLI JSON are visible. Actor commentary reports verification commands/CLI failures, while stderr shows failed tool routing with missing payloads. Empty command-event matches do not prove the command was never attempted."
+  },
+  "direct_engine_verification_api": {
+    "visible_verify_api_invocation_matches": [],
+    "visible_parse_only_commands": [
+      18,
+      60
+    ],
+    "actual_approved_official_engine_requests": "REPORTED_BUT_NOT_INDEPENDENTLY_RECONSTRUCTABLE",
+    "limit": "parse_citation calls are confirmed but are not live verification. Global DB side effects and actor reports are consistent with verification activity; they do not recover the missing invocation/result payloads or attribute every call."
+  },
+  "official_network_observations": {
+    "direct_http_probes": [
+      {
+        "stream_line": 20,
+        "item_id": "item_9",
+        "outcome": "HTTP 200; article marker true; 0.8 seconds",
+        "scope_note": "Direct urllib reachability check to law.moj.gov.tw, not a call through the existing verification engine."
+      }
+    ],
+    "approved_engine_result_payload_present": false,
+    "general_legal_web_search_observed": false,
+    "telemetry_denied_domain": "dc.services.visualstudio.com",
+    "telemetry_is_ordinary_legal_web_search": false,
+    "telemetry_stderr_lines": [
+      {
+        "line": 2,
+        "text": "2026-10-31T06:53:29.997047Z  WARN codex_sandboxing::violation: recorded sandbox violation: resource=network backend=managed_network_proxy protocol=http-connect host=dc.services.visualstudio.com port=Some(443) reason=not_allowed method=Some(\"CONNECT\") mode=None client=Some(\"127.0.0.1:60846\") decision=Some(\"deny\") source=Some(\"baseline_policy\")"
+      },
+      {
+        "line": 3,
+        "text": "2026-10-31T06:53:29.997180Z  WARN codex_network_proxy::http_proxy: CONNECT blocked (client=127.0.0.1:60846, host=dc.services.visualstudio.com, reason=not_allowed)"
+      },
+      {
+        "line": 6,
+        "text": "2026-10-31T06:56:22.253767Z  WARN codex_sandboxing::violation: recorded sandbox violation: resource=network backend=managed_network_proxy protocol=http-connect host=dc.services.visualstudio.com port=Some(443) reason=not_allowed method=Some(\"CONNECT\") mode=None client=Some(\"127.0.0.1:55321\") decision=Some(\"deny\") source=Some(\"baseline_policy\")"
+      },
+      {
+        "line": 7,
+        "text": "2026-10-31T06:56:22.253827Z  WARN codex_network_proxy::http_proxy: CONNECT blocked (client=127.0.0.1:55321, host=dc.services.visualstudio.com, reason=not_allowed)"
+      },
+      {
+        "line": 8,
+        "text": "2026-10-31T06:56:39.394030Z ERROR codex_core::tools::router: error=write_stdin failed: Unified exec process failed: Network access to \"dc.services.visualstudio.com\" was blocked: domain is not on the allowlist for the current sandbox mode."
+      },
+      {
+        "line": 10,
+        "text": "2026-10-31T06:58:10.810451Z  WARN codex_sandboxing::violation: recorded sandbox violation: resource=network backend=managed_network_proxy protocol=http-connect host=dc.services.visualstudio.com port=Some(443) reason=not_allowed method=Some(\"CONNECT\") mode=None client=Some(\"127.0.0.1:53535\") decision=Some(\"deny\") source=Some(\"baseline_policy\")"
+      },
+      {
+        "line": 11,
+        "text": "2026-10-31T06:58:10.810543Z  WARN codex_network_proxy::http_proxy: CONNECT blocked (client=127.0.0.1:53535, host=dc.services.visualstudio.com, reason=not_allowed)"
+      },
+      {
+        "line": 12,
+        "text": "2026-10-31T06:58:10.811042Z ERROR codex_core::tools::router: error=write_stdin failed: Unified exec process failed: Network access to \"dc.services.visualstudio.com\" was blocked: domain is not on the allowlist for the current sandbox mode."
+      }
+    ]
+  },
+  "input_count_verification": {
+    "raw_strings": 73,
+    "unique_raw_strings": 73,
+    "canonical_identities_preserving_unsupported_strings": 65,
+    "raw_type_counts": {
+      "statute": 63,
+      "judgment": 10
+    },
+    "parseable_strings": 73,
+    "unsupported_strings": [],
+    "method": "Independent local pattern matching equivalent to frozen source parser patterns; no engine/network call. Parseability does not imply published verification."
+  },
+  "planned_precedent_list": {
+    "path": "docs/live-run-records/codex-real-2026-10-31-001/final_use_precedents.json",
+    "raw_strings": 10,
+    "canonical_docket_identities": 5,
+    "visible_full_text_read_command_events": [],
+    "visible_metadata_only_reads": [],
+    "thirteen_full_text_checks_independently_verified": null,
+    "limit": "The list establishes intended scope; actor statements assert full-text checking. Saved command outputs do not independently evidence the asserted full-text reads. Missing failed-tool payloads prevent treating absence as proof no reads occurred."
+  },
+  "role_assertions_not_tool_results": {
+    "final_message_present": false,
+    "adopted_final_result": false,
+    "intermediate_claims_only": true,
+    "intermediate_claim_sources": [
+      21,
+      28,
+      37,
+      42,
+      49,
+      56
+    ]
+  },
+  "agent_message_assertion_index": [
+    {
+      "stream_line": 3,
+      "item_id": "item_0",
+      "text_sha256": "61f8103752e7e08d3f4f790d627020f2189408d7c595d66749d7bcc714ff5db4",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": false
+    },
+    {
+      "stream_line": 16,
+      "item_id": "item_7",
+      "text_sha256": "4a1454050d71aaecfceac7660f80a741b50d84316cf1a55f35a1fbec26871248",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": false
+    },
+    {
+      "stream_line": 21,
+      "item_id": "item_10",
+      "text_sha256": "22f182fc142dffc496830b45d8dd7afd5483693e11311bcb37b001f6d120762b",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": false
+    },
+    {
+      "stream_line": 28,
+      "item_id": "item_14",
+      "text_sha256": "bfc9f6713387bec47f413218abe5b203a39238d5ced883e3b0908e0cae469496",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": true
+    },
+    {
+      "stream_line": 37,
+      "item_id": "item_19",
+      "text_sha256": "7c6a5ae40a0a38600a17522c56351ffa4835932182fc4f1930a4a86a7b7a050d",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": false
+    },
+    {
+      "stream_line": 42,
+      "item_id": "item_22",
+      "text_sha256": "610b5ee12294f187bc2741e736957b0fef63b2e688d39111318503be67a7f700",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": false
+    },
+    {
+      "stream_line": 49,
+      "item_id": "item_26",
+      "text_sha256": "5e9dbfe12a1fec4de62d0ded1cbe4f3241fdedd5dc966a1ec140e26ee2b2f801",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": false
+    },
+    {
+      "stream_line": 56,
+      "item_id": "item_30",
+      "text_sha256": "755158938fdf7240de42a27ebd8cf3ea3fc74a21abe0384a3503a42c87e2f86d",
+      "contains_108_published_claim": false,
+      "contains_111_count": false,
+      "contains_13_full_text_claim": false,
+      "contains_cli_failure_claim": false,
+      "contains_memory_journal_retry_claim": false
+    }
+  ],
+  "raw_structured_verifier_results": {
+    "observed_result_payloads": 0,
+    "copied_paths": [],
+    "published_unparseable_return_counts_independently_confirmed": false,
+    "note": "No raw per-citation verifier-result array was found in available completed command outputs; source-code literals and DB status snapshots were not counted as verifier returns."
+  },
+  "execution_diagnostics": {
+    "file_database_errors": [
+      {
+        "stream_line": 25,
+        "item_id": "item_12",
+        "command_exit_code": 0,
+        "diagnostic": "PermissionError [Errno 13] Permission denied: 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\database\\\\codex_runs.db-journal'"
+      }
+    ],
+    "tool_router_and_process_errors": [
+      {
+        "stderr_line": 8,
+        "text": "2026-10-31T06:56:39.394030Z ERROR codex_core::tools::router: error=write_stdin failed: Unified exec process failed: Network access to \"dc.services.visualstudio.com\" was blocked: domain is not on the allowlist for the current sandbox mode."
+      },
+      {
+        "stderr_line": 9,
+        "text": "2026-10-31T06:56:55.410161Z ERROR codex_core::tools::router: error=write_stdin failed: Unknown process id 21739"
+      },
+      {
+        "stderr_line": 12,
+        "text": "2026-10-31T06:58:10.811042Z ERROR codex_core::tools::router: error=write_stdin failed: Unified exec process failed: Network access to \"dc.services.visualstudio.com\" was blocked: domain is not on the allowlist for the current sandbox mode."
+      }
+    ],
+    "unknown_process_stderr_lines": [
+      9
+    ],
+    "collab_wait_trace": [
+      {
+        "stream_line": 29,
+        "event": "item.started",
+        "item_id": "item_15",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 30,
+        "event": "item.completed",
+        "item_id": "item_15",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 31,
+        "event": "item.started",
+        "item_id": "item_16",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 32,
+        "event": "item.completed",
+        "item_id": "item_16",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 35,
+        "event": "item.started",
+        "item_id": "item_18",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 36,
+        "event": "item.completed",
+        "item_id": "item_18",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 38,
+        "event": "item.started",
+        "item_id": "item_20",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 39,
+        "event": "item.completed",
+        "item_id": "item_20",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 40,
+        "event": "item.started",
+        "item_id": "item_21",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 41,
+        "event": "item.completed",
+        "item_id": "item_21",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 43,
+        "event": "item.started",
+        "item_id": "item_23",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 44,
+        "event": "item.completed",
+        "item_id": "item_23",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 45,
+        "event": "item.started",
+        "item_id": "item_24",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 46,
+        "event": "item.completed",
+        "item_id": "item_24",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 50,
+        "event": "item.started",
+        "item_id": "item_27",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 51,
+        "event": "item.completed",
+        "item_id": "item_27",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 52,
+        "event": "item.started",
+        "item_id": "item_28",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 53,
+        "event": "item.completed",
+        "item_id": "item_28",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 57,
+        "event": "item.started",
+        "item_id": "item_31",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      },
+      {
+        "stream_line": 58,
+        "event": "item.completed",
+        "item_id": "item_31",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "completed"
+      },
+      {
+        "stream_line": 61,
+        "event": "item.started",
+        "item_id": "item_33",
+        "tool": "wait",
+        "receiver_thread_ids": [],
+        "agents_states": {},
+        "status": "in_progress"
+      }
+    ],
+    "wait_recipient_limit": "Visible wait events have empty receiver_thread_ids and empty agents_states. Failed spawn/rollout messages do not prove a successful additional verifier context.",
+    "failed_tool_payload_limit": "stderr records router/write_stdin/spawn failures without their full original tool arguments or result payloads; exact failed commands and their returned verification data cannot be reconstructed."
+  },
+  "database_state_snapshot": "docs/live-run-records/codex-real-2026-10-31-001/db_state_after_run.json",
+  "conclusion": "Step8 did not produce an independently auditable complete passing verification record. Process success/failure, parseability, actor assertions, global DB publication and substantive verification are distinct."
+}

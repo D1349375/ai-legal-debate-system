@@ -1,0 +1,10 @@
+{
+  "user_answer": "允許 Step 8 僅由既有引擎查官方網站，報告明列例外（建議）",
+  "recorded_at": "2026-10-31T06:52:08.120400+00:00",
+  "scope": "Step8 existing verification engine only; general web search remains disabled",
+  "official_domains": [
+    "law.moj.gov.tw",
+    "judgment.judicial.gov.tw"
+  ],
+  "platform_limitation": "MXC managed networking requires allow_local_binding=true; host loopback remains available. Do not claim absolute two-domain-only networking."
+}

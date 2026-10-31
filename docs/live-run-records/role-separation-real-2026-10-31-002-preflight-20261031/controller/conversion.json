@@ -1,0 +1,7 @@
+{
+  "facts_changed": false,
+  "facts_conversion": "facts_summary 原文複製至 plaintiff_facts",
+  "claims_conversion": "僅將「原起訴」改為「起訴」",
+  "claim_amount_source": "非金錢比特幣請求，留空",
+  "source_note_excluded_from_roles": true
+}

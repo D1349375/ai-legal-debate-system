@@ -1,0 +1,61 @@
+{
+  "needles": [
+    {
+      "id": "holdout_marker",
+      "text": "legaldebate_holdout"
+    },
+    {
+      "id": "holdout_directory",
+      "text": "C:\\Users\\berto\\legaldebate_holdout\\real-2026-10-31-001"
+    },
+    {
+      "id": "docket",
+      "text": "113年度訴字第3504號"
+    },
+    {
+      "id": "plaintiff_original_name",
+      "text": "賴小蘭"
+    },
+    {
+      "id": "defendant_original_name",
+      "text": "莊賴坤"
+    },
+    {
+      "id": "judge_original_name",
+      "text": "王婉如"
+    },
+    {
+      "id": "gold_defense_feature_1",
+      "text": "減價200萬元"
+    },
+    {
+      "id": "gold_defense_feature_2",
+      "text": "打掉全部重新裝潢"
+    },
+    {
+      "id": "gold_defense_feature_3",
+      "text": "不修繕現況交屋"
+    },
+    {
+      "id": "gold_defense_feature_4",
+      "text": "浴廁給水管破裂係原告於拆除浴廁地磚時不慎毀損"
+    },
+    {
+      "id": "gold_defense_feature_5",
+      "text": "系爭瑕疵已完整修繕，無價值減損"
+    },
+    {
+      "id": "gold_defense_feature_6",
+      "text": "意圖將其應負擔之修繕及裝修費用轉嫁予被告"
+    },
+    {
+      "id": "gold_defense_feature_7",
+      "text": "1,480萬元"
+    },
+    {
+      "id": "gold_defense_feature_8",
+      "text": "1,680萬元"
+    }
+  ],
+  "purpose": "Post-run evaluation only; not supplied to any legal role"
+}

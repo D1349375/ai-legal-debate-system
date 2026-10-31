@@ -1,0 +1,77 @@
+[
+  {
+    "source_file": "corpus/judgments/TPSV,113,台上,2221,20260402,1.txt",
+    "bytes": 19327,
+    "sha256": "e78bfbc1e9ffd2bbd5a2fbdad67fb6bde728c3c4c3ae80ef6d3a1c01260885ff"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,1071,20260318,1.txt",
+    "bytes": 14685,
+    "sha256": "3a6b134fef1105d77960dab526c4c925e6b9aba401c7512aef767cd5424513a1"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,1131,20260527,1.txt",
+    "bytes": 8215,
+    "sha256": "c23c5e739eee95bcac9000805579d17ad3a4d0d8798e56fc85d179c61f784dd0"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,1738,20260429,1.txt",
+    "bytes": 8240,
+    "sha256": "662e1355fba9c2ad7917da6620701e82567426d2e0e71c5f1793185a2e16c85c"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,1939,20260409,1.txt",
+    "bytes": 8615,
+    "sha256": "1d9a582414d607566582555d7be1c55a3fcf01f68024c1ecc248e34a8020a657"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,1945,20260304,2.txt",
+    "bytes": 1961,
+    "sha256": "ec5be6596fb687a48891b60a310ea559090b83b2089226c6686e6e4dbacd12cc"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,1945,20260513,1.txt",
+    "bytes": 10335,
+    "sha256": "425f13576edfc3868f439e7e4eb0b549f1c823760744e33edbce7ba6a3e48943"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,2031,20260514,1.txt",
+    "bytes": 15963,
+    "sha256": "c7a3604b827bcd1bfbf533f9b06d9d0e23ce5005b21b2aa0355b14ed033d09c4"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,114,台上,2167,20260507,1.txt",
+    "bytes": 12411,
+    "sha256": "8b4e9e0d08493a865fe128bfc1775292675038c74d32de11fb80c88ef85ba27c"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,115,台上,192,20260325,1.txt",
+    "bytes": 15934,
+    "sha256": "72cd436548d5db55ece79961ff84785b2568358d5c968af83591380683b46e0f"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,115,台上,192,20260325,2.txt",
+    "bytes": 2638,
+    "sha256": "0d4dbba48e7072db9a7237795c729bc2db8609caa0f3c5d2628780cd1b4c5060"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,115,台上,207,20260325,1.txt",
+    "bytes": 6481,
+    "sha256": "35b03a5733e7507fb85e2e6b9862a8afba2b358db8c3f2a41aeb03c031b00f03"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,115,台上,459,20260527,1.txt",
+    "bytes": 4730,
+    "sha256": "9782bbff49d25bef677647861b3114eb609bd098a33a8d6a76fbbc51c17f4ce4"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,115,台上,521,20260513,1.txt",
+    "bytes": 11727,
+    "sha256": "a5ce0bf031601c10bbd80638df18ac3b1d187b0a58ca261fa9c1fd25fb160ba1"
+  },
+  {
+    "source_file": "corpus/judgments/TPSV,115,台上,561,20260422,1.txt",
+    "bytes": 7722,
+    "sha256": "ff2d5d3f15da881e734a73a6ad1fc94317ce54c2e3c6c2e27f2270b8b9d5ec2d"
+  }
+]

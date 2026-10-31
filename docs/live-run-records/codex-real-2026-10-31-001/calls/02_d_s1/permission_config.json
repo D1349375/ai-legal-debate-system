@@ -1,0 +1,12 @@
+{
+  "filesystem": {
+    ":root": "deny",
+    ":minimal": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/corpus": "read",
+    "C:/Users/berto/AppData/Local/Programs/Python/Python312": "read",
+    "C:/Users/berto/AppData/Local/OpenAI/Codex/bin": "read",
+    "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/02_d_s1/workspace": "read"
+  },
+  "network_enabled": false,
+  "windows_sandbox": "mxc"
+}

@@ -21,7 +21,7 @@ import threading
 from sqlalchemy import or_
 
 from database.db import DB_URL_ENV, default_db_path, pleading_side
-from database.schema import Case, CourtQuestion, DebateArgument, LiveRun, PleadingDraft, Verdict
+from database.schema import Case, CourtQuestion, DebateArgument, JudgeBundle, LiveRun, PleadingDraft, Verdict
 from engine.aggregate import VALID_SIDES
 
 DEFAULT_MODEL = "claude-sonnet-5-5"
@@ -114,12 +114,12 @@ def build_prompt(case_id, run_dir, resume=None, documents=VALID_SIDES):
 本次由 LegalDebate UI 以無人值守方式(claude -p)觸發，過程中沒有人能回答問題。請依 .claude/skills/legal-debate/SKILL.md 跑完 Step 1–10;需要使用者決定的地方，依 SKILL.md 最保守的做法處理，並在最後的回覆說明，不要停下來等待。
 
 本次執行的固定條件：
-1. 案件已由 UI 落地資料庫(案件 ID {case_id}),案件輸入檔是 {run_dir}/case.json(含使用者填寫的雙方當事人與統編)。不要再執行 `python main.py case`。SKILL.md 的 {{CASE_FACTS_PATH}} 填這個檔案。
+1. 案件已由 UI 落地資料庫(案件 ID {case_id})。案件輸入檔是 {run_dir}/case.json，僅供調度使用。不要再執行 `python main.py case`。先對每個角色執行 `python main.py role-view --case-id {case_id} --role plaintiff|defendant|judge`，存於 {run_dir}/ 中不同角色檔；SKILL.md 的 {{CASE_FACTS_PATH}} 只填該角色的投影檔。{run_dir}/case.json 僅供調度，禁止交給任何法律角色；摘要必須用 summary 指令產生。
 2. 商工查核已由 UI 依使用者提供的統編完成(沒給統編的一方不查)。不要重新查核，也不要用名稱搜尋自行選定統編。直接執行 `python main.py issues --case-id {case_id}` 取得程序事項。
 3. 所有暫存檔(檢索詞摘要、程序事項、各階段 JSON、訊問、評估、訴狀草稿、引用清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
 4. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
-6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
+6. 未通過的候選引用列律師待核，不阻整體評估流程；評估實際採用的 citations_used 與書狀引用仍須通過既有落地檢查，不能自行改寫或繞過。歷史205標 version_unverified。獨立查證JSON完成後由調度員執行 `python main.py verify <引用...> --case-id {case_id} --review-json <獨立查證結果JSON>`（附同批precedent-notes/version-hints），將支持性存本案，不能只留在暫存檔。回報使用 report 指令原樣轉交。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
 """ + documents_instructions(documents, 8) + (resume_instructions(resume, run_dir) if resume else "")
 
@@ -423,7 +423,8 @@ def pipeline_missing(session, case_id, kind="full", since=None, documents=VALID_
         for side in VALID_SIDES:
             if (side, stage) not in landed:
                 missing.append(f"{'原告' if side == 'plaintiff' else '被告'} Stage {stage}")
-    if not session.query(CourtQuestion).filter_by(case_id=case_id).count():
+    if not (session.query(CourtQuestion).filter_by(case_id=case_id).count()
+            or session.query(JudgeBundle).filter_by(case_id=case_id).count()):
         missing.append("法官訊問")
     if not session.query(Verdict).filter_by(case_id=case_id).count():
         missing.append("爭點強弱評估")
@@ -447,7 +448,8 @@ def resume_plan(session, case_id):
     for a in session.query(DebateArgument).filter_by(case_id=case_id).all():
         sides.setdefault(a.stage, set()).add(a.side)
     done = {"stage1": sides[1] >= set(VALID_SIDES),
-            "questions": session.query(CourtQuestion).filter_by(case_id=case_id).count() > 0,
+            "questions": (session.query(CourtQuestion).filter_by(case_id=case_id).count() > 0
+                          or session.query(JudgeBundle).filter_by(case_id=case_id).count() > 0),
             "stage2": sides[2] >= set(VALID_SIDES), "stage3": sides[3] >= set(VALID_SIDES),
             "verdict": session.query(Verdict).filter_by(case_id=case_id).count() > 0,
             # 任一份書狀已落地即算做過 Step 9;使用者當時沒選的另一份用「補產書狀」(Step 9C)
@@ -646,6 +648,7 @@ class LiveRunManager:
             raise ValueError(f"非法的執行種類:{kind}")
         if resume and kind != "full":
             raise ValueError("補產書狀的執行沒有續跑")
+        documents_specified = documents is not None
         documents = normalize_documents(documents, kind)
         if not self.enabled:
             raise PermissionError(self.reason)
@@ -660,6 +663,10 @@ class LiveRunManager:
                 case = s.query(Case).filter_by(case_id=case_id).one_or_none()
                 if case is None:
                     raise ValueError(f"找不到案件 {case_id}(必須先落地資料庫)")
+                if case.represented_side:
+                    if documents_specified and documents != [case.represented_side]:
+                        raise ValueError("正式書狀只可選代理方；對方內容請看預演要點（非書狀）")
+                    documents = [case.represented_side]
                 plan = None
                 if kind == "pleadings":
                     blocker = pleading_blocker(s, case_id, documents)
@@ -689,6 +696,8 @@ class LiveRunManager:
                 case_payload = {"case_id": case.case_id, "case_type": case.case_type,
                                 "facts_summary": case.facts_summary, "claims": case.claims,
                                 "parties": json.loads(case.parties_json) if case.parties_json else None}
+                case_payload.update({key: getattr(case, key) for key in ("represented_side", "uncontested_facts",
+                                    "plaintiff_facts", "defendant_facts", "claim_amount", "protocol_version")})
             abs_dir = self._log_abs(run_dir)
             os.makedirs(abs_dir, exist_ok=True)
             with open(os.path.join(abs_dir, "case.json"), "w", encoding="utf-8") as f:

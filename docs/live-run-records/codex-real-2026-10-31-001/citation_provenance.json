@@ -1,0 +1,1423 @@
+{
+  "民法第92條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 0
+    }
+  ],
+  "民法第93條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 1
+    }
+  ],
+  "民法第95條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 2
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 1
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 0
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 1
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 0
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 0
+    }
+  ],
+  "民法第98條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 3
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 1
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 2
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 1
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 2
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 1
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 1
+    }
+  ],
+  "民法第114條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 4
+    }
+  ],
+  "民法第125條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 5
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 2
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 4
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 3
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 4
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 3
+    }
+  ],
+  "民法第128條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 6
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 3
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 5
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 4
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 5
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 4
+    }
+  ],
+  "民法第153條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 7
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 6
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 5
+    }
+  ],
+  "民法第179條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 8
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 7
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 8
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 8
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 6
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 5
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 3
+    }
+  ],
+  "民法第184條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 9
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 8
+    }
+  ],
+  "民法第185條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 10
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 9
+    }
+  ],
+  "民法第197條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 11
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 10
+    }
+  ],
+  "民法第203條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 12
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 12
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 9
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 10
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 7
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 6
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 4
+    }
+  ],
+  "民法第213條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 13
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 14
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 10
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 11
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 8
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 7
+    }
+  ],
+  "民法第215條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 14
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 16
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 12
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 10
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 9
+    }
+  ],
+  "民法第216條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 15
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 17
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 13
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 11
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 10
+    }
+  ],
+  "民法第217條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 16
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 19
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 13
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 13
+    }
+  ],
+  "民法第220條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 17
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 14
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 14
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 14
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 11
+    }
+  ],
+  "民法第224條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 18
+    }
+  ],
+  "民法第226條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 19
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 20
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 15
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 15
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 12
+    }
+  ],
+  "民法第227條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 20
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 21
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 16
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 16
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 15
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 13
+    }
+  ],
+  "民法第229條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 21
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 22
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 17
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 17
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 16
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 14
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 7
+    }
+  ],
+  "民法第230條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 22
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 23
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 18
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 17
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 15
+    }
+  ],
+  "民法第231條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 23
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 18
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 18
+    }
+  ],
+  "民法第232條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 24
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 19
+    }
+  ],
+  "民法第233條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 25
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 24
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 20
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 19
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 19
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 16
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 8
+    }
+  ],
+  "民法第254條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 26
+    }
+  ],
+  "民法第256條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 27
+    }
+  ],
+  "民法第258條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 28
+    }
+  ],
+  "民法第259條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 29
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 26
+    }
+  ],
+  "民法第260條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 30
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 27
+    }
+  ],
+  "民法第261條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 31
+    }
+  ],
+  "民法第264條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 32
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 28
+    }
+  ],
+  "民法第354條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 33
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 31
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 21
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 20
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 20
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 17
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 9
+    }
+  ],
+  "民法第355條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 34
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 32
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 22
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 21
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 21
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 18
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 10
+    }
+  ],
+  "民法第356條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 35
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 33
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 23
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 22
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 22
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 19
+    }
+  ],
+  "民法第357條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 36
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 34
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 23
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 23
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 20
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 11
+    }
+  ],
+  "民法第359條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 37
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 35
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 24
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 24
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 21
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 12
+    }
+  ],
+  "民法第360條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 38
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 36
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 25
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 24
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 25
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 22
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 13
+    }
+  ],
+  "民法第365條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 39
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 37
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 26
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 25
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 26
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 23
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 14
+    }
+  ],
+  "民法第366條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 40
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 38
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 27
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 26
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 27
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 24
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 15
+    }
+  ],
+  "民法第373條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 41
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 39
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 28
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 27
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 28
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 25
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 16
+    }
+  ],
+  "民事訴訟法第222條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 42
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 41
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 29
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 28
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 29
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 26
+    }
+  ],
+  "民事訴訟法第277條": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_statutes",
+      "index": 43
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 42
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 30
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 29
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 30
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 27
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 18
+    }
+  ],
+  "最高法院115年度台上字第65號": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_precedents",
+      "index": 0
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_precedents",
+      "index": 1
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_precedents",
+      "index": 1
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_precedents",
+      "index": 0
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_precedents",
+      "index": 0
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_precedents",
+      "index": 1
+    }
+  ],
+  "最高法院115年度台上字第336號": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_precedents",
+      "index": 1
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_precedents",
+      "index": 0
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_precedents",
+      "index": 0
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_precedents",
+      "index": 1
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_precedents",
+      "index": 1
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_precedents",
+      "index": 0
+    }
+  ],
+  "最高法院115年度台上字第386號": [
+    {
+      "step": "s1_plaintiff",
+      "field": "cited_precedents",
+      "index": 2
+    },
+    {
+      "step": "s1_defendant",
+      "field": "cited_precedents",
+      "index": 2
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_precedents",
+      "index": 2
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_precedents",
+      "index": 2
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_precedents",
+      "index": 2
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_precedents",
+      "index": 2
+    }
+  ],
+  "民法第71條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 0
+    }
+  ],
+  "民法第129條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 4
+    }
+  ],
+  "民法第130條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 5
+    }
+  ],
+  "民法第144條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 6
+    }
+  ],
+  "民法第199條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 11
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 9
+    }
+  ],
+  "民法第205條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 13
+    }
+  ],
+  "民法第214條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 15
+    },
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 11
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 9
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 8
+    }
+  ],
+  "民法第216條之1": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 18
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 12
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 12
+    }
+  ],
+  "民法第247條之1": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 25
+    }
+  ],
+  "民法第334條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 29
+    }
+  ],
+  "民法第335條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 30
+    }
+  ],
+  "民法第928條": [
+    {
+      "step": "s1_defendant",
+      "field": "cited_statutes",
+      "index": 40
+    }
+  ],
+  "民法第94條": [
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 0
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 0
+    }
+  ],
+  "民法第103條": [
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 3
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 2
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_statutes",
+      "index": 3
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_statutes",
+      "index": 2
+    },
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 2
+    }
+  ],
+  "民法第170條": [
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_statutes",
+      "index": 7
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 7
+    }
+  ],
+  "最高法院115年度台上字第206號": [
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_precedents",
+      "index": 3
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_precedents",
+      "index": 3
+    }
+  ],
+  "最高法院115年度台上字第561號": [
+    {
+      "step": "s2_plaintiff",
+      "field": "cited_precedents",
+      "index": 4
+    },
+    {
+      "step": "s2_defendant",
+      "field": "cited_precedents",
+      "index": 3
+    },
+    {
+      "step": "s3_plaintiff",
+      "field": "cited_precedents",
+      "index": 3
+    },
+    {
+      "step": "s3_defendant",
+      "field": "cited_precedents",
+      "index": 4
+    }
+  ],
+  "民法第169條": [
+    {
+      "step": "s2_defendant",
+      "field": "cited_statutes",
+      "index": 6
+    }
+  ],
+  "民法第213條第3項": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 5
+    }
+  ],
+  "民法第227條第1項": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 6
+    }
+  ],
+  "民事訴訟法第222條第2項": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 17
+    }
+  ],
+  "最高法院115年度台上字第65號判決": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 19
+    }
+  ],
+  "最高法院115年度台上字第336號判決": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 20
+    }
+  ],
+  "最高法院115年度台上字第386號裁定": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 21
+    }
+  ],
+  "最高法院115年度台上字第206號判決": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 22
+    }
+  ],
+  "最高法院115年度台上字第561號判決": [
+    {
+      "step": "verdict",
+      "field": "citations_used",
+      "index": 23
+    }
+  ]
+}

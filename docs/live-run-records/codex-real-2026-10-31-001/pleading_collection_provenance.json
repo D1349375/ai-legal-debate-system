@@ -1,0 +1,22 @@
+[
+  {
+    "side": "plaintiff",
+    "call": "14_plaintiff_pleading",
+    "source_draft": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\14_plaintiff_pleading\\workspace\\draft.txt",
+    "source_citations": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\14_plaintiff_pleading\\workspace\\citations.json",
+    "draft_sha256": "e2eea7c2859dcddece7eb26033e360b198f5fc316b74f6dd0e6e7f46a17a35ec",
+    "citation_count": 35,
+    "serialization_transform": "Extract citation_text from each role-produced object; preserve order/text; do not use claimed status to bypass native gate",
+    "citation_text_unchanged": true
+  },
+  {
+    "side": "defendant",
+    "call": "15_defendant_pleading",
+    "source_draft": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\15_defendant_pleading\\workspace\\draft.txt",
+    "source_citations": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\calls\\15_defendant_pleading\\workspace\\citations.json",
+    "draft_sha256": "f8462cf2837cc5d037694e152370a8090cf46b35cc835f33ed115d7491504efc",
+    "citation_count": 33,
+    "serialization_transform": "identity string array",
+    "citation_text_unchanged": true
+  }
+]

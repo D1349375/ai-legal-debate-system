@@ -50,9 +50,21 @@ def cmd_case(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
-    row = record_case(session, case_id=payload["case_id"], case_type=payload["case_type"],
-                       facts_summary=payload["facts_summary"], claims=payload["claims"])
+    try:
+        if not payload.get('represented_side') and not getattr(args, 'legacy', False):
+            raise ValueError('新案 represented_side 為必填，請選 plaintiff 或 defendant；既有封存案匯入可用 --legacy')
+        row = record_case(session, case_id=payload["case_id"], case_type=payload["case_type"],
+                           facts_summary=payload.get("facts_summary", ''), claims=payload["claims"],
+                           represented_side=payload.get('represented_side'),
+                           uncontested_facts=payload.get('uncontested_facts'), plaintiff_facts=payload.get('plaintiff_facts'),
+                           defendant_facts=payload.get('defendant_facts'), claim_amount=payload.get('claim_amount'))
+    except ValueError as e:
+        print(f'拒絕落地:{e}', file=sys.stderr)
+        return 1
     print(f"已落地案件 {row.case_id}")
+    from engine.role_protocol import procedure_warning
+    for warning in procedure_warning(row.claim_amount, row.claims)['warnings']:
+        print('警示：' + warning)
     return 0
 
 
@@ -61,9 +73,15 @@ def cmd_record(args):
         payload = json.load(f)
     session = get_session()
     try:
+        if 'questions' in payload:
+            from database.db import record_judge_bundle
+            row = record_judge_bundle(session, case_id=payload['case_id'], payload=payload)
+            print(f'已落地法官訊問與爭點 {row.case_id}')
+            return 0
         if "question_text" in payload:
             row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
-                                   target_side=payload["target_side"], based_on=payload["based_on"])
+                                   target_side=payload["target_side"], based_on=payload["based_on"],
+                                   question_type=payload.get('question_type'), structured_json=payload)
             print(f"已落地訊問 {row.case_id} -> {row.target_side}")
             return 0
         row = record_argument(
@@ -71,8 +89,9 @@ def cmd_record(args):
             position=payload["position"], reasoning=_pick(payload, "argument", "reasoning"),
             cited_statutes=payload.get("cited_statutes"), cited_precedents=payload.get("cited_precedents"),
             falsifier=payload.get("falsifier"), model_id=payload.get("model_id"),
+            structured_json=payload.get('structured_json', payload) if 'items' in payload or 'structured_json' in payload else None,
         )
-    except ValueError as e:  # 如重複落地(不可覆寫):與 verdict/pleading 一致，印原因而非 traceback
+    except (ValueError, KeyError, TypeError) as e:  # 格式不合時回可修正的原因，不印 traceback
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地論證 {row.case_id} {row.side} stage{row.stage}")
@@ -96,22 +115,78 @@ def cmd_issues(args):
 
 
 def cmd_verify(args):
+    import uuid
     session = get_session()
-    results = verify_citations(args.citations)
-    for r in results:
-        if r.get("status") == "published":
-            upsert_citation(session, citation_text=r["citation_text"], source_type=r["source_type"],
-                             status="published", primary_source_url=r.get("primary_source_url"))
-    print(json.dumps(results, ensure_ascii=False, indent=2))
-    return 0
+    run_id = getattr(args, 'run_id', None) or str(uuid.uuid4())
+    try:
+        options = {}
+        prepared = None
+        candidate = None
+        if getattr(args, 'candidate_json', None):
+            with open(args.candidate_json, encoding='utf-8') as f:
+                candidate = json.load(f)
+        if getattr(args, 'case_id', None):
+            from engine.citation_review import case_verification_inputs
+            prepared = case_verification_inputs(session, args.case_id, candidate)
+            options = {k: prepared[k] for k in ('precedent_notes', 'version_hints')}
+        elif candidate is not None:
+            raise ValueError('--candidate-json 須搭配 --case-id')
+        for attr in ('precedent_notes', 'version_hints'):
+            if getattr(args, attr, None):
+                with open(getattr(args, attr), encoding='utf-8') as f:
+                    options[attr] = json.load(f)
+        citations = args.citations or (prepared['citations'] if prepared else [])
+        from engine.citation_review import propagate_version_hints
+        options['version_hints'] = propagate_version_hints(citations, options.get('version_hints'))
+        if getattr(args, 'prepare_only', False):
+            if prepared is None:
+                raise ValueError('--prepare-only 須搭配 --case-id')
+            print(json.dumps({**prepared, 'citations': citations, **options}, ensure_ascii=False, indent=2))
+            return 0
+        if not citations:
+            raise ValueError('請指定引用，或提供含已落地引用的 --case-id；只讀清單請用 --prepare-only')
+        review = None
+        if getattr(args, 'review_json', None):
+            with open(args.review_json, encoding='utf-8') as f:
+                review = json.load(f)
+            if not isinstance(review, dict) or not getattr(args, 'case_id', None) or review.get('case_id') != args.case_id:
+                raise ValueError('獨立查證 case_id 必須與 --case-id 相同')
+            if getattr(args, 'run_id', None) and args.run_id != review.get('verifier_run_id'):
+                raise ValueError('--run-id 與獨立查證 verifier_run_id 不一致')
+        if getattr(args, 'case_id', None):
+            from engine.role_protocol import case_row
+            case_row(session, args.case_id)
+        mechanical = verify_citations(citations, **options)
+        results = mechanical
+        if review is not None:
+            from engine.citation_review import validate_review_payload
+            adopted = prepared['adopted_citations'] if prepared and (candidate is not None or not args.citations or prepared['adopted_citations']) else None
+            run_id, results = validate_review_payload(review, args.case_id, citations, mechanical, adopted)
+        # 全部格式與交叉驗證通過後才開始寫入；支持性判斷僅進本案紀錄。
+        for r in mechanical:
+            if r.get("status") == "published":
+                upsert_citation(session, citation_text=r["citation_text"], source_type=r["source_type"],
+                                 status="published", primary_source_url=r.get("primary_source_url"))
+        if getattr(args, 'case_id', None):
+            from database.db import record_case_citation_check
+            for r in results:
+                record_case_citation_check(session, args.case_id, r, run_id)
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+        return 0
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        print(f'拒絕落地:{error}', file=sys.stderr)
+        return 1
+    finally:
+        session.close()
 
 
 def cmd_verdict(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
-    analysis = _pick(payload, "verdict_analysis", "verdict_reasoning")
-    mixed = mixed_dismissal_citations("\n".join([payload["verdict_main_text"], analysis,
-                                                 json.dumps(payload["risk_map"], ensure_ascii=False)]))
+    main_text = payload.get('verdict_main_text', payload.get('summary', ''))
+    analysis = payload.get('verdict_analysis', payload.get('verdict_reasoning', json.dumps(payload.get('issues', []), ensure_ascii=False)))
+    risk_map = payload.get('risk_map', {'issues': payload.get('issues', [])})
+    mixed = mixed_dismissal_citations("\n".join([main_text, analysis, json.dumps(risk_map, ensure_ascii=False)]))
     if mixed:
         print("拒絕落地:第249條與最高法院115年度台抗字第105號放在同一個括號，讀起來像該裁定也支持駁回:"
               + ";".join(mixed) + "。請退回法官 subagent 分開引註:第249條接在逾期未補正以裁定駁回之後，"
@@ -120,12 +195,13 @@ def cmd_verdict(args):
     session = get_session()
     try:
         row = record_verdict(
-            session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
-            verdict_reasoning=analysis, risk_map=payload["risk_map"],
-            mechanical_anchor_json=payload["mechanical_anchor_json"],
+            session, case_id=args.case_id, verdict_main_text=main_text,
+            verdict_reasoning=analysis, risk_map=risk_map,
+            mechanical_anchor_json=payload.get("mechanical_anchor_json", {}),
             protocol_version=PROTOCOL_VERSION, citations_used=payload.get("citations_used", []),
+            structured_json=payload,
         )
-    except ValueError as e:
+    except (ValueError, KeyError, TypeError) as e:
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地判決 {row.case_id}")
@@ -139,12 +215,18 @@ def cmd_pleading(args):
         citations_used = json.load(f)
     session = get_session()
     try:
+        breakdown = None
+        if getattr(args, 'claim_breakdown', None):
+            with open(args.claim_breakdown, encoding='utf-8') as f:
+                breakdown = json.load(f)
         row = record_pleading(session, case_id=args.case_id, draft_text=draft_text,
-                               citations_used=citations_used, side=args.side)
+                               citations_used=citations_used, side=args.side, claim_breakdown=breakdown)
     except ValueError as e:
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地{PLEADING_LABEL[row.side]}草稿 {row.case_id}")
+    for warning in json.loads(row.warnings_json or '[]'):
+        print('警示：' + warning)
     return 0
 
 
@@ -158,6 +240,30 @@ def cmd_pleading_source(args):
         return 1
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
+
+
+def cmd_projection(args):
+    from engine.role_protocol import role_view, argument_summary, preparation_materials, build_report, render_report
+    session = get_session()
+    try:
+        if args.cmd == 'role-view':
+            result = role_view(session, args.case_id, args.role)
+        elif args.cmd == 'summary':
+            result = argument_summary(session, args.case_id, args.side, args.stage)
+        elif args.cmd == 'prep-list':
+            result = preparation_materials(session, args.case_id, args.role)
+        else:
+            result = build_report(session, args.case_id)
+            if not getattr(args, 'json', False):
+                print(render_report(result))
+                return 0
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    except (ValueError, KeyError, TypeError) as e:
+        print(f'無法產生資料:{e}', file=sys.stderr)
+        return 1
+    finally:
+        session.close()
 
 
 def cmd_serve(args):
@@ -272,6 +378,7 @@ def main():
 
     p = sub.add_parser("case", help="落地案件輸入")
     p.add_argument("--json", required=True)
+    p.add_argument('--legacy', action='store_true', help='只供匯入既有舊案；新建案仍須指定 represented_side')
     p.set_defaults(fn=cmd_case)
 
     p = sub.add_parser("record", help="落地攻防論證或法官訊問(JSON 檔)")
@@ -287,7 +394,14 @@ def main():
     p.set_defaults(fn=cmd_issues)
 
     p = sub.add_parser("verify", help="引用查證")
-    p.add_argument("citations", nargs="+")
+    p.add_argument("citations", nargs="*")
+    p.add_argument('--case-id', help='將全部結果另存該案查證紀錄')
+    p.add_argument('--run-id', help='本次獨立查證識別碼')
+    p.add_argument('--precedent-notes', help='判例文件日期、案由及原文摘句 JSON')
+    p.add_argument('--version-hints', help='角色標註的歷史法規版本 JSON')
+    p.add_argument('--review-json', help='獨立查證的結構化結果；與同次機械查證核對後存入本案')
+    p.add_argument('--prepare-only', action='store_true', help='唯讀輸出本案查證清單、判例身分資料與版本提示')
+    p.add_argument('--candidate-json', help='尚未落地的評估草稿；將新增與採用引用納入查證清單')
     p.set_defaults(fn=cmd_verify)
 
     p = sub.add_parser("verdict", help="落地法官判決書")
@@ -299,6 +413,7 @@ def main():
     p.add_argument("--case-id", required=True)
     p.add_argument("--draft-file", required=True)
     p.add_argument("--citations", required=True, help="JSON 檔:此份訴狀引用的 citation_text 陣列")
+    p.add_argument('--claim-breakdown', help='請求金額明細 JSON 檔')
     p.add_argument("--side", choices=("plaintiff", "defendant"), default="plaintiff",
                    help="哪一方的書狀:plaintiff=民事起訴狀(預設)、defendant=民事答辯狀")
     p.set_defaults(fn=cmd_pleading)
@@ -307,6 +422,18 @@ def main():
     p.add_argument("--case-id", required=True)
     p.add_argument("--side", choices=("plaintiff", "defendant"), required=True)
     p.set_defaults(fn=cmd_pleading_source)
+
+    for command in ('role-view', 'summary', 'prep-list', 'report'):
+        p = sub.add_parser(command, help='由程式產出角色可見資料或使用者回報')
+        p.add_argument('--case-id', required=True)
+        if command in ('role-view', 'prep-list'):
+            p.add_argument('--role', choices=('plaintiff', 'defendant', 'judge'), required=True)
+        if command == 'summary':
+            p.add_argument('--side', choices=('plaintiff', 'defendant'), required=True)
+            p.add_argument('--stage', type=int, choices=(1, 2, 3), required=True)
+        if command == 'report':
+            p.add_argument('--json', action='store_true', help='輸出與總覽 API 相同的結構')
+        p.set_defaults(fn=cmd_projection)
 
     p = sub.add_parser("serve", help="啟動 UI 後端(預設只綁本機 127.0.0.1)")
     p.add_argument("--host", default="127.0.0.1")

@@ -1,0 +1,5 @@
+引用內容查核通過：73 個引用字串，去重為 60 個法條、5 件裁判，均已為 `published`。5 件最終判例全文及實質相關性均通過；民法第130條首次連線失敗，重試成功。原引用未改寫。
+
+[完整查核報告](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/database/其他輸出/2026-10-31_real-2026-10-31-001_引用查證/verification_report.md)
+
+本環境無另啟 subagent 工具，獨立啟動紀錄仍須主流程確認；本回合未落地判決或草擬訴狀。

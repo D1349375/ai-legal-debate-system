@@ -1,0 +1,5 @@
+已產出 [答辯狀骨架](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/15_defendant_pleading/workspace/draft.txt) 與 [引用清單](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/15_defendant_pleading/workspace/citations.json)。
+
+已核對 Stage 3 原文保留，33筆引用均在素材中標示為 published，缺漏資料留待填。
+
+本稿是骨架版，非最終可用書狀；欄序參照官方起訴狀，並非官方答辯狀範本。固定聲明與 Stage 3「僅駁回未證明部分」的差異，已註明待律師確認。

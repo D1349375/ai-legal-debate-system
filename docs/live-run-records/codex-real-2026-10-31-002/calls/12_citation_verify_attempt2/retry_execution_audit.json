@@ -1,0 +1,1779 @@
+{
+  "audit_at_utc": "2026-10-31T08:37:01.938283+00:00",
+  "case_id": "real-2026-10-31-002",
+  "attempt": 2,
+  "call": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2",
+  "scope": "Bookkeeping and automated byte/structure comparison only. No holdout, case merits, citation-support conclusions, main.py, model, verifier or network execution by auditor. SQLite queries, when made, are read-only. Evaluation archives are hashed without inspecting their contents.",
+  "process_status": "process_finished",
+  "process_exit_code": 0,
+  "process_exit_zero_is_not_step8_pass": true,
+  "checks": [
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/prompt.txt",
+      "check": "exact_unchanged_legal_source_plus_current_transport_bindings",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/prompt_before_environment_bindings.txt",
+      "check": "preserved_previous_prompt_bytes",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/call_manifest.json",
+      "check": "whole_prompt_change_explicitly_recorded",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/call_manifest.json",
+      "check": "original_binding_values_and_input_hashes_unchanged_only_environment_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/case.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/all_stages.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/verdict.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/all_citations.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/citation_provenance.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/final_use_precedents.json",
+      "check": "frozen_input_unchanged",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/runbook_task_source.md",
+      "check": "frozen_runbook_task_bytes",
+      "passed": true
+    },
+    {
+      "path": "main.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/aggregate.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/court_map.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/gcis.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_issues.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/party_rules.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/stance_rag.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "engine/verify.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "database/db.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "database/schema.py",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/judge_question_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage1_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage2_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/stage3_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": ".claude/skills/legal-debate/templates/verdict_prompt.txt",
+      "check": "protected_product_source_hash",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/permission_config.json",
+      "check": "docs_and_root_denied",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/permission_config.json",
+      "check": "clean_artifact_workspace_writable_frozen_input_copies_readonly",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/permission_config.json",
+      "check": "only_six_frozen_files_and_current_workspace_under_docs",
+      "passed": true,
+      "detail": [
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/all_citations.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/all_stages.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/case.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/citation_provenance.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/final_use_precedents.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace/verdict.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/all_citations.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/all_stages.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/case.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/citation_provenance.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/final_use_precedents.json",
+        "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verdict.json"
+      ]
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/permission_config.json",
+      "check": "documented_db_parent_write_with_existing_file_exceptions",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/permission_config.json",
+      "check": "future_new_filename_capability_disclosed",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/eval.md",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/eval_annotations.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/machine_checks.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/run_statistics.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/run_manifest.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/controller_state.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/step8_status.json",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/retry_step8/before_retry/citation_verification.md",
+      "check": "before_retry_archive_integrity_hash_only",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "01_p_s1"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "02_d_s1"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "03_p_s1_attempt2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "04_d_s1_attempt2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "05_judge_questions"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "06_p_s2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "07_d_s2"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "08_p_s3"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "09_d_s3"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "10_judge_verdict"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "prior_call_record_preserved",
+      "passed": true,
+      "detail": "11_citation_verify"
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/run_manifest.json",
+      "check": "only_step8_retry_calls_added",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/call_manifest.json",
+      "check": "fresh_original_model_effort",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/permission_config.json",
+      "check": "argv_profile_equality",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/call_manifest.json",
+      "check": "explicit_nested_agents_disabled",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/call_manifest.json",
+      "check": "official_network_scope_and_general_web_disabled",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/call_manifest.json",
+      "check": "host_and_shell_startup_telemetry_optout",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/execution_manifest.json",
+      "check": "disposable_sqlite_preflight_record_pass",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/managed_network_smoke/execution_manifest.json",
+      "check": "managed_network_startup_telemetry_probe_record_pass",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_execution.json",
+      "check": "raw_stdout_artifact_linked_to_observed_cli_subprocess",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_execution.json",
+      "check": "actual_111_input_order_and_hashes_match",
+      "passed": true
+    },
+    {
+      "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_retry_execution.json",
+      "check": "raw_stdout_artifact_linked_to_observed_cli_subprocess",
+      "passed": true
+    }
+  ],
+  "mechanical_check_failures": [],
+  "input_string_count": 111,
+  "planned_docket_identities": 13,
+  "baseline": {
+    "recorded_at": "2026-10-31T07:44:55.089694+00:00",
+    "published_rows": 65,
+    "case_verdict_rows": 0,
+    "case_pleading_rows": 0,
+    "database_files": [
+      "codex_runs.db",
+      "db.py",
+      "legal_debate.db",
+      "schema.py",
+      "__pycache__"
+    ]
+  },
+  "preflight_evidence": {
+    "sqlite_manifest": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/execution_manifest.json",
+    "sqlite_stdout": {
+      "sqlite_commit_reopen_rollback": true,
+      "repeated_commit": true,
+      "sidecar_observed": true,
+      "negative_checks": {
+        "db.py_write_denied": true,
+        "db.py_delete_denied": true,
+        "schema.py_write_denied": true,
+        "schema.py_delete_denied": true,
+        "formal_sentinel_read_denied": true
+      },
+      "no_main_or_verify_invoked": true,
+      "network_requests_in_program": 0
+    },
+    "telemetry_smoke_manifest": "docs/live-run-records/codex-real-2026-10-31-001/retry_step8/preflight/managed_network_smoke/execution_manifest.json",
+    "telemetry_smoke_stdout": {
+      "PowerShellTelemetryCanSend": false,
+      "ExplicitNetworkRequests": 0,
+      "OptOutAtStartup": "1"
+    },
+    "scope": "Existing host-probe records inspected; no probes rerun by auditor."
+  },
+  "database_inventory_after_or_current": [
+    "__pycache__",
+    "codex_runs.db",
+    "db.py",
+    "legal_debate.db",
+    "schema.py"
+  ],
+  "database_names_added_since_baseline": [],
+  "database_names_removed_since_baseline": [],
+  "database_state_after_retry": {
+    "snapshot_at_utc": "2026-10-31T08:37:02.107128+00:00",
+    "read_only": true,
+    "global_citation_rows": 127,
+    "global_source_status_counts": [
+      {
+        "source_type": "judgment",
+        "status": "published",
+        "count": 17
+      },
+      {
+        "source_type": "statute",
+        "status": "draft",
+        "count": 4
+      },
+      {
+        "source_type": "statute",
+        "status": "published",
+        "count": 106
+      }
+    ],
+    "case_verdict_rows": 0,
+    "case_pleading_rows": 0,
+    "citation_rows_are_shared_not_case_owned": true
+  },
+  "trace": {
+    "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/stream.jsonl",
+    "sha256": "9b3bff9b011783b7a3189452814e7892606f75d6d8ee997e63cbc36e10fb52fd",
+    "bad_json_lines": [],
+    "stderr_path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/stderr.log",
+    "stderr_sha256": "923a194f15caee6932fcc8010afbaaa303cef86708d82c9af7e3cf3e3762eabc",
+    "stderr_lines": [
+      "2026-10-31T08:22:17.421413Z  WARN codex_core::shell_snapshot: Failed to create shell snapshot for powershell: Shell snapshot not supported yet for PowerShell",
+      "2026-10-31T08:22:17.597437Z  WARN codex_analytics::client: failed to send events request: error sending request for url (https://chatgpt.com/backend-api/codex/analytics-events/events)",
+      "2026-10-31T08:22:22.278403Z ERROR codex_models_manager::manager: failed to refresh available models: request timed out"
+    ]
+  },
+  "commands": [
+    {
+      "line": 5,
+      "item_id": "item_1",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command Get-Location",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "92f8db5c54f796f031564be38d712f896e63e13ba01b4e7da3bab4ff74542992",
+      "output_chars": 75,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 12,
+      "item_id": "item_7",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\docs\\\\live-run-records\\\\codex-real-2026-10-31-002\\\\calls\\\\11_citation_verify\\\\workspace\\\\all_stages.json' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "c87dd3ef4dc5ef53244e7c7177cca4beb42b36bee14ec16932e4363eee4554d0",
+      "output_chars": 64486,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 13,
+      "item_id": "item_5",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\docs\\\\live-run-records\\\\codex-real-2026-10-31-002\\\\calls\\\\11_citation_verify\\\\workspace\\\\case.json' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "3534c3a9686bb9064697cbb5d3a731993c3be9201af02027496d67c1c8d2e462",
+      "output_chars": 691,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 14,
+      "item_id": "item_4",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\docs\\\\live-run-records\\\\codex-real-2026-10-31-002\\\\calls\\\\11_citation_verify\\\\workspace\\\\final_use_precedents.json' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "08d1320c0ee519732029afcc290b99dd12a373d8e7b8ce614ff779d19f3210b8",
+      "output_chars": 433,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 15,
+      "item_id": "item_3",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\docs\\\\live-run-records\\\\codex-real-2026-10-31-002\\\\calls\\\\11_citation_verify\\\\workspace\\\\verdict.json' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "253d059473fd1558e597959ceae890f0e6467837dd2245f449cccad6a2aa0bbd",
+      "output_chars": 21481,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 16,
+      "item_id": "item_2",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\docs\\\\live-run-records\\\\codex-real-2026-10-31-002\\\\calls\\\\11_citation_verify\\\\workspace\\\\all_citations.json' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "8edf6c053489eb280db65598a141d10eba2f11b096465520cb33a41edc166e12",
+      "output_chars": 1804,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 17,
+      "item_id": "item_6",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\docs\\\\live-run-records\\\\codex-real-2026-10-31-002\\\\calls\\\\11_citation_verify\\\\workspace\\\\citation_provenance.json' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "ccd4a53888a84de53ef9c9723a02dfb763fd7f68fee3c64d950316c27d17b102",
+      "output_chars": 38350,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 19,
+      "item_id": "item_8",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json, pathlib\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace')\nfor name in ('case','all_stages','verdict','final_use_precedents'):\n d=json.loads((p/(name+'.json')).read_text(encoding='utf-8-sig'))\n print('\\\\nFILE',name)\n if name=='all_stages':\n  print('ROOT', [(k,list(v) if isinstance(v,dict) else type(v).__name__) for k,v in d.items()])\n elif name=='case': print(json.dumps(d,ensure_ascii=False))\n else: print(json.dumps(d,ensure_ascii=False,indent=2))\ndef walk(x,path=''):\n if isinstance(x,dict):\n  for k,v in x.items():\n   if k=='legal_basis':print('LEGAL_BASIS',path+'.'+k,json.dumps(v,ensure_ascii=False))\n   walk(v,path+'.'+k)\n elif isinstance(x,list):\n  for i,v in enumerate(x):walk(v,path+'['+str(i)+']')\nwalk(json.loads((p/'all_stages.json').read_text(encoding='utf-8-sig')))\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "6f734cc35cd58d4f8122a169be42c49e6dba1bf53263adeda43bcd87e0a81c60",
+      "output_chars": 22850,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 21,
+      "item_id": "item_9",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"rg -n -C 12 'def verify|verify_citation|@.*command|LEGALDEBATE_DB_URL' main.py\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "f8ce5231d1eea5ab1199098dd0a93e9b85142e78eb585786732d6d716ccc6c30",
+      "output_chars": 1944,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 23,
+      "item_id": "item_10",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json,pathlib,re\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace')\nallc=json.loads((p/'all_citations.json').read_text(encoding='utf-8-sig')); seen={}; bases=[]\ndef walk(x,path):\n if isinstance(x,dict):\n  for k,v in x.items():\n   if k in ('cited_statutes','cited_precedents','citations_used'):\n    for c in v:seen.setdefault(c,[]).append(path+'.'+k)\n   if k=='legal_basis':bases.append((path+'.'+k,v))\n   walk(v,path+'.'+k)\n elif isinstance(x,list):\n  for i,v in enumerate(x):walk(v,path+'['+str(i)+']')\nfor f in ('all_stages','verdict'):walk(json.loads((p/(f+'.json')).read_text(encoding='utf-8-sig')),f)\nprint(json.dumps({'provided_count':len(allc),'collected_count':len(seen),'missing_from_provided':list(set(seen)-set(allc)),'provided_extra':list(set(allc)-set(seen)),'legal_basis_fields':bases},ensure_ascii=False,indent=2))\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "fb6e6be34dbd2ba1ce27977634cfff762a7c376e1215f3d26a03691f06cdd6cf",
+      "output_chars": 144,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 28,
+      "item_id": "item_13",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"rg -n -C 6 'def upsert_citation|LEGALDEBATE_DB_URL|def get_session' database/db.py\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "2303c53f459c0d82cbd087a6e433646e70688e6914897eb1b7c2c0a4cd13af3b",
+      "output_chars": 1638,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 29,
+      "item_id": "item_12",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command 'Get-Content -LiteralPath engine/verify.py -Raw -Encoding UTF8'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "cbc313d0ad1d11d4886c82455e3f8adaca2aa1723b0ed829a362f3f20198ca5f",
+      "output_chars": 10055,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 30,
+      "item_id": "item_14",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command 'Get-Content -LiteralPath database/schema.py -Raw -Encoding UTF8'",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "4abdba3556cf26b9d104b3ef7912270482d9e05c4b3d0216979497c7d8316c8d",
+      "output_chars": 6119,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 34,
+      "item_id": "item_17",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"rg -n -A 76 'def upsert_citation|def _citation_key' database/db.py\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "5e4bbbcfa5eeb514d6adb52c8b8d42c3c548841c673e12de3373de1a183966ac",
+      "output_chars": 4114,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 35,
+      "item_id": "item_16",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport pathlib,json,re\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace')\nitems=json.loads((p/'final_use_precedents.json').read_text(encoding='utf-8-sig'))\nfiles=list(pathlib.Path('corpus/judgments').glob('*.txt'));seen=set();found=[]\nfor c in items:\n m=re.search(r'(\\\\d+)年度(台[\"'^字]+)字第('\"\\\\d+)號',c);key=m.groups()\n if key in seen:continue\n seen.add(key); prefix='TPSV,'+','.join(key)+',';hits=[f for f in files if f.name.startswith(prefix)]\n found.append({'citation':c,'files':[str(f) for f in hits],'bytes':[f.stat().st_size for f in hits]})\nprint(json.dumps(found,ensure_ascii=False,indent=2))\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "a466516c9e5719981f3e776f82a91cef822e2fffba9a9be83a4ed9334294036b",
+      "output_chars": 2346,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 39,
+      "item_id": "item_18",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,1071,20260318,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "f5c9564e8557928c1bd7067e4ca64f75ef07e11643e679cf69e41265f50e1e07",
+      "output_chars": 6283,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 40,
+      "item_id": "item_20",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,1945,20260304,2.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "bbed0fd6d27265c204f52587670dee9737e51a18c01e68023650a13c9ef9c4a9",
+      "output_chars": 969,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 41,
+      "item_id": "item_19",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,1945,20260513,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "3d901b179096244508cbf2ac3163b92d866e4689e6ec5041dffa706833d8c535",
+      "output_chars": 4335,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 45,
+      "item_id": "item_21",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,192,20260325,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "0e7696609ed350b640f62e29a2675c33f309b5ba5d46d6e542a99ce592e2603c",
+      "output_chars": 6884,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 46,
+      "item_id": "item_23",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,192,20260325,2.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "b86ef81cf8ae4b178cfa6ec6f46229422a69b57c2c941bf749f01d1264832499",
+      "output_chars": 1260,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 47,
+      "item_id": "item_22",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,207,20260325,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "942d9ff49c35bf507d8e7665a4bc2872ae6141b64ec47693d501695aad40744a",
+      "output_chars": 2801,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 49,
+      "item_id": "item_24",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json,pathlib,re\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace')\nd=json.loads((p/'all_stages.json').read_text(encoding='utf-8-sig'))\nfor side in ('plaintiff','defendant'):\n print('STAGE3',side)\n for paragraph in d['stage3'][side]['argument'].split('\\\\n'):\n  if re.search(r'最高法院|第207號|第1738號|第1071號|第192號',paragraph):print(paragraph)\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "ac01865f6a664c18ba3ca4f04e774b6195f77af9dcdb7fea7669b3ce2e4814ed",
+      "output_chars": 2793,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 53,
+      "item_id": "item_27",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,2031,20260514,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "04ad9740a0e83a167f3fdf149f61c595e41fa5cf98e4b7e20b96dff8c692aa6c",
+      "output_chars": 6799,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 54,
+      "item_id": "item_26",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,1939,20260409,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "68c721689f94ee843a2fd38337a7fea461d73a246b71869af0d19a484b1a8d8b",
+      "output_chars": 3737,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 58,
+      "item_id": "item_29",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,561,20260422,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "dd708071e51eb2dee8f066e9981814c4c71f4c4b7575d38c7c6199eaad65c16b",
+      "output_chars": 3262,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 59,
+      "item_id": "item_28",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,459,20260527,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "8c78044509c1abd09d6bc818d043fa0788b11f7db787c114e226bbd7bf570702",
+      "output_chars": 2148,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 60,
+      "item_id": "item_30",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,1131,20260527,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "403973366d90b2a46874aab684b8ff6bf7ed46110861c80271b0fa926deee895",
+      "output_chars": 3649,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 63,
+      "item_id": "item_31",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,1738,20260429,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "10be791a9f5d69ce80f8fa96e7c887388ffcd298dbda6f3e7bf9e01f22e059b2",
+      "output_chars": 3378,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 64,
+      "item_id": "item_32",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,115,台上,521,20260513,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "4cdcb48ef43c4734ed2a4ab96e1e1fb153641d5c97cb23f982332851e499a379",
+      "output_chars": 5083,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 67,
+      "item_id": "item_34",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,114,台上,2167,20260507,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "15a000be1351565996b0ce2d1af6ed80cbab6e538ba85dcc0a314fdea310a8eb",
+      "output_chars": 5467,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 68,
+      "item_id": "item_33",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'corpus/judgments/TPSV,113,台上,2221,20260402,1.txt' -Raw -Encoding UTF8\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "c21f7d10277a078e70cee7dd02ed9ae009ce8e9f7d3f0512225516225ec3755c",
+      "output_chars": 8147,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": true,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 70,
+      "item_id": "item_35",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport pathlib,json,re\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace');a=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace')\nprint('execution', (a/'verification_execution.json').read_text(encoding='utf-8')[:200])\nprint('raw_size',(a/'verification_raw_results.json').stat().st_size)\nprint('stderr',(a/'verification_stderr.txt').read_text(encoding='utf-8')[-2000:])\nprint('statute_files',[f.name for f in pathlib.Path('corpus/statutes').iterdir()])\nallc=set(json.loads((p/'all_citations.json').read_text(encoding='utf-8-sig')))\npat=re.compile(r'(?:民法債編施行法|中華民國刑法|民事訴訟法|銀行法|民法|刑法|公司法)第\\\\s*\\\\d+\\\\s*條(?:之\\\\s*\\\\d+)?|最高法院\\\\d+年度台[\"'^字'\"\\\\s]+字第\\\\d+號(?:判決|裁定)?')\nmissing={}\ndef walk(x,path):\n if isinstance(x,dict):\n  for k,v in x.items():walk(v,path+'.'+k)\n elif isinstance(x,list):\n  for i,v in enumerate(x):walk(v,path+'['+str(i)+']')\n elif isinstance(x,str):\n  for c in pat.findall(x):\n   c=re.sub(r'\\\\s+','',c)\n   if c not in allc and re.sub('(判決|裁定)\"'$'\"','',c) not in allc:missing.setdefault(c,[]).append(path)\nfor name in ('all_stages','verdict'):walk(json.loads((p/(name+'.json')).read_text(encoding='utf-8-sig')),name)\nprint('prose_additional',json.dumps(missing,ensure_ascii=False))\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "69d2fc4c338615605af6416be0a4e33a4c03d69a3b95724a744c52cba1fd4af8",
+      "output_chars": 556,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 72,
+      "item_id": "item_36",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport datetime,json,pathlib\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace')\nd=json.loads((p/'verification_execution.json').read_text(encoding='utf-8'));print('elapsed_seconds',(datetime.datetime.now(datetime.timezone.utc)-datetime.datetime.fromisoformat(d['started_at'])).total_seconds())\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "720e4cbfc767cdf22121b8fd73163d4d59561d7e5efee7d2bc26394611314d68",
+      "output_chars": 28,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 73,
+      "item_id": "item_15",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json,pathlib,os,subprocess,sys,datetime,sqlite3,hashlib\nroot=pathlib.Path.cwd(); source=root/'docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace'; out=root/'docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace'\ncites=list(dict.fromkeys(json.loads((source/'all_citations.json').read_text(encoding='utf-8-sig'))))\nmanifest={'case_id':'real-2026-10-31-002','started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'argv':['python','main.py','verify',*cites],'cwd':str(root),'database_environment':{'LEGALDEBATE_DB_URL':'sqlite:///database/codex_runs.db'},'inputs_sha256':{f:hashlib.sha256((source/f).read_bytes()).hexdigest() for f in ('case.json','all_stages.json','verdict.json','all_citations.json','citation_provenance.json','final_use_precedents.json')}}\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True);con.row_factory=sqlite3.Row\nbefore=[dict(r) for r in con.execute('select * from citation_verifications')]\nmanifest['case_records_before']={t:con.execute('select count(*) from '+t+' where case_id=?',('real-2026-10-31-002',)).fetchone()[0] for t in ('verdicts','pleading_drafts')};con.close()\n(out/'citation_database_before.json').write_text(json.dumps(before,ensure_ascii=False,indent=2),encoding='utf-8')\n(out/'verification_execution.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')\nenv=os.environ.copy();env.update(LEGALDEBATE_DB_URL='sqlite:///database/codex_runs.db',PYTHONIOENCODING='utf-8',PYTHONDONTWRITEBYTECODE='1')\nprint('Starting python main.py verify with',len(cites),'distinct literal citations',flush=True)\nwith (out/'verification_raw_results.json').open('w',encoding='utf-8') as stdout, (out/'verification_stderr.txt').open('w',encoding='utf-8') as stderr:\n result=subprocess.run([sys.executable,'-B','main.py','verify',*cites],cwd=root,env=env,stdout=stdout,stderr=stderr)\nmanifest.update(finished_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),exit_code=result.returncode)\n(out/'verification_execution.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')\nprint('Exit code:',result.returncode,flush=True)\ntry:\n data=json.loads((out/'verification_raw_results.json').read_text(encoding='utf-8'));from collections import Counter\n print(json.dumps({'count':len(data),'statuses':dict(Counter(r['status'] for r in data))},ensure_ascii=False),flush=True)\nexcept Exception as e:print(type(e).__name__,str(e),flush=True)\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e2a06a10c1c99ec61dc65cf34e278d933cdf3ee3f632be3c1ea9ca1b1623a037",
+      "output_chars": 174,
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 76,
+      "item_id": "item_38",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json,pathlib,re,hashlib,datetime\nsrc=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace');out=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace')\ndata={f:json.loads((src/(f+'.json')).read_text(encoding='utf-8-sig')) for f in ('all_citations','citation_provenance','all_stages','verdict','final_use_precedents')}\ndef identity(c):\n c=re.sub(r'(判決|裁定)\"'$'\"','',c)\n return c.replace('中華民國刑法','刑法')\ngroups={}\nfor c in data['all_citations']:groups.setdefault(identity(c),[]).append(c)\noccurrences={};bases=[]\ndef walk(x,path):\n if isinstance(x,dict):\n  for k,v in x.items():\n   new=path+'.'+k\n   if k in ('cited_statutes','cited_precedents','citations_used'):\n    for i,c in enumerate(v):occurrences.setdefault(c,[]).append(new+'['+str(i)+']')\n   if k=='legal_basis':bases.append({'path':new,'value':v})\n   walk(v,new)\n elif isinstance(x,list):\n  for i,v in enumerate(x):walk(v,path+'['+str(i)+']')\nfor name in ('all_stages','verdict'):walk(data[name],name)\nprocedural=[c for c in groups if c.startswith('民事訴訟法')]\nverdict_pre=[identity(c) for c in data['verdict']['citations_used'] if c.startswith('最高法院')]\nfinal=list(dict.fromkeys(identity(c) for c in data['final_use_precedents']))\naudit={'case_id':'real-2026-10-31-002','literal_count':len(data['all_citations']),'canonical_count':len(groups),'statute_literal_count':sum(not c.startswith('最高法院') for c in data['all_citations']),'statute_canonical_count':sum(not c.startswith('最高法院') for c in groups),'precedent_literal_count':sum(c.startswith('最高法院') for c in data['all_citations']),'precedent_canonical_count':sum(c.startswith('最高法院') for c in groups),'collected_not_in_list':sorted(set(occurrences)-set(data['all_citations'])),'list_not_in_collected':sorted(set(data['all_citations'])-set(occurrences)),'canonical_aliases':groups,'occurrences':occurrences,'supplied_provenance':data['citation_provenance'],'legal_basis_fields':bases,'procedural_issues':data['verdict']['mechanical_anchor_json']['procedural_issues'],'procedural_statutes_checked':procedural,'final_use_precedents':final,'verdict_precedents':verdict_pre,'scope_basis':'依使用者提供 final_use_precedents.json 宣告之最終使用集合；未把整個語料庫或無關候選納入全文審查。未提供 Step 9 成稿，後續引用集合如變更須另檢查。','prose_scan_note':'全文明示法名與條號之補充搜尋未發現額外引用；「民法第205條之20%」中的之20是敘述20%利率，非第205條之20。第119條至第122條範圍均已逐條列入。'}\n(out/'citation_scope_audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')\nprint(json.dumps({k:v for k,v in audit.items() if k.endswith('count') or k in ('procedural_statutes_checked','verdict_precedents')},ensure_ascii=False,indent=2))\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e91f0f133ed3b7d6cbd704c01c474d82dc81593c9e51a6822fca607e7a6fa81e",
+      "output_chars": 640,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 78,
+      "item_id": "item_39",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json,pathlib,collections\np=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace')\nr=json.loads((p/'verification_raw_results.json').read_text(encoding='utf-8'))\nprint('NON_PUBLISHED',json.dumps([x for x in r if x['status']\"'!='\"'published'],ensure_ascii=False,indent=2))\nprint('AMBIGUOUS_SOURCES',json.dumps([x for x in r if '1945' in x['citation_text'] or '192號' in x['citation_text']],ensure_ascii=False,indent=2))\nprint('205',json.dumps([x for x in r if x['citation_text']=='民法第205條'],ensure_ascii=False,indent=2))\nprint('TIME', (p/'verification_execution.json').read_text(encoding='utf-8')[-450:])\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "e300060fddd8da28efcd409fbba48505255974c88e9ab84dd2f3479c30d90475",
+      "output_chars": 3868,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 3
+    },
+    {
+      "line": 80,
+      "item_id": "item_40",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport pathlib,subprocess,os,sys,json,datetime\nout=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace')\nenv=os.environ.copy();env.update(LEGALDEBATE_DB_URL='sqlite:///database/codex_runs.db',PYTHONDONTWRITEBYTECODE='1',PYTHONIOENCODING='utf-8')\nstarted=datetime.datetime.now(datetime.timezone.utc).isoformat()\nr=subprocess.run([sys.executable,'-B','main.py','verify','民事訴訟法第195條'],env=env,capture_output=True,text=True,encoding='utf-8')\n(out/'verification_retry_results.json').write_text(r.stdout,encoding='utf-8');(out/'verification_retry_stderr.txt').write_text(r.stderr,encoding='utf-8')\n(out/'verification_retry_execution.json').write_text(json.dumps({'argv':['python','main.py','verify','民事訴訟法第195條'],'started_at':started,'finished_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'exit_code':r.returncode,'reason':'首次SSL EOF暫時性失敗，經相同授權入口重試一次'},ensure_ascii=False,indent=2),encoding='utf-8')\nprint(r.stdout)\nprint('exit_code',r.returncode)\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "76d07b961255a7c7c6467774f7688dbe6844c8b461e13e0c3ed2db1f0b842625",
+      "output_chars": 357,
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 1
+    },
+    {
+      "line": 83,
+      "item_id": "item_42",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport pathlib,json,re,hashlib,urllib.parse\nroot=pathlib.Path.cwd(); out=root/'docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace'\nscope=json.loads((out/'citation_scope_audit.json').read_text(encoding='utf-8'))\nspecs=[\n('114','2031','20260514','1','判決','損害賠償；不實財報與銀行授信','理由四','不實事實重要性與意思形成的因果關係；不要求詐術為唯一動機。','不真實之事實是否重要而有影響意思之形成，應以該事實與表意人自由形成意思之過程有無因果關係為斷。','可支持詐欺信賴因果的審查方法；不證明本案機器人虛構、乙知情或甲交付。'),\n('114','1945','20260513','1','判決','確認本票債權不存在等；受詐欺契約效力與契約不成立','理由五','受詐欺但尚未撤銷的有效契約，與意思未合致而自始未成立，應區別。','被詐欺而締結契約者，在表意人依法撤銷其意思表示之前，契約仍為有效；當事人之意思表示未合致者，其契約則自始未成立','支持契約給付與不當得利的條件分流；不判定本案已撤銷或契約未成立。不得使用同案號115年3月4日承受訴訟裁定代替。'),\n('114','1939','20260409','1','判決','塗銷所有權移轉登記等；農地借名與給付型不當得利','理由五','先辨明給付關係當事人及受益歸屬。','給付關係之當事人究為何人？自有詳加研求之必要。','支持辨明指定第三人受領與給付歸屬；土地登記利益不等於本案錢包或10顆之受益已證。'),\n('115','561','20260422','1','判決','損害賠償；不當假扣押致商譽受損','理由四㈠','損害額酌定須先證明有損害，且數額客觀不能或重大困難證明，並須具體說理。','係以當事人已證明受有損害，然有客觀上不能證明其數額或證明顯有重大困難之情事','可支持第222條第2項之限制；不得用酌定補足交幣、收益或責任成立之證明。'),\n('114','1131','20260527','1','判決','侵權行為損害賠償；英國旅店投資及非法收受存款','理由四','應按實質檢驗向多數或不特定人吸收資金及顯不相當報酬，不能僅因境外簽約或揭露風險即否定。','凡向多數人或不特定之人收受款項或吸收資金，而約定或給付與本金顯不相當之紅利、利息、股息或其他報酬者','草稿只用以說明規範與候選退場界線，未認本案已違反銀行法；本裁判不能取代銀行法兩條的獨立機械查證。'),\n('114','1071','20260318','1','判決','夫妻剩餘財產分配；另含匯款140萬元返還','理由四㈡、四㈢','受領給付致損獲證後，被告應具體說明受領原因，終局舉證責任不因而轉換。','惟尚非因此使上開舉證責任發生轉換，自不待言。','可支持具體陳述及闡明義務；前提仍是受領致損已證，不能以本案答辯欠缺直接認定不當得利。'),\n('115','521','20260513','1','判決','損害賠償；非法棄置廢棄物、時效中斷與連帶債務','理由五㈠至㈢','非對話請求須到達債務人；起算與損害範圍不能任意延後；共同債務人的時效效果需查明。','以非對話意思通知為請求者，須通知達到債務人，始中斷時效之進行','支持查核催討到達及期間；不證明本案日期、中斷成立或時效已完成。'),\n('114','2167','20260507','1','判決','返還價金等；設備遲延、替代設備價差及營運所失利益','理由四','損害範圍依實際損害；最大許可產量不能直接視為實際銷售量計算所失利益。','基於「有損害斯有賠償」之原理，仍應以債權人實際所受之損害為準。','支持損害數額及所失利益的證據要求；不支持固定契約給付須先實際獲利。'),\n('113','2221','20260402','1','判決','損害賠償；看護疏失、與有過失及死亡因果','理由四','過失相抵須有助成損害的行為及相當因果關係，不能抽象減責。','所謂被害人與有過失，須被害人之行為助成損害之發生或擴大，就結果之發生為共同原因之一','可支持撤除欠缺事證的過失相抵；不證明本案投資人有過失，也未一概否定所有特殊體質因素之評價。'),\n('114','1738','20260429','1','判決','清償債務等；合資挖以太幣、LINE結算、合資清算','理由四','單純沈默不當然是默示同意；須查明對話合意與合資結算清算。','若單純之沈默，則除有特別之情事足認為同意外，不得認係默示之同意。','支持完整解釋LINE對話；不證明本案有合資關係、無固定承諾或必須清算。'),\n('115','207','20260325','1','裁定','給付工程款；第三審上訴不合法及證明妨礙前提','理由二末段','無故意滅失隱匿證據之認定，亦未命提出文書時，不能逕用第282條之1或第345條。','原審並未認定世達公司有故意將證據滅失、隱匿或致礙難使用之情','末段確有程序命題，故不因工程案由而排除相關性；不得擴張為未交程式即推定詐欺，也不能混淆第282條之1與第345條各自要件。'),\n('115','192','20260325','1','判決','給付貨款及預付款返還；間接事實與舉證','理由四㈠','債權發生原因可用間接事實證明；本證達相當程度後對造需提出足以推翻或動搖的資料。','足以推認該待證事實存在之間接事實，即無不可，非以直接證明該待證事實為必要。','可援一般證明方法，不可移植帳務事實證明本案詐欺；同日擴張之訴裁定非此命題來源。'),\n('115','459','20260527','1','裁定','清償借款；第三審上訴不合法','理由二','裁定轉述原審就108年至110年7月19日採20%，110年7月20日起採16%的計算。','自110年7月20日（修正民法第205條規定施行日）起至111年6月2日止（強制執行清償日）按年息16%','僅對草稿「原審如此計算、仍待核實舊法」的描述通過；不能作為已獨立核驗108年舊法全文、超額無請求權效果或施行法第10條之1的依據。')]\nraw=json.loads((out/'verification_raw_results.json').read_text(encoding='utf-8'));records=[]\nfor year,no,date,serial,kind,issue,section,claim,quote,limit in specs:\n cite=f'最高法院{year}年度台上字第{no}號';jid=f'TPSV,{year},台上,{no},{date},{serial}';path=root/'corpus/judgments'/f'{jid}.txt';content=path.read_text(encoding='utf-8');flat=re.sub(r'\\\\s+','',content)\n assert re.sub(r'\\\\s+','',quote) in flat, (cite,'quote mismatch')\n alternates=[]\n for f in path.parent.glob(f'TPSV,{year},台上,{no},*.txt'):\n  if f\"'!=path:alternates.append({'\"'file':str(f),'sha256':hashlib.sha256(f.read_bytes()).hexdigest(),'read_in_full':True,'disposition':'同案號其他程序裁定，不支持本次實體命題'})\n mechanically=[x for x in raw if re.sub(r'(判決|裁定)\"'$'\"','',x['citation_text'])==cite]\n records.append({'citation':cite,'aliases':scope['canonical_aliases'][cite],'in_verdict_citations_used':cite in scope['verdict_precedents'],'scope':'提供的 final_use_precedents 清單','document_type':kind,'judgment_date':date,'jid':jid,'source_file':str(path),'source_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'read_in_full':True,'case_issue':issue,'source_section':section,'claim_checked':claim,'supporting_quote':quote,'quote_whitespace_normalized_match':True,'relevance_result':'pass_with_stated_limits','limits':limit,'other_same_number_documents_read':alternates,'engine_source_matches_selected_full_text':all(path.resolve()==pathlib.Path(x['source_file']).resolve() for x in mechanically),'official_reference_url':'https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id='+urllib.parse.quote(jid)+'&ot=in','official_url_note':'依本地裁判JID構造的回查連結；本回合未另發HTTP請求。','source_provenance':{a:scope['supplied_provenance'].get(a,[]) for a in scope['canonical_aliases'][cite]}})\nresult={'case_id':'real-2026-10-31-002','reviewer_context':'本回合專責獨立查證，未產生被查核之攻防或判決；可用工具無再開subagent介面，未宣稱另啟動其他agent。','full_text_document_count':sum(1+len(x['other_same_number_documents_read']) for x in records),'unique_precedent_count':len(records),'verdict_precedent_count':sum(x['in_verdict_citations_used'] for x in records),'all_claims_supported_with_limits':True,'records':records}\n(out/'substantive_precedent_review.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')\nprint(json.dumps({k:v for k,v in result.items() if k\"'!='\"'records'},ensure_ascii=False,indent=2))\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "3c653d3198f207508abcbb0e455ad09a4baa67e8917b805e8c39c82acc2f7ea3",
+      "output_chars": 270,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 85,
+      "item_id": "item_43",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command '$env:LEGALDEBATE_DB_URL = '\"'sqlite:///database/codex_runs.db'\n\"'$env:PYTHONDONTWRITEBYTECODE = '\"'1'\n@'\nimport json,pathlib,datetime,sqlite3\nfrom database.db import get_session,upsert_citation\nfrom database.schema import CitationVerification\nout=pathlib.Path('docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace');scope=json.loads((out/'citation_scope_audit.json').read_text(encoding='utf-8'));review=json.loads((out/'substantive_precedent_review.json').read_text(encoding='utf-8'))\nrun='codex-real-2026-10-31-002-step8-attempt2';session=get_session();changes=[]\ndef snap(row):\n return None if row is None else {k:getattr(row,k) for k in ('id','citation_text','source_type','status','primary_source_url','verified_at','verifier_run_id')}\nblocked={'民法債編施行法第10條之1':'引擎無法解析，官方條文及施行規則未核實','銀行法第29條':'引擎無法解析','銀行法第29條之1':'引擎無法解析','民法第205條':'引擎只核對現行16%文字，108年適用舊法之20%與法律效果未核實'}\nfor cite,reason in blocked.items():\n row=session.query(CitationVerification).filter_by(citation_text=cite).one_or_none();before=snap(row);url=row.primary_source_url if row else None\n row=upsert_citation(session,citation_text=cite,source_type='statute',status='draft',primary_source_url=url,verifier_run_id=run)\n changes.append({'reason':reason,'before':before,'after':snap(row)})\n# 同一引用文字與案號，僅將已全文核實之實體判決回查連結記入來源欄位。\nr=next(r for r in review['records'] if r['citation']=='最高法院114年度台上字第1945號')\nrows=session.query(CitationVerification).filter(CitationVerification.citation_text.in_(r['aliases'])).all()\nfor row in rows:\n before=snap(row)\n row=upsert_citation(session,citation_text=row.citation_text,source_type='judgment',status='published',primary_source_url=r['official_reference_url'],verifier_run_id=run)\n changes.append({'reason':'全文確認原稿引用的是115年5月13日實體判決；修正來源metadata，未改引用文字。原始引擎誤選3月4日承受裁定的結果仍原樣保留。','before':before,'after':snap(row)})\nallrows=[snap(r) for r in session.query(CitationVerification).all()];session.close()\ndef key(c):\n import re\n return re.sub(r'(判決|裁定)\"'$'\"','',c).replace('中華民國刑法','刑法')\nscoped=[r for r in allrows if key(r['citation_text']) in scope['canonical_aliases']]\nfrom collections import Counter\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\ncounts={t:con.execute('select count(*) from '+t+' where case_id=?',('real-2026-10-31-002',)).fetchone()[0] for t in ('verdicts','pleading_drafts')};con.close()\naudit={'run_id':run,'timestamp':datetime.datetime.now(datetime.timezone.utc).isoformat(),'database_url':'sqlite:///database/codex_runs.db','changes':changes,'scoped_rows':scoped,'scoped_status_counts':dict(Counter(r['status'] for r in scoped)),'case_records_after':counts,'citation_texts_edited':False}\n(out/'citation_database_after.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')\nprint(json.dumps({'changes':len(changes),'scoped_status_counts':audit['scoped_status_counts'],'case_records_after':counts,'draft_citations':[r['citation_text'] for r in scoped if r['status']=='draft']},ensure_ascii=False,indent=2))\n'@ | python -B -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "d95b2acc9337b9dc296f58cba383a58cd0b9e73f86dc4ee79299416c28de3012",
+      "output_chars": 276,
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    },
+    {
+      "line": 87,
+      "item_id": "item_44",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json,pathlib,re,collections,datetime,hashlib,urllib.parse\nroot=pathlib.Path.cwd();out=root/'docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace';src=root/'docs/live-run-records/codex-real-2026-10-31-002/calls/11_citation_verify/workspace'\nread=lambda n:json.loads((out/n).read_text(encoding='utf-8'))\nscope=read('citation_scope_audit.json');raw=read('verification_raw_results.json');retry=read('verification_retry_results.json');reviews=read('substantive_precedent_review.json');db=read('citation_database_after.json');execution=read('verification_execution.json')\nby={r['citation_text']:r for r in raw};by.update({r['citation_text']:r for r in retry})\ndrafts={r['citation_text']:r for r in db['scoped_rows'] if r['status']=='draft'}\nreasons={'民法第205條':'官方回傳現行年息16%、超過部分約定無效；尚未取得108年適用之20%上限、超額無請求權效果的官方歷史文字。既有CLI沒有歷史版本選項，不能以現行條文或第459號裁定轉述代替。','民法債編施行法第10條之1':'unparseable：引擎法規名稱解析與pcode清單未涵蓋本法，未取得官方原文及時間適用規則。','銀行法第29條':'unparseable：引擎法規名稱解析與pcode清單未涵蓋銀行法；無法完成獨立存在性與文字核對。','銀行法第29條之1':'unparseable：引擎法規名稱解析與pcode清單未涵蓋銀行法；無法完成獨立存在性與文字核對。'}\nchecks=[]\nfor canonical,aliases in scope['canonical_aliases'].items():\n sources={a:scope['supplied_provenance'].get(a,[]) for a in aliases}\n rev=next((r for r in reviews['records'] if r['citation']==canonical),None)\n checks.append({'canonical_citation':canonical,'original_aliases':aliases,'original_provenance':sources,'mechanical_effective_results':[by[a] for a in aliases],'substantive_relevance':rev['relevance_result'] if rev else 'not_applicable_to_statute','final_status':'draft' if canonical in drafts else 'published','failure_reason':reasons.get(canonical),'correct_full_text_source':rev['source_file'] if rev else None,'qualification':rev['limits'] if rev else None})\nfeedback=[]\nfor c,reason in reasons.items():\n origins=scope['supplied_provenance'].get(c,[])\n feedback.append({'citation':c,'reason':reason,'originating_steps':list(dict.fromkeys(x['step'] for x in origins)),'original_provenance':origins,'required_action':'回交原引用提出者或使用者，補足官方查證證據／可查核管道後重跑。引用如經編輯須維持draft並重新查證。不得由查證者自行換條或刪除引用以通過閘門。'})\nsummary={'case_id':'real-2026-10-31-002','generated_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'gate':'blocked','may_persist_verdict':False,'may_draft_step9_pleadings':False,'mechanical_initial_literal_counts':dict(collections.Counter(r['status'] for r in raw)),'mechanical_after_retry_literal_counts':dict(collections.Counter(r['status'] for r in by.values())),'final_unique_counts':{'published':102,'draft':4,'total':106},'raw_literal_count':111,'final_precedent_unique_count':13,'full_documents_read':15,'substantive_failures':[],'source_selection_anomalies':[{'citation':r['citation'],'resolution':'已閱讀原稿所指實體判決全文，命題相關；保留引擎誤選結果，依正確全文補記來源metadata。','correct_source_file':r['source_file']} for r in reviews['records'] if not r['engine_source_matches_selected_full_text']],'blocking_items':feedback,'checks':checks,'database_audit_file':'citation_database_after.json','input_files_unchanged':all(hashlib.sha256((src/f).read_bytes()).hexdigest()==h for f,h in execution['inputs_sha256'].items()),'verdict_and_pleading_counts_before':execution['case_records_before'],'verdict_and_pleading_counts_after':db['case_records_after'],'independence':reviews['reviewer_context'],'network_scope':'只透過python main.py verify連至law.moj.gov.tw；判例均命中本地語料。無獨立HTTP探測或一般網搜。','review_scope_note':scope['scope_basis']}\n(out/'verification_summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')\nlines=[\n'案件 real-2026-10-31-002 — Step 8 引用查證報告',\n'',\n'**結論：BLOCKED，尚未全部通過。不得進行 Step 7 verdict 落地或 Step 9 訴狀草擬。**',\n'',\n'111 個不同引用字串，依同一法條／裁判案號去重後為106項（93項法條、13項裁判）。首次機械結果為107筆 published、3筆 unparseable、1筆 verification_failed；民事訴訟法第195條的 SSL EOF 連線失敗經同入口重試一次通過。重試後為108筆機械 published、3筆 unparseable，但民法第205條只驗得現行版本，不能算108年舊法已查證。最終資料庫為102項 published、4項 draft。CLI退出碼0不代表全數通過。',\n'',\n'查證回合只接收既有攻防與判決產物，未參與撰寫該等內容。此環境未提供再開subagent的工具，未另行啟動巢狀agent；以上獨立性描述限於本回合可證明的角色與context。',\n'',\n'已從三階段雙方共六份輸出、法官訊問及判決草稿重新盤點 cited_statutes、cited_precedents、citations_used，與提供清單一致。程序事項並未豁免：共14項民事訴訟法引用均納入。提供資料沒有獨立 legal_basis 欄位，判決附帶的 procedural_issues.issues 為空；未據此認定程序已補正或另取未提供的規則表。全文明示條文補充掃描亦未發現應另增之引用。',\n'',\n'依使用者提供 final_use_precedents.json 的最終使用範圍，17個字串去重為13個案號，其中4個載於判決 citations_used；另9個依所提供最終使用清單納入。13案全文均在本地，已讀15份全文（含1945號、192號各自另一份程序裁定）。本次未審查清單以外的候選；尚無Step 9成稿，後續引用集合若變動仍須重新核對。',\n'',\n'**須回交引用提出者的四項缺口**',\n'',\n'| 引用 | 查證結果與原因 | 原提出步驟 | 最終狀態 |',\n'|---|---|---|---|'\n]\nfor f in feedback:lines.append('| '+f['citation']+' | '+f['reason']+' | '+', '.join(f['originating_steps'])+' | draft |')\nlines += ['', '上述三項 unparseable 屬查證引擎涵蓋不足，並非認定法條不存在。銀行法兩條即使現階段已退出主要主張，仍在Step 2–7引用集合內，依全數查證要求仍屬阻擋項。民法第205條現行文字為「約定利率，超過週年百分之十六者，超過部分之約定，無效。」其回傳成功不證明108年適用文字；第459號裁定不能替代官方歷史法規及施行規則。', '', '回報對象為上表原提出者及本報告接收的使用者／主流程；沒有另傳送訊息給第三人。須補足官方查證證據或授權範圍內可用的查詢管道，再重跑相關查證。查證者未更換、刪除或改寫任何原始引用；如原提出者編輯引用，依規則須維持draft並重新查證。', '', '**最終使用裁判之全文實質核對**', '', '各案僅在下列命題與限制內通過相關性，不等於本案事實已獲證明或責任已成立。判決／裁定的原審理由、當事人主張與最高法院自身論述已分別辨識。', '', '| 裁判及實際文書日期 | 案由、位置與可支持命題 | 使用限制 |', '|---|---|---|']\nfor r in reviews['records']:\n d=r['judgment_date'];stamp=f'{int(d[:4])-1911}/{d[4:6]}/{d[6:]}'\n cite=r['citation']+r['document_type'];filename=pathlib.Path(r['source_file']).name\n lines.append(f\\\"| [{cite}]({r['official_reference_url']})，{stamp} | {r['case_issue']}；{r['source_section']}。{r['claim_checked']} | {r['limits']} |\\\")\nlines += ['', '全文檔案、SHA-256、逐案精確引文、命題範圍、同案號另件排除理由及來源步驟，完整記於 [substantive_precedent_review.json](substantive_precedent_review.json)。表內官方連結依本地JID構造，供回查；本回合未對這些連結另發HTTP請求。', '', '**機械來源誤選與獨立核對結果**', '', '最高法院114年度台上字第1945號（包括附「判決」後綴的字串），引擎均選到115年3月4日承受訴訟裁定 TPSV,114,台上,1945,20260304,2，該裁定不支持契約效力命題。原告Stage 3已明指115年5月13日實體判決；本次另讀該完整判決 TPSV,114,台上,1945,20260513,1，理由五確實支持原稿命題。因此同一原引用經獨立全文核對後相關性通過，並將資料庫來源URL指向正確實體判決；未更動引用文字、未換成另一案號。原始引擎誤選結果仍完整保留。', '', '115年度台上字第192號同日另有駁回擴張之訴裁定；本次引擎命中與實質審查均為序號1實體判決，序號2裁定亦已讀取並排除。115年度台上字第207號雖為工程案的上訴不合法裁定，末段確有證明妨礙前提的說明，可供該有限程序命題使用。', '', '**執行、資料庫與產物**', '', f\\\"執行位置：{root}。環境變數 LEGALDEBATE_DB_URL=sqlite:///database/codex_runs.db；第一批採 python main.py verify 加111個位置參數，另以相同入口重試民事訴訟法第195條。網路僅使用既有引擎的官方來源路徑，未進行獨立HTTP探測、一般網搜或新增查詢管道。開始與結束時間、完整參數及輸入雜湊記於 verification_execution.json。\\\", '', '資料庫中民法第205條已由機械published退回draft，另外三項未通過法條亦維持draft；完整前後狀態及1945號來源metadata變更記於 citation_database_after.json。四項draft的verified_at均為空。六份原始輸入的雜湊未改變。此案verdicts與pleading_drafts在查證前後均為0，未落地判決或草擬訴狀。', '', '- [原始機械結果（未改寫）](verification_raw_results.json)', '- [第195條重試結果](verification_retry_results.json)', '- [整體閘門、逐項結果與回報對象](verification_summary.json)', '- [引用去重、程序涵蓋與完整出處](citation_scope_audit.json)', '- [判例全文實質審查](substantive_precedent_review.json)', '- [資料庫狀態及變更稽核](citation_database_after.json)', '', '本報告的BLOCKED源自使用者設定的全引用查證要求及上述實際缺口；未要求額外批准，也未以網路授權之外的手段補查。', '']\n(out/'verification_report.md').write_text('\\\\n'.join(lines),encoding='utf-8')\n# Complete-result integrity checks; no network requests.\nassert len(raw)==111 and {r['citation_text'] for r in raw}==set(scope['occurrences'])\nassert summary['input_files_unchanged'] and len(checks)==106\nassert all(r['source_type']\"'!='\"'statute' or r['status']\"'!='\"'published' or urllib.parse.urlparse(r['primary_source_url']).hostname=='law.moj.gov.tw' for r in by.values())\nassert all(r['verified_at'] is None for r in drafts.values())\nassert len(reviews['records'])==13 and reviews['full_text_document_count']==15\nassert sum(x['final_status']=='draft' for x in checks)==4\nassert execution['case_records_before']==db['case_records_after']=={'verdicts':0,'pleading_drafts':0}\nprint(json.dumps({'gate':summary['gate'],'unique_counts':summary['final_unique_counts'],'report':str(out/'verification_report.md'),'report_chars':len('\\\\n'.join(lines)),'integrity_checks':'passed'},ensure_ascii=False,indent=2))\n'@ | python -X utf8 -\"",
+      "exit_code": 0,
+      "status": "completed",
+      "output_sha256": "f35cde74d1a34839bc0933c7b1f906a091f144dc5381e3f88ea100cb18ff0d50",
+      "output_chars": 373,
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "source_read_only": false,
+      "verifier_payload_count": 0
+    }
+  ],
+  "collaboration_trace_metadata": [],
+  "actor_assertions_not_execution_proof": [
+    {
+      "line": 3,
+      "item_id": "item_0",
+      "text_sha256": "097f4c98c2c1fbc8899c70d774a5f016047e5776e325c128444852ed832883d1",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 24,
+      "item_id": "item_11",
+      "text_sha256": "9dc770896ca15080c5123a7b84c3a4c7566d2297c65c3343ccdb8f784e203827",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 50,
+      "item_id": "item_25",
+      "text_sha256": "01e267f6b495d676cf1eb6d873b31356ab2c50380f93aa6745289af5793e226d",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 74,
+      "item_id": "item_37",
+      "text_sha256": "9badc78f3a0d300a47d09413d64cb8f99fa183b132601fe411079ea7b9f47ecf",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 81,
+      "item_id": "item_41",
+      "text_sha256": "0503ae1df6e2605175236ab12933906b65b224eacd4df5d122e622ba2075a3e1",
+      "used_as_execution_proof": false
+    },
+    {
+      "line": 88,
+      "item_id": "item_45",
+      "text_sha256": "a5119f3c8e48e050f6e0a2f5a20a40572fec26745e28e7a3994d8a4bdadf7686",
+      "used_as_execution_proof": false
+    }
+  ],
+  "verifier_results": {
+    "observed_payloads": 2,
+    "complete_input_covering_arrays": 1,
+    "latest_observed_distinct_citation_texts": 111,
+    "latest_observed_status_counts": {
+      "published": 108,
+      "unparseable": 3
+    },
+    "raw_files": [
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/raw_verifier_result_01.json",
+        "sha256": "266898726df98d2e90f7a1329b629a3bad1afcced20a24f62dbcc1fff0ab63f2",
+        "stream_line": 73,
+        "item_id": "item_15",
+        "result_count": 111,
+        "status_counts": {
+          "published": 107,
+          "unparseable": 3,
+          "verification_failed": 1
+        },
+        "complete_input_coverage": true
+      },
+      {
+        "path": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/raw_verifier_result_02.json",
+        "sha256": "bb4bcc9c603f91ea09630173e7739a84d0a5e9be6c775ecb3f232c9891dcb576",
+        "stream_line": 80,
+        "item_id": "item_40",
+        "result_count": 1,
+        "status_counts": {
+          "published": 1
+        },
+        "complete_input_coverage": false
+      }
+    ],
+    "cache_baseline_published_rows": 65,
+    "baseline_is_not_fresh_retry_verification": true
+  },
+  "fulltext_read_proof": [
+    {
+      "file": "corpus/judgments/TPSV,114,台上,1071,20260318,1.txt",
+      "file_sha256": "3a6b134fef1105d77960dab526c4c925e6b9aba401c7512aef767cd5424513a1",
+      "file_bytes": 14685,
+      "stream_line": 39,
+      "item_id": "item_18",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,114,台上,1945,20260304,2.txt",
+      "file_sha256": "ec5be6596fb687a48891b60a310ea559090b83b2089226c6686e6e4dbacd12cc",
+      "file_bytes": 1961,
+      "stream_line": 40,
+      "item_id": "item_20",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,114,台上,1945,20260513,1.txt",
+      "file_sha256": "425f13576edfc3868f439e7e4eb0b549f1c823760744e33edbce7ba6a3e48943",
+      "file_bytes": 10335,
+      "stream_line": 41,
+      "item_id": "item_19",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,192,20260325,1.txt",
+      "file_sha256": "72cd436548d5db55ece79961ff84785b2568358d5c968af83591380683b46e0f",
+      "file_bytes": 15934,
+      "stream_line": 45,
+      "item_id": "item_21",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,192,20260325,2.txt",
+      "file_sha256": "0d4dbba48e7072db9a7237795c729bc2db8609caa0f3c5d2628780cd1b4c5060",
+      "file_bytes": 2638,
+      "stream_line": 46,
+      "item_id": "item_23",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,207,20260325,1.txt",
+      "file_sha256": "35b03a5733e7507fb85e2e6b9862a8afba2b358db8c3f2a41aeb03c031b00f03",
+      "file_bytes": 6481,
+      "stream_line": 47,
+      "item_id": "item_22",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,114,台上,2031,20260514,1.txt",
+      "file_sha256": "c7a3604b827bcd1bfbf533f9b06d9d0e23ce5005b21b2aa0355b14ed033d09c4",
+      "file_bytes": 15963,
+      "stream_line": 53,
+      "item_id": "item_27",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,114,台上,1939,20260409,1.txt",
+      "file_sha256": "1d9a582414d607566582555d7be1c55a3fcf01f68024c1ecc248e34a8020a657",
+      "file_bytes": 8615,
+      "stream_line": 54,
+      "item_id": "item_26",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,561,20260422,1.txt",
+      "file_sha256": "ff2d5d3f15da881e734a73a6ad1fc94317ce54c2e3c6c2e27f2270b8b9d5ec2d",
+      "file_bytes": 7722,
+      "stream_line": 58,
+      "item_id": "item_29",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,459,20260527,1.txt",
+      "file_sha256": "9782bbff49d25bef677647861b3114eb609bd098a33a8d6a76fbbc51c17f4ce4",
+      "file_bytes": 4730,
+      "stream_line": 59,
+      "item_id": "item_28",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,114,台上,1131,20260527,1.txt",
+      "file_sha256": "c23c5e739eee95bcac9000805579d17ad3a4d0d8798e56fc85d179c61f784dd0",
+      "file_bytes": 8215,
+      "stream_line": 60,
+      "item_id": "item_30",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,114,台上,1738,20260429,1.txt",
+      "file_sha256": "662e1355fba9c2ad7917da6620701e82567426d2e0e71c5f1793185a2e16c85c",
+      "file_bytes": 8240,
+      "stream_line": 63,
+      "item_id": "item_31",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,115,台上,521,20260513,1.txt",
+      "file_sha256": "a5ce0bf031601c10bbd80638df18ac3b1d187b0a58ca261fa9c1fd25fb160ba1",
+      "file_bytes": 11727,
+      "stream_line": 64,
+      "item_id": "item_32",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,114,台上,2167,20260507,1.txt",
+      "file_sha256": "8b4e9e0d08493a865fe128bfc1775292675038c74d32de11fb80c88ef85ba27c",
+      "file_bytes": 12411,
+      "stream_line": 67,
+      "item_id": "item_34",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    },
+    {
+      "file": "corpus/judgments/TPSV,113,台上,2221,20260402,1.txt",
+      "file_sha256": "e78bfbc1e9ffd2bbd5a2fbdad67fb6bde728c3c4c3ae80ef6d3a1c01260885ff",
+      "file_bytes": 19327,
+      "stream_line": 68,
+      "item_id": "item_33",
+      "complete_normalized_text_visible": true,
+      "representation": "raw_output",
+      "comparison": "Every non-whitespace code point of the complete UTF-8 file is present in sequence in actual command output after BOM/whitespace normalization; no semantic support judgment."
+    }
+  ],
+  "fulltext_proof_limit": "Complete text output proves visibility, not semantic support. Missing nested child/tool outputs cannot be reconstructed from child or actor assertions.",
+  "limitations": [
+    "Database parent write permits future new filenames; existing source/formal DB exceptions and inventory checks are recorded.",
+    "Only the parent call trace/stderr available here are audited. Failed tool routes, nested child context outputs or dropped analytics may leave invocation/result gaps.",
+    "Fresh context, raw published statuses, DB rows and substantive citation support are separate questions; no overall Step8 pass is declared by this audit.",
+    "Existing official-network authorization persists, general web search remains disabled, and the prior MXC host-loopback limitation remains."
+  ],
+  "nested_execution_evidence": {
+    "agents_enabled_argv_setting": false,
+    "disable_nested_agents_requested": true,
+    "thread_references": {},
+    "successful_spawn_records_visible": false,
+    "child_spawn_success_and_prompts_independently_reconstructable": false,
+    "role_transition_assessment": "No nested collaboration event or child-related stderr reference observed.",
+    "parent_full_text_read_evidence_count": 15,
+    "parent_raw_verifier_payloads": 2
+  },
+  "full_text_coverage_summary": {
+    "expected_docket_identities": 13,
+    "observed_docket_identities": 13,
+    "all_expected_dockets_visible": true,
+    "missing_dockets": [],
+    "complete_visible_document_files": 15,
+    "coverage_is_not_substantive_support": true
+  },
+  "actual_cli_artifact_provenance": [
+    {
+      "raw_result_file": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+      "raw_result_sha256": "e72e008d928d9c98c3a535fdd6c1f8614eaea1d08ed01a8544b18c7674ef07bc",
+      "execution_manifest": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_execution.json",
+      "execution_manifest_sha256": "a1d73e3a22cbe48f2725ae87596804b9fc6c74feb3bc6b456a4555ff4b0a3aaa",
+      "wrapper_events": [
+        73
+      ],
+      "reported_argv": [
+        "python",
+        "main.py",
+        "verify",
+        "民法第92條",
+        "民法第93條",
+        "民法第113條",
+        "民法第114條",
+        "民法第116條",
+        "民法第125條",
+        "民法第126條",
+        "民法第128條",
+        "民法第129條",
+        "民法第130條",
+        "民法第137條",
+        "民法第144條",
+        "民法第153條",
+        "民法第179條",
+        "民法第181條",
+        "民法第182條",
+        "民法第184條",
+        "民法第185條",
+        "民法第197條",
+        "民法第199條",
+        "民法第202條",
+        "民法第203條",
+        "民法第205條",
+        "民法第206條",
+        "民法第207條",
+        "民法第213條",
+        "民法第214條",
+        "民法第215條",
+        "民法第216條",
+        "民法第217條",
+        "民法第226條",
+        "民法第227條",
+        "民法第229條",
+        "民法第231條",
+        "民法第233條",
+        "民法第245條之1",
+        "民法第246條",
+        "民法第247條",
+        "民法第254條",
+        "民法第256條",
+        "民法第258條",
+        "民法第259條",
+        "民法第260條",
+        "民法第474條",
+        "民法第478條",
+        "民法第479條",
+        "民法第528條",
+        "民法第535條",
+        "民法第541條",
+        "民法第544條",
+        "民法第549條",
+        "民法債編施行法第10條之1",
+        "中華民國刑法第339條",
+        "銀行法第29條",
+        "銀行法第29條之1",
+        "民事訴訟法第222條",
+        "民事訴訟法第244條",
+        "民事訴訟法第255條",
+        "民事訴訟法第277條",
+        "民事訴訟法第390條",
+        "最高法院114年度台上字第2031號",
+        "最高法院114年度台上字第1945號",
+        "最高法院114年度台上字第1939號",
+        "最高法院115年度台上字第561號",
+        "最高法院114年度台上字第1131號",
+        "民法第71條",
+        "民法第95條",
+        "民法第111條",
+        "民法第183條",
+        "民法第216條之1",
+        "民法第222條",
+        "民法第224條",
+        "民法第225條",
+        "民法第230條",
+        "民法第264條",
+        "民法第276條",
+        "民法第334條",
+        "民法第335條",
+        "民法第339條",
+        "民法第667條",
+        "民法第682條",
+        "民法第689條",
+        "民法第697條",
+        "民法第928條",
+        "刑法第339條",
+        "民事訴訟法第392條",
+        "最高法院115年度台上字第521號",
+        "最高法院114年度台上字第2167號",
+        "最高法院113年度台上字第2221號",
+        "最高法院114年度台上字第1738號",
+        "民法第98條",
+        "民法第119條",
+        "民法第120條",
+        "民法第121條",
+        "民法第122條",
+        "民事訴訟法第342條",
+        "民事訴訟法第343條",
+        "民事訴訟法第344條",
+        "民事訴訟法第345條",
+        "最高法院115年度台上字第207號",
+        "民事訴訟法第195條",
+        "民事訴訟法第199條",
+        "民事訴訟法第266條",
+        "最高法院114年度台上字第1071號",
+        "民事訴訟法第282條之1",
+        "最高法院115年度台上字第192號",
+        "最高法院115年度台上字第459號",
+        "最高法院114年度台上字第1071號判決",
+        "最高法院114年度台上字第1945號判決",
+        "最高法院115年度台上字第192號判決",
+        "最高法院115年度台上字第207號裁定"
+      ],
+      "actual_argv_expression": "[sys.executable, '-B', 'main.py', 'verify', *cites]",
+      "resolved_python_binary_not_recorded": true,
+      "wrapper_environment_only_B_flag_omitted_from_reported_argv": true,
+      "manifest_exit_code": 0,
+      "raw_rows": 111,
+      "row_order_matches_frozen_inputs": true
+    },
+    {
+      "raw_result_file": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_retry_results.json",
+      "raw_result_sha256": "9e187247fafc6ef09a8f23702da4c0c1fd0d156b476c66755301068d356b287a",
+      "execution_manifest": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_retry_execution.json",
+      "execution_manifest_sha256": "f9791f0350e32cad162047b429ead023e1ce11d19c1bd35d140f78d65230338c",
+      "wrapper_events": [
+        80
+      ],
+      "reported_argv": [
+        "python",
+        "main.py",
+        "verify",
+        "民事訴訟法第195條"
+      ],
+      "actual_argv_expression": "[sys.executable, '-B', 'main.py', 'verify', '民事訴訟法第195條']",
+      "resolved_python_binary_not_recorded": true,
+      "wrapper_environment_only_B_flag_omitted_from_reported_argv": true,
+      "manifest_exit_code": 0,
+      "raw_rows": 1,
+      "row_order_matches_frozen_inputs": null
+    }
+  ],
+  "inspection_result_replays_not_new_verifier_calls": [
+    {
+      "line": 78,
+      "item_id": "item_39",
+      "output_char_start": 14,
+      "output_char_end": 611,
+      "count": 4,
+      "status_counts": {
+        "unparseable": 3,
+        "verification_failed": 1
+      },
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "command_exit_code": 0
+    },
+    {
+      "line": 78,
+      "item_id": "item_39",
+      "output_char_start": 631,
+      "output_char_end": 3076,
+      "count": 4,
+      "status_counts": {
+        "published": 4
+      },
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "command_exit_code": 0
+    },
+    {
+      "line": 78,
+      "item_id": "item_39",
+      "output_char_start": 3082,
+      "output_char_end": 3398,
+      "count": 1,
+      "status_counts": {
+        "published": 1
+      },
+      "visible_main_verify_invocation": false,
+      "visible_direct_verify_api_invocation": false,
+      "command_exit_code": 0
+    }
+  ],
+  "transport_prompt_change": {
+    "old_prompt_sha256": "3de5129019e43231efdb6019824722dd911ac2273ea66d170c26cab7df676a50",
+    "current_prompt_sha256": "1f0927de197bf804acd341946c76f40b0a2536a63dc00b60b6e05229e0b287e6",
+    "whole_prompt_byte_identical": false,
+    "legal_task_source_unchanged": true,
+    "only_added_binding": "execution_environment"
+  },
+  "gate_adoption_recommendation": "DO_NOT_ADOPT_BASED_ON_THIS_TRACE",
+  "output_placement_deviation": {
+    "outside_workspace_artifacts": [],
+    "database_subdirectory_creation_events": [],
+    "limit": "These are copied/model-authored artifact files, not additional verifier executions. Auditor did not move, delete or modify them."
+  },
+  "direct_http_diagnostics_outside_engine": [],
+  "raw_verifier_payload_provenance": [
+    {
+      "line": 73,
+      "item_id": "item_15",
+      "output_char_start": null,
+      "output_char_end": null,
+      "count": 111,
+      "status_counts": {
+        "published": 107,
+        "unparseable": 3,
+        "verification_failed": 1
+      },
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "command_exit_code": 0,
+      "source_kind": "actual_subprocess_stdout_artifact",
+      "artifact_source": {
+        "raw_result_file": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_raw_results.json",
+        "raw_result_sha256": "e72e008d928d9c98c3a535fdd6c1f8614eaea1d08ed01a8544b18c7674ef07bc",
+        "execution_manifest": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_execution.json",
+        "execution_manifest_sha256": "a1d73e3a22cbe48f2725ae87596804b9fc6c74feb3bc6b456a4555ff4b0a3aaa",
+        "wrapper_events": [
+          73
+        ],
+        "reported_argv": [
+          "python",
+          "main.py",
+          "verify",
+          "民法第92條",
+          "民法第93條",
+          "民法第113條",
+          "民法第114條",
+          "民法第116條",
+          "民法第125條",
+          "民法第126條",
+          "民法第128條",
+          "民法第129條",
+          "民法第130條",
+          "民法第137條",
+          "民法第144條",
+          "民法第153條",
+          "民法第179條",
+          "民法第181條",
+          "民法第182條",
+          "民法第184條",
+          "民法第185條",
+          "民法第197條",
+          "民法第199條",
+          "民法第202條",
+          "民法第203條",
+          "民法第205條",
+          "民法第206條",
+          "民法第207條",
+          "民法第213條",
+          "民法第214條",
+          "民法第215條",
+          "民法第216條",
+          "民法第217條",
+          "民法第226條",
+          "民法第227條",
+          "民法第229條",
+          "民法第231條",
+          "民法第233條",
+          "民法第245條之1",
+          "民法第246條",
+          "民法第247條",
+          "民法第254條",
+          "民法第256條",
+          "民法第258條",
+          "民法第259條",
+          "民法第260條",
+          "民法第474條",
+          "民法第478條",
+          "民法第479條",
+          "民法第528條",
+          "民法第535條",
+          "民法第541條",
+          "民法第544條",
+          "民法第549條",
+          "民法債編施行法第10條之1",
+          "中華民國刑法第339條",
+          "銀行法第29條",
+          "銀行法第29條之1",
+          "民事訴訟法第222條",
+          "民事訴訟法第244條",
+          "民事訴訟法第255條",
+          "民事訴訟法第277條",
+          "民事訴訟法第390條",
+          "最高法院114年度台上字第2031號",
+          "最高法院114年度台上字第1945號",
+          "最高法院114年度台上字第1939號",
+          "最高法院115年度台上字第561號",
+          "最高法院114年度台上字第1131號",
+          "民法第71條",
+          "民法第95條",
+          "民法第111條",
+          "民法第183條",
+          "民法第216條之1",
+          "民法第222條",
+          "民法第224條",
+          "民法第225條",
+          "民法第230條",
+          "民法第264條",
+          "民法第276條",
+          "民法第334條",
+          "民法第335條",
+          "民法第339條",
+          "民法第667條",
+          "民法第682條",
+          "民法第689條",
+          "民法第697條",
+          "民法第928條",
+          "刑法第339條",
+          "民事訴訟法第392條",
+          "最高法院115年度台上字第521號",
+          "最高法院114年度台上字第2167號",
+          "最高法院113年度台上字第2221號",
+          "最高法院114年度台上字第1738號",
+          "民法第98條",
+          "民法第119條",
+          "民法第120條",
+          "民法第121條",
+          "民法第122條",
+          "民事訴訟法第342條",
+          "民事訴訟法第343條",
+          "民事訴訟法第344條",
+          "民事訴訟法第345條",
+          "最高法院115年度台上字第207號",
+          "民事訴訟法第195條",
+          "民事訴訟法第199條",
+          "民事訴訟法第266條",
+          "最高法院114年度台上字第1071號",
+          "民事訴訟法第282條之1",
+          "最高法院115年度台上字第192號",
+          "最高法院115年度台上字第459號",
+          "最高法院114年度台上字第1071號判決",
+          "最高法院114年度台上字第1945號判決",
+          "最高法院115年度台上字第192號判決",
+          "最高法院115年度台上字第207號裁定"
+        ],
+        "actual_argv_expression": "[sys.executable, '-B', 'main.py', 'verify', *cites]",
+        "resolved_python_binary_not_recorded": true,
+        "wrapper_environment_only_B_flag_omitted_from_reported_argv": true,
+        "manifest_exit_code": 0,
+        "raw_rows": 111,
+        "row_order_matches_frozen_inputs": true
+      }
+    },
+    {
+      "line": 80,
+      "item_id": "item_40",
+      "output_char_start": 0,
+      "output_char_end": 340,
+      "count": 1,
+      "status_counts": {
+        "published": 1
+      },
+      "visible_main_verify_invocation": true,
+      "visible_direct_verify_api_invocation": false,
+      "command_exit_code": 0,
+      "additional_artifact_sources": [
+        {
+          "raw_result_file": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_retry_results.json",
+          "raw_result_sha256": "9e187247fafc6ef09a8f23702da4c0c1fd0d156b476c66755301068d356b287a",
+          "execution_manifest": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/workspace/verification_retry_execution.json",
+          "execution_manifest_sha256": "f9791f0350e32cad162047b429ead023e1ce11d19c1bd35d140f78d65230338c",
+          "wrapper_events": [
+            80
+          ],
+          "reported_argv": [
+            "python",
+            "main.py",
+            "verify",
+            "民事訴訟法第195條"
+          ],
+          "actual_argv_expression": "[sys.executable, '-B', 'main.py', 'verify', '民事訴訟法第195條']",
+          "resolved_python_binary_not_recorded": true,
+          "wrapper_environment_only_B_flag_omitted_from_reported_argv": true,
+          "manifest_exit_code": 0,
+          "raw_rows": 1,
+          "row_order_matches_frozen_inputs": null
+        }
+      ]
+    }
+  ],
+  "database_before_after_audit": "docs/live-run-records/codex-real-2026-10-31-002/calls/12_citation_verify_attempt2/retry_db_state_audit.json",
+  "database_status_reconciliation": {
+    "raw_latest_111_status_counts": {
+      "published": 108,
+      "unparseable": 3
+    },
+    "canonical_106_database_status_counts": {
+      "published": 102,
+      "draft": 4
+    },
+    "global_127_database_status_counts": {
+      "published": 123,
+      "draft": 4
+    },
+    "raw_205_return_status": "published",
+    "raw_205_primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205",
+    "database_205_status": "draft",
+    "observed_native_upsert_mutation_events": [
+      {
+        "stream_line": 85,
+        "item_id": "item_43",
+        "command_sha256": "5760c39c1818201443315505899c9f13ff767b40a75dddddee071e8ed9ee0d4f",
+        "exit_code": 0
+      }
+    ],
+    "change_records": [
+      {
+        "reason_as_actor_report_only": "引擎無法解析，官方條文及施行規則未核實",
+        "before": null,
+        "after": {
+          "id": 125,
+          "citation_text": "民法債編施行法第10條之1",
+          "source_type": "statute",
+          "status": "draft",
+          "primary_source_url": null,
+          "verified_at": null,
+          "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+        }
+      },
+      {
+        "reason_as_actor_report_only": "引擎無法解析",
+        "before": null,
+        "after": {
+          "id": 126,
+          "citation_text": "銀行法第29條",
+          "source_type": "statute",
+          "status": "draft",
+          "primary_source_url": null,
+          "verified_at": null,
+          "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+        }
+      },
+      {
+        "reason_as_actor_report_only": "引擎無法解析",
+        "before": null,
+        "after": {
+          "id": 127,
+          "citation_text": "銀行法第29條之1",
+          "source_type": "statute",
+          "status": "draft",
+          "primary_source_url": null,
+          "verified_at": null,
+          "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+        }
+      },
+      {
+        "reason_as_actor_report_only": "引擎只核對現行16%文字，108年適用舊法之20%與法律效果未核實",
+        "before": {
+          "id": 52,
+          "citation_text": "民法第205條",
+          "source_type": "statute",
+          "status": "published",
+          "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205",
+          "verified_at": "2026-10-31T08:26:10Z",
+          "verifier_run_id": null
+        },
+        "after": {
+          "id": 52,
+          "citation_text": "民法第205條",
+          "source_type": "statute",
+          "status": "draft",
+          "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=205",
+          "verified_at": null,
+          "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+        }
+      },
+      {
+        "reason_as_actor_report_only": "全文確認原稿引用的是115年5月13日實體判決；修正來源metadata，未改引用文字。原始引擎誤選3月4日承受裁定的結果仍原樣保留。",
+        "before": {
+          "id": 91,
+          "citation_text": "最高法院114年度台上字第1945號",
+          "source_type": "judgment",
+          "status": "published",
+          "primary_source_url": null,
+          "verified_at": "2026-10-31T08:26:13Z",
+          "verifier_run_id": null
+        },
+        "after": {
+          "id": 91,
+          "citation_text": "最高法院114年度台上字第1945號",
+          "source_type": "judgment",
+          "status": "published",
+          "primary_source_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C114%2C%E5%8F%B0%E4%B8%8A%2C1945%2C20260513%2C1&ot=in",
+          "verified_at": "2026-10-31T08:29:39Z",
+          "verifier_run_id": "codex-real-2026-10-31-002-step8-attempt2"
+        }
+      }
+    ],
+    "historical_law_reason_is_actor_assertion_not_auditor_legal_conclusion": true,
+    "raw_engine_json_not_rewritten_to_draft": true,
+    "different_denominators_not_interchangeable": true
+  },
+  "historical_law_limitations_actor_reports_only": [
+    {
+      "stream_line": 24,
+      "quote": "已核對六份攻防輸出與判決草稿，共有 111 個不同引用字串，與提供清單一致；程序法引用也在其中。最終使用清單包含 13 個去重後的裁判案號，將逐件讀取全文。另有「108 年民法第205條舊法」的版本問題，須與現行條文的存在性結果分開記錄。",
+      "classification": "actor_report_only_not_independently_verified"
+    },
+    {
+      "stream_line": 81,
+      "quote": "機械查證已完成，民事訴訟法第195條的暫時連線失敗經同入口重試後通過。仍有三條引擎無法解析：銀行法第29條、第29條之1、民法債編施行法第10條之1；民法第205條則只取得現行16%文字，尚未驗證草稿所用的108年舊法。依您設定的規則，整體閘門未通過，我會將這四項維持為 draft，並完成可回溯的查證報告。",
+      "classification": "actor_report_only_not_independently_verified"
+    },
+    {
+      "stream_line": 88,
+      "quote": "- 民法第205條的108年舊法版本",
+      "classification": "actor_report_only_not_independently_verified"
+    }
+  ],
+  "raw_1945_verifier_source_file_metadata": [
+    {
+      "citation_text": "最高法院114年度台上字第1945號",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\..\\corpus\\judgments\\TPSV,114,台上,1945,20260304,2.txt",
+      "status": "published"
+    },
+    {
+      "citation_text": "最高法院114年度台上字第1945號判決",
+      "source_file": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\engine\\..\\corpus\\judgments\\TPSV,114,台上,1945,20260304,2.txt",
+      "status": "published"
+    }
+  ],
+  "network_audit": {
+    "general_web_search_enabled_in_argv": false,
+    "nested_tool_events": [],
+    "standalone_http_command_candidates_outside_engine": [],
+    "observed_standalone_http_probes": false,
+    "outer_platform_stderr_diagnostics": [
+      {
+        "line": 2,
+        "text": "2026-10-31T08:22:17.597437Z  WARN codex_analytics::client: failed to send events request: error sending request for url (https://chatgpt.com/backend-api/codex/analytics-events/events)"
+      },
+      {
+        "line": 3,
+        "text": "2026-10-31T08:22:22.278403Z ERROR codex_models_manager::manager: failed to refresh available models: request timed out"
+      }
+    ],
+    "platform_diagnostics_are_not_ordinary_legal_web_search": true,
+    "limit": "Observed command/tool trace inspected; allowed engine HTTP requests are represented by CLI/result provenance. Outer Codex control-plane diagnostics are kept separate."
+  },
+  "database_inventory_context": {
+    "baseline_names": [
+      "codex_runs.db",
+      "db.py",
+      "legal_debate.db",
+      "schema.py",
+      "__pycache__"
+    ],
+    "after_names": [
+      "__pycache__",
+      "codex_runs.db",
+      "db.py",
+      "legal_debate.db",
+      "schema.py"
+    ],
+    "added_names": [],
+    "removed_names": [],
+    "case001_misplaced_directory_history": "Earlier case001 artifacts were relocated by controller; that historical deviation is not attributed to this case002 call.",
+    "protected_other_output_parent_denied_in_profile": true
+  },
+  "audit_completed_at_utc": "2026-10-31T08:39:52.429633+00:00"
+}

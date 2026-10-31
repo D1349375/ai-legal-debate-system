@@ -1,0 +1,60 @@
+{
+  "method": "Exact selected holdout strings searched after all roles ended; docket separately allowed by source_note",
+  "needles": [
+    "legaldebate_holdout",
+    "李昀修",
+    "鄭盛文",
+    "林琬軒",
+    "時效已於113年屆滿",
+    "兩造自108年8月後即無往來",
+    "受領時始終認係投資關係",
+    "操盤人「JM」",
+    "被告於108年7月18日",
+    "紐約州紐約郡法院",
+    "已提起上訴而繫屬臺灣高等法院",
+    "110年11月30日"
+  ],
+  "holdout_hits": [],
+  "authorized_source_docket_hits": [
+    {
+      "source": "calls/01_p_s1/stream.jsonl",
+      "line": 15
+    },
+    {
+      "source": "calls/02_d_s1/stream.jsonl",
+      "line": 17
+    },
+    {
+      "source": "calls/03_p_s1_attempt2/stream.jsonl",
+      "line": 7
+    },
+    {
+      "source": "calls/04_d_s1_attempt2/stream.jsonl",
+      "line": 7
+    },
+    {
+      "source": "calls/05_judge_questions/stream.jsonl",
+      "line": 5
+    },
+    {
+      "source": "calls/06_p_s2/stream.jsonl",
+      "line": 5
+    },
+    {
+      "source": "calls/07_d_s2/stream.jsonl",
+      "line": 5
+    },
+    {
+      "source": "calls/08_p_s3/stream.jsonl",
+      "line": 5
+    },
+    {
+      "source": "calls/09_d_s3/stream.jsonl",
+      "line": 5
+    },
+    {
+      "source": "calls/10_judge_verdict/stream.jsonl",
+      "line": 5
+    }
+  ]
+}

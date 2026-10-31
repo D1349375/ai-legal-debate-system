@@ -1,0 +1,45 @@
+【環境說明】本 prompt 提到的 Read、Grep、Glob 工具,在你的環境中分別對應讀取檔案、rg 搜尋、列出檔案;語意與規則不變。
+**兩份共同的紀律**(9A、9B 都適用):
+1. 把該方 Stage3 的 `position`/`argument`/`cited_statutes`/`cited_precedents` 直接套進骨架的對應欄位。**不做語氣潤飾、不做修辭改寫**,這是刻意的,語氣潤飾要等 Phase 2 律師語料到位才做。誠實跟使用者說明這是骨架版,不是最終可用書狀。
+2. 只使用 Step 8 已查證為 `published` 的引用,未 published 的引用不得出現在書狀草稿裡。
+3. 當事人欄(原 3a):有商工查核結果的一方,名稱、統編、地址照登記填;法定代理人只填查核結果 `legal_representative` 有帶入的人。有 bad 等級程序事項時(例如被告已解散),法定代理人欄寫「清算人(待查明:<程序事項要查的資料>)」,**不得照列原負責人,也不得編造清算人姓名**。答辯狀的答辯人就是被告,這條規則照樣適用在答辯人欄。
+4. 案號、股別、受理法院、證物、具狀日期等攻防紀錄裡沒有的資料,一律留「(待填:…)」,不得編造。
+5. 撰狀素材可用 `python main.py pleading-source --case-id <case_id> --side plaintiff|defendant` 取得(唯讀,印出該方 Stage 3 原文、對造 Stage 3 的 position 與引用、每條引用目前的查證狀態、商工查核與程序事項)。對造部分只有結構化摘要,不含對造完整論證,同 Step 4 的萃取紀律。
+
+
+#### 9B — 被告民事答辯狀骨架
+**本機沒有官方答辯狀範本檔**:`corpus/pleadings/reference/` 只有司法院的起訴狀範本。不要為此上網找或下載範本。答辯狀的欄位依民事訴訟法的書狀規定整理(已於 2026-10-29 經全國法規資料庫核對條文):第116條第1項(當事人書狀應記載當事人、法定代理人、訴訟事件、應為之聲明或陳述、證據、法院、年月日等)、第266條第2項(被告之答辯狀應記載答辯之事實及理由,及同條第1項第2款、第3款之事項,即證明應證事實所用之證據,以及對他造主張之事實及證據為承認與否之陳述;如有爭執,其理由);欄位排列比照起訴狀範本。在交給使用者的說明裡照實寫明這份結構不是來自官方答辯狀範本。
+
+骨架(由上而下):
+1. 標題「民事答辯狀」;案號、股別:「(待填:法院分案後之案號／股別)」。
+2. 當事人欄:答辯人(即被告)及其法定代理人、訴訟代理人;被答辯人(即原告)及其法定代理人。依共同紀律第 3 點。
+3. 「為<案由>事件,依法提出答辯事:」(案由取案件 `case_type`)。
+4. **答辯聲明**(固定格式文字,不是引用,不附條號):
+   - 一、原告之訴及假執行之聲請均駁回。(案件 `claims` 沒有假執行聲請時,改為「原告之訴駁回。」)
+   - 二、訴訟費用由原告負擔。
+   - 三、如受不利判決,願供擔保請准宣告免為假執行。(是否保留由律師決定,骨架照列)
+5. **事實及理由**:
+   - 一、原告主張要旨:只寫 `opponent_stage3_summary.position` 與案件 `claims` 的原文,不得替原告補寫論證。
+   - 二、對原告主張之陳述:就原告主張的事實與證據,逐點寫被告承認或爭執;有爭執者寫理由。素材只取被告方 Stage 3 `argument` 中對應的段落,被告 Stage 3 沒有表示意見的點寫「(被告 Stage 3 未表示意見,待律師補充)」,不得自行代被告表態。
+   - 三、被告抗辯:被告方 Stage 3 `position` 與 `argument` 中的抗辯(例如時效、清償、同時履行),附上 published 的引用。
+   - 四、程序事項:有與被告相關的程序事項(例如被告已解散而法定代理人待查明)時照實列出;沒有就省略本點。
+   - 五、結論:「綜上所述,原告之訴為無理由,請駁回原告之訴。」
+6. **證物名稱及件數**:只列被告 Stage 3 論證中明確提到的證據;沒有就寫「(待律師補列)」。
+7. 此致「(待填:受理法院)民事庭」;中華民國(待填)年(待填)月(待填)日;具狀人:答辯人(被告)、法定代理人、撰狀人(訴訟代理人),依當事人欄填寫,不明者留待填。
+
+{
+  "case_id": "real-2026-10-31-001",
+  "side": "defendant",
+  "pleading_material_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/15_defendant_pleading/workspace/pleading_source.json",
+  "official_structure_pdf_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/15_defendant_pleading/workspace/corpus/pleadings/reference/司法院官方民事起訴狀範本_結構參考用.pdf",
+  "draft_output_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/15_defendant_pleading/workspace/draft.txt",
+  "citations_output_path": "C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/15_defendant_pleading/workspace/citations.json",
+  "publication_managed_by_controller": true,
+  "database_access_available": false,
+  "network_enabled": false,
+  "available_python_pdf_readers": [
+    "pypdf",
+    "fitz",
+    "PyPDF2"
+  ]
+}

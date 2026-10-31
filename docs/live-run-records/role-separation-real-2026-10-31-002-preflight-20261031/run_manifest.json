@@ -1,0 +1,59 @@
+{
+  "case_id": "real-2026-10-31-002",
+  "run_id": "preflight-20261031",
+  "created_at": "2026-10-31T12:00:17.788801+00:00",
+  "status": "preflight_passed",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "ultra",
+  "db_url": "sqlite:///C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/role-separation-real-2026-10-31-002-preflight-20261031/controller/run.db",
+  "input_sha256": "efbfc337a4857f839d999a59a976a722fcfa4e67d892990f0736578500459f06",
+  "frozen_sha256": {
+    "templates/judge_question_prompt.txt": "cfc3d5cff357991461e83ac3819f85cb28062d3dbedbfb14dde57af99ba616aa",
+    "templates/pleading_prompt.txt": "14e6487f9f1eae2bea81a05e63f9521db443fa095460fb53a80e4a2568d9e995",
+    "SKILL.md": "cc137dd37a57467a051c12ca1a3afdca5654538cff4bd4ac6d4b6eb598a0506b",
+    "templates/stage1_prompt.txt": "0098043fcd1190635831f6b61db8d648565e1824efc85689f0b92708a2b075d9",
+    "templates/stage2_prompt.txt": "37f459450931b760979d97ae4e58f49335ed67ebd44e73e697b415f59aa8c6a0",
+    "templates/stage3_prompt.txt": "1b42cc85f18a3d62bd4e1fdd75e33f23d894b8e398932484a1aab6bf63bd2d4e",
+    "templates/verdict_prompt.txt": "f7139ef08f890d53332c0cbb03da20597321cd3a84b32cbfa3fdd3d3b4e504ed",
+    "templates/verify_prompt.txt": "bd6162d0f5252889c710228281bab3af68a33457225b45f2403fff8e5e2e3ba5"
+  },
+  "source_sha256": {
+    "main.py": "8963bc588007a6c7213c3eb0cd4368db1c5e02bd3d2893e17cd67d7909d52573",
+    "database/schema.py": "5ebca4f6d7d5234ff7e81afceae63398c9986ae5d9a4e20786d0e63528444deb",
+    "database/db.py": "ffda5eca6dbf6960cbf32d286136661cbddfdc6c7d01f78593d2cebb6c9dd106",
+    "engine/role_protocol.py": "a2a41a70c020a6eb92b59bf39e6a8130904ae59b6d6e533a63f6dccc9d4bd483",
+    "engine/aggregate.py": "8cda253b35c2da0e1f9dccfc2943656484fb0e10dd443ff773f048bbc3d88b7d",
+    "engine/verify.py": "c6c18a542fc9f93a113d7502bb1bf50217e36ffdbaff8608d96d6bf897482744",
+    "scripts/rerun_role_separation.py": "d054239849f92b33f0e352244b3f9fb3ba6121cd5654492e1911518699ca4ee5"
+  },
+  "baseline_controller": "docs/live-run-records/codex-real-2026-10-31-001/run_control.py",
+  "conversion": {
+    "facts_changed": false,
+    "facts_conversion": "facts_summary 原文複製至 plaintiff_facts",
+    "claims_conversion": "僅將「原起訴」改為「起訴」",
+    "claim_amount_source": "非金錢比特幣請求，留空",
+    "source_note_excluded_from_roles": true
+  },
+  "commands": [
+    {
+      "label": "preflight-cli-help",
+      "argv": [
+        "C:\\Users\\berto\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "main.py",
+        "--help"
+      ],
+      "started_at": "2026-10-31T12:00:23.159065+00:00",
+      "status": "finished",
+      "exit_code": 0,
+      "ended_at": "2026-10-31T12:00:26.367708+00:00",
+      "stdout_file": "commands/001-preflight-cli-help.stdout.txt",
+      "stderr_file": "commands/001-preflight-cli-help.stderr.txt"
+    }
+  ],
+  "nodes": {},
+  "controller_verification_attempts": [],
+  "deviations": [
+    "查證角色只回傳嚴格JSON，由controller存檔；不要求角色另寫輸出檔。",
+    "語料庫每run複製一次共用唯讀，各call另有獨立輸入workspace。"
+  ]
+}

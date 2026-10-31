@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-10-31T07:44:55.019553+00:00",
+  "published_rows": 65,
+  "case_verdict_rows": 0,
+  "case_pleading_rows": 0,
+  "database_files": [
+    "codex_runs.db",
+    "db.py",
+    "legal_debate.db",
+    "schema.py",
+    "__pycache__"
+  ]
+}

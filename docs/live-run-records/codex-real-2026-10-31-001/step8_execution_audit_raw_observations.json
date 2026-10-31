@@ -1,0 +1,214 @@
+{
+  "recorded_at_utc": "2026-10-31T07:12:24.942283+00:00",
+  "scope": "Exact small bookkeeping/error tool outputs copied from Step8 stream; not a raw verifier-result log.",
+  "observations": [
+    {
+      "stream_line": 15,
+      "item_id": "item_5",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\ncon.row_factory=sqlite3.Row\nprint('citation_status_counts', [dict(r) for r in con.execute('select status,count(*) as count from citation_verifications group by status')])\nfor table in ['verdicts','pleading_drafts']:\n print(table, con.execute('select count(*) from '+table+' where case_id=?',('real-2026-10-31-001',)).fetchone()[0])\nprint('judgments',json.dumps([dict(r) for r in con.execute(\\\"select * from citation_verifications where source_type='judgment'\\\")],ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "citation_status_counts []\r\nverdicts 0\r\npleading_drafts 0\r\njudgments []\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 23,
+          "char_end": 25,
+          "value": []
+        },
+        {
+          "char_start": 68,
+          "char_end": 70,
+          "value": []
+        }
+      ]
+    },
+    {
+      "stream_line": 18,
+      "item_id": "item_8",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport json\nfrom pathlib import Path\nfrom collections import Counter\nfrom engine.verify import parse_citation\np=Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\nrefs=json.loads((p/'all_citations.json').read_text(encoding='utf-8-sig'))\nkeys={tuple(parse_citation(c).items()) for c in refs}\nprint(json.dumps({'raw_unique':len(set(refs)),'raw_types':dict(Counter(parse_citation(c)['type'] for c in refs)),'canonical_unique':len(keys),'canonical_types':dict(Counter(dict(k)['type'] for k in keys))},ensure_ascii=False))\nv=json.loads((p/'verdict.json').read_text(encoding='utf-8-sig'))\nprint('verdict_unique',len(set(v['citations_used'])))\nprint('procedural_issues',json.dumps(v['mechanical_anchor_json']['procedural_issues'],ensure_ascii=False))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "{\"raw_unique\": 73, \"raw_types\": {\"statute\": 63, \"judgment\": 10}, \"canonical_unique\": 65, \"canonical_types\": {\"statute\": 60, \"judgment\": 5}}\r\nverdict_unique 24\r\nprocedural_issues {\"source\": \"經濟部商工登記開放資料，依固定規則轉換（非 AI 生成）\", \"stage\": \"起訴審查（Stage 1 之前）\", \"issues\": [], \"notes\": [\"原告尚未查核商工登記（未提供統一編號；自然人無統編，不適用查核）；不得據此推定原告無當事人能力或法定代理問題。\", \"被告尚未查核商工登記（未提供統一編號；自然人無統編，不適用查核）；不得據此推定被告無當事人能力或法定代理問題。\"], \"parties\": {\"plaintiff\": null, \"defendant\": null}}\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 139,
+          "value": {
+            "raw_unique": 73,
+            "raw_types": {
+              "statute": 63,
+              "judgment": 10
+            },
+            "canonical_unique": 65,
+            "canonical_types": {
+              "statute": 60,
+              "judgment": 5
+            }
+          }
+        },
+        {
+          "char_start": 178,
+          "char_end": 443,
+          "value": {
+            "source": "經濟部商工登記開放資料，依固定規則轉換（非 AI 生成）",
+            "stage": "起訴審查（Stage 1 之前）",
+            "issues": [],
+            "notes": [
+              "原告尚未查核商工登記（未提供統一編號；自然人無統編，不適用查核）；不得據此推定原告無當事人能力或法定代理問題。",
+              "被告尚未查核商工登記（未提供統一編號；自然人無統編，不適用查核）；不得據此推定被告無當事人能力或法定代理問題。"
+            ],
+            "parties": {
+              "plaintiff": null,
+              "defendant": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "stream_line": 20,
+      "item_id": "item_9",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport urllib.request,time\nurl='https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=B0000001&flno=95'\nstart=time.monotonic()\ntry:\n with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=12) as resp:\n  body=resp.read().decode('utf-8')\n  print({'status':resp.status,'article_marker':'<div class=\\\"law-article\\\">' in body,'elapsed_seconds':round(time.monotonic()-start,2)})\nexcept Exception as exc:\n print(type(exc).__name__,str(exc),'elapsed_seconds',round(time.monotonic()-start,2))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "{'status': 200, 'article_marker': True, 'elapsed_seconds': 0.8}\r\n",
+      "parsed_json_segments": []
+    },
+    {
+      "stream_line": 23,
+      "item_id": "item_11",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nimport sqlite3,json\nfrom pathlib import Path\np=Path('database/codex_runs.db').resolve()\ncon=sqlite3.connect('file:'+p.as_posix()+'?mode=ro',uri=True)\nprint(json.dumps({'path':str(p),'journal_mode':con.execute('pragma journal_mode').fetchone()[0],'locking_mode':con.execute('pragma locking_mode').fetchone()[0],'citations':con.execute('select count(*) from citation_verifications').fetchone()[0],'files':{s:Path(str(p)+s).exists() for s in ['','-journal','-wal','-shm']}},ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "{\"path\": \"C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\database\\\\codex_runs.db\", \"journal_mode\": \"delete\", \"locking_mode\": \"normal\", \"citations\": 0, \"files\": {\"\": true, \"-journal\": false, \"-wal\": false, \"-shm\": false}}\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 238,
+          "value": {
+            "path": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\database\\codex_runs.db",
+            "journal_mode": "delete",
+            "locking_mode": "normal",
+            "citations": 0,
+            "files": {
+              "": true,
+              "-journal": false,
+              "-wal": false,
+              "-shm": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "stream_line": 25,
+      "item_id": "item_12",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nfrom pathlib import Path\np=Path('database/codex_runs.db-journal').resolve()\ntry:\n with p.open('xb'):\n  pass\n print('Prepared empty authorized journal:',p)\nexcept FileExistsError:\n print('Journal already exists; unchanged')\nexcept OSError as exc:\n print(type(exc).__name__,str(exc))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "PermissionError [Errno 13] Permission denied: 'C:\\\\Users\\\\berto\\\\Desktop\\\\my\\\\personal\\\\ai-legal-debate-system\\\\database\\\\codex_runs.db-journal'\r\n",
+      "parsed_json_segments": []
+    },
+    {
+      "stream_line": 27,
+      "item_id": "item_13",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -Command \"@'\nfrom pathlib import Path\np=Path('database/codex_runs.db').resolve()\ntry:\n with p.open('r+b'):\n  print('Authorized existing database is writable; no bytes changed')\nexcept OSError as exc:\n print(type(exc).__name__,str(exc))\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "Authorized existing database is writable; no bytes changed\r\n",
+      "parsed_json_segments": []
+    },
+    {
+      "stream_line": 34,
+      "item_id": "item_17",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps({'citations':con.execute('select status,count(*) from citation_verifications group by status').fetchall(),'case_verdicts':con.execute('select count(*) from verdicts where case_id=?',('real-2026-10-31-001',)).fetchone()[0],'case_pleadings':con.execute('select count(*) from pleading_drafts where case_id=?',('real-2026-10-31-001',)).fetchone()[0]}))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "{\"citations\": [], \"case_verdicts\": 0, \"case_pleadings\": 0}\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 58,
+          "value": {
+            "citations": [],
+            "case_verdicts": 0,
+            "case_pleadings": 0
+          }
+        }
+      ]
+    },
+    {
+      "stream_line": 48,
+      "item_id": "item_25",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps([dict(zip(['source_type','status','count'],r)) for r in con.execute('select source_type,status,count(*) from citation_verifications group by source_type,status')],ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "[{\"source_type\": \"statute\", \"status\": \"published\", \"count\": 23}]\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 64,
+          "value": [
+            {
+              "source_type": "statute",
+              "status": "published",
+              "count": 23
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stream_line": 55,
+      "item_id": "item_29",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport sqlite3,json\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nprint(json.dumps([dict(zip(['source_type','status','count'],r)) for r in con.execute('select source_type,status,count(*) from citation_verifications group by source_type,status')],ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "[{\"source_type\": \"judgment\", \"status\": \"published\", \"count\": 4}, {\"source_type\": \"statute\", \"status\": \"published\", \"count\": 58}]\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 128,
+          "value": [
+            {
+              "source_type": "judgment",
+              "status": "published",
+              "count": 4
+            },
+            {
+              "source_type": "statute",
+              "status": "published",
+              "count": 58
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stream_line": 60,
+      "item_id": "item_32",
+      "command": "\"C:\\\\Users\\\\berto\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\" -NoProfile -Command \"@'\nimport json,sqlite3\nfrom pathlib import Path\nfrom engine.verify import parse_citation\np=Path('docs/live-run-records/codex-real-2026-10-31-001/calls/11_citation_verify/workspace')\nrefs=json.loads((p/'all_citations.json').read_text(encoding='utf-8-sig'))\nverdict=json.loads((p/'verdict.json').read_text(encoding='utf-8-sig'))\ndef key(c): return tuple(parse_citation(c).items())\ncon=sqlite3.connect('file:database/codex_runs.db?mode=ro',uri=True)\nrows=con.execute('select citation_text,source_type,status from citation_verifications').fetchall()\nbykey={key(c):status for c,typ,status in rows}\nprint(json.dumps({'case_id':'real-2026-10-31-001','input_strings':len(refs),'identities':len(set(map(key,refs))),'database_rows':len(rows),'status_counts':con.execute('select source_type,status,count(*) from citation_verifications group by source_type,status').fetchall(),'missing_or_unpublished':[c for c in refs if bykey.get(key(c))\"'!='\"'published'],'verdict_missing_or_unpublished':[c for c in verdict['citations_used'] if bykey.get(key(c))\"'!='\"'published'],'case_verdict_count':con.execute('select count(*) from verdicts where case_id=?',('real-2026-10-31-001',)).fetchone()[0],'case_pleading_count':con.execute('select count(*) from pleading_drafts where case_id=?',('real-2026-10-31-001',)).fetchone()[0]},ensure_ascii=False))\ncon.close()\n'@ | python -B -\"",
+      "exit_code": 0,
+      "raw_aggregated_output": "{\"case_id\": \"real-2026-10-31-001\", \"input_strings\": 73, \"identities\": 65, \"database_rows\": 65, \"status_counts\": [[\"judgment\", \"published\", 5], [\"statute\", \"published\", 60]], \"missing_or_unpublished\": [], \"verdict_missing_or_unpublished\": [], \"case_verdict_count\": 0, \"case_pleading_count\": 0}\r\n",
+      "parsed_json_segments": [
+        {
+          "char_start": 0,
+          "char_end": 292,
+          "value": {
+            "case_id": "real-2026-10-31-001",
+            "input_strings": 73,
+            "identities": 65,
+            "database_rows": 65,
+            "status_counts": [
+              [
+                "judgment",
+                "published",
+                5
+              ],
+              [
+                "statute",
+                "published",
+                60
+              ]
+            ],
+            "missing_or_unpublished": [],
+            "verdict_missing_or_unpublished": [],
+            "case_verdict_count": 0,
+            "case_pleading_count": 0
+          }
+        }
+      ]
+    }
+  ]
+}

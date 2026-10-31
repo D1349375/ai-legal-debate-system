@@ -1,0 +1,7 @@
+{
+  "original_dedicated_db_sha256": "1f72dc3814474e2790e2946f654e1129974922c3b4f10ec16f3b9b7eaf386231",
+  "original_db_unchanged_after_copy": true,
+  "fixture": "C:\\Users\\berto\\Desktop\\my\\personal\\ai-legal-debate-system\\docs\\live-run-records\\codex-real-2026-10-31-001\\retry_step8\\preflight\\fixture",
+  "telemetry_optout": "POWERSHELL_TELEMETRY_OPTOUT=1",
+  "limitation": "Directory write permits new filenames inside disposable database directory; existing source and formal-sentinel exceptions must remain protected. No equivalent only-listed-create grant was established."
+}

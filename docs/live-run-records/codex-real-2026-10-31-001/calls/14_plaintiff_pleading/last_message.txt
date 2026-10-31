@@ -1,0 +1,6 @@
+已完成並檢核：
+
+- [起訴狀骨架 draft.txt](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/14_plaintiff_pleading/workspace/draft.txt)
+- [引用清單 citations.json](C:/Users/berto/Desktop/my/personal/ai-legal-debate-system/docs/live-run-records/codex-real-2026-10-31-001/calls/14_plaintiff_pleading/workspace/citations.json)
+
+Stage 3 原文未改寫，僅納入素材標示為 `published` 的 35 筆引用；缺漏資料均留待填。**這是骨架版，尚非最終可用書狀。**
