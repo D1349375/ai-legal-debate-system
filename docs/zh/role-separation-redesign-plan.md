@@ -2,7 +2,8 @@
 
 > 撰寫：2026-10-31。分支：`role-separation-redesign`（自 `ui-backend-integration` @ aeb618e 分出）。
 > 這份是實作用（改哪些檔、怎麼驗證）。給組員看的白話版是 [改動點](redesign-change-points.md)。兩份同步更新；各步驟標「已定案」的是已討論完的。
-> 依據：08-08 三案逐步標註（61 筆，3 案）、gcis 四次實跑、Codex 跑 real-2026-10-31-001／002 的紀錄與評估。
+> 依據：08-08 三案逐步標註（61 筆，3 案）、gcis 四次實跑、Codex 跑 real-2026-10-31-001／002 的紀錄與評估（含 Step 8 重試）。
+> 注意：61 筆的逐筆清單不在 repo 內（Codex 評估與 `docs/live-run-records/` 都找不到），簡報引用這個數字前要補上出處。
 > 每一步寫：**現在的問題（證據）→ 改什麼 → 改哪些檔 → 怎麼驗證**。標 **【A】** 的在決賽報告前做，標 **【B】** 的報告後做。
 
 ---
@@ -35,7 +36,7 @@
 **問題**
 - 只有單一 `facts_summary`（`database/schema.py:11`），不分誰的說法；被告 agent 讀的是原告版本卻不知道。
 - 沒有「使用者代理哪一方」與「目前在哪個程序階段」：real-001／002 的 claims 寫「原起訴聲明」，角色因而反覆要求起訴狀、送達證書。
-- 角色會讀整份 `case.json`，含 `source_note`（真實法院與字號，洩漏起訴年度）。Codex 紀錄每案 10 次命中。
+- 角色會讀整份 `case.json`，含 `source_note`（真實法院與字號，洩漏起訴年度）。Codex 紀錄重試後 001 有 13 次、002 有 12 次命中。
 
 **已定案（2026-10-31 討論）**：三欄事實＋標來源；只支援起訴前；金額與程序別只警示不阻擋；UI 建案表單這週一起改。
 
@@ -201,6 +202,7 @@
 **檔案**：`templates/stage2_prompt.txt`、`main.py`（`summary`、`record` 狀態轉移檢查）、`database/schema.py`（`falsifier` 註解）、`SKILL.md` Step 4
 **驗證**：
 - 用 Codex real-002 被告 Stage 3 當反例：時效 item 以「日期資料不足」撤回，應被擋下。
+- 同案第二個反例：被告 Stage 1 完整提出民法第182條第1項（善意受領、利益已不存在），Stage 2、3 以「無本人事實」退出；`d_s3` 最終 position 寫「不以尚未證成的二年、五年時效或其他減免候選請求駁回」。這兩項（第182條、五年時效）也應維持 `to_confirm`。真實被告正是提出了善意且利益已不存在的抗辯。
 - 對造模擬方用 `strategy` 撤回，應被擋下。
 - item 在後續階段消失，應被擋下。
 - `summary` 輸出不含 `internal_notes`、`prep_items`，且保留 `unconfirmed_facts`。
@@ -220,7 +222,7 @@
 4. 同 Step 4 的狀態轉移檢查與程式摘要。
 
 **檔案**：`templates/stage3_prompt.txt`、`main.py`
-**驗證**：用 Codex real-002 的被告 Stage 3 當反例：時效 item 若從 `to_confirm` 變 `withdrawn` 而理由只是「日期不足」，應被擋下。
+**驗證**：用 Codex real-002 的被告 Stage 3 當反例：時效 item 若從 `to_confirm` 變 `withdrawn` 而理由只是「日期不足」，應被擋下；第182條、五年時效兩項同樣適用（見 Step 4）。
 
 ## Step 6 — 機械彙整
 
@@ -310,8 +312,16 @@
 - `engine/verify.py:58`：法規白名單 8 部。Stage 1 可引任何法，銀行法、民法債編施行法到 Step 8 必然 `unparseable`，閘門必然失敗。不支援歷史條文版本（民法第 205 條 108 年版）。
 - `database/schema.py:58-66`：`citation_verifications` 以 `citation_text` 為唯一鍵，沒有 `case_id`，`verifier_run_id` 全空；是全域快取，無法知道哪一案、哪一次驗過。
 - Step 8 沒有範本檔，只有 `SKILL.md:75-83` 的 prose；Codex 兩案都卡在這一步。
+- 以下是 Codex 重試紀錄補出的問題（2026-10-31 補充）：
+  - **歷史版本被誤標通過**：002 雙方引用 108 年版民法第205條（20%、超額無請求權），引擎查到現行條文（16%、超過約定無效）就標 `published`，等於驗錯版本也算過。最後是查證角色手動降為 draft，閘門因此擋下。
+  - **`main.py verify` 一律回傳 0**（`main.py:98-106`），而且只把 `published` 寫進 DB；`unparseable`、連線失敗都不留紀錄。閘門到底過了沒，只能靠 prose 判斷。
+  - **暫時性連線失敗沒有自動重試**：001 民法第130條、002 民事訴訟法第195條都碰到 SSL EOF，回 `verification_failed`，都是角色手動重試才過。
+  - **查證角色直接寫共用快取**：002 call12 透過 `get_session`／`upsert_citation` 把 205 改成 draft、清空 `verified_at`，也改了 1945 的來源 metadata。快取沒有 `case_id`，一案的判斷就連帶改到 001 的共用狀態。
+  - **法規解析要到 Step 8 才做**：民法債編施行法從原告 Stage 1 一路傳過六份論證和評估，到 Step 8 才發現無法解析。
 
 **已定案（2026-10-31 討論）**：內容比對分三層，前兩層（案由與文件類型、原文摘句）由程式做；案由不同不自動擋，標「需說明」並要求寫類推理由；前兩層涵蓋所有判例引用，第三層只做最後採用的。
+
+**補充（2026-10-31，依 Codex 重試紀錄）**：歷史版本查詢仍放【B】，但【A】先讓「驗不了」有自己的狀態，不再標成通過。閘門規則：`unsupported_law`、`version_unverified` 不擋評估發布，但不得進書狀，並在回報列為「律師待核」。這樣 real-002 重跑才走得到 Step 9。
 
 **改什麼**
 1. **【A】** 文件身分：回傳所有同字號候選；多於一份時要求呼叫端指定日期，或回傳 `ambiguous` 不得 `published`。
@@ -334,7 +344,12 @@
 7. **【A】** 查證範圍（已定案）：
    - 第一、二層：Stage 1–3 與評估中的**所有**判例引用都做，因為 Stage 2、3 新增的引用會進到對方摘要。在 `record` 落地時就做，不等 Step 8。
    - 第三層：只對最後進到評估或書狀的引用做，控制成本。
-8. **【B】** 歷史條文版本查詢。
+8. **【A】** 歷史版本狀態：引用文字含過去年度或「修正前」（例如「108年民法第205條」），或角色在 item 註明適用舊法時，回傳 `version_unverified`，不得 `published`。適用上述閘門規則。
+9. **【A】** 閘門由程式判斷：新增 `python main.py verify-gate --case-id <id>`，依 `case_citation_checks` 判斷能否放行，未通過時回傳非 0 並列出原因。`cmd_verdict`、`record_pleading` 落地前都呼叫同一個判斷；書狀的 `citations_used` 只能是該案 `published` 的引用。
+10. **【A】** 暫時性錯誤自動重試：連線類錯誤（SSL、逾時）自動重試 2–3 次；仍失敗回傳 `network_error`，和查無（`not_found`）分開，報告照實列出。
+11. **【A】** 查證結果只能透過固定指令寫入：新增 `python main.py record-verification --case-id <id> --json <file>`，讀 `verify_prompt.txt` 的結構化輸出，寫進 `case_citation_checks`。全域快取只存「存在與否」；版本、文件身分、是否支持命題等判斷只寫進每案紀錄，不改全域快取。查證角色不得直接呼叫 `upsert_citation`。
+12. **【A】** 法規在落地時就檢查：`record` 落地 Stage 1–3 時，也對法條跑 `parse_citation`。`unsupported_law` 當場標記並回給角色（不拒絕落地），讓它知道這條到 Step 8 會列為律師待核。
+13. **【B】** 歷史條文版本查詢（查官方舊法全文）。
 
 **檔案**：`engine/verify.py`、`database/schema.py`、`database/db.py`、`main.py`、`tests/test_verify.py`、`tests/test_db.py`
 **驗證**：回歸測試：
@@ -344,11 +359,18 @@
 - 摘句不在全文中，被擋下。
 - 案由不同且 `analogy_reason` 為空，被擋下；有填則標「需說明」。
 - 用 08-08 test-002 的 115 台上 447（醫療糾紛上訴駁回裁定，被當車禍依據）當反例。
+- 「108年民法第205條」回傳 `version_unverified`，不是 `published`。
+- 閘門：有 `unsupported_law`／`version_unverified` 時，`verify-gate` 允許評估發布；書狀引用含這類條文時拒絕落地。有 `not_found`、`ambiguous` 或 `network_error` 時回傳非 0。
+- 模擬 SSL 錯誤：先重試，仍失敗時回 `network_error`。
+- A 案的查證判斷不改 B 案看到的狀態（每案紀錄互相獨立）。
 
 ## Step 9 — 書狀骨架
 
 **問題**
 - 9A 起訴狀用原告 Stage 3（`SKILL.md:105`），Stage 3 是反駁文，起訴狀因而出現被告答辯後才有的內容（P2）。08-08 test-002 起訴狀更把原告 Stage 1 的推論壓成「被告自承因低頭操作手機分心」。
+- Codex real-001 換了模型、用真實案件，P2 照樣出現在原告起訴狀：「（二）正面回應對造最強論點。對造要求先確定各項請求的事實……」。同一段來源還有「亦承認對造已不再以概括免責……」「Stage 2要求補明的原起訴……」。用的字是「對造」和模擬流程用語，不是「被告主張」。
+- `SKILL.md` 9 的共同紀律第 1 點要求把 Stage 3「直接套進、不潤飾」（凍結版第 97 行），反駁內容因而原封不動進了起訴狀。
+- 001 原告 writer 回傳的 `citations` 是 35 個 `{citation_text, status}` 物件，不是字串陣列，由調度員事後轉換；`record_pleading` 沒檢查格式。
 - 使用者代理原告時，產出被告答辯狀沒有實際用途：被告是模擬的，答辯狀只是假設。
 
 **已定案（2026-10-31 討論）**：
@@ -358,7 +380,10 @@
 
 **改什麼【A】**
 1. 9A 素材：原告 Stage 3 的 `claim_statement` 與狀態為 `asserted` 的 items。`pleading-source` 只輸出這些，**不輸出** `rebuttal`、`internal_notes`、`prep_items`、`to_confirm` items。
-2. 不預先回應抗辯：`record_pleading` 檢查起訴狀，出現「被告主張／被告抗辯／被告自承／被告或將／本方」等字樣就拒絕落地。
+2. 不預先回應抗辯：`record_pleading` 檢查起訴狀，出現以下字樣就拒絕落地：
+   - 對方說法：「被告主張／被告抗辯／被告自承／被告或將／本方／對造」。
+   - 模擬流程用語：「Stage／輪次／前輪／法官訊問／訊問攻防」。
+   - 同時改 `SKILL.md` 共同紀律第 1 點：素材依第 1 項由程式取出，不再寫「把 Stage 3 直接套進」。
 3. 請求金額明細（新增 `claim_breakdown`）：
    ```json
    [{"name": "車輛維修費", "amount": 120000, "basis": ["F4"], "formula": null,
@@ -372,10 +397,13 @@
    - 代理被告：9B「預先準備的答辯狀草稿」（只支援起訴前，標題標明）；另產「對方可能起訴要點（預演用，非書狀）」。9B 的「對原告主張之陳述」素材是被告 Stage 3 的 `rebuttal`，這在答辯狀是正當用途。
    - UI 的書狀選擇改為依代理方顯示可選項目。
 5. 9C 補產規則同上；舊案件（無 `represented_side`）維持現行 9A／9B 行為。
+6. `record_pleading` 檢查 `citations` 必須是字串陣列，且每筆都能在該案 `case_citation_checks` 找到 `published` 紀錄（同 Step 8 第 9 點）；格式不對就拒絕並說明正確格式，不靠調度員轉換。
 
 **檔案**：`SKILL.md` Step 9、`main.py cmd_pleading_source`、`database/db.py record_pleading`、`database/schema.py`（`pleading_drafts` 存 `claim_breakdown`）、`ui/app.js`
 **驗證**：
 - 用 08-08 test-002 起訴狀（第一段即寫「被告主張…」）與 003 起訴狀（留著「本方」）當反例，應被擋下。
+- 用 Codex real-001 的原告起訴狀（`docs/live-run-records/codex-real-2026-10-31-001/pleading_draft_plaintiff.txt`）當固定測試案例，應被擋下。這是換模型、真實案件後唯一實際發生的 P2，而 real-002 原本沒產生書狀，沒有前後可比，所以 P2 的修正效果用這個測試證明，不靠重跑。
+- `citations` 傳物件陣列時被拒絕。
 - 明細加總不符時有警示；`to_confirm` 的金額出現在律師附註而非訴之聲明。
 - 代理原告時不會產生 9B 格式的答辯狀。
 
@@ -419,12 +447,17 @@
 **做法**
 - 對象：real-2026-10-31-002（有具體失敗可對照：時效抗辯被撤、Step 8 失敗、沒有書狀）。
 - 用 Codex、同一模型與 reasoning effort（gpt-6-astra／ultra），沿用 `docs/live-run-records/codex-real-2026-10-31-001/run_control.py` 等腳本。
-- 基準是 Codex 那次凍結的範本與輸出；新流程至少跑 1 次，時間允許跑 2 次。
+- 基準是 Codex 那次凍結的範本與輸出；新流程至少跑 1 次，時間允許跑 2 次。Codex 每案牆鐘約 3.5 小時（含等待與授權）。
+- 輸入只做最小轉換：`represented_side=plaintiff`；原 `facts_summary` 原樣放進 `plaintiff_facts`；`claims` 拿掉「原起訴」的「原」；`claim_amount` 留空（請求是比特幣）。輸入格式本身也變了，這點要列為對照的限制。
+- 調度環境（`run_control.py`）：
+  - 每次呼叫都開 `disable_nested_agents`。早期 Step 8 有巢狀 agent 活動，而 `features.multi_agent=false` 單獨用不夠。
+  - `verify_prompt.txt` 寫死輸出目錄，並禁止既有引擎以外的 HTTP。001 有兩次引擎外的 urllib 探測，也有 5 份產物寫錯到 `database/` 底下。
+  - 沿用 Codex 的環境預檢，避開 Stage 1 首次環境失敗（兩案各 2 次）。
 
 **指標（跑之前固定，跑完不改）**
-1. 被告最終輸出中，時效項目的 status：`to_confirm` 為好，`withdrawn` 為差。
-2. Step 8 是否通過；不通過時，原因是否為已知且照實列出。
-3. 書狀是否產出；起訴狀出現回應被告的字句數（P2）。
+1. 被告最終輸出中，時效（二年、五年）與第182條項目的 status：`to_confirm` 為好，`withdrawn` 為差。
+2. Step 8 是否通過；不通過時，原因是否為已知且照實列出。第205條應為 `version_unverified`，不應標 `published`。
+3. 書狀是否產出；起訴狀觸發字樣檢查的次數（P2）。real-002 原本沒有書狀，所以 P2 只看「產出了且通過檢查」，改善的證據改用 Step 9 的 001 固定測試。
 4. 所有「自承／自認／不爭執」語句能追到 item id 的比例。
 5. 「待當事人確認清單」是否產出；與 holdout 真實抗辯對照，涵蓋幾類。
 6. 各角色輸出字數（可讀性）。
@@ -435,18 +468,18 @@
 
 ## 執行順序（決賽前，報告日在 11/7 之後）
 
-**已定案（2026-10-31 討論）**：分三層，每層做完都可單獨合併；UI 放第三層（取代 Step 1「UI 這週一起改」的決定）。全部估約 7–8 天，不含重跑與評估。
+**已定案（2026-10-31 討論）**：分三層，每層做完都可單獨合併；UI 放第三層（取代 Step 1「UI 這週一起改」的決定）。全部估約 7.5–8.5 天，不含重跑與評估（依 Codex 重試紀錄補了 Step 8 第 8–12 點，多半天）。
 
 | 層 | 工作 | 對應步驟 | 估時 |
 |---|---|---|---|
-| **第一層：重跑最低需求** | ① 查證修正：文件身分、白名單、每案紀錄、第一二層比對、`verify_prompt.txt` | Step 8 | 1 天 |
+| **第一層：重跑最低需求** | ① 查證修正：文件身分、白名單、每案紀錄、第一二層比對、`verify_prompt.txt`、`version_unverified`、`verify-gate`、自動重試、`record-verification`、落地時檢查法規 | Step 8 | 1.5 天 |
 | | ② 案件欄位、`role-view`（事實編號、去 `source_note`）、程序別警示；**不含 UI** | Step 1 | 半天 |
 | | ③ items、`internal_notes`、`precedent_notes`、狀態轉移與撤回檢查、程式摘要、三準則 | Step 2、4、5 | 1.5 天 |
 | | ④ 法官 `question_type`、`prep_items`、`issues`、「自承」檢查 | Step 3 | 半天 |
 | | ⑤ 錨點改寫（`defeat_conditions`、`pending`、`status_changes`、`citation_set_change`） | Step 6 | 半天 |
 | | ⑥ 評估只改約束、覆蓋檢查、「待確認」字眼檢查；表格留第二層 | Step 7 一部分 | 半天 |
-| | ⑦ 9A 素材與字樣檢查、依代理方決定產出 | Step 9 一部分 | 半天 |
-| | ⑧ `SKILL.md` 改寫；pytest 全過；重跑 real-002 並依指標評估 | 驗證計畫 | 半天＋重跑 |
+| | ⑦ 9A 素材與字樣檢查（含「對造」與流程用語）、引用格式檢查、001 起訴狀固定測試、依代理方決定產出 | Step 9 一部分 | 半天 |
+| | ⑧ `SKILL.md` 改寫；pytest 全過；real-002 輸入轉換與調度設定；重跑並依指標評估 | 驗證計畫 | 半天＋重跑 |
 | **第二層** | 逐爭點表格與參考等級；金額明細；`report` 指令 | Step 7、9、10 | 1.5–2 天 |
 | **第三層** | UI：建案表單、總覽、評估表格、改名、引述帶出原文、書狀選項 | Step 1、6、7、9、10 | 1.5 天 |
 
