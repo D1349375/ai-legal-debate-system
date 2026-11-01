@@ -77,6 +77,26 @@ def test_matched_sentences_finds_phrase_split_by_line_wrap():
     assert jt.matched_sentences(JUDGMENT, [" "]) == []
 
 
+def test_statute_keyword_matches_listed_article_without_repeated_law_name():
+    text = "上訴人爰依民法第28條、第184條第1項前段請求。另依民法第18條規定。"
+    assert jt.matched_sentences(text, ["民法第184條"], names=NAMES) == ["上訴人爰依民法第28條、第184條第1項前段請求。"]
+    assert jt.matched_sentences(text, ["民法第1條"], names=NAMES) == []
+
+
+@pytest.mark.parametrize("zh,arabic", [
+    ("第一百八十四條", "第184條"), ("第二百四十五條之一", "第245條之1"), ("第十條", "第10條"),
+    ("第二十條", "第20條"), ("第一千二百二十三條", "第1223條"), ("第一百零五條", "第105條"),
+])
+def test_chinese_numeral_article_numbers(zh, arabic):
+    assert jt._arabic_citations(zh) == arabic
+
+
+def test_old_judgment_with_chinese_numerals_is_parsed_and_matched():
+    text = "按民法第一百八十四條第一項前段規定，又同法第二百十六條之損害賠償範圍。"
+    assert jt.cited_statutes(text, NAMES)[0] == ["民法第184條", "民法第216條"]
+    assert jt.matched_sentences(text, ["民法第216條"], names=NAMES) == [text]
+
+
 def test_local_corpus_flatten_keeps_every_character():
     files = sorted(glob.glob("corpus/judgments/*.txt"))
     assert len(files) > 1000

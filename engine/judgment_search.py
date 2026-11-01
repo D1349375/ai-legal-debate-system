@@ -18,6 +18,7 @@ from engine import fjud, judgment_text
 MAX_PAGES = 5
 MAX_FETCH = 10
 VERIFIABLE_PREFIX = "TPSV,"
+SORTS = {'size': fjud.SORT_SIZE, 'date': fjud.SORT_DATE}
 NETWORK_ERRORS = (urllib.error.URLError, TimeoutError, ssl.SSLError, ConnectionError, OSError)
 
 
@@ -27,7 +28,7 @@ def _check_date(value, label):
 
 
 def search_judgments(keywords=(), case_cause=None, date_from=None, date_to=None, pages=2, fetch=0,
-                     include_rulings=False, min_size_kb=None, save_dir=None, timeout=fjud.DEFAULT_TIMEOUT):
+                     include_rulings=False, min_size_kb=None, sort='date', save_dir=None, timeout=fjud.DEFAULT_TIMEOUT):
     """→ {'query', 'fetched_at', 'total', 'page_count', 'pages_read', 'rows', 'unverifiable', 'saved_to'}。
 
     搜尋本身連線失敗時拋出網路例外；抓個別全文失敗只記在該列 fetch_error，不丟掉已取得的列表。
@@ -41,13 +42,15 @@ def search_judgments(keywords=(), case_cause=None, date_from=None, date_to=None,
         raise ValueError(f"全文份數須介於 0～{MAX_FETCH}")
     _check_date(date_from, "起始日期")
     _check_date(date_to, "結束日期")
+    if sort not in SORTS:
+        raise ValueError("排序須為 size 或 date")
 
     session = fjud.Session(timeout)
     query = {'keywords': keywords, 'case_cause': case_cause, 'date_from': date_from, 'date_to': date_to,
              'pages': pages, 'fetch': fetch, 'include_rulings': include_rulings, 'min_size_kb': min_size_kb,
-             'court': '最高法院', 'category': '民事'}
+             'sort': sort, 'court': '最高法院', 'category': '民事'}
     result = fjud.advanced_search(keywords, case_cause=case_cause, date_from=date_from, date_to=date_to,
-                                  pages=pages, min_size_kb=min_size_kb, session=session)
+                                  pages=pages, min_size_kb=min_size_kb, sort=SORTS[sort], session=session)
     rows = result['rows']
     for row in rows:
         row['verifiable'] = row['jid'].startswith(VERIFIABLE_PREFIX)

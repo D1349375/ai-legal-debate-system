@@ -23,6 +23,27 @@ PROCEDURAL_BOILERPLATE = {
 _CITATION = re.compile(r'第(\d+)條(?:之(\d+))?')
 # 「民事訴訟法第467條、第469條之1」：與前一條之間只隔項款與連接詞時，沿用前一條的法規名。
 _LISTED_AFTER = re.compile(r'(?:第\d+項|第\d+款|第\d+目|前段|後段|但書|本文|[、及與暨或])+')
+_STATUTE_KEY = re.compile(r'.+第\d+條(?:之\d+)?')
+# 約 2015 年以前的裁判用中文數字寫條號(「民法第一百八十四條」)，FJUD 搜尋認得，解析前先換成阿拉伯數字。
+_ZH_DIGITS = {'〇': 0, '零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+_ZH_UNITS = {'十': 10, '百': 100, '千': 1000}
+_ZH_CITATION = re.compile(r'第([〇零一二三四五六七八九十百千]+)條(?:之([〇零一二三四五六七八九十]+))?')
+
+
+def _zh_number(text):
+    total, digit = 0, None
+    for ch in text:
+        if ch in _ZH_DIGITS:
+            digit = _ZH_DIGITS[ch]
+        else:
+            total += (1 if digit is None else digit) * _ZH_UNITS[ch]
+            digit = None
+    return total + (digit or 0)
+
+
+def _arabic_citations(text):
+    """「第一百八十四條之一」→「第184條之1」；只換條號，不動其他文字。"""
+    return _ZH_CITATION.sub(lambda m: f"第{_zh_number(m.group(1))}條" + (f"之{_zh_number(m.group(2))}" if m.group(2) else ''), text)
 _DEFINED_ALIAS = re.compile(r'([^，。；（）]{2,30}?)（下稱([^，。；（）]{2,12})）')
 _TRAILING_PAREN = re.compile(r'（[^（）]{0,15}）$')
 
@@ -76,7 +97,7 @@ def cited_statutes(text, names=None):
     「同法第N條」還原為前一個法規名。names 為 law_names() 的對照表，批次處理時由呼叫端傳入以免重複載入。
     """
     names = dict(law_names() if names is None else names)
-    flat = _WHITESPACE.sub('', text or '')
+    flat = _arabic_citations(_WHITESPACE.sub('', text or ''))
     # 「公平交易法（下稱修正前公平法）第31條」：括號內定義的簡稱之後也會單獨出現，先登記成別名。
     for m in _DEFINED_ALIAS.finditer(flat):
         law = _longest_name(m.group(1), names)
@@ -104,15 +125,32 @@ def cited_statutes(text, names=None):
     return substantive, boilerplate
 
 
-def matched_sentences(text, keywords, limit=3):
-    """→ 含任一關鍵字的句子(整理後全文的整行)，最多 limit 句。"""
+def matched_sentences(text, keywords, limit=3, names=None):
+    """→ 含任一關鍵字的句子(整理後全文的整行)，最多 limit 句。
+
+    法條關鍵字(如「民法第184條」)另比對句中解析出的法條，才找得到「民法第28條、第184條第1項」這種
+    並列寫法與「民法第一百八十四條」這種中文數字寫法；FJUD 本身會命中這兩種寫法，只比字面會誤以為判決
+    沒提到該條(2026-11-01 評估：依日期排序 8/59 份、依篇幅排序 19/60 份)。
+    """
     keys = [_WHITESPACE.sub('', k) for k in keywords if k and k.strip()]
     if not keys:
         return []
-    return [line for line in flatten(text).splitlines() if any(k in line for k in keys)][:limit]
+    statute_keys = [k for k in keys if _STATUTE_KEY.fullmatch(k)]
+    if statute_keys and names is None:
+        names = law_names()
+
+    def hit(line):
+        if any(k in line for k in keys):
+            return True
+        if statute_keys and (_CITATION.search(line) or _ZH_CITATION.search(line)):
+            substantive, boilerplate = cited_statutes(line, names)
+            return any(k in substantive or k in boilerplate for k in statute_keys)
+        return False
+    return [line for line in flatten(text).splitlines() if hit(line)][:limit]
 
 
 def summarize(text, keywords=(), names=None):
+    names = law_names() if names is None else names
     doc_type = document_type(text)
     main = disposition(text)
     statutes, boilerplate = cited_statutes(text, names)
@@ -122,5 +160,5 @@ def summarize(text, keywords=(), names=None):
         'procedural_only': is_procedural(doc_type, main),
         'statutes': statutes,
         'procedural_statutes': boilerplate,
-        'matched_sentences': matched_sentences(text, keywords),
+        'matched_sentences': matched_sentences(text, keywords, names=names),
     }

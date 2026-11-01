@@ -92,8 +92,13 @@ def _submit(session, form_page, fields):
     return m.group(1) if m else None
 
 
-def _list_url(token, page):
-    return f"{FJUD_BASE}/qryresultlst.aspx?ty=JUDBOOK&q={token}" + (f"&sort=DS&page={page}" if page > 1 else "")
+SORT_DATE = "DS"   # 裁判日期新到舊(官網預設)
+SORT_SIZE = "KG"   # 裁判大小大到小：長篇多為實體判決，短篇多為程序裁定(2026-11-01 評估)
+
+
+def _list_url(token, page, sort=SORT_DATE):
+    base = f"{FJUD_BASE}/qryresultlst.aspx?ty=JUDBOOK&q={token}"
+    return base if page == 1 and sort == SORT_DATE else f"{base}&sort={sort}&page={page}"
 
 
 def simple_search(query, timeout=DEFAULT_TIMEOUT):
@@ -137,11 +142,12 @@ def _roc_date_fields(prefix_year, prefix_month, prefix_day, iso_date):
 
 
 def advanced_search(keywords=(), case_cause=None, date_from=None, date_to=None, pages=2, citation=None,
-                    min_size_kb=None, court=SUPREME_COURT, category=CIVIL, timeout=DEFAULT_TIMEOUT, session=None):
+                    min_size_kb=None, sort=SORT_DATE, court=SUPREME_COURT, category=CIVIL,
+                    timeout=DEFAULT_TIMEOUT, session=None):
     """進階搜尋 → {'total', 'page_count', 'pages_read', 'rows'}。
 
     date_from/date_to 為 YYYY-MM-DD(西元)；citation 為 (年度, 字別, 號次)，如 ('111', '台上', '1069')；
-    min_size_kb 為裁判內容大小下限(列表上的「（11K）」)。
+    min_size_kb 為裁判內容大小下限(列表上的「（11K）」)；sort 為 SORT_DATE 或 SORT_SIZE。
     """
     session = session or Session(timeout)
     fields = {"judtype": "JUDBOOK", "whosub": "1", "jud_court": court, "jud_sys": category,
@@ -158,10 +164,10 @@ def advanced_search(keywords=(), case_cause=None, date_from=None, date_to=None, 
     token = _submit(session, "Default_AD.aspx", fields)
     if token is None:
         return {'total': 0, 'page_count': 0, 'pages_read': 0, 'rows': []}
-    first = parse_result_page(session.get(_list_url(token, 1), referer=f"{FJUD_BASE}/Default_AD.aspx"))
+    first = parse_result_page(session.get(_list_url(token, 1, sort), referer=f"{FJUD_BASE}/Default_AD.aspx"))
     rows, pages_read = list(first['rows']), 1
     for page in range(2, min(pages, first['page_count'] or 1) + 1):
-        rows += parse_result_page(session.get(_list_url(token, page), referer=_list_url(token, page - 1)))['rows']
+        rows += parse_result_page(session.get(_list_url(token, page, sort), referer=_list_url(token, page - 1, sort)))['rows']
         pages_read += 1
     return {'total': first['total'] if first['total'] is not None else len(rows),
             'page_count': first['page_count'] or 1, 'pages_read': pages_read, 'rows': rows}

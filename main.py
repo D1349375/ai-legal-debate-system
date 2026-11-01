@@ -409,12 +409,16 @@ def _iso(compact_date):
     return f"{compact_date[:4]}-{compact_date[4:6]}-{compact_date[6:]}" if compact_date and len(compact_date) == 8 else compact_date
 
 
+# 2026-11-01 評估：常見法條(民法第184、179、767條)單獨搜尋有五、六千筆，依日期排序的前兩頁只涵蓋約一個月。
+MANY_RESULTS = 200
+
+
 def cmd_search_judgments(args):
     from engine.judgment_search import NETWORK_ERRORS, search_judgments
     try:
         r = search_judgments(args.kw or (), case_cause=args.title, date_from=args.date_from, date_to=args.date_to,
                              pages=args.pages, fetch=args.fetch, include_rulings=args.include_rulings,
-                             min_size_kb=args.min_size, save_dir=args.save_dir)
+                             min_size_kb=args.min_size, sort=args.sort, save_dir=args.save_dir)
     except ValueError as error:
         print(str(error), file=sys.stderr)
         return 2
@@ -426,8 +430,12 @@ def cmd_search_judgments(args):
         return 0
     terms = "、".join(f"「{k}」" for k in r["query"]["keywords"])
     scope = "；".join(filter(None, [f"全文 {terms}" if terms else "", f"案由「{args.title}」" if args.title else ""]))
-    print(f"最高法院民事裁判｜{scope}｜共 {r['total']} 筆，讀取 {r['pages_read']}/{r['page_count']} 頁（{len(r['rows'])} 筆）")
+    order = "裁判大小大到小" if args.sort == "size" else "裁判日期新到舊"
+    print(f"最高法院民事裁判｜{scope}｜共 {r['total']} 筆，讀取 {r['pages_read']}/{r['page_count']} 頁（{len(r['rows'])} 筆，{order}）")
     print(f"查詢時間 {r['fetched_at']}；來源 司法院裁判書查詢系統")
+    if r["total"] > MANY_RESULTS and args.sort == "date":
+        print(f"結果超過 {MANY_RESULTS} 筆，依日期排序時前幾頁只涵蓋最近幾個月；建議加要件詞縮小範圍，"
+              "或改用 --sort size 找長篇實體判決。")
     if r["unverifiable"]:
         print(f"其中 {r['unverifiable']} 筆不是最高法院民事字號（TPSV），查證引擎不支援，標為「不可引用」。")
     for i, row in enumerate(r["rows"], 1):
@@ -581,6 +589,8 @@ def main():
     p.add_argument("--fetch", type=int, default=0, help="抓前幾份判決全文並整理(上限 10)")
     p.add_argument("--include-rulings", action="store_true", help="抓全文時也包含裁定(預設只抓判決)")
     p.add_argument("--min-size", type=int, help="裁判內容大小下限(K)，用來濾掉短篇程序裁定")
+    p.add_argument("--sort", choices=("date", "size"), default="date",
+                   help="date=裁判日期新到舊(預設)；size=裁判大小大到小，長篇多為實體判決，但全文較長且年代較舊")
     p.add_argument("--save-dir", help="把查詢結果與抓到的全文存到此資料夾")
     p.add_argument("--json", action="store_true", help="輸出結構化結果")
     p.set_defaults(fn=cmd_search_judgments)

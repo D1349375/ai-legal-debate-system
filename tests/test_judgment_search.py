@@ -82,8 +82,22 @@ def test_invalid_requests_are_rejected_before_connecting(fake_fjud, kwargs, mess
 
 def args(**overrides):
     base = dict(kw=["締約上過失"], title=None, date_from=None, date_to=None, pages=1, fetch=1,
-                include_rulings=False, min_size=None, save_dir=None, json=False)
+                include_rulings=False, min_size=None, sort="date", save_dir=None, json=False)
     return argparse.Namespace(**{**base, **overrides})
+
+
+def test_size_sort_is_passed_to_fjud_and_invalid_sort_rejected(fake_fjud):
+    js.search_judgments(["締約上過失"], sort="size")
+    assert fake_fjud["search"][-1][1]["sort"] == fjud.SORT_SIZE
+    with pytest.raises(ValueError, match="排序"):
+        js.search_judgments(["締約上過失"], sort="relevance")
+
+
+def test_cli_suggests_narrowing_when_date_sorted_results_are_many(fake_fjud, monkeypatch, capsys):
+    original = fjud.advanced_search
+    monkeypatch.setattr(fjud, "advanced_search", lambda kw, **k: {**original(kw, **k), "total": 6239})
+    main.cmd_search_judgments(args(fetch=0))
+    assert "建議加要件詞縮小範圍" in capsys.readouterr().out
 
 
 def test_cli_text_output_marks_unverifiable_and_shows_fetched_details(fake_fjud, capsys):
