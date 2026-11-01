@@ -16,7 +16,7 @@
     plaintiff: { label: "起訴狀(原告)", title: "民事起訴狀", short: "起訴狀",
       lede: "骨架版：僅套用司法院官方起訴狀結構，直接帶入原告方攻防結果原文，尚未經法律用語潤飾。" },
     defendant: { label: "答辯狀(被告)", title: "民事答辯狀", short: "答辯狀",
-      lede: "骨架版：本機沒有司法院官方答辯狀範本，結構依民事訴訟法第116條、第266條第2項的書狀應記載事項整理，直接帶入被告方攻防結果原文，尚未經法律用語潤飾。" },
+      lede: "骨架版：本機沒有司法院官方答辯狀範本，結構依民事訴訟法第116條、第266條第2項的書狀應記載事項整理，直接帶入被告方攻防結果原文，尚未經法律用語潤飾。模擬答辯：回應的是系統模擬的原告主張，不是實際起訴狀，只能用來預想防禦。" },
   };
 
   var TABS = [
@@ -44,6 +44,7 @@
     verification_failed: { cls: "warn", icon: "⏱", label: "無法完成查證" },
     unparseable: { cls: "warn", icon: "?", label: "無法解析" },
     unknown_law: { cls: "warn", icon: "?", label: "法規不在查證範圍" },
+    version_unverified: { cls: "warn", icon: "?", label: "舊版條文,版本未查證" },
   };
   function statusLabel(status) { return (STATUS[status] && STATUS[status].label) || status; }
   var VIA = {
@@ -657,6 +658,7 @@
     return [
       panelHead("攻防過程", provChip(d.arguments),
         "協議：起訴審查(依商工登記命補正) → Stage 1 雙方獨立盲判(原告一併補正) → 法官依 Stage 1 訊問(含補正不足之追問) → Stage 2 訊問攻防 → Stage 3 辯論終結。除標示「規則產生」的起訴審查事項外，以下皆為資料庫已落地的原文。"),
+      banner("warn", "!", "雙方論證都是 AI 依輸入資料模擬，不是當事人或對方律師的實際主張。"),
       proceduralBlock(d),
       stageGroup(d, 1, "Stage 1 — 爭點整理(雙方獨立盲判，互相看不到對方輸出)", idx),
       questionsBlock(d),
@@ -685,7 +687,7 @@
     return h("div", { class: "drift-row" },
       h("div", { class: "drift-label" }, sideChip(side), h("span", { class: "drift-value", text: has ? dd.ratio.toFixed(4) + "(" + pct(dd.ratio) + ")" : "無法計算" })),
       has ? [
-        h("div", { class: "drift-track", role: "img", "aria-label": SIDE[side].label + "位移度 " + pct(dd.ratio) },
+        h("div", { class: "drift-track", role: "img", "aria-label": SIDE[side].label + "引用清單差異 " + pct(dd.ratio) },
           h("div", { class: "drift-fill " + side, style: "width:" + (dd.ratio * 100) + "%" })),
         h("div", { class: "drift-formula", text: "Jaccard 距離 = 1 − |交集| ÷ |聯集| = 1 − " + dd.intersection + "/" + dd.union + " = " + dd.ratio }),
         h("div", { class: "drift-sets" },
@@ -699,12 +701,12 @@
     var run = runsFor(d.case.case_id);
     var ready = d.progress.filter(function (s) { return s.key === "finalize"; })[0].state === "ready";
     var out = [
-      panelHead("機械死穴彙整與立場位移", null,
-        "本頁不呼叫任何 AI 模型，只用固定規則計算：弱點取雙方最後階段自陳的讓步條件；立場位移以雙方前後階段引用的法條/判例集合差異量化。法官的評估不得偏離這裡算出的結果。"),
+      panelHead("讓步條件與引用清單差異", null,
+        "本頁不呼叫 AI。讓步條件是雙方自己寫的假設句，原樣列出，不代表系統判定弱點。引用清單差異只比較前後階段引用的法條與判決，不代表立場變化。"),
       h("div", { class: "controls" },
         h("button", { class: "btn primary", type: "button", disabled: !ready || run.finalizing ? true : null, onclick: runFinalize },
           h("span", { class: "ico", "aria-hidden": "true", text: "▶" }), run.finalizing ? "計算中…" : (run.finalize ? "重新計算一次" : "執行彙整計算")),
-        ready ? h("span", { class: "detail-note", text: "系統會重新計算一次弱點彙整與立場位移，不會更動任何已存資料。" })
+        ready ? h("span", { class: "detail-note", text: "系統會重新彙整一次讓步條件與引用清單差異，不會更動任何已存資料。" })
           : h("span", { class: "detail-note", text: "須雙方皆完成 Stage 3 才能執行" })),
     ];
     var f = run.finalize;
@@ -715,19 +717,19 @@
     if (f.error) { out.push(banner("bad", "✗", [h("strong", { text: "執行失敗" }), "：" + f.error])); return out; }
     var r = f.result;
     out.push(banner("ok", "⚡", [h("strong", { text: "剛剛由系統即時計算" }), "(" + f.at.toLocaleTimeString("zh-TW") + "，耗時 " + r.elapsed_ms + " ms；來源為資料庫中的 Stage 1／Stage 3 落地紀錄)"]));
-    out.push(h("div", { class: "section-title", text: "弱點彙整" }));
+    out.push(h("div", { class: "section-title", text: "雙方讓步條件" }));
     out.push(h("div", { class: "weak-grid" }, r.weak_points.map(function (w, i) {
       return h("div", { class: "weak-card " + w.side },
         h("div", { class: "arg-head" }, sideChip(w.side, SIDE[w.side].label + "方讓步條件"), h("span", { class: "weak-rank", text: "排序 " + (i + 1) })),
         h("div", { class: "weak-text prewrap", text: w.falsifier || "(該方未提供讓步條件)" }),
         w.response_excerpt ? h("div", { style: "margin-top:10px" }, fold("該方 Stage 3 推理全文", paragraphs(w.response_excerpt))) : null);
     })));
-    out.push(card("立場位移", [
+    out.push(card("引用清單差異", [
       driftRow("plaintiff", r.drift_detail.plaintiff), driftRow("defendant", r.drift_detail.defendant),
-      h("p", { class: "detail-note", text: "0 = 兩階段引用集合完全相同，1 = 完全不重疊。以引用的法條/判例集合為代理指標，不代表論述語意的變化幅度。" })]));
+      h("p", { class: "detail-note", text: "0 = 兩階段引用集合完全相同，1 = 完全不重疊。只看引用的法條與判決，不代表立場或論述的變化。" })]));
     var pi = r.procedural_issues;
     if (pi) out.push(card("程序事項(官方事實層)", [
-      h("p", { class: "detail-note", text: "依案件最新的商工查核結果，以固定規則轉換，與弱點、立場位移一起寫入評估錨點；法官評估須先處理 ✗ 等級的程序事項。" }),
+      h("p", { class: "detail-note", text: "依案件最新的商工查核結果，以固定規則轉換，與讓步條件、引用清單差異一起寫入評估紀錄；法官評估須先處理 ✗ 等級的程序事項。" }),
       pi.issues.length ? h("div", { class: "chip-row" }, pi.issues.map(function (i) {
         return chip(i.level, (i.level === "bad" ? "✗ " : "! ") + SIDE[i.party_role].label + "・" + i.kind);
       })) : h("div", { class: "detail-note", text: "已查核的當事人沒有觸發程序規則。" }),
@@ -842,7 +844,7 @@
       stat(results.length ? String(count(function (r) { return r.status === "published"; })) : "—", "✓ 已查證通過", "ok"),
       stat(results.length ? String(count(function (r) { return r.status === "local_cache_only"; })) : "—", "◐ 僅本地快取(未比對官方)", "warn"),
       stat(results.length ? String(count(function (r) { return r.status === "not_found"; })) : "—", "✗ 確認查無", "bad"),
-      stat(results.length ? String(count(function (r) { return ["verification_failed", "unparseable", "unknown_law"].indexOf(r.status) >= 0; })) : "—", "⏱ 無法完成查證／無法解析", "warn"));
+      stat(results.length ? String(count(function (r) { return ["verification_failed", "unparseable", "unknown_law", "version_unverified"].indexOf(r.status) >= 0; })) : "—", "⏱ 無法完成查證／無法解析", "warn"));
 
     var out = [head, controls, tiles];
     if (v.notice) out.push(banner("warn", "!", [h("strong", { text: "網路狀態" }), "：" + v.notice]));
@@ -884,9 +886,10 @@
     var head = panelHead("法官爭點強弱評估", v ? originChip(v.origin) : null,
       "評估的用途是協助律師決定訴狀火力與蒐證優先順序，不是預測法院會怎麼判。以下為法官角色落地的原文。");
     if (!v) return [head, emptyState("此案件尚未落地爭點強弱評估。")];
+    var oldRules = v.protocol_version === "v1-2026-08-07" ? banner("warn", "!", "這份評估在舊規則下產生，當時要求法官不得偏離彙整結果。文中的「錨點」「自承」不代表系統判定，請對照原文。") : null;
     var risk = v.risk_map || {};
     var list = function (items) { return h("ul", { class: "risk-list" }, (items || []).map(function (t) { return h("li", { text: t }); })); };
-    var out = [head,
+    var out = [head, oldRules,
       card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "落地 " + fmtTime(v.created_at))),
       card("評估理由", paragraphs(delabelJargon(v.verdict_reasoning))),
       proceduralRiskCard(d),
@@ -903,9 +906,9 @@
     if (!p || !p.issues.length) return null;
     var c = p.coverage.verdict;
     return card("程序風險(官方事實層，規則產生)", [
-      c === "included" ? banner("ok", "✓", "本評估落地時，機械錨點已含下列程序事項，法官角色須先處理程序再談實體。")
+      c === "included" ? banner("ok", "✓", "本評估落地時，彙整資料已含下列程序事項，法官角色須先處理程序再談實體。")
         : c === "not_included" ? banner("warn", "!", [h("strong", { text: "本評估錄製於程序事項串接之前" }),
-          "：落地時的機械錨點沒有程序事項，上方評估文字未處理下列風險。下列內容由規則依最新商工查核即時產生，不是法官角色的評估。"]) : null,
+          "：落地時的彙整資料沒有程序事項，上方評估文字未處理下列風險。下列內容由規則依最新商工查核即時產生，不是法官角色的評估。"]) : null,
       p.issues.map(function (i) { return procIssueItem(i, d, false); })]);
   }
 
@@ -915,8 +918,8 @@
     if (!a.consistent) return banner("bad", "✗", [h("strong", { text: "與落地時的計算結果不一致" }), "：" + a.differences.join("；")]);
     if (a.minor_differences.length) {
       return banner("warn", "!", [
-        h("strong", { text: "位移數值一致，但讓步條件文字有細微出入" }),
-        "。落地時記錄的立場位移，與現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")；但 " +
+        h("strong", { text: "引用清單差異一致，但讓步條件文字有細微出入" }),
+        "。落地時記錄的引用清單差異，與現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")；但 " +
         a.minor_differences.map(function (m) { return m.note; }).join("；") + "。",
         a.minor_differences.map(function (m) {
           return fold("查看" + SIDE[m.side].label + "方文字差異", [
@@ -926,7 +929,7 @@
       ]);
     }
     return banner("ok", "✓", [h("strong", { text: "與落地時的計算結果一致" }),
-      "：落地時記錄的立場位移與弱點，跟現在重新計算的結果完全相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")。"]);
+      "：落地時記錄的引用清單差異與讓步條件，跟現在重新計算的結果完全相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")。"]);
   }
 
   // ───────────── 分頁：訴狀骨架 ─────────────
@@ -942,8 +945,8 @@
     [/LegalDebate\s*系統\s*Stage\s*3/gi, "系統攻防推演最終階段"],
     [/position\/reasoning\s*原文/gi, "主張與理由原文"],
     [/position\s*\+\s*reasoning/gi, "主張與理由"],
-    [/position_drift/gi, "立場位移度"],
-    [/weak_points?/gi, "弱點清單"],
+    [/position_drift/gi, "引用清單差異"],
+    [/weak_points?/gi, "雙方讓步條件"],
     [/\bfalsifier\b/gi, "讓步條件"],
     [/\bplaintiff\b/gi, "原告方"],
     [/\bdefendant\b/gi, "被告方"],
@@ -1003,7 +1006,7 @@
         if (i < titleIdx) return ln.trim() ? h("div", { class: "pl-line", text: ln }) : null;
         if (i === titleIdx) return [
           h("div", { class: "pl-title", text: ln.replace(/[（(][\s\S]*[）)]\s*$/, "").trim() || doc.title }),
-          h("div", { class: "pl-subtitle", text: system ? "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" : "律師編輯版．須經律師審核後使用" }),
+          h("div", { class: "pl-subtitle", text: (system ? "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" : "律師編輯版．須經律師審核後使用") + (v.side === "defendant" ? "．模擬答辯，非針對實際起訴狀" : "") }),
         ];
         var headLine = /^(訴之聲明|答辯聲明|事實及理由|證物名稱及件數|為.*事[：:])/.test(ln);
         if (!ln.trim()) return h("div", { class: "pl-gap", "aria-hidden": "true" });
@@ -1137,6 +1140,8 @@
     if (ed) { out.push(pleadingEditor(d, ed)); return out; }
     var note = v.source === "system" ? splitDraftNote(v.draft_text).note : null;
     out.push(versionBanner(v, d),
+      v.lint_warnings && v.lint_warnings.length ? banner("warn", "!", [h("strong", { text: "書狀正文含模擬流程用語" }),
+        "：" + v.lint_warnings.map(function (w) { return w.word + "×" + w.count; }).join("、") + "。不阻擋匯出，請律師確認是否要刪改。"]) : null,
       h("div", { class: "controls" },
         h("button", { class: "btn", type: "button", disabled: busy ? true : null, text: "✎ 編輯為新版本",
           onclick: function () { delete state.pleadingNotice[id]; state.pleadingEdit[id] = { parentId: v.id, text: editableText(v), busy: false, error: null }; renderPanel(); } }),

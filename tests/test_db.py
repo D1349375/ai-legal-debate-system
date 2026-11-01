@@ -56,3 +56,11 @@ class TestUpsertCitationNormalizedMatching:
                          source_type="statute", status="draft")
         with pytest.raises(ValueError, match="拒絕落地"):
             _assert_all_published(session, ["民法第129條"])
+
+
+class TestHistoricalStatuteGate:
+    def test_current_record_does_not_release_historical_citation(self, session):
+        upsert_citation(session, citation_text="民法第205條", source_type="statute", status="published")
+        _assert_all_published(session, ["民法第205條"])
+        with pytest.raises(ValueError, match="108年民法第205條"):
+            _assert_all_published(session, ["108年民法第205條"])

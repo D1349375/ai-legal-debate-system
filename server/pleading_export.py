@@ -15,8 +15,8 @@ TEXT_JARGON = [
     (r"LegalDebate\s*系統\s*Stage\s*3", "系統攻防推演最終階段"),
     (r"position/reasoning\s*原文", "主張與理由原文"),
     (r"position\s*\+\s*reasoning", "主張與理由"),
-    (r"position_drift", "立場位移度"),
-    (r"weak_points?", "弱點清單"),
+    (r"position_drift", "引用清單差異"),
+    (r"weak_points?", "雙方讓步條件"),
     (_A + r"falsifier" + _Z, "讓步條件"),
     (_A + r"plaintiff" + _Z, "原告方"),
     (_A + r"defendant" + _Z, "被告方"),
@@ -28,6 +28,11 @@ TEXT_JARGON = [
 TEXT_JARGON = [(re.compile(p, re.I), r) for p, r in TEXT_JARGON]
 NOTE_START = re.compile(r"-{2,}\s*\n\s*(?=【)|【(?:骨架版聲明|本稿產出說明)")
 SUBTITLE = "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用"
+DEFENSE_SUBTITLE = SUBTITLE + "．模擬答辯，非針對實際起訴狀"
+# 模擬流程用語不該出現在書狀正文。只警告不阻擋：律師可能合法引述被告在存證信函等處的說法。
+_FLOW_WORDS = r"stage|輪次|前輪|法官訊問|訊問攻防|本方|對造"
+_LINT = {"plaintiff": re.compile(r"被告主張|被告抗辯|被告自承|被告或將|" + _FLOW_WORDS, re.I),
+         "defendant": re.compile(_FLOW_WORDS, re.I)}  # 答辯狀本來就要寫「原告主張」
 
 
 def delabel_jargon(text):
@@ -39,6 +44,15 @@ def delabel_jargon(text):
 def split_draft_note(text):
     m = NOTE_START.search(text)
     return (text[:m.start()], text[m.start():]) if m else (text, None)
+
+
+def lint_pleading(draft_text, side="plaintiff"):
+    """回傳書狀正文(不含系統補充說明)命中的模擬用語與次數，依第一次出現的順序排列。"""
+    counts = {}
+    for hit in _LINT[side].findall(split_draft_note(draft_text)[0]):
+        word = "Stage" if hit.lower() == "stage" else hit
+        counts[word] = counts.get(word, 0) + 1
+    return [{"word": word, "count": count} for word, count in counts.items()]
 
 
 def clean_draft_note(raw):
@@ -59,5 +73,5 @@ def system_draft_for_export(draft_text, side="plaintiff"):
         title += 1
     lines[title] = re.sub(r"[（(][\s\S]*[）)]\s*$", "", lines[title]).strip() or (
         "民事答辯狀" if side == "defendant" else "民事起訴狀")
-    lines.insert(title + 1, SUBTITLE)
+    lines.insert(title + 1, DEFENSE_SUBTITLE if side == "defendant" else SUBTITLE)
     return "\n".join(lines), (clean_draft_note(note) or None) if note else None

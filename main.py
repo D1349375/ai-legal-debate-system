@@ -6,7 +6,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 用法:
   python main.py case     --json <file>                 案件輸入
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
-  python main.py finalize --case-id X                    機械死穴彙整+分歧統計+程序事項，印出判決錨點
+  python main.py finalize --case-id X                    機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
@@ -145,6 +145,10 @@ def cmd_pleading(args):
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地{PLEADING_LABEL[row.side]}草稿 {row.case_id}")
+    from server.pleading_export import lint_pleading
+    hits = lint_pleading(draft_text, row.side)
+    if hits:
+        print("警告:書狀正文含模擬流程用語,請確認:" + "、".join(f"{h['word']}×{h['count']}" for h in hits), file=sys.stderr)
     return 0
 
 
@@ -278,7 +282,7 @@ def main():
     p.add_argument("--json", required=True)
     p.set_defaults(fn=cmd_record)
 
-    p = sub.add_parser("finalize", help="機械死穴彙整+分歧統計，印出判決錨點")
+    p = sub.add_parser("finalize", help="機械彙整(雙方讓步條件+引用清單差異)，印出評估錨點")
     p.add_argument("--case-id", required=True)
     p.set_defaults(fn=cmd_finalize)
 

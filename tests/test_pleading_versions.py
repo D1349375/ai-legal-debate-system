@@ -5,12 +5,12 @@ from fastapi.testclient import TestClient
 from database.db import get_session, record_case, record_pleading, upsert_citation
 from database.schema import PleadingDraft
 from engine import verify as engine_verify
-from server import services
+from server import pleading_export, services
 from server.app import create_app
 
 LOCAL = "http://127.0.0.1:8000"
 DRAFT = "民事起訴狀\n訴之聲明\n一、被告應給付原告50萬元。\n事實及理由\n依民法第474條請求返還借款。\n【本稿產出說明】骨架版"
-FABRICATED = "最高法院105年度台簡上字第33號"
+NONEXISTENT = "最高法院105年度台上字第99999號"
 
 
 @pytest.fixture
@@ -121,10 +121,10 @@ class TestVersions:
         assert "律師在 UI 編輯後另存(基於 #1)" in exported and "民法第184條:已查證通過" in exported
 
     def test_failed_citation_blocks_export(self, client, calls):
-        v = save(client, DRAFT + f"\n參{FABRICATED}。").json()
+        v = save(client, DRAFT + f"\n參{NONEXISTENT}。").json()
         assert v["status"] == "blocked" and v["exportable"] is False and v["blocked_count"] == 1
         bad = [c for c in v["citation_check"] if c["gate"] != "pass"][0]
-        assert bad["citation_text"] == FABRICATED and bad["status"] == "not_found"
+        assert bad["citation_text"] == NONEXISTENT and bad["status"] == "not_found"
         r = client.get(f"/api/cases/c1/pleadings/{v['id']}/export")
         assert r.status_code == 409 and "未放行" in r.json()["detail"]
 
@@ -134,7 +134,7 @@ class TestVersions:
         v = save(client, DRAFT + "\n另依民法第184條及土地法第34條之1。").json()
         by = {c["citation_text"]: c for c in v["citation_check"]}
         assert by["民法第184條"]["status"] == "local_cache_only" and by["民法第184條"]["gate"] == "blocked"
-        assert by["土地法第34條之1"]["status"] == "unparseable" and "無法辨識" in by["土地法第34條之1"]["note"]
+        assert by["土地法第34條之1"]["status"] == "unknown_law" and "無法辨識" in by["土地法第34條之1"]["note"]
         assert v["blocked_count"] == 2 and not v["exportable"]
         # 網路恢復後重新查證：只重查未通過者；認不得的寫法仍不放行
         monkeypatch.setattr(engine_verify, "verify_statute_citation",
@@ -164,3 +164,29 @@ class TestVersions:
         assert remote.post("/api/cases/c1/pleadings", json={"parent_id": 1, "draft_text": DRAFT}).status_code == 403
         assert remote.post("/api/cases/c1/pleadings/1/reverify", json={}).status_code == 403
         assert remote.get("/api/cases/c1/pleadings/1/export").status_code == 200  # 匯出是唯讀
+
+
+class TestHistoricalStatuteInDraft:
+    def test_extract_keeps_version_prefix_and_separate_key(self):
+        found = services.extract_citations("依民法第205條,另依108年民法第205條。2026年3月1日依民法第184條。")
+        assert [c["citation_text"] for c in found] == ["民法第205條", "108年民法第205條", "民法第184條"]
+
+    def test_edit_to_historical_version_is_not_exportable(self, client, calls):
+        v = save(client, DRAFT.replace("民法第474條", "108年民法第474條")).json()
+        assert v["status"] == "blocked" and v["exportable"] is False
+        bad = [c for c in v["citation_check"] if c["gate"] != "pass"]
+        assert [c["status"] for c in bad] == ["version_unverified"]
+        assert client.get(f"/api/cases/c1/pleadings/{v['id']}/export").status_code == 409
+
+
+class TestLintAndLabel:
+    def test_version_reports_lint_without_blocking_export(self, client, calls):
+        v = save(client, "被告主張已清償,見存證信函。\n" + DRAFT).json()
+        assert v["lint_warnings"] == [{"word": "被告主張", "count": 1}]
+        assert v["exportable"] is True
+
+    def test_answer_export_is_labelled_as_simulated(self):
+        body, _ = pleading_export.system_draft_for_export("民事答辯狀\n答辯聲明", side="defendant")
+        assert "模擬答辯,非針對實際起訴狀".replace(",", "，") in body
+        body, _ = pleading_export.system_draft_for_export("民事起訴狀\n訴之聲明", side="plaintiff")
+        assert "模擬答辯" not in body

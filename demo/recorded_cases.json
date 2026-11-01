@@ -1,7 +1,7 @@
 {
  "_meta": {
   "format": "legaldebate-recorded-cases/1",
-  "exported_at": "2026-10-30T15:47:58Z",
+  "exported_at": "2026-10-31T17:34:11Z",
   "note": "資料庫已落地紀錄的原樣匯出(含原始 created_at)，非即時生成；內容由 Claude Code subagent 產生後經 record CLI 落地。"
  },
  "cases": [
@@ -1419,6 +1419,14 @@
    "status": "published",
    "primary_source_url": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=J0080001&flno=109",
    "verified_at": "2026-10-27T13:27:57Z",
+   "verifier_run_id": null
+  },
+  {
+   "citation_text": "最高法院105年度台簡上字第33號",
+   "source_type": "judgment",
+   "status": "published",
+   "primary_source_url": "https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=TPSV%2C105%2C%E5%8F%B0%E7%B0%A1%E4%B8%8A%2C33%2C20161026&ot=in",
+   "verified_at": "2026-10-31T17:34:10Z",
    "verifier_run_id": null
   }
  ],

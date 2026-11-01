@@ -29,8 +29,8 @@ from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
 from engine.verify import (
-    JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES, STATUTES_DIR,
-    parse_citation,
+    HISTORICAL_NOTE, HISTORICAL_PREFIX_RE, JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES,
+    STATUTES_DIR, is_historical_statute, multiple_documents_note, parse_citation,
 )
 
 SIDE_ORDER = {side: i for i, side in enumerate(VALID_SIDES)}
@@ -42,8 +42,9 @@ SIDE_ORDER = {side: i for i, side in enumerate(VALID_SIDES)}
 #   verification_failed  無法完成官方查證(網路逾時/離線/被略過)，既非通過也非查無
 #   unparseable          格式無法解析為法條或裁判字號
 #   unknown_law          法規不在查證引擎範圍
+#   version_unverified   引用舊版條文；查證引擎只比對現行條文，無法確認當時內容，不放行
 STATUSES = ("published", "local_cache_only", "not_found", "verification_failed",
-            "unparseable", "unknown_law")
+            "unparseable", "unknown_law", "version_unverified")
 
 _ALLOWED_SOURCE_HOSTS = ("https://law.moj.gov.tw/", "https://judgment.judicial.gov.tw/")
 
@@ -265,7 +266,7 @@ def _anchor_check(stored_anchor, arguments):
     for side in VALID_SIDES:
         label = "原告" if side == "plaintiff" else "被告"
         if stored_drift.get(side) != now[side]["ratio"]:
-            diffs.append(f"{label}立場位移度：落地時 {stored_drift.get(side)}，本次重新計算 {now[side]['ratio']}")
+            diffs.append(f"{label}引用清單差異：落地時 {stored_drift.get(side)}，本次重新計算 {now[side]['ratio']}")
         stored_f, now_f = stored_falsifiers.get(side), now_falsifiers.get(side)
         if stored_f != now_f:
             if _strip_parens(stored_f) == _strip_parens(now_f):
@@ -313,16 +314,21 @@ _LOOSE_JUDGMENT_RE = re.compile(r"[0-9０-９一二三四五六七八九十百]+
                                 r"[0-9０-９一二三四五六七八九十百千]+\s*號")
 _CUT_CHARS = "依按據及與並且另又同如即參照見項款目之第、，,"  # 法規名之前常見的連接字，截在最後一個之後
 UNRECOGNIZED_NOTE = ("系統無法辨識此引用寫法，無法查證；請改寫為「法規名第N條」或「最高法院N年度台X字第N號」"
-                     "(查證範圍限民法、民事訴訟法等 8 部法規與最高法院裁判)")
+                     "(查證範圍限民法、民事訴訟法等 11 部法規與最高法院裁判)")
 
 
 def extract_citations(text):
     """依出現順序列出草稿中的引用(同一法條/判決只列一次)。recognized=False 表示看起來像引用但查證引擎認不得。"""
     found, spans = [], []
-    for rx in (STATUTE_CITATION_RE, JUDGMENT_CITATION_RE):
-        for m in rx.finditer(text):
-            found.append((m.start(), m.group(0).strip(), True))
-            spans.append(m.span())
+    for m in STATUTE_CITATION_RE.finditer(text):
+        # 「108年民法第205條」要連版本一起列出，否則會被當成現行條文而借用它的查證紀錄
+        prefix = HISTORICAL_PREFIX_RE.search(text[max(0, m.start() - 12):m.start()])
+        start = m.start() - len(prefix.group(0)) if prefix else m.start()
+        found.append((start, text[start:m.end()].strip(), True))
+        spans.append((start, m.end()))
+    for m in JUDGMENT_CITATION_RE.finditer(text):
+        found.append((m.start(), m.group(0).strip(), True))
+        spans.append(m.span())
     for rx in (_LOOSE_STATUTE_RE, _LOOSE_JUDGMENT_RE):
         for m in rx.finditer(text):
             if any(m.start() < e and s < m.end() for s, e in spans):
@@ -336,7 +342,7 @@ def extract_citations(text):
             spans.append(m.span())
     out, seen = [], set()
     for _, t, ok in sorted(found):
-        key = _citation_key(t) if ok else ("unrecognized", t)
+        key = ("unrecognized", t) if not ok else ("historical", t) if is_historical_statute(t) else _citation_key(t)
         if key not in seen:
             seen.add(key)
             out.append({"citation_text": t, "recognized": ok, "key": key})
@@ -379,7 +385,8 @@ def pleading_version(row, lookup, origin):
             "label": ("系統產生版" if _is_system(row) else "律師編輯版") + f" #{row.id}",
             "generated_at": row.generated_at, "draft_text": row.draft_text, "origin": version_origin,
             "status": status, "citation_check": check, "blocked_count": len(blocked),
-            "exportable": status == "published" and not blocked}
+            "exportable": status == "published" and not blocked,
+            "lint_warnings": pleading_export.lint_pleading(row.draft_text, pleading_side(row))}
 
 
 def _verify_entries(session, citations, *, parent_keys, mode, timeout, recorded_checks, lookup):
@@ -491,7 +498,7 @@ def _progress(case_row, arguments, questions, verdict, pleadings, citations):
         {"key": "questions", "label": "法官訊問", "state": "done" if questions else "pending", "detail": f"{len(questions)} 則"},
         {"key": "stage2", "label": "Stage 2 訊問攻防", "state": state(sides(2), 2), "detail": f"{sides(2)}/2 方"},
         {"key": "stage3", "label": "Stage 3 辯論終結", "state": state(sides(3), 2), "detail": f"{sides(3)}/2 方"},
-        {"key": "finalize", "label": "機械死穴彙整", "state": "ready" if sides(3) >= 2 else "pending",
+        {"key": "finalize", "label": "機械彙整", "state": "ready" if sides(3) >= 2 else "pending",
          "detail": "可執行" if sides(3) >= 2 else "須雙方完成 Stage 3"},
         {"key": "verdict", "label": "法官爭點強弱評估", "state": "done" if verdict else "pending", "detail": ""},
         {"key": "verify", "label": "引用查證", "state": ("done" if citations and published == len(citations)
@@ -737,7 +744,7 @@ def party_search(keyword, *, timeout=6.0, scope="active"):
 # ───────────────────────── finalize ─────────────────────────
 
 def run_finalize(session, case_id):
-    """真實執行機械死穴彙整(engine.aggregate)，不寫入 DB。缺 Stage 3 時 raise ValueError。"""
+    """真實執行機械彙整(engine.aggregate)，不寫入 DB。缺 Stage 3 時 raise ValueError。"""
     started = time.perf_counter()
     result = finalize_case(session, case_id=case_id)
     arguments = [_arg_to_api(r) for r in session.query(DebateArgument).filter_by(case_id=case_id).all()]
@@ -774,14 +781,12 @@ def _local_statute(law_name, article_no):
     return {"text": cache["articles"][article_no], "law_file": law_file, "meta": cache["meta"]}
 
 
-def _local_judgment(jyear, jcase, jno):
+def _local_judgments(jyear, jcase, jno):
     prefix = f"TPSV,{jyear},{jcase},{jno},"
     if not os.path.isdir(JUDGMENTS_DIR):
-        return None
-    for name in os.listdir(JUDGMENTS_DIR):
-        if name.startswith(prefix) and name.endswith(".txt"):
-            return os.path.join(JUDGMENTS_DIR, name)
-    return None
+        return []
+    return [os.path.join(JUDGMENTS_DIR, name) for name in sorted(os.listdir(JUDGMENTS_DIR))
+            if name.startswith(prefix) and name.endswith(".txt")]
 
 
 def _classify_live_failure(reason):
@@ -828,6 +833,11 @@ def verify_one(session, citation_text, *, mode="auto", timeout=6.0, persist=True
         out["status"] = "unparseable"
         out["note"] = "無法解析為「法規第N條」或「最高法院N年度台X字第N號」格式"
 
+    elif is_historical_statute(text):
+        out["status"] = "version_unverified"
+        out["note"] = HISTORICAL_NOTE
+        out["previous_record"] = None  # 既有紀錄屬於現行條文，不是這個版本的查證結果
+
     elif parsed["type"] == "statute":
         law, art = parsed["law_name"], parsed["article_no"]
         if law not in STATUTE_PCODES:
@@ -864,12 +874,15 @@ def verify_one(session, citation_text, *, mode="auto", timeout=6.0, persist=True
 
     else:  # judgment
         jy, jc, jn = parsed["jyear"], parsed["jcase"], parsed["jno"]
-        local_path = _local_judgment(jy, jc, jn)
-        if local_path is not None:
+        local_paths = _local_judgments(jy, jc, jn)
+        if local_paths:
             out["status"] = "published"
             out["verified_via"] = "local_corpus"
-            out["local_file"] = _rel_corpus_path(local_path)
+            out["local_file"] = _rel_corpus_path(local_paths[0])
             out["note"] = "本地判決語料庫命中(司法院裁判書開放資料)，未連網"
+            if len(local_paths) > 1:
+                out["candidates"] = [_rel_corpus_path(p) for p in local_paths]
+                out["note"] += "；" + multiple_documents_note(len(local_paths))
         else:
             live = None
             if live_allowed:

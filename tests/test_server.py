@@ -13,7 +13,7 @@ from engine import verify as engine_verify
 from server import seed, services
 from server.app import create_app
 
-FABRICATED = "最高法院105年度台簡上字第33號"
+NONEXISTENT = "最高法院105年度台上字第99999號"
 
 
 def _arg(session, side, stage, statutes, precedents=None, falsifier="若對方補證據則讓步"):
@@ -41,11 +41,11 @@ def db_url(template_db, tmp_path):
 def _build_case_db(url):
     s = get_session(url)
     record_case(s, case_id="c1", case_type="消費借貸爭議", facts_summary="事實摘要", claims="請求")
-    _arg(s, "plaintiff", 1, ["民法第474條", "民法第478條"], [FABRICATED])
+    _arg(s, "plaintiff", 1, ["民法第474條", "民法第478條"], [NONEXISTENT])
     _arg(s, "defendant", 1, ["民法第144條"])
     record_question(s, case_id="c1", question_text="是否合意每坪75萬元?", target_side="defendant",
                     based_on="被告Stage1主張每坪75萬元")
-    _arg(s, "plaintiff", 2, ["民法第474條"], [FABRICATED, "最高法院115年度台簡上字第8號"])
+    _arg(s, "plaintiff", 2, ["民法第474條"], [NONEXISTENT, "最高法院115年度台簡上字第8號"])
     _arg(s, "defendant", 2, ["民法第144條", "民法第738條"])
     _arg(s, "plaintiff", 3, ["民法第474條", "民法第478條"])
     _arg(s, "defendant", 3, ["民法第144條", "民法第738條"])
@@ -105,14 +105,14 @@ class TestCases:
     def test_citation_inventory_and_db_status(self, client):
         cites = {c["citation_text"]: c for c in client.get("/api/cases/c1").json()["citations"]}
         assert cites["民法第474條"]["db_record"]["status"] == "published"
-        assert cites[FABRICATED]["db_record"] is None
-        assert cites[FABRICATED]["kind"] == "judgment"
-        assert {"side": "plaintiff", "stage": 2} in cites[FABRICATED]["used_by"]
+        assert cites[NONEXISTENT]["db_record"] is None
+        assert cites[NONEXISTENT]["kind"] == "judgment"
+        assert {"side": "plaintiff", "stage": 2} in cites[NONEXISTENT]["used_by"]
 
     def test_citation_changes_detect_withdrawal(self, client):
         changes = client.get("/api/cases/c1").json()["citation_changes"]
         p23 = next(c for c in changes if c["side"] == "plaintiff" and c["from_stage"] == 2)
-        assert set(p23["dropped"]) == {FABRICATED, "最高法院115年度台簡上字第8號"}
+        assert set(p23["dropped"]) == {NONEXISTENT, "最高法院115年度台簡上字第8號"}
         assert p23["added"] == ["民法第478條"]
 
     def test_anchor_check_is_consistent_with_recompute(self, client):
@@ -145,7 +145,7 @@ class TestCases:
         s.commit()
         s.close()
         check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
-        assert check["consistent"] is False and "原告立場位移度" in check["differences"][0]
+        assert check["consistent"] is False and "原告引用清單差異" in check["differences"][0]
 
     def test_pleading_citation_check_reparses_draft(self, client):
         checks = {c["citation_text"]: c for c in client.get("/api/cases/c1").json()["pleading"]["citation_check"]}
@@ -168,7 +168,7 @@ class TestFinalize:
         d = r["drift_detail"]["plaintiff"]
         assert r["position_drift"]["plaintiff"] == d["ratio"]
         assert d["ratio"] == round(1 - d["intersection"] / d["union"], 4) == 0.3333
-        assert d["dropped"] == [FABRICATED] and d["added"] == []
+        assert d["dropped"] == [NONEXISTENT] and d["added"] == []
         assert r["drift_detail"]["defendant"]["dropped"] == [] and r["drift_detail"]["defendant"]["added"] == ["民法第738條"]
 
     def test_incomplete_case_returns_409_with_reason(self, db_url, client):
@@ -235,27 +235,27 @@ class TestVerify:
         r = self._verify(client, ["民法第99999條"])[0]
         assert r["status"] == "not_found" and r["gate"] == "blocked"
 
-    def test_fabricated_judgment_online_is_not_found(self, client, monkeypatch):
+    def test_nonexistent_judgment_online_is_not_found(self, client, monkeypatch):
         monkeypatch.setattr(engine_verify, "verify_judgment_citation", lambda y, c, n, timeout: {
-            "status": "not_found", "fjud_query": "105年度台簡上字第33號", "fjud_raw_hits": ["TNDV,110,重訴,215"] * 3})
-        r = self._verify(client, [FABRICATED])[0]
+            "status": "not_found", "fjud_query": "105年度台上字第99999號", "fjud_raw_hits": ["TNDV,110,重訴,215"] * 3})
+        r = self._verify(client, [NONEXISTENT])[0]
         assert r["status"] == "not_found" and r["verified_via"] == "fjud_live"
         assert r["fjud_hit_count"] == 3 and r["gate"] == "blocked"
 
-    def test_fabricated_judgment_offline_is_unverifiable_not_not_found(self, client, monkeypatch):
+    def test_nonexistent_judgment_offline_is_unverifiable_not_not_found(self, client, monkeypatch):
         """離線時不得宣稱「查無」(沒查到 ≠ 查證過不存在)，也絕不可放行。"""
         monkeypatch.setattr(engine_verify, "verify_judgment_citation", lambda y, c, n, timeout: {
             "status": "verification_failed", "reason": "<urlopen error [Errno 11001] getaddrinfo failed>"})
-        r = self._verify(client, [FABRICATED])[0]
+        r = self._verify(client, [NONEXISTENT])[0]
         assert r["status"] == "verification_failed" and r["gate"] == "blocked"
         assert r["live_attempt"]["outcome"] == "network_error"
 
     def test_offline_mode_never_touches_network(self, client, no_network):
-        rs = self._verify(client, ["民法第197條", FABRICATED, "最高法院115年度台簡上字第8號"], mode="offline")
+        rs = self._verify(client, ["民法第197條", NONEXISTENT, "最高法院115年度台簡上字第8號"], mode="offline")
         by = {r["citation_text"]: r for r in rs}
         assert by["民法第197條"]["status"] == "local_cache_only"
         assert by["民法第197條"]["live_attempt"]["outcome"] == "skipped_offline_mode"
-        assert by[FABRICATED]["status"] == "verification_failed"
+        assert by[NONEXISTENT]["status"] == "verification_failed"
         assert by["最高法院115年度台簡上字第8號"]["status"] == "published"
 
     def test_skip_live_after_prior_failure(self, client, no_network):
@@ -281,11 +281,11 @@ class TestRecordedChecks:
         path = tmp_path / "checks.json"
         path.write_text(json.dumps({
             "_meta": {"recorded_at": "2026-09-22T00:00:00Z"},
-            "checks": [{"citation_text": FABRICATED, "status": "not_found", "checked_at": "2026-09-22T00:00:00Z",
+            "checks": [{"citation_text": NONEXISTENT, "status": "not_found", "checked_at": "2026-09-22T00:00:00Z",
                         "verified_via": "fjud_live", "fjud_hit_count": 20}]}, ensure_ascii=False), encoding="utf-8")
         client = TestClient(create_app(db_url=db_url, live_checks_path=str(path), seed_on_empty=False))
         cites = {c["citation_text"]: c for c in client.get("/api/cases/c1").json()["citations"]}
-        assert cites[FABRICATED]["recorded_check"]["status"] == "not_found"
+        assert cites[NONEXISTENT]["recorded_check"]["status"] == "not_found"
         assert cites["民法第474條"]["recorded_check"] is None
 
 
