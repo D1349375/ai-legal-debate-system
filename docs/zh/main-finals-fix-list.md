@@ -468,4 +468,4 @@ V35–V37 是人工判斷,單案只能看方向,不能當統計結論。
 
 | 任務 | commit | 測試數字 | 結果 |
 |---|---|---|---|
-| T1 資料庫設定傳給即時執行的子程序 | 未 commit | 離線全套 `288 passed, 1 skipped, 13 deselected`（基準 `285 passed`）；T1 新測試 `3 passed` | 環境變數指定的資料庫位址會一致傳給伺服器、子程序與 health；真實 Claude 實跑待 C1 驗證。Claude 檢核通過(2026-11-02)。 |
+| T1 資料庫設定傳給即時執行的子程序 | `d4634fb8958f472ccc726aea04642875ce0d7217` | 離線全套 `288 passed, 1 skipped, 13 deselected`（基準 `285 passed`）；T1 新測試 `3 passed` | 環境變數指定的資料庫位址會一致傳給伺服器、子程序與 health；真實 Claude 實跑待 C1 驗證。Claude 檢核通過(2026-11-02)。 |

@@ -49,6 +49,7 @@
 - 開始時間:2026-11-02 01:31（臺灣時間，開始填寫紀錄）
 - 結束時間:2026-11-02 01:49（臺灣時間）
 - 基準 commit:`b4de1bf`
+- 實作 commit:`d4634fb8958f472ccc726aea04642875ce0d7217`
 - 基準測試(指令與數字):原指令 `python -X utf8 -m pytest -q -m "not network" -p no:cacheprovider` 得 `169 passed, 1 skipped, 13 deselected, 116 errors`，原因是 Windows 測試暫存目錄權限不足。改用 `python -X utf8 -m pytest -q -m "not network" -p no:cacheprovider --basetemp t1tmp --tb=short`，並以有權存取該目錄的執行權限重跑，得到有效基準 `285 passed, 1 skipped, 13 deselected`（150.69 秒）。
 
 ### 迭代過程
@@ -67,6 +68,7 @@
 | 10 | 執行 `python -X utf8 -m pytest -q -m "not network" -p no:cacheprovider --basetemp t1tmp --tb=short`。 | `288 passed, 1 skipped, 13 deselected`（166.18 秒），較有效基準增加 3 項通過，無新失敗。 | 檢查 diff 與工作樹，完成實作紀錄及修正清單。 |
 | 11 | 檢查程式與測試 diff、清理兩個測試暫存目錄，並唯讀複查預設資料庫。 | `git diff --check` 無錯；測試案件在四張表仍均為 0 筆，SQLite 完整性檢查 `ok`；備份仍留在被 Git 忽略的 `database/t1-db-url-before-cleanup.db`。 | 完成文件紀錄；保留備份供檢核。 |
 | 12 | Claude 檢核通過後，首次嘗試將七個 T1 檔案加入 Git 暫存區。 | Git 無法建立工作樹的 `index.lock`，回報 `Permission denied`；檔案未加入暫存區。 | 改用有權寫入 Git 索引的執行權限重試，仍只指定七個 T1 檔案。 |
+| 13 | 以有權寫入 Git 索引的執行權限，只將七個 T1 檔案加入暫存區；核對暫存清單、`git diff --cached --check` 與 `git status` 後提交。 | 暫存區正好七個 T1 檔案，沒有資料庫或暫存檔；實作 commit 為 `d4634fb8958f472ccc726aea04642875ce0d7217`。 | 將此 hash 回填本文件與總清單，以獨立文件 commit 保存。 |
 
 ### 結果
 
