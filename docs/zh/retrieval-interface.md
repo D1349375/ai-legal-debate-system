@@ -204,7 +204,7 @@ UI 端（`server/services.py`）另有 `local_cache_only`（只有過期條文�
 | 階段 | 角色 | 檢索 | 目標 |
 |---|---|---|---|
 | P0 | 規則程式 | 不檢索 | 時效提示若要顯示條文，可呼叫 `article` |
-| P1 起訴狀 | 原告 | 主要檢索 | 起訴狀選定的請求權基礎（先位／備位），以及預想抗辯會打的要件。`internal_analysis` 的其他候選不上網搜 |
+| P1 起訴狀 | 原告 | 主要檢索 | 準備在起訴狀主張的請求權基礎（先位／備位），以及預想抗辯會打的要件。不打算主張的候選只讀條文、不搜判決。分析與撰狀共用 `plaintiff_p1.jsonl` 與預算 |
 | P2a、P2b | 被告 | 主要檢索 | 先依字號讀起訴狀引用的判決，再搜起訴狀的請求權基礎與抗辯 |
 | P3、P6 | 法官 | 不搜尋 | 可用 `judgment` 讀雙方已引用的判決；P6 建議新增的請求權基礎只做存在性查證 |
 | P4 準備書狀 | 雙方 | 補充檢索 | 依爭點 id；優先讀對方書狀引用的判決；有 §255 標記的新請求權基礎才可新搜 |
@@ -277,7 +277,42 @@ main 若另外實作，併回來時 `verify.py` 會大衝突。決賽若用 main
 
 **不用帶**：`engine/citation_review.py`、`engine/role_protocol.py` 是職責分離的程式，main 上沒有；本分支在 `citation_review.py` 只加了一個允許的狀態值。
 
-## 十三、聯絡與更新
+## 十三、W2 起訴狀 v1 的接法注意事項（2026-11-02 檢查）
+
+拿《改版規格》5.2、5.9 與計畫 W2 對照本文件與現行程式的結果。只讀文件與程式、跑離線測試，沒有跑 Claude。
+
+### 要在 W2 處理（組長決定）
+
+| # | 問題 | 建議 |
+|---|---|---|
+| 1 | `stage1_prompt.txt` 不只是換佔位符。第 23–38 行允許把記憶中、未命中的判例列進 `cited_precedents`（只在 argument 註明待查證），與第三節、第八節的引用規則衝突；輸出也沒有 `precedent_notes`、`precedent_leads` | 改寫這段：正式引用的判決須本輪用 `judgment` 讀過全文並附 `precedent_notes`，記憶中的判決只進 `precedent_leads`（規格 5.2 也這樣寫）。可參考 `retrieval-optimization` 的 `stage1_prompt.txt` 第 16 行 |
+| 2 | 撰狀 subagent（`complaint_prompt.txt`）能不能檢索，規格沒寫。它輸出的 `precedent_notes.quote` 必須是全文原句 | 建議撰狀不搜尋，只引用分析已讀過、已附 `precedent_notes` 的判決；要重讀時用 `judgment` 加同一個快照與 `plaintiff_p1.jsonl`（快照已有的不計預算）。給它 `{RETRIEVAL_RULES}` 時用同一個 P1 規則 |
+| 3 | W2 實跑用商工解散案，來源是最高法院114年度台上字第1987號裁定，該裁定在 `corpus/judgments/`。計畫把排除參數放到 W8，W2 的實跑檢查沒有防污染 | W2 起就用 `retrieval-rules --phase p1 --side plaintiff --case-dir <案件資料夾> --exclude 114年度台上字第1987號`；跑完檢查 `plaintiff_p1.jsonl` 每筆 `search-judgments` 的 `query.exclude`，以及有沒有任何一筆讀到 1987 號 |
+
+### SKILL.md 改寫時要一起換的
+
+- 第 47 行仍給 `{STATUTES_DIR}`、`{JUDGMENTS_DIR}`，換成第四節的三個佔位符。
+- 加上：建立 `database/live_runs/case-<案件ID>/`、呼叫 `retrieval-rules` 取得規則與路徑、只給每個角色自己的路徑、`verify` 用案件快照根目錄。
+- 放行條件寫「只有 `published` 放行」，不要列舉不放行的狀態；規格 5.2 的列舉沒有 `full_text_unavailable`。
+- 用 CLI 直接跑 `python main.py case data/cases/test-2026-10-27-gcis-001.json` 時，主 agent 會讀到原檔的 `source_note`（寫明來源裁判字號）。UI 實跑的 `case.json` 由資料庫產生，不含這個欄位。
+
+### 檢索這邊已處理
+
+- `retrieval-rules` 的 P1 目標原本寫「起訴狀選定的請求權基礎」與「`internal_analysis` 的其他候選」，但分析時還沒有起訴狀，也沒有這個欄位。已改成配合分析→撰狀兩步的寫法。
+- 交接文件第 6 節與規格 5.9 說 `retrieval-rules`、排除參數尚未提供，已過時：兩者都在 `pleading-exchange`。
+
+### 提案：排除清單改由程式帶入（決賽前做不做由組長決定）
+
+現在排除的字號寫在角色看到的指令裡：字號本身就是提示（「這份判決跟本案有關」），角色漏帶也不會排除。可改成 `server/live_run.py` 啟動前設環境變數（與 `SNAPSHOT_ENV` 同一處），檢索指令自己讀，規則裡不再出現字號。檢索這邊改指令；`live_run.py` 需要組長加一行。
+
+### 已確認一致
+
+- 紀錄檔 `plaintiff_p1.jsonl`、預算 8 次搜尋／10 份全文；P1 給 `--side defendant` 時指令拒絕。
+- `verify --precedent-notes <檔> --snapshot <案件快照根目錄>` 與規格相同。
+- 檢索指令都是單一 `python main.py` 指令，符合 `ALLOWED_TOOLS`。
+- 事實段的 `〔CF1〕` 不影響法條與字號比對（實測「民法第478條〔CF1〕」照樣抓到）。
+
+## 十四、聯絡與更新
 
 - 檢索這邊的進度與未完成事項：`docs/zh/retrieval-phase3-handoff.md`。
 - 介面有變動時更新本文件；新框架這邊需要新的檢索介面，請直接提出，不要改上面列為檢索負責的檔案。

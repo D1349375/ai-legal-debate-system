@@ -24,8 +24,9 @@ READ_STEP = "用 judgment 讀要引用的判決全文"
 # 需要檢索的階段：sides 為可執行的角色(給 --side 時檢查)，issue 為是否每次都要加 --issue
 SEARCH_RULES = {
     'p1': {'sides': ('plaintiff',), 'mode': '主要檢索', 'issue': False,
-           'target': ["起訴狀選定的請求權基礎（先位／備位），以及預想被告抗辯會攻擊的要件",
-                      "internal_analysis 列出的其他候選請求權基礎不上網搜"],
+           'target': ["準備在起訴狀主張的請求權基礎（先位／備位），以及預想被告抗辯會攻擊的要件",
+                      "列出但不打算主張的候選請求權基礎只用 article 讀條文，不搜判決",
+                      "P1 的分析與撰狀共用同一個紀錄檔與預算；起訴狀要引用的判決須已在本階段用 judgment 讀過全文"],
            'steps': [TOP_DOWN, ARTICLE_STEP, SEARCH_STEP, READ_STEP]},
     'p2': {'sides': ('defendant',), 'mode': '主要檢索', 'issue': False,
            'target': ["起訴狀引用的判決：先依字號用 judgment 讀（快照或快取已有的不計預算）",

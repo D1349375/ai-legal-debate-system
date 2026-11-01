@@ -107,3 +107,11 @@ def test_rules_keep_the_agreed_legal_wording():
     assert "第255條" in retrieval_rules.build("p4")["text"]
     assert "第199條之1" in retrieval_rules.build("p6")["text"]
     assert "不是把侵權行為當保底" in retrieval_rules.build("p1")["text"]
+
+
+def test_p1_rules_fit_analysis_then_complaint():
+    # P1 先分析再撰狀：分析時還沒有起訴狀，也沒有 internal_analysis 這個欄位
+    p1 = retrieval_rules.build("p1")["text"]
+    assert "internal_analysis" not in p1 and "起訴狀選定" not in p1
+    assert "分析與撰狀共用同一個紀錄檔與預算" in p1
+    assert "不打算主張的候選請求權基礎只用 article 讀條文" in p1
