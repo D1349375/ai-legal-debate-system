@@ -23,6 +23,8 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
                                                           依關鍵字上網搜尋法規條文
   python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD] [--json]
                                                           依字號或 JID 讀判決全文(經快取，印去換行版)
+  python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <案件資料夾>] [--json]
+                                                          印出該階段的檢索規則(調度員填範本的 {RETRIEVAL_RULES})
   檢索指令共用：--snapshot <本次實跑快照資料夾>(角色與查證讀同一版本)、--log <檢索紀錄檔>(記錄每次查詢並計算本輪預算)
 """
 import argparse
@@ -480,6 +482,8 @@ def cmd_judgment(args):
         except BudgetExceeded as error:
             return fail('budget_exceeded', f"budget_exceeded：{error}")
         raise
+    except retrieval_cache.FullTextUnavailable as error:
+        return fail('full_text_unavailable', str(error))
     except retrieval_cache.RetrievalUnavailable as error:
         return fail('retrieval_unavailable', str(error))
     if log:
@@ -617,6 +621,17 @@ def cmd_search_statutes(args):
     return 0
 
 
+def cmd_retrieval_rules(args):
+    from engine import retrieval_rules
+    try:
+        r = retrieval_rules.build(args.phase, side=args.side, case_dir=args.case_dir)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    print(json.dumps(r, ensure_ascii=False, indent=2) if args.json else r['text'])
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="LegalDebate 落地 CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -740,6 +755,15 @@ def main():
     p.add_argument("--json", action="store_true", help="輸出結構化結果(含原文與去換行版)")
     _retrieval_options(p, issue=True)
     p.set_defaults(fn=cmd_judgment)
+
+    p = sub.add_parser("retrieval-rules", help="印出該階段的檢索規則(給調度員填範本的 {RETRIEVAL_RULES})")
+    p.add_argument("--phase", required=True,
+                   help="p1、p2、p4、p5(或 complaint、scenario、answer、brief、closing)、stage1～3；不檢索的 p3、p6、verify")
+    p.add_argument("--side", choices=("plaintiff", "defendant"),
+                   help="與 --case-dir 一起給時印出該角色的 --snapshot 與 --log 路徑")
+    p.add_argument("--case-dir", help="案件資料夾，例如 database/live_runs/case-<案件ID>")
+    p.add_argument("--json", action="store_true", help="輸出結構化結果(含規則全文、預算與路徑)")
+    p.set_defaults(fn=cmd_retrieval_rules)
 
     args = parser.parse_args()
     if args.cmd in ('record', 'verify') and args.snapshot:

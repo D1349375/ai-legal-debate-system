@@ -70,6 +70,9 @@ def search_judgments(keywords=(), case_cause=None, date_from=None, date_to=None,
         except retrieval_cache.LiveFetchNotAllowed:
             row['fetch_error'] = '已達本階段全文預算，快取沒有這份，未抓取'
             continue
+        except retrieval_cache.FullTextUnavailable as error:
+            row['fetch_error'] = f"full_text_unavailable：{error.reason}；{retrieval_cache.FULL_TEXT_UNAVAILABLE_NOTE}"
+            continue
         except retrieval_cache.RetrievalUnavailable as error:
             row['fetch_error'] = f"連線失敗（已重試）：{error.reason}；不代表查無資料"
             continue

@@ -41,10 +41,11 @@ SIDE_ORDER = {side: i for i, side in enumerate(VALID_SIDES)}
 #   local_cache_only     官網即時查詢失敗，只有過期的條文快取或未確認唯一性的判決快取——不等於通過，閘門不放行、不寫入 DB
 #   not_found            權威來源明確回報查無(捏造/錯誤引用會落在這裡)
 #   verification_failed  無法完成官方查證(網路逾時/離線/被略過)，既非通過也非查無
+#   full_text_unavailable 連上官網但頁面無法辨認條文或全文，不是連線問題，也不代表引用寫錯；不放行
 #   unparseable          格式無法解析為法條或裁判字號
 #   unknown_law          法規不在查證引擎範圍
 STATUSES = ("published", "local_cache_only", "not_found", "verification_failed",
-            "unparseable", "unknown_law")
+            "full_text_unavailable", "unparseable", "unknown_law")
 
 _ALLOWED_SOURCE_HOSTS = ("https://law.moj.gov.tw/", "https://judgment.judicial.gov.tw/")
 
@@ -434,7 +435,8 @@ def _verify_entries(session, citations, *, parent_keys, mode, timeout, recorded_
     for c in citations:
         change = "unchanged" if c["key"] in parent_keys else "added"
         case_entry = _case_check(session, case_id, c['citation_text'])
-        if case_entry is not None and case_entry['status'] not in ('no_record', 'network_error', 'verification_failed', 'local_cache_only'):
+        if case_entry is not None and case_entry['status'] not in ('no_record', 'network_error', 'verification_failed',
+                                                                   'local_cache_only', 'full_text_unavailable'):
             entries.append({**case_entry, 'change': change})
             continue
         rec = _db_record(lookup.get(c["key"]), c["citation_text"]) if c["recognized"] else None
@@ -839,6 +841,9 @@ def _live_query(fn, *args, timeout):
         return None, {"tried": True, "outcome": _classify_live_failure(str(e)), "error": f"{type(e).__name__}: {e}"}
     if r.get("status") in ("verification_failed", "network_error"):
         return None, {"tried": True, "outcome": _classify_live_failure(r.get("reason")), "error": r.get("reason")}
+    if r.get("status") == "full_text_unavailable":
+        # 連得上官網，只是頁面無法辨認：照實回報這個狀態，也不觸發批次查證的「網路不通、其餘略過即時查詢」。
+        return r, {"tried": True, "outcome": "unrecognized_page", "error": r.get("reason")}
     if r.get("verified_via") in ("retrieval_cache", "run_snapshot", "local_corpus"):
         return r, {"tried": False, "outcome": "cache_hit", "error": None}
     return r, {"tried": True, "outcome": "ok", "error": None}

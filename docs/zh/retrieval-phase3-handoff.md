@@ -126,6 +126,8 @@
 
 ### 現在就能做（依序）
 
+> **2026-11-01 第三個工作階段：三項都已完成（未 commit）**。規則內容在 `engine/retrieval_rules.py`，測試 `tests/test_retrieval_rules.py`；新狀態 `full_text_unavailable` 的測試加在 `tests/test_retrieval_cache.py`、`tests/test_search_log.py`、`tests/test_server.py`；介面文件第三、四、七、八節已同步。未處理：`server/seed.py` 的 `collect_live_checks`（使用者正在改，A7）也會遇到這個新狀態，該處要把它和 `network_error` 一樣當成「沒查成」而不是查證結果。
+
 **1. `python main.py retrieval-rules --phase <階段>`**
 
 - 印出該階段的檢索規則：要不要檢索、目標、步驟、可用指令與參數、預算（讀 `engine/search_log.PHASES`，不要另外寫一份數字）、`retrieval_unavailable` 的處理。內容依第三節。

@@ -137,6 +137,19 @@ def test_judgment_offline_without_cache_says_not_a_missing_judgment(monkeypatch,
     assert entries(path)[-1]["status"] == "retrieval_unavailable"
 
 
+def test_unreadable_judgment_page_is_its_own_status(fake_fjud, monkeypatch, tmp_path, capsys):
+    calls, jids = fake_fjud
+    monkeypatch.setattr(fjud, "fetch_document", lambda jid, timeout=None, session=None: {
+        "jid": jid, "url": fjud.document_url(jid), "full_text": "", "case_cause": "損害賠償"})
+    path = str(tmp_path / "plaintiff_p1.jsonl")
+    assert main.cmd_judgment(judgment_args(jids[0], log=path)) == 1
+    err = capsys.readouterr().err
+    assert err.startswith("full_text_unavailable") and "不代表引用寫錯" in err
+    assert entries(path)[-1]["status"] == "full_text_unavailable" and SearchLog(path).fetches_used == 0
+    rows = judgment_search.search_judgments(["締約上過失"], fetch=1)["rows"]
+    assert rows[0]["fetch_error"].startswith("full_text_unavailable") and not rows[0].get("fetched")
+
+
 def test_statute_reads_are_logged_but_not_counted(tmp_path):
     log = SearchLog(str(tmp_path / "plaintiff_stage1.jsonl"))
     log.append("article", {"law_name": "民法", "article_no": "184"}, "found",

@@ -117,6 +117,33 @@ def test_cached_text_does_not_settle_which_documents_a_citation_has(offline):
     assert result["status"] == "network_error"
 
 
+@pytest.fixture
+def unreadable_page(fjud_calls, monkeypatch):
+    """連得上官網、字號查得到，但全文頁面無法辨認(fjud.extract_full_text 回空字串)。"""
+    def fetch(jid, timeout=None, session=None):
+        fjud_calls["fetch"].append(jid)
+        return {"jid": jid, "url": fjud.document_url(jid), "full_text": "", "case_cause": "請求損害賠償"}
+    monkeypatch.setattr(fjud, "fetch_document", fetch)
+    return fjud_calls
+
+
+def test_unreadable_page_is_full_text_unavailable_not_a_network_error(unreadable_page):
+    with pytest.raises(retrieval_cache.FullTextUnavailable) as caught:
+        retrieval_cache.get_judgment(JID)
+    message = str(caught.value)
+    assert message.startswith("full_text_unavailable") and "不代表引用寫錯" in message and "連線失敗" not in message
+    assert isinstance(caught.value, retrieval_cache.RetrievalUnavailable)  # 舊呼叫端仍當成無法取得，不會放行
+    assert retrieval_cache.cache_counts()["judgments"] == 0 and unreadable_page["fetch"] == [JID]
+
+
+def test_precedent_note_on_unreadable_page_is_not_reported_as_a_wrong_citation(unreadable_page):
+    note = {"citation": "最高法院111年度台上字第1069號", "doc_date": "20250716", "doc_type": "判決",
+            "case_cause": "損害賠償", "quote": "按締約上過失責任，以契約未成立為前提。", "proposition": "締約上過失"}
+    result = verify.verify_precedent_note(note)
+    assert result["status"] == "full_text_unavailable"  # 不是 doc_type_mismatch、quote_not_found 或 network_error
+    assert "不代表引用寫錯" in result["note"]
+
+
 def test_same_day_documents_stay_ambiguous_even_with_a_date():
     result = verify.verify_judgment_citation("115", "台上", "192", doc_date="20260325")
     assert result["status"] == "ambiguous" and len(result["candidates"]) == 2
@@ -170,6 +197,13 @@ def test_statute_verification_uses_fresh_cache_and_notes_fetch_time(offline, see
 def test_statute_verification_rejects_stale_cache_offline(offline, seed_article):
     seed_article("B0000001", "184", days_old=8)
     assert verify.verify_statute_citation("民法", "184")["status"] == "network_error"
+
+
+def test_statute_verification_on_unreadable_page_is_full_text_unavailable(monkeypatch):
+    article_pages(monkeypatch, page='<div class="law-reg-content"><table>改版</table></div>')
+    result = verify.verify_statute_citation("民法", "184")
+    assert result["status"] == "full_text_unavailable" and "不代表引用寫錯" in result["note"]
+    assert retrieval_cache.cache_counts()["statutes"] == 0
 
 
 def test_judgment_verification_offline_is_network_error_not_published(offline):

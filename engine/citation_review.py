@@ -6,7 +6,7 @@ import re
 
 REVIEW_STATUSES = {
     'published', 'needs_explanation', 'unsupported', 'unsupported_law', 'version_unverified',
-    'not_found', 'ambiguous', 'network_error', 'unparseable', 'doc_type_mismatch', 'quote_not_found',
+    'not_found', 'ambiguous', 'network_error', 'full_text_unavailable', 'unparseable', 'doc_type_mismatch', 'quote_not_found',
     'analogy_required', 'document_identity_unverified', 'invalid_precedent_note', 'invalid_document_date',
 }
 

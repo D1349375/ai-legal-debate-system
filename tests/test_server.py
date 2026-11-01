@@ -225,6 +225,15 @@ class TestVerify:
         assert r["status"] == "local_cache_only" and r["live_attempt"]["outcome"] == "network_error"
         assert "ConnectionResetError" in r["live_attempt"]["error"]
 
+    def test_unreadable_official_page_is_its_own_blocked_status(self, client, monkeypatch):
+        monkeypatch.setattr(engine_verify, "verify_statute_citation", lambda law, art, timeout: {
+            "status": "full_text_unavailable", "reason": "頁面無法辨認",
+            "note": "全國法規資料庫頁面無法辨認條文，不代表引用寫錯或查無此條"})
+        r = self._verify(client, ["民事訴訟法第277條"])[0]
+        assert r["status"] == "full_text_unavailable" and r["gate"] == "blocked" and r["persisted"] is False
+        assert r["live_attempt"] == {"tried": True, "outcome": "unrecognized_page", "error": "頁面無法辨認"}
+        assert "不代表引用寫錯" in r["note"]
+
     def test_statute_without_local_cache_fails_honestly(self, client, monkeypatch):
         monkeypatch.setattr(engine_verify, "verify_statute_citation", lambda law, art, timeout: {
             "status": "verification_failed", "reason": "offline"})

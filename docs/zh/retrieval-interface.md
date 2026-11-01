@@ -36,8 +36,8 @@
 | `python main.py article 民法 184` | 讀現行條文（也接受「民法第191條之2」）；7 天內讀快取，否則上網 | 結束碼 0 | 1：`not_found`、`unrecognized_page`、`retrieval_unavailable`；2：法規名稱或條號格式錯 |
 | `python main.py search-statutes --kw 知有損害 [--law 民法]` | 依關鍵字找條文 | 0 | 1：`retrieval_unavailable`；2：參數錯或法規名稱不明 |
 | `python main.py search-judgments --kw 民法第184條 --kw 相當因果關係 [--fetch 3] [--title 損害賠償]` | 搜最高法院民事判決（多個 `--kw` 皆須命中）；`--fetch` 抓全文並列出主文、實體法條、命中句，最後列「常一起引用的法條」 | 0 | 1：`retrieval_unavailable`、`budget_exceeded`；2：參數錯 |
-| `python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD]` | 依字號或 JID 讀判決全文（去換行版）；正式引用前「讀過全文」靠這個指令 | 0 | 1：`not_found`、`retrieval_unavailable`、`budget_exceeded`；2：同字號多份文件需指定日期（`ambiguous`）或格式錯 |
-| `python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <路徑>]` | 印出該階段的檢索規則，給調度員填 `{RETRIEVAL_RULES}`（**實作中，介面以本文件為準**） | 0 | 2：未知階段 |
+| `python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD]` | 依字號或 JID 讀判決全文（去換行版）；正式引用前「讀過全文」靠這個指令 | 0 | 1：`not_found`、`retrieval_unavailable`、`full_text_unavailable`、`budget_exceeded`；2：同字號多份文件需指定日期（`ambiguous`）或格式錯 |
+| `python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <案件資料夾>] [--json]` | 印出該階段的檢索規則，給調度員填 `{RETRIEVAL_RULES}`；調度員用，角色不用。見第四節 | 0 | 2：未知階段（訊息列出可用名稱）、角色與階段不符、給 `--case-dir` 沒給 `--side` |
 
 檢索指令共用參數：
 
@@ -46,7 +46,12 @@
 - `--issue <爭點id>`（`search-judgments`、`judgment`）：記下這次查詢針對哪個爭點，P4、P5 使用。
 - `--json`：結構化輸出。
 
-失敗訊息一律寫明原因；連線失敗會註明「不代表查無資料」。角色遇到 `retrieval_unavailable` 時，相關內容寫「待確認」，不得用記憶充當查得結果（記憶中的判決只能放 `precedent_leads`）。
+失敗訊息一律寫明原因，訊息開頭就是狀態名稱：
+
+- `retrieval_unavailable`：官網連線失敗（已自動重試一次），註明「不代表查無資料」。
+- `full_text_unavailable`：連上官網但頁面無法辨認裁判全文（頁面改版或回空頁），註明「不代表引用寫錯或查無資料」。`search-judgments --fetch` 遇到時不中斷，該筆的「全文」欄寫這個狀態，其他筆照常。
+
+角色遇到這兩種時，相關內容寫「待確認」，不得用記憶充當查得結果（記憶中的判決只能放 `precedent_leads`）；沒讀到全文的判決不得正式引用。
 
 ---
 
@@ -68,6 +73,34 @@
 
 不檢索的範本（爭點整理表、診斷、獨立查證）不放 `--log`。法官需要看雙方已引用的判決時，用 `python main.py judgment <字號>`（不加 `--snapshot`），不得用 `search-judgments`。
 
+### `retrieval-rules` 指令
+
+調度員組 prompt 時呼叫，把輸出填進 `{RETRIEVAL_RULES}`；規則要改時只改 `engine/retrieval_rules.py`，範本不用動。
+
+```bash
+python main.py retrieval-rules --phase p2 --side defendant --case-dir database/live_runs/case-7 --json
+```
+
+| 參數 | 說明 |
+|---|---|
+| `--phase`（必填） | 檢索階段 `p1`、`p2`、`p4`、`p5`，或別名 `complaint`、`scenario`、`answer`、`brief`、`closing`；不檢索的 `p3`、`p6`、`verify`；現行三輪 `stage1`～`stage3`（相容用）。和紀錄檔名認得的名稱相同 |
+| `--side` | `plaintiff` 或 `defendant`。`p1` 只能是原告、`p2` 只能是被告，給錯回結束碼 2（避免把對造的路徑給錯角色） |
+| `--case-dir` | 案件資料夾。檢索階段要和 `--side` 一起給，輸出會帶入該角色的實際路徑；沒給時規則裡的路徑寫成 `<快照資料夾>`、`<紀錄檔>` |
+| `--json` | 結構化輸出，欄位見下 |
+
+`--json` 的欄位：
+
+| 欄位 | 內容 | 填哪個佔位符 |
+|---|---|---|
+| `text` | 規則全文（與不加 `--json` 時印出的相同） | `{RETRIEVAL_RULES}` |
+| `snapshot` | `<案件資料夾>/retrieval_cache/<side>`（有給 `--side`、`--case-dir` 的檢索階段才有） | `{RETRIEVAL_CACHE_DIR}` |
+| `log` | `<案件資料夾>/search_logs/<side>_<階段代碼>.jsonl`；別名一律換成代碼，所以 `scenario` 和 `answer` 都是 `defendant_p2.jsonl`（劇本與答辯狀共用預算） | `{SEARCH_LOG_PATH}` |
+| `case_snapshot` | `<案件資料夾>/retrieval_cache`（有給 `--case-dir` 就有） | `record`、`verify` 的 `--snapshot` |
+| `phase`、`label` | 階段代碼與名稱，例如 `p2`、`P2 答辯劇本與答辯狀` | — |
+| `searches`、`budget` | 是否檢索；預算 `{"searches": 8, "fetches": 10}`，不檢索的階段為 `null`。數字直接讀 `engine/search_log.PHASES`，和指令實際執行的預算相同 | — |
+
+規則全文的內容：檢索方式、預算、目標、步驟、可用指令與參數（含實際路徑）、什麼時候引用、檢索失敗時（`retrieval_unavailable`、`full_text_unavailable`、`budget_exceeded`、`ambiguous`）怎麼處理、禁止事項。不含大括號，填進範本後再對範本做 `str.format` 也不會出錯。各階段的規則見第八節。
+
 ### 紀錄檔的檔名決定預算
 
 格式 `<side>_<階段>.jsonl`。指令依檔名的階段計數，超過就拒絕：
@@ -86,7 +119,7 @@
 ### 調度員（SKILL.md）要寫的
 
 1. 每個案件建立 `database/live_runs/case-<案件ID>/`，底下 `retrieval_cache/plaintiff/`、`retrieval_cache/defendant/`、`search_logs/`（不存在時指令會自己建，路徑對就好）。**律師確認關卡續跑時沿用同一個案件資料夾**。
-2. 給每個角色填它自己的 `{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`；**不得把對造的快照或紀錄路徑給角色**。
+2. 給每個角色填它自己的 `{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`；**不得把對造的快照或紀錄路徑給角色**。三個佔位符可以一次從 `retrieval-rules --phase <階段> --side <side> --case-dir <案件資料夾> --json` 的 `text`、`snapshot`、`log` 取得。
 3. `python main.py record ... --snapshot database/live_runs/case-<案件ID>/retrieval_cache`、`python main.py verify ... --snapshot <同上>`：用案件快照根目錄（查證與判例落地讀雙方讀過的同一版本）。UI 實跑時環境變數已指向根目錄，可省略；Claude Code 直接跑（非 UI）時要明寫。
 4. SKILL.md 現行第 8 步「連線失敗可由調度員手動重試一次；不改引擎加入自動重試」請刪掉：引擎現在自動重試一次。
 
@@ -138,21 +171,24 @@
 | `needs_explanation` | 判例案由不同但有類推理由，交獨立查證 | 依現行規則 |
 | `not_found` | 官方明確查無 | 否 |
 | `network_error` | 官網無法連線且無有效快取（已重試一次），**不代表查無** | 否 |
+| `full_text_unavailable` | 連上官網但頁面無法辨認條文或裁判全文，未能比對文種與摘句；**不代表查無，也不代表引用寫錯** | 否 |
 | `ambiguous` | 同字號多份文件，須以 `doc_date` 指定；同一天多份（如 115台上192）指定日期仍是 ambiguous | 否 |
 | `version_unverified` | 歷史版本，或法規已廢止 | 否（律師待核） |
 | `unsupported_law` | 名稱索引查無此法規 | 否（律師待核） |
 | `unparseable` | 不是可解析的法條或字號 | 否 |
 | `doc_type_mismatch`、`quote_not_found`、`document_identity_unverified`、`analogy_required`、`invalid_precedent_note`、`invalid_document_date` | 判例文件身分或摘句檢查失敗（既有規則不變） | 否 |
 
-UI 端（`server/services.py`）另有 `local_cache_only`（只有過期條文快取，或判決快取有但官方未確認唯一性）與 `verification_failed`，都不放行。
+UI 端（`server/services.py`）另有 `local_cache_only`（只有過期條文快取，或判決快取有但官方未確認唯一性）與 `verification_failed`，都不放行。`full_text_unavailable` 在 UI 也照原樣顯示，`live_attempt.outcome` 為 `unrecognized_page`（連得上官網，所以不會觸發批次查證的「網路不通、其餘略過即時查詢」）；案件查證紀錄是這個狀態時，書狀編輯會重新查證。
+
+**`full_text_unavailable` 的由來**（`role-separation-fix-list.md` A1）：以前頁面無法辨認也回 `network_error`，會被誤當成連線問題；更早的版本則落到 `doc_type_mismatch`、`quote_not_found`，讓人以為引用寫錯。`engine/role_protocol.py` 的驗證沒有改：非 `published` 照舊拒收。消費端若有自己的狀態清單，請加上這個值；獨立查證的 `checks[].status` 也接受它（`engine/citation_review.py`）。
 
 **狀態名稱分歧要先決定**：main 的待修清單規定保留 `verification_failed`，本分支引擎用 `network_error`。新框架合併時請選一個，消費端一起對齊。
-
-**計畫中的新狀態**：官網頁面無法解析時，會從 `network_error` 分出獨立狀態（暫定 `full_text_unavailable`），避免被誤當成連線問題或引用寫錯。實作後會更新本文件。
 
 ---
 
 ## 八、各階段的檢索規則（`retrieval-rules` 的內容）
+
+下表是摘要，實際文字以 `python main.py retrieval-rules --phase <階段>` 的輸出為準（程式在 `engine/retrieval_rules.py`）。
 
 | 階段 | 角色 | 檢索 | 目標 |
 |---|---|---|---|

@@ -47,6 +47,7 @@
     unsupported_law: {cls:"warn",icon:"?",label:"未支援法規・律師待核"},
     ambiguous: {cls:"warn",icon:"?",label:"文件待指定"},
     network_error: {cls:"warn",icon:"⏱",label:"連線失敗"},
+    full_text_unavailable: {cls:"warn",icon:"?",label:"官網頁面無法辨認,不代表引用寫錯"},
     unknown_law: { cls: "warn", icon: "?", label: "法規不在查證範圍" },
   };
   function statusLabel(status) { return (STATUS[status] && STATUS[status].label) || status; }
@@ -63,6 +64,7 @@
     ok: "即時查詢成功",
     timeout: "即時查詢逾時",
     network_error: "即時查詢連線失敗",
+    unrecognized_page: "已連上官網,但頁面無法辨認",
     skipped_offline_mode: "離線模式:未連網",
     skipped_after_failure: "前一筆已連線失敗,本筆略過即時查詢",
     not_attempted: "本地已命中,無須連網",
@@ -918,7 +920,7 @@
       stat(results.length ? String(count(function (r) { return r.status === "published"; })) : "—", "✓ 已查證通過", "ok"),
       stat(results.length ? String(count(function (r) { return r.status === "local_cache_only"; })) : "—", "◐ 僅本地快取(未比對官方)", "warn"),
       stat(results.length ? String(count(function (r) { return r.status === "not_found"; })) : "—", "✗ 確認查無", "bad"),
-      stat(results.length ? String(count(function (r) { return ["verification_failed", "unparseable", "unknown_law"].indexOf(r.status) >= 0; })) : "—", "⏱ 無法完成查證／無法解析", "warn"));
+      stat(results.length ? String(count(function (r) { return ["verification_failed", "network_error", "full_text_unavailable", "unparseable", "unknown_law"].indexOf(r.status) >= 0; })) : "—", "⏱ 無法完成查證／無法解析", "warn"));
 
     var out = [head, controls, tiles];
     if (v.notice) out.push(banner("warn", "!", [h("strong", { text: "網路狀態" }), "：" + v.notice]));
@@ -933,9 +935,11 @@
         var quote = function (rs) { return rs.map(function (r) { return "「" + r.citation_text + "」"; }).join("、"); };
         var notFound = blocked.filter(function (r) { return r.status === "not_found"; });
         var localOnly = blocked.filter(function (r) { return r.status === "local_cache_only"; });
-        var unresolved = blocked.filter(function (r) { return r.status !== "not_found" && r.status !== "local_cache_only"; });
+        var unreadable = blocked.filter(function (r) { return r.status === "full_text_unavailable"; });
+        var unresolved = blocked.filter(function (r) { return ["not_found", "local_cache_only", "full_text_unavailable"].indexOf(r.status) < 0; });
         var parts = [];
         if (notFound.length) parts.push("官方來源確認查無：" + quote(notFound) + "，閘門攔截，不得進入訴狀或判決");
+        if (unreadable.length) parts.push("官網頁面無法辨認：" + quote(unreadable) + "，不代表引用寫錯，但未能比對原文，本次不視為已查證");
         if (unresolved.length) parts.push("本次無法完成官方查證：" + quote(unresolved) + "，依零容忍原則不視為已查證");
         if (localOnly.length) parts.push(localOnly.length + " 條法條僅在本地快取找到、未與官方原文比對，本次不視為已查證");
         out.push(banner(notFound.length ? "bad" : "warn", notFound.length ? "✗" : "!", [
