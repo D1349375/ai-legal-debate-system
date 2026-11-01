@@ -700,7 +700,7 @@ class LiveRunManager:
                       else build_prompt(case_id, run_dir, plan, documents))
             args = build_args(self.command, prompt, model=self.model, budget_usd=self.budget_usd)
             env = dict(os.environ)
-            env[DB_URL_ENV] = self.db_url or f"sqlite:///{default_db_path()}"
+            env[DB_URL_ENV] = self.db_url or env.get(DB_URL_ENV) or f"sqlite:///{default_db_path()}"
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = self.model  # CLI 2.1.251 前此變數優先於 Agent 的 model 參數
             env["PYTHONIOENCODING"] = "utf-8"
             env["PYTHONUTF8"] = "1"

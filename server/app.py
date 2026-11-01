@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from database.db import default_db_path, make_session_factory
+from database.db import DB_URL_ENV, default_db_path, make_session_factory
 from database.schema import Case
 from engine.verify import JUDGMENTS_DIR, STATUTES_DIR
 from engine.gcis import validate_ban
@@ -109,8 +109,9 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
                live_checks_path=seed.LIVE_CHECKS_PATH, party_checks_path=seed.PARTY_CHECKS_PATH,
                seed_on_empty=True, local_clients=LOOPBACK_CLIENTS, live=None):
     """live:即時執行設定(dict,見 LiveRunManager 參數)。預設停用；main.py serve 只在綁本機位址時啟用。"""
+    resolved_db_url = db_url or os.environ.get(DB_URL_ENV) or None
     app = FastAPI(title="LegalDebate UI API", docs_url="/api/docs", redoc_url=None, openapi_url="/api/openapi.json")
-    factory = make_session_factory(db_url)
+    factory = make_session_factory(resolved_db_url)
     app.state.seeded = None
     if seed_on_empty:
         with factory() as s:
@@ -118,7 +119,7 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
     app.state.recorded_checks = seed.load_recorded_checks(live_checks_path)
     app.state.recorded_party_checks = seed.load_recorded_party_checks(party_checks_path)
     live_opts = dict(live or {"enabled": False, "reason": "即時執行未啟用(只在以 python main.py serve 綁定本機位址時啟用)"})
-    runner = app.state.live = LiveRunManager(factory, root=ROOT, db_url=db_url, **live_opts)
+    runner = app.state.live = LiveRunManager(factory, root=ROOT, db_url=resolved_db_url, **live_opts)
     app.router.on_shutdown.append(runner.shutdown)
 
     def get_db():
@@ -146,7 +147,7 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
     def health(db=Depends(get_db)):
         return {
             "status": "ok",
-            "database": {"path": "database/legal_debate.db" if db_url is None else "(自訂資料庫)",
+            "database": {"path": "database/legal_debate.db" if resolved_db_url is None else "(自訂資料庫)",
                          "cases": db.query(Case).count(),
                          "seeded_from_fixture": app.state.seeded},
             "corpus": {"judgments": _count_files(JUDGMENTS_DIR, ".txt"),

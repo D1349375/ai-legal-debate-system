@@ -64,6 +64,10 @@ def main():
         logged_in = os.environ.get("FAKE_CLAUDE_AUTH", "1") == "1"
         print(json.dumps({"loggedIn": logged_in, "authMethod": "claude.ai" if logged_in else "none"}))
         return 0 if logged_in else 1
+    expected_db_url = os.environ.get("FAKE_CLAUDE_EXPECT_DB_URL")
+    if expected_db_url and os.environ.get("LEGALDEBATE_DB_URL") != expected_db_url:
+        print("假 Claude 收到的資料庫位址與測試預期不同", file=sys.stderr)
+        return 4
     prompt = argv[argv.index("-p") + 1]
     case_id = re.match(r"/legal-debate (\S+)", prompt).group(1)
     run_dir = re.search(r"案件輸入檔是 (\S+)/case\.json", prompt).group(1)

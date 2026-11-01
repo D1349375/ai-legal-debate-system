@@ -230,6 +230,7 @@ def cmd_serve(args):
     if app.state.seeded:
         print(f"資料庫原本沒有案件，已由 demo/recorded_cases.json 匯入錄製紀錄:{app.state.seeded}")
     print(f"LegalDebate UI:{url}(Ctrl+C 結束)")
+    print("資料庫:" + ("自訂資料庫" if app.state.live.db_url else "預設資料庫"))
     avail = app.state.live.availability()
     print("即時執行:" + (f"已啟用(模型 {avail['model']},每次花費上限 {avail['budget_usd']:g} 美元)" if avail["enabled"]
                         else f"停用——{avail['reason']}"))

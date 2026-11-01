@@ -55,6 +55,45 @@ def run_to_end(client, case_id):
     return client.get(f"/api/runs/{run_id}").json()
 
 
+class TestDatabaseUrlResolution:
+    def test_environment_url_reaches_live_manager_and_health(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("LEGALDEBATE_DB_URL", db_url)
+        app = create_app(cases_dir=str(tmp_path / "none"), seed_on_empty=False)
+
+        assert app.state.live.db_url == db_url
+        health = TestClient(app, base_url=LOCAL).get("/api/health").json()["database"]
+        assert health["path"] == "(自訂資料庫)"
+        assert health["cases"] == 1
+
+    def test_environment_url_is_used_by_fake_claude_subprocess(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("LEGALDEBATE_DB_URL", db_url)
+        monkeypatch.setenv("FAKE_CLAUDE_EXPECT_DB_URL", db_url)
+        monkeypatch.setenv("FAKE_CLAUDE_MODE", "full")
+        app = create_app(cases_dir=str(tmp_path / "none"), seed_on_empty=False,
+                         local_clients=("testclient",),
+                         live={"enabled": True, "command": [sys.executable, FAKE],
+                               "runs_dir": str(tmp_path / "runs")})
+        client = TestClient(app, base_url=LOCAL)
+        case_id = create(client)
+        result = run_to_end(client, case_id)
+
+        assert result["run"]["status"] == "succeeded", result["run"]["error"]
+        session = get_session(db_url)
+        try:
+            assert session.query(DebateArgument).filter_by(case_id=case_id).count() == 6
+        finally:
+            session.close()
+
+    def test_explicit_url_takes_precedence_over_environment(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("LEGALDEBATE_DB_URL", f"sqlite:///{tmp_path / 'ignored.db'}")
+        app = create_app(db_url=db_url, cases_dir=str(tmp_path / "none"), seed_on_empty=False)
+
+        assert app.state.live.db_url == db_url
+        health = TestClient(app, base_url=LOCAL).get("/api/health").json()["database"]
+        assert health["path"] == "(自訂資料庫)"
+        assert health["cases"] == 1
+
+
 class TestLiveRun:
     def test_disabled_by_default_with_reason(self, db_url, tmp_path, monkeypatch):
         c = make_client(db_url, tmp_path, monkeypatch, enabled=False, reason="以 --host 0.0.0.0 啟動")
