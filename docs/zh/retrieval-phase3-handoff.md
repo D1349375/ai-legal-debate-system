@@ -24,6 +24,26 @@
 
 本文件與計畫、提案在 2026-11-01 的最後一次改版（定案「只用網路＋快取」）若尚未 commit，以工作區內容為準。
 
+### 階段三進度（2026-11-01 第二個工作階段，尚未 commit）
+
+| 步驟 | 狀態 | 程式 |
+|---|---|---|
+| 1 快取、`judgment`、查證改讀快取、無法檢索 | 完成 | `engine/retrieval_cache.py`（新）、`engine/verify.py`、`engine/law_lookup.py`、`engine/judgment_search.py`、`main.py`、`server/services.py`、`server/app.py`、`server/live_run.py`（UI 實跑以環境變數 `LEGAL_DEBATE_RUN_SNAPSHOT` 指定快照）、`ui/app.js`、`.gitignore` |
+| 2 檢索紀錄、指令層預算 | 完成（`internal_notes.search_log` 的格式檢查未做，見下） | `engine/search_log.py`（新）、`main.py` |
+| 3 prompt 與 SKILL | **未做**，見下 | — |
+| 4 法條查證改用名稱索引 | 完成 | `engine/verify.py`（`STATUTE_CITATION_RE` 改為依索引找最長法規名稱的比對器，介面同正規式）、`engine/law_lookup.py`（`ALIASES` 簡稱表） |
+| 5 實跑驗收 | 斷網測試以假連線完成（`tests/test_retrieval_cache.py`）；Claude Code 實跑未做 | — |
+
+做法上的決定：
+
+- **快照與預算怎麼傳**：指令加 `--snapshot <資料夾>`、`--log <檔案>`；`record`、`verify` 也接受 `--snapshot`。預算的輪次由紀錄檔名的 `stage1`／`stage2`／`stage3` 判斷，看不出時套用最嚴的 Stage 2、3 預算；不用另一個設定檔（角色改得到）。
+- **預算計數**：搜尋次數只算 `search-judgments`；全文份數只算實際上網抓的判決，`article`、`search-statutes` 只記錄不計入。
+- **字號 → JID**：快照內記錄（同一次實跑不重查）；不做長期快取（計畫「搜尋結果不做長期快取」）。指定日期且長期快取已有該份時不上網；沒指定日期時仍上網，因為快取無法確認是否還有同字號其他文件。
+- **UI 的 `local_cache_only`**：改指「只有過期條文快取」或「判決快取有、但官方未確認唯一性」，仍不放行。
+- **自動重試**：所有官網連線失敗重試一次（含 `search-statutes`、`search-judgments` 的搜尋本身）。
+
+尚待決定或等引用設計定案的部分見文末「階段三未完成事項」。
+
 ### 不要碰的檔案
 
 工作區有使用者自己未提交的改動，與本工作無關，**不要 commit、不要修改、不要還原**：
@@ -34,13 +54,14 @@
 - `scripts/rerun_role_separation.py`、`server/seed.py`、`tests/test_rerun_role_separation.py`
 - `database/legal_debate.db.bak-before-002`
 - `docs/live-run-records/role-separation-real-2026-10-31-002-redesign-20261031/`
-- `docs/zh/citation-needs-redesign.md`（來源不明，不是前一個工作階段建立的）
+- `docs/zh/citation-needs-redesign.md`（使用者確認的引用設計討論稿，已於 `616edfa` commit；階段三的檢索目標依此文件決定，見計畫第七節第 0 項）
 
 commit 時一律用 `git add <明確檔名>`，不要用 `git add -A` 或 `git add .`。
 
 ### 測試
 
-- 全部：`python -m pytest -q`，約 5 分鐘，交接時 **451 passed、1 skipped**（skip 是需手動啟用的 Claude 權限探針）。
+- 全部：`python -m pytest -q`，約 5 分鐘，交接時 **451 passed、1 skipped**（skip 是需手動啟用的 Claude 權限探針）。階段三步驟 1、2、4 完成後不連網 **479 passed、1 skipped**；改動相關的連網測試 11 項全過。
+- `tests/conftest.py` 把檢索快取改到每個測試的暫存目錄；測試不會讀寫 `database/retrieval_cache/`。
 - 不連網：`python -m pytest -q -m "not network"`。
 - 連網測試標記為 `network`（見 `pytest.ini`），會實際打官方網站。
 
@@ -182,3 +203,26 @@ CLI 都在 `main.py`：`article`、`search-judgments`、`search-statutes`。
 ## 六、新工作階段的建議開場
 
 > 請讀 `docs/zh/retrieval-phase3-handoff.md`、`docs/zh/retrieval-optimization-plan.md` 第七節與 `docs/zh/retrieval-evaluation-phase2.md`，在 `retrieval-optimization` 分支上從步驟 1（快取、`judgment` 指令、查證改讀快取、無法檢索的處理）開始實作階段三。不要碰交接文件列出的使用者既有改動。
+
+---
+
+## 七、階段三未完成事項（2026-11-01 第二個工作階段結束時）
+
+### 等引用設計（[citation-needs-redesign.md](citation-needs-redesign.md)）第七節定案
+
+- **步驟 3 中「依什麼挑檢索目標」的寫法**：要寫成「核心主張的請求權基礎＋有爭議的要件」，需要核心／備位、`disputed` 等概念先定案；現行輸出格式沒有這些欄位。
+- **`internal_notes.search_log` 的格式檢查**：屬於 `engine/role_protocol.py` 的驗證，定案前不改。
+- **預算值是否依爭議要件數調整**：目前沿用階段二的固定值（Stage 1 搜尋 8、全文 10；Stage 2、3 各 4、5）。
+- **步驟 5 Claude Code 實跑驗收**：以新格式實跑，與 10/31 紀錄比較才有意義。
+
+### 步驟 3 的另一個阻礙：重跑腳本
+
+`scripts/rerun_role_separation.py` 填範本時遇到未填的佔位符會直接報錯（「未填範本欄位」），`tests/test_rerun_role_separation.py` 也會複製正式範本跑一次。範本加入 `{SEARCH_LOG_PATH}`、`{RETRIEVAL_CACHE_DIR}` 後兩者都會失敗；這兩個檔案在「不要碰」清單上，需使用者決定：讓腳本補這兩個值、測試改用固定範本，或接受 Codex 重跑路徑失效。只刪除 `{STATUTES_DIR}`、`{JUDGMENTS_DIR}` 不會造成失敗（多給的值會被忽略）。
+
+### 步驟 3 不受引用設計影響、可直接做的部分
+
+- 刪除 `{STATUTES_DIR}`、`{JUDGMENTS_DIR}` 與「讀 {JUDGMENTS_DIR}」類指示，改寫成 `article`／`search-judgments`／`judgment` 指令。
+- SKILL.md 寫明調度員如何建立快照資料夾與每個角色每輪的紀錄檔（例如 `<執行目錄>/retrieval_cache/`、`<執行目錄>/search_logs/plaintiff_stage1.jsonl`），並在 `record`、`verify` 傳 `--snapshot`。
+- 立場檢索詞改為選用（SKILL.md「不能自行增刪」一句），`engine/stance_rag.py` 檔頭改為選用說明。
+- 遇到 `retrieval_unavailable` 寫「待確認」，不以記憶充當查得結果。
+- SKILL.md 第 8 步「連線失敗可由調度員手動重試一次並記錄；不改引擎加入自動重試」已與程式不符：查證引擎現在會自動重試一次，要一併改。

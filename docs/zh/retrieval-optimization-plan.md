@@ -196,6 +196,16 @@
 
 ## 七、階段三：接進流程
 
+### 0. 檢索目標依引用設計決定
+
+角色要檢索「什麼」，依 [citation-needs-redesign.md](citation-needs-redesign.md)（使用者確認的引用設計討論稿）決定：檢索與查詢預算應以「核心主張的請求權基礎＋有爭議的要件」為目標。照現行輸出格式，每份輸出約引用 81～114 條法條、三輪逐輪增加，改成上網後就是每份上百次請求，快取與預算也沒有合理的計算依據。
+
+該文件第七節的待確認事項（核心主張數量上限、不利判決是否必列、舊錄製案例相容、競賽前做到哪裡、是否併入本計畫）定案前：
+
+- **不改角色輸出格式**：`items`、`citations`、`precedent_notes` 的結構與 [engine/role_protocol.py](../../engine/role_protocol.py) 的驗證維持現狀。
+- **照常進行**：快取（第 6 項）、`judgment` 讀全文指令、查證改讀快取（第 3 項）、無法檢索的處理（第 5 項）、法條查證改用名稱索引（第 4 項）、檢索紀錄與指令層查詢預算（第 2、8 項）。這些不依賴角色的輸出結構。
+- **等定案**：第 1 項 prompt 中「依什麼挑檢索目標」的寫法、第 8 項預算值是否依爭議要件數調整、第 9 節實跑驗收（以新格式實跑才有比較意義）。
+
 ### 1. 檢索步驟改為「法條＋要件」導向
 
 改 [stage1_prompt.txt](../../.claude/skills/legal-debate/templates/stage1_prompt.txt)、[stage2_prompt.txt](../../.claude/skills/legal-debate/templates/stage2_prompt.txt)、[stage3_prompt.txt](../../.claude/skills/legal-debate/templates/stage3_prompt.txt) 與 [SKILL.md](../../.claude/skills/legal-debate/SKILL.md)：
