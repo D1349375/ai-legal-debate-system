@@ -16,6 +16,11 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
+  python main.py article 民法 33 [--json]                  依法規名稱與條號即時查官網條文(也接受「民法第191條之2」)
+  python main.py search-judgments --kw 締約上過失 [--title X] [--from/--to YYYY-MM-DD] [--pages 2] [--fetch 3] [--save-dir D] [--json]
+                                                          上網搜尋最高法院民事裁判，可抓全文整理主文與引用法條
+  python main.py search-statutes --kw 知有損害 [--law 民法] [--laws 3] [--json]
+                                                          依關鍵字上網搜尋法規條文
 """
 import argparse
 import json
@@ -372,6 +377,111 @@ def cmd_party(args):
     return 1 if r["query_status"] == "failed" else 0
 
 
+def cmd_article(args):
+    from engine.law_lookup import lookup_article, split_query
+    query = split_query(args.query)
+    if query is None:
+        print("請輸入法規名稱與條號，例如：民法 33、民法第191條之2", file=sys.stderr)
+        return 2
+    r = lookup_article(*query)
+    if args.json:
+        print(json.dumps(r, ensure_ascii=False, indent=2))
+        return 0 if r["status"] == "found" else 1
+    if r["status"] in ("invalid_article_no", "unknown_law"):
+        print(f"{r['law_name']} {r['article_no']}：{r['reason']}", file=sys.stderr)
+        if r.get("suggestions"):
+            print("你是不是要找：" + "、".join(r["suggestions"]), file=sys.stderr)
+        return 2
+    level = f"，{r['level']}" if r.get("level") else ""
+    print(f"{r['law_name']} 第 {r['article_no']} 條（pcode {r['pcode']}{level}）")
+    if r.get("abandoned"):
+        print("警示：此法規已廢止，以下為官網保留的條文，不是現行法。")
+    if r["status"] == "found":
+        print(("" if r.get("abandoned") else "現行條文；") + f"官方法規異動日期 {r.get('modified_date') or '未提供'}")
+    if r.get("url"):
+        print(r["url"])
+    print()
+    print(r["text"] if r["status"] == "found" else f"{r['status']}：{r['reason']}")
+    return 0 if r["status"] == "found" else 1
+
+
+def _iso(compact_date):
+    return f"{compact_date[:4]}-{compact_date[4:6]}-{compact_date[6:]}" if compact_date and len(compact_date) == 8 else compact_date
+
+
+def cmd_search_judgments(args):
+    from engine.judgment_search import NETWORK_ERRORS, search_judgments
+    try:
+        r = search_judgments(args.kw or (), case_cause=args.title, date_from=args.date_from, date_to=args.date_to,
+                             pages=args.pages, fetch=args.fetch, include_rulings=args.include_rulings,
+                             min_size_kb=args.min_size, save_dir=args.save_dir)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    except NETWORK_ERRORS as error:
+        print(f"network_error：司法院裁判書查詢系統連線失敗（{error}），不代表查無判決", file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(r, ensure_ascii=False, indent=2))
+        return 0
+    terms = "、".join(f"「{k}」" for k in r["query"]["keywords"])
+    scope = "；".join(filter(None, [f"全文 {terms}" if terms else "", f"案由「{args.title}」" if args.title else ""]))
+    print(f"最高法院民事裁判｜{scope}｜共 {r['total']} 筆，讀取 {r['pages_read']}/{r['page_count']} 頁（{len(r['rows'])} 筆）")
+    print(f"查詢時間 {r['fetched_at']}；來源 司法院裁判書查詢系統")
+    if r["unverifiable"]:
+        print(f"其中 {r['unverifiable']} 筆不是最高法院民事字號（TPSV），查證引擎不支援，標為「不可引用」。")
+    for i, row in enumerate(r["rows"], 1):
+        size = f"{row['size_kb']}K" if row["size_kb"] else "大小未提供"
+        flag = "" if row["verifiable"] else "｜不可引用"
+        print(f"\n{i}. {row['citation']}｜{size}｜{_iso(row['doc_date'])}｜{row['case_cause']}{flag}")
+        if row.get("snippet"):
+            print(f"   片段：{row['snippet']}")
+        if row.get("fetch_error"):
+            print(f"   全文：{row['fetch_error']}")
+        elif row.get("fetched"):
+            procedural = "；程序駁回" if row["procedural_only"] else ""
+            print(f"   主文：{row['disposition'] or '未擷取到'}{procedural}")
+            print(f"   實體法條：{'、'.join(row['statutes']) or '無'}")
+            for sentence in row["matched_sentences"]:
+                print(f"   命中：{sentence}")
+        print(f"   {row['url']}")
+    if r["saved_to"]:
+        print(f"\n已存檔：{r['saved_to']}")
+    return 0
+
+
+def cmd_search_statutes(args):
+    from engine.law_lookup import search_statutes
+    try:
+        r = search_statutes(args.kw, law_name=args.law, max_laws=args.laws)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(r, ensure_ascii=False, indent=2))
+        return 0 if r["status"] == "found" else 1
+    if r["status"] == "unknown_law":
+        print(f"{args.law}：{r['reason']}", file=sys.stderr)
+        if r.get("suggestions"):
+            print("你是不是要找：" + "、".join(r["suggestions"]), file=sys.stderr)
+        return 2
+    if r["status"] == "network_error":
+        print(f"network_error：{r['reason']}", file=sys.stderr)
+        return 1
+    if not args.law:
+        print(f"條文含「{r['keyword']}」的法規共 {r['total_laws']} 部（官網列表順序，非相關度）：")
+        print("、".join(law["law_name"] for law in r["laws"]))
+        if r["total_laws"] > len(r["laws"]):
+            print(f"（只列出前 {len(r['laws'])} 部）")
+        print(f"以下展開前 {len(r['expanded'])} 部；要看其他法規的條文，加 --law 法規名稱。")
+    for law in r["expanded"]:
+        warning = "｜已廢止" if law.get("abandoned") else ""
+        print(f"\n【{law['law_name']}】命中 {len(law['articles'])} 條{warning}｜{law['url']}")
+        for article in law["articles"]:
+            print(f"\n第 {article['article_no']} 條\n{article['text']}")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="LegalDebate 落地 CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -456,6 +566,31 @@ def main():
     p.add_argument("--name", help="選填的預期名稱，供比對登記名稱")
     p.add_argument("--no-persist", action="store_true")
     p.set_defaults(fn=cmd_party)
+
+    p = sub.add_parser("article", help="依法規名稱與條號即時查官網條文")
+    p.add_argument("query", nargs="+", help="例如：民法 33、民法 191之2、民法第191條之2")
+    p.add_argument("--json", action="store_true", help="輸出結構化結果")
+    p.set_defaults(fn=cmd_article)
+
+    p = sub.add_parser("search-judgments", help="上網搜尋最高法院民事裁判(司法院裁判書查詢系統)")
+    p.add_argument("--kw", action="append", help="全文關鍵字，可重複指定(皆須命中)")
+    p.add_argument("--title", help="案由，例如：損害賠償")
+    p.add_argument("--from", dest="date_from", help="裁判日期起，YYYY-MM-DD")
+    p.add_argument("--to", dest="date_to", help="裁判日期迄，YYYY-MM-DD")
+    p.add_argument("--pages", type=int, default=2, help="最多讀幾頁結果(每頁 20 筆，上限 5)")
+    p.add_argument("--fetch", type=int, default=0, help="抓前幾份判決全文並整理(上限 10)")
+    p.add_argument("--include-rulings", action="store_true", help="抓全文時也包含裁定(預設只抓判決)")
+    p.add_argument("--min-size", type=int, help="裁判內容大小下限(K)，用來濾掉短篇程序裁定")
+    p.add_argument("--save-dir", help="把查詢結果與抓到的全文存到此資料夾")
+    p.add_argument("--json", action="store_true", help="輸出結構化結果")
+    p.set_defaults(fn=cmd_search_judgments)
+
+    p = sub.add_parser("search-statutes", help="依關鍵字上網搜尋法規條文(全國法規資料庫)")
+    p.add_argument("--kw", required=True, help="條文關鍵字，例如：知有損害")
+    p.add_argument("--law", help="只搜這部法規，例如：民法")
+    p.add_argument("--laws", type=int, default=3, help="未指定 --law 時展開前幾部法規的條文(上限 5)")
+    p.add_argument("--json", action="store_true", help="輸出結構化結果")
+    p.set_defaults(fn=cmd_search_statutes)
 
     args = parser.parse_args()
     sys.exit(args.fn(args))

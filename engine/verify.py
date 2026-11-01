@@ -13,24 +13,20 @@ FJUD 查證機制(2026-08-09 實測確認可行)：FJUD 為 ASP.NET WebForms 應
 id 參數即為完整 JID(格式與本地語料庫檔名、司法院裁判書開放 API 之 JID 一致，如
 「TPSV,115,台上,1037,20260722,1」)。單一裁判字號通常只會命中一筆，若命中多筆則逐一比對
 JID 內嵌的年度/案號/字別/字號是否與查證目標完全一致，避免誤採其他相近案號。
+FJUD 的連線與頁面解析自 2026-11-01 起集中在 engine/fjud.py，與判決上網檢索共用。
 """
 import json
-import html as html_module
 import os
 import re
 import ssl
-import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
-FJUD_BASE = "https://judgment.judicial.gov.tw/FJUD"
-_FJUD_HEADERS = {
-    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "zh-TW,zh;q=0.9",
-}
+from engine import fjud
+
+FJUD_BASE = fjud.FJUD_BASE
+_FJUD_HEADERS = fjud.HEADERS
 
 CORPUS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'corpus')
 STATUTES_DIR = os.path.join(CORPUS_DIR, 'statutes')
@@ -128,16 +124,25 @@ def _network_call(call):
         return None, 1, str(error)
 
 
-def _fetch_single_article(pcode, article_no, timeout=DEFAULT_TIMEOUT):
+def _fetch_article_page(pcode, article_no, timeout=DEFAULT_TIMEOUT):
     url = f"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode={pcode}&flno={article_no}"
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        html = resp.read().decode("utf-8")
+        return resp.read().decode("utf-8"), url
+
+
+def _fetch_single_article(pcode, article_no, timeout=DEFAULT_TIMEOUT):
+    html, url = _fetch_article_page(pcode, article_no, timeout=timeout)
     if "查無資料" in html:
         return None, url
+    return _parse_article_html(html, article_no), url
+
+
+def _parse_article_html(html, article_no):
+    """單條頁面 → 條文文字；頁面沒有條文區塊時回 None。"""
     start = html.find('<div class="law-article">')
     if start == -1:
-        return None, url
+        return None
     end = html.find('<div class="clearfix">', start)
     if end == -1:
         end = start + 3000
@@ -146,8 +151,7 @@ def _fetch_single_article(pcode, article_no, timeout=DEFAULT_TIMEOUT):
     fragment = re.sub(r'</div>', '\n', fragment)
     fragment = re.sub(r'<[^>]+>', '', fragment)
     lines = [l.strip() for l in fragment.split('\n') if l.strip()]
-    text = f"第 {article_no} 條\n" + '\n'.join(lines)
-    return text, url
+    return f"第 {article_no} 條\n" + '\n'.join(lines)
 
 
 def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT, *, citation_text=None, version_hint=None):
@@ -170,54 +174,12 @@ def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT, *, ci
             "primary_source_url": url, "matched_text": live_text, "attempts": attempts}
 
 
-def _fjud_extract_hidden_fields(html):
-    def extract(name):
-        m = re.search(r'id="' + name + r'"[^>]*value="([^"]*)"', html)
-        return m.group(1) if m else ""
-    return {
-        "__VIEWSTATE": extract("__VIEWSTATE"),
-        "__VIEWSTATEGENERATOR": extract("__VIEWSTATEGENERATOR"),
-        "__EVENTVALIDATION": extract("__EVENTVALIDATION"),
-    }
+def _fjud_search(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT):
+    """以 FJUD 進階搜尋的字號欄位找最高法院民事裁判，回傳 JID 清單(可能為空、一筆、或多筆)。
 
-
-def _fjud_search(citation_query, timeout=DEFAULT_TIMEOUT):
-    """搜尋 FJUD，回傳命中的 JID 清單(可能為空、一筆、或多筆)。"""
-    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
-    req = urllib.request.Request(f"{FJUD_BASE}/default.aspx", headers=_FJUD_HEADERS)
-    with opener.open(req, timeout=timeout) as resp:
-        home_html = resp.read().decode("utf-8")
-    hidden = _fjud_extract_hidden_fields(home_html)
-    data = dict(hidden)
-    data.update({
-        "judtype": "JUDBOOK",
-        "whosub": "0",
-        "txtKW": citation_query,
-        "ctl00$cp_content$btnSimpleQry": "送出查詢",
-    })
-    body = urllib.parse.urlencode(data).encode("utf-8")
-    headers2 = dict(_FJUD_HEADERS)
-    headers2.update({
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Referer": f"{FJUD_BASE}/default.aspx",
-        "Origin": "https://judgment.judicial.gov.tw",
-    })
-    req2 = urllib.request.Request(f"{FJUD_BASE}/default.aspx", data=body, headers=headers2)
-    with opener.open(req2, timeout=timeout) as resp2:
-        search_html = resp2.read().decode("utf-8")
-    m = re.search(r'qryresultlst\.aspx\?ty=JUDBOOK&(?:amp;)?q=([0-9a-f]+)', search_html)
-    if not m:
-        return []
-    token = m.group(1)
-    time.sleep(1.5)  # 緊接著發第二個請求容易被拒，實測需短暫延遲(見 corpus/COLLECTION_LOG.md 類似教訓)
-    list_url = f"{FJUD_BASE}/qryresultlst.aspx?ty=JUDBOOK&q={token}"
-    headers3 = dict(_FJUD_HEADERS)
-    headers3["Referer"] = f"{FJUD_BASE}/default.aspx"
-    req3 = urllib.request.Request(list_url, headers=headers3)
-    with opener.open(req3, timeout=timeout) as resp3:
-        list_html = resp3.read().decode("utf-8")
-    raw_ids = re.findall(r'data\.aspx\?ty=JD&(?:amp;)?id=([^"&]+)', list_html)
-    return [urllib.parse.unquote(raw_id) for raw_id in raw_ids]
+    2026-11-01 前用簡易搜尋輸入完整字號，那是全文搜尋，會先命中內文引用該字號的其他法院裁判，
+    不在本地語料又被他案引用過的最高法院裁判因此一律誤報 not_found。"""
+    return [row['jid'] for row in fjud.advanced_search(citation=(jyear, jcase, jno), pages=1, timeout=timeout)['rows']]
 
 
 def _jid_matches(jid, jyear, jcase, jno):
@@ -248,20 +210,13 @@ def _local_judgment(path):
 
 
 def _fetch_judgment_text(jid, timeout=DEFAULT_TIMEOUT):
-    url = f"{FJUD_BASE}/data.aspx?ty=JD&id={urllib.parse.quote(jid)}&ot=in"
-    req = urllib.request.Request(url, headers=_FJUD_HEADERS)
-    with urllib.request.urlopen(req, timeout=timeout) as response:
-        html = response.read().decode('utf-8')
-    # 官方頁面全文容器。頁面改版而無法辨認時，不能把導覽文字當裁判全文。
-    match = re.search(r'<div[^>]+class=["\'][^"\']*(?:htmlcontent|text-pre)[^"\']*["\'][^>]*>(.*?)</div>', html, re.S | re.I)
-    if not match:
-        return {'full_text': '', 'primary_source_url': url, 'jtitle': None, 'doc_type': None}
-    text = re.sub(r'<br\s*/?>|</p>|</pre>', '\n', match.group(1), flags=re.I)
-    text = html_module.unescape(re.sub(r'<[^>]+>', '', text)).strip()
-    title = re.search(r'裁判案由[：:]\s*</[^>]+>\s*<[^>]+>(.*?)</', html, re.S)
-    return {'full_text': text, 'matched_text': text[:200], 'primary_source_url': url,
-            'jtitle': html_module.unescape(re.sub('<[^>]+>', '', title.group(1))).strip() if title else None,
-            'doc_type': _document_type(text)}
+    # 頁面改版而無法辨認全文容器時 full_text 為空，不能把導覽文字當裁判全文。
+    document = fjud.fetch_document(jid, timeout=timeout)
+    text = document['full_text']
+    if not text:
+        return {'full_text': '', 'primary_source_url': document['url'], 'jtitle': None, 'doc_type': None}
+    return {'full_text': text, 'matched_text': text[:200], 'primary_source_url': document['url'],
+            'jtitle': document['case_cause'], 'doc_type': _document_type(text)}
 
 
 def verify_judgment_citation(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT, *, doc_date=None):
@@ -289,7 +244,7 @@ def verify_judgment_citation(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT, *, doc_
 
     # 本地語料庫未命中，退而求其次即時查證 FJUD(不再直接回報 not_in_phase1_seed_corpus 了事)。
     citation_query = f"{jyear}年度{jcase}字第{jno}號"
-    jids, attempts, error = _network_call(lambda: _fjud_search(citation_query, timeout=timeout))
+    jids, attempts, error = _network_call(lambda: _fjud_search(jyear, jcase, jno, timeout=timeout))
     if error:
         return {"status": "network_error", **common, 'attempts': attempts,
                 "reason": error, "note": "FJUD 即時查證連線失敗，非查無此判決"}
