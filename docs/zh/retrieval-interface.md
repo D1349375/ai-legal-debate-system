@@ -36,7 +36,7 @@
 | `python main.py article 民法 184` | 讀現行條文（也接受「民法第191條之2」）；7 天內讀快取，否則上網 | 結束碼 0 | 1：`not_found`、`unrecognized_page`、`retrieval_unavailable`；2：法規名稱或條號格式錯 |
 | `python main.py search-statutes --kw 知有損害 [--law 民法]` | 依關鍵字找條文 | 0 | 1：`retrieval_unavailable`；2：參數錯或法規名稱不明 |
 | `python main.py search-judgments --kw 民法第184條 --kw 相當因果關係 [--fetch 3] [--title 損害賠償]` | 搜最高法院民事判決（多個 `--kw` 皆須命中）；`--fetch` 抓全文並列出主文、實體法條、命中句，最後列「常一起引用的法條」 | 0 | 1：`retrieval_unavailable`、`budget_exceeded`；2：參數錯 |
-| `python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD]` | 依字號或 JID 讀判決全文（去換行版）；正式引用前「讀過全文」靠這個指令 | 0 | 1：`not_found`、`retrieval_unavailable`、`full_text_unavailable`、`budget_exceeded`；2：同字號多份文件需指定日期（`ambiguous`）或格式錯 |
+| `python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD]` | 依字號或 JID 讀判決全文（去換行版）；正式引用前「讀過全文」靠這個指令 | 0 | 1：`not_found`、`retrieval_unavailable`、`full_text_unavailable`、`budget_exceeded`、`excluded`；2：同字號多份文件需指定日期（`ambiguous`）或格式錯 |
 | `python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <案件資料夾>] [--json]` | 印出該階段的檢索規則，給調度員填 `{RETRIEVAL_RULES}`；調度員用，角色不用。見第四節 | 0 | 2：未知階段（訊息列出可用名稱）、角色與階段不符、給 `--case-dir` 沒給 `--side` |
 
 檢索指令共用參數：
@@ -44,6 +44,7 @@
 - `--snapshot <本角色的快照資料夾>`：見第五節。
 - `--log <本角色本階段的紀錄檔>`：記錄每次查詢，並依檔名判斷階段、計算預算。
 - `--issue <爭點id>`（`search-judgments`、`judgment`）：記下這次查詢針對哪個爭點，P4、P5 使用。
+- `--exclude <字號或 JID>`（`search-judgments`、`judgment`，可重複）：不提供給角色的裁判，用於示範案改編自真實判決時排除來源裁判。同字號的每一份文件都排除（不分日期）；`search-judgments` 從列表拿掉、不抓全文，`judgment` 在查任何來源前就回 `excluded`。值無法解析成字號或 JID 時結束碼 2。
 - `--json`：結構化輸出。
 
 失敗訊息一律寫明原因，訊息開頭就是狀態名稱：
@@ -86,6 +87,7 @@ python main.py retrieval-rules --phase p2 --side defendant --case-dir database/l
 | `--phase`（必填） | 檢索階段 `p1`、`p2`、`p4`、`p5`，或別名 `complaint`、`scenario`、`answer`、`brief`、`closing`；不檢索的 `p3`、`p6`、`verify`；現行三輪 `stage1`～`stage3`（相容用）。和紀錄檔名認得的名稱相同 |
 | `--side` | `plaintiff` 或 `defendant`。`p1` 只能是原告、`p2` 只能是被告，給錯回結束碼 2（避免把對造的路徑給錯角色） |
 | `--case-dir` | 案件資料夾。檢索階段要和 `--side` 一起給，輸出會帶入該角色的實際路徑；沒給時規則裡的路徑寫成 `<快照資料夾>`、`<紀錄檔>` |
+| `--exclude` | 示範案的來源裁判（字號或 JID，可重複）。規則裡每個 `search-judgments`、`judgment` 指令都會帶 `--exclude <字號>`（角色與法官階段；獨立查證不帶，角色若憑記憶引用了來源裁判，查證仍要能查）。規則不說明排除的原因，免得提示搜尋方向 |
 | `--json` | 結構化輸出，欄位見下 |
 
 `--json` 的欄位：
@@ -96,10 +98,17 @@ python main.py retrieval-rules --phase p2 --side defendant --case-dir database/l
 | `snapshot` | `<案件資料夾>/retrieval_cache/<side>`（有給 `--side`、`--case-dir` 的檢索階段才有） | `{RETRIEVAL_CACHE_DIR}` |
 | `log` | `<案件資料夾>/search_logs/<side>_<階段代碼>.jsonl`；別名一律換成代碼，所以 `scenario` 和 `answer` 都是 `defendant_p2.jsonl`（劇本與答辯狀共用預算） | `{SEARCH_LOG_PATH}` |
 | `case_snapshot` | `<案件資料夾>/retrieval_cache`（有給 `--case-dir` 就有） | `record`、`verify` 的 `--snapshot` |
+| `exclude` | 排除的裁判，已統一寫成 `111年度台上字第1069號` 的格式；獨立查證為空陣列 | — |
 | `phase`、`label` | 階段代碼與名稱，例如 `p2`、`P2 答辯劇本與答辯狀` | — |
 | `searches`、`budget` | 是否檢索；預算 `{"searches": 8, "fetches": 10}`，不檢索的階段為 `null`。數字直接讀 `engine/search_log.PHASES`，和指令實際執行的預算相同 | — |
 
 規則全文的內容：檢索方式、預算、目標、步驟、可用指令與參數（含實際路徑）、什麼時候引用、檢索失敗時（`retrieval_unavailable`、`full_text_unavailable`、`budget_exceeded`、`ambiguous`）怎麼處理、禁止事項。不含大括號，填進範本後再對範本做 `str.format` 也不會出錯。各階段的規則見第八節。
+
+**排除來源裁判的限制**（實跑示範案前要知道）：
+
+1. `--exclude` 是角色照抄規則裡的指令帶上的，角色漏帶時不會排除。指令沒有另一個角色改不到的地方可以放排除清單（角色對 `database/live_runs/**` 有寫入權限，環境變數也能在指令前覆寫），所以實跑後請檢查紀錄檔每筆 `search-judgments` 的 `query.exclude`。
+2. 只排除指定字號。同一個紛爭在最高法院的其他裁判（例如先前發回的判決，字號不同）要另外列；之後引用來源裁判的其他判決不會被排除。
+3. 來源裁判若在 `corpus/judgments/`（1,088 筆預先內容），UI 實跑的 agent 目前可以用 Read、Grep 直接讀到：`DISALLOWED_TOOLS` 沒有禁止這個資料夾。要不要加禁止規則見第六節。
 
 ### 紀錄檔的檔名決定預算
 
@@ -149,6 +158,8 @@ python main.py retrieval-rules --phase p2 --side defendant --case-dir database/l
 2. **禁止直接讀**：`DISALLOWED_TOOLS` 裡的 `Read(/database/retrieval_cache/**)`、`Read(/database/live_runs/*/retrieval_cache/**)`、`Read(/database/live_runs/*/search_logs/**)`。已用真的 Claude Code 驗證生效（`tests/test_claude_permissions.py`，設 `LEGALDEBATE_PROBE_CLAUDE=1` 執行）。若改了案件資料夾的位置，這三條規則要跟著改。
 
 `tests/test_live_run.py` 有對應的測試（續跑沿用同一份快照、禁止規則存在）。
+
+**待決定**：實跑示範案時，若來源裁判在 `corpus/judgments/`，可在 `DISALLOWED_TOOLS` 加 `Read(/corpus/judgments/**)`、`Grep(/corpus/judgments/**)`、`Glob(/corpus/judgments/**)`。指令以 Python 讀檔不受影響，所以角色照樣能用 `judgment` 讀預先內容；代價是角色不能再直接瀏覽語料。這是 `live_run.py`，由組長決定是否加。
 
 ---
 
@@ -240,7 +251,31 @@ main 若另外實作，併回來時 `verify.py` 會大衝突。決賽若用 main
 
 ---
 
-## 十二、聯絡與更新
+## 十二、搬到新架構分支（`pleading-exchange`）要帶的檔案
+
+新架構若從 main 開分支，檢索這邊以 `retrieval-optimization` 的版本整份帶過去（2026-11-01 核對：main 是本分支的祖先，main 上沒有本分支以外的新 commit）。以下檔案之後仍由檢索這邊維護。
+
+**整份複製，main 上沒有、不會衝突**：
+
+- `engine/fjud.py`、`engine/law_lookup.py`、`engine/retrieval_cache.py`、`engine/search_log.py`、`engine/judgment_search.py`、`engine/judgment_text.py`、`engine/retrieval_rules.py`
+- `corpus/statutes/law_index.json`、`scripts/build_law_index.py`
+- 測試：`tests/test_fjud.py`、`test_law_lookup.py`、`test_retrieval_cache.py`、`test_search_log.py`、`test_judgment_search.py`、`test_judgment_text.py`、`test_retrieval_rules.py`，以及 `tests/fixtures/fjud/`、`tests/fixtures/law/`
+
+**整份取代 main 的版本**：
+
+- `engine/verify.py`：只依賴上面的 `fjud`、`retrieval_cache`、`law_lookup`，不依賴職責分離的程式。main 上的呼叫端（`database/db.py`、`main.py`、`server/app.py`、`server/seed.py`、`server/services.py`）用到的 `parse_citation`、`verify_citations(texts, timeout)`、`JUDGMENTS_DIR`、`STATUTES_DIR`、`STATUTE_PCODES`、兩個字號比對器的 `finditer`／`group(0)`／`start()` 都相容。M1、M3、M4、M5 的修法都在這個檔案，只搬檢索指令不搬它，查證就會退回 main 的舊行為。
+- `tests/conftest.py`：要帶它的兩個 fixture（每個測試把檢索快取改到暫存目錄並清掉快照環境變數的 autouse fixture，以及 `seed_article`），否則測試會寫進真的 `database/retrieval_cache/`。
+
+**要合併、不能整份覆蓋**（main 與本分支都改過）：
+
+- `main.py`：`article`、`search-statutes`、`search-judgments`、`judgment`、`retrieval-rules` 五個指令與 `_snapshot`、`_search_log`、`SOURCE_LABEL`、`_source_line`、`_iso`、`_retrieval_options`；`verify`、`record` 的 `--snapshot` 與 `main()` 結尾設定 `SNAPSHOT_ENV` 的那段。`cmd_judgment` 用到的 `verify._document_type` 在新的 `verify.py` 裡。
+- `server/live_run.py`：第六節的兩處。
+- `server/services.py`：`verify_one` 與 `_live_query` 那一段（改讀檢索快取、不再讀 `corpus/statutes/*.txt`、`full_text_unavailable`）。不搬的話，UI 查證仍用 main 的舊法典快取。
+- `ui/app.js`：`STATUS`、`LIVE_OUTCOME` 的新標籤與查證統計。
+
+**不用帶**：`engine/citation_review.py`、`engine/role_protocol.py` 是職責分離的程式，main 上沒有；本分支在 `citation_review.py` 只加了一個允許的狀態值。
+
+## 十三、聯絡與更新
 
 - 檢索這邊的進度與未完成事項：`docs/zh/retrieval-phase3-handoff.md`。
 - 介面有變動時更新本文件；新框架這邊需要新的檢索介面，請直接提出，不要改上面列為檢索負責的檔案。

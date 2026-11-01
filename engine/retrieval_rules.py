@@ -109,11 +109,15 @@ def _numbered(lines):
     return [f"{i}. {line}" for i, line in enumerate(lines, 1)]
 
 
-def _search_text(code, side, paths):
+def _exclude_args(exclude):
+    return ''.join(f' --exclude {value}' for value in exclude)
+
+
+def _search_text(code, side, paths, exclude):
     rule, (label, searches, fetches) = SEARCH_RULES[code], PHASES[code]
     who = SIDE_LABEL[side] if side else '、'.join(SIDE_LABEL[s] for s in rule['sides'])
     snapshot, log = paths.get('snapshot', '<快照資料夾>'), paths.get('log', '<紀錄檔>')
-    issue = ' --issue <爭點id>' if rule['issue'] else ' [--issue <爭點id>]'
+    issue = (' --issue <爭點id>' if rule['issue'] else ' [--issue <爭點id>]') + _exclude_args(exclude)
     where = (f"本角色快照資料夾 {snapshot}；本階段紀錄檔 {log}。以下指令照抄路徑，不要改成其他資料夾。" if paths.get('log') else
              "以下 <快照資料夾>、<紀錄檔> 是範本給你的本角色快照資料夾與本階段紀錄檔路徑，每個指令都要帶。")
     return [
@@ -135,7 +139,7 @@ def _search_text(code, side, paths):
     ]
 
 
-def _no_search_text(code, paths):
+def _no_search_text(code, paths, exclude):
     label, who = NO_SEARCH[code]
     lines = [f"檢索規則：{label}（{who}）", "檢索方式：不搜尋。不得使用 search-judgments、search-statutes。", "", "可用指令："]
     if code == 'verify':
@@ -148,7 +152,8 @@ def _no_search_text(code, paths):
                   "- 只有 published 放行；network_error（官網無法連線）與 full_text_unavailable（官網頁面無法辨認）"
                   "都不代表查無或引用寫錯，照實回報，不得改判為 published"]
     else:
-        lines += ["- 讀判決全文：python main.py judgment <字號> [--doc-date YYYYMMDD]（讀雙方已引用的判決；不加 --snapshot、--log）",
+        lines += [f"- 讀判決全文：python main.py judgment <字號> [--doc-date YYYYMMDD]{_exclude_args(exclude)}"
+                  "（讀雙方已引用的判決；不加 --snapshot、--log）",
                   "- 讀條文：python main.py article <法規名稱> <條號>"]
         if code == 'p6':
             lines += ["", "診斷：",
@@ -158,9 +163,15 @@ def _no_search_text(code, paths):
     return lines
 
 
-def build(phase, side=None, case_dir=None):
-    """→ {'phase', 'label', 'searches', 'budget', 'text', 以及有給 case_dir 時的路徑}。未知階段拋 UnknownPhase，
-    角色與階段不符或缺 --side 拋 ValueError。"""
+def build(phase, side=None, case_dir=None, exclude=()):
+    """→ {'phase', 'label', 'searches', 'budget', 'exclude', 'text', 以及有給 case_dir 時的路徑}。未知階段拋
+    UnknownPhase，角色與階段不符、缺 --side 或 exclude 不是字號／JID 拋 ValueError。
+
+    exclude(示範案的來源裁判)會帶進角色與法官的 search-judgments、judgment 指令；不說明原因，免得提示模型
+    搜尋方向。獨立查證不排除：角色若憑記憶引用了來源裁判，查證仍要能查。"""
+    from engine.judgment_search import exclusion_keys
+    # 一律寫成不含空白的字號，貼進指令不會被 shell 拆開；排除本來就不分文件日期
+    exclude = [f"{y}年度{c}字第{n}號" for y, c, n in sorted(exclusion_keys(exclude))]
     code = canonical_phase(phase)
     if code is None:
         raise UnknownPhase(f"未知階段：{phase}；可用：{'、'.join(phase_names())}")
@@ -172,7 +183,8 @@ def build(phase, side=None, case_dir=None):
     if searches and case_dir and not side:
         raise ValueError("給 --case-dir 時要同時給 --side，才能印出該角色的快照資料夾與紀錄檔")
     paths = case_paths(code, side, case_dir)
-    lines = _search_text(code, side, paths) if searches else _no_search_text(code, paths)
+    exclude = [] if code == 'verify' else exclude
+    lines = _search_text(code, side, paths, exclude) if searches else _no_search_text(code, paths, exclude)
     budget = {'searches': PHASES[code][1], 'fetches': PHASES[code][2]} if searches else None
     return {'phase': code, 'label': PHASES[code][0] if searches else NO_SEARCH[code][0], 'searches': searches,
-            'budget': budget, **paths, 'text': '\n'.join(lines)}
+            'budget': budget, 'exclude': exclude, **paths, 'text': '\n'.join(lines)}

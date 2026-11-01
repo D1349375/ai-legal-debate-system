@@ -12,8 +12,8 @@ SEARCH_PHASES = sorted(PHASES)
 NO_SEARCH_PHASES = sorted(retrieval_rules.NO_SEARCH)
 
 
-def rules_args(phase, side=None, case_dir=None, json_output=False):
-    return argparse.Namespace(phase=phase, side=side, case_dir=case_dir, json=json_output)
+def rules_args(phase, side=None, case_dir=None, json_output=False, exclude=None):
+    return argparse.Namespace(phase=phase, side=side, case_dir=case_dir, json=json_output, exclude=exclude)
 
 
 @pytest.mark.parametrize("phase", SEARCH_PHASES + NO_SEARCH_PHASES)
@@ -79,6 +79,26 @@ def test_phase_and_side_must_match(capsys):
     assert "由原告檢索" in capsys.readouterr().err
     assert main.cmd_retrieval_rules(rules_args("p4", case_dir="database/live_runs/case-7")) == 2
     assert "--side" in capsys.readouterr().err
+
+
+def test_source_judgment_exclusion_is_carried_into_judgment_commands():
+    exclude = ["最高法院 111年度台上字第1069號", "TPSV,105,台簡上,33,20161026"]
+    flags = "--exclude 105年度台簡上字第33號 --exclude 111年度台上字第1069號"
+    for phase in ("p1", "p4", "p3"):
+        r = retrieval_rules.build(phase, exclude=exclude)
+        judgment_lines = [line for line in r["text"].splitlines()
+                          if "main.py search-judgments" in line or "main.py judgment" in line]
+        assert judgment_lines and all(flags in line for line in judgment_lines)
+        assert "main.py article" in r["text"] and "--exclude" not in next(
+            line for line in r["text"].splitlines() if "main.py article" in line)
+    # 獨立查證不排除：角色若憑記憶引用了來源裁判，查證仍要能查
+    assert retrieval_rules.build("verify", exclude=exclude)["exclude"] == []
+    assert "--exclude" not in retrieval_rules.build("verify", exclude=exclude)["text"]
+
+
+def test_unparseable_exclusion_is_rejected(capsys):
+    assert main.cmd_retrieval_rules(rules_args("p1", exclude=["原案判決"])) == 2
+    assert "--exclude 須為裁判字號" in capsys.readouterr().err
 
 
 def test_rules_keep_the_agreed_legal_wording():

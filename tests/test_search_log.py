@@ -40,12 +40,13 @@ def fake_fjud(monkeypatch):
 def search_args(log, fetch=0, **overrides):
     base = dict(kw=["締約上過失"], title=None, date_from=None, date_to=None, pages=1, fetch=fetch,
                 include_rulings=False, min_size=None, sort="date", save_dir=None, json=False, snapshot=None, log=log,
-                issue=None)
+                issue=None, exclude=None)
     return argparse.Namespace(**{**base, **overrides})
 
 
-def judgment_args(target, log=None, doc_date=None, snapshot=None, issue=None):
-    return argparse.Namespace(target=target, doc_date=doc_date, json=False, snapshot=snapshot, log=log, issue=issue)
+def judgment_args(target, log=None, doc_date=None, snapshot=None, issue=None, exclude=None):
+    return argparse.Namespace(target=target, doc_date=doc_date, json=False, snapshot=snapshot, log=log, issue=issue,
+                              exclude=exclude)
 
 
 def entries(path):
@@ -148,6 +149,38 @@ def test_unreadable_judgment_page_is_its_own_status(fake_fjud, monkeypatch, tmp_
     assert entries(path)[-1]["status"] == "full_text_unavailable" and SearchLog(path).fetches_used == 0
     rows = judgment_search.search_judgments(["締約上過失"], fetch=1)["rows"]
     assert rows[0]["fetch_error"].startswith("full_text_unavailable") and not rows[0].get("fetched")
+
+
+def test_source_judgment_is_left_out_of_search_results(fake_fjud, tmp_path, capsys):
+    """示範案改編自真實判決：來源裁判不出現在列表、不抓全文；字號與 JID 都可指定，不分文件日期。"""
+    calls, jids = fake_fjud
+    path = str(tmp_path / "plaintiff_p1.jsonl")
+    args = search_args(path, fetch=3, exclude=["最高法院111年度台上字第101號", jids[1]])
+    assert main.cmd_search_judgments(args) == 0
+    out = capsys.readouterr().out
+    assert "111年度台上字第101號" not in out and jids[0] not in out and jids[1] not in out
+    assert calls["fetch"] == jids[2:5]
+    logged = entries(path)[-1]
+    assert logged["query"]["exclude"] == ["最高法院111年度台上字第101號", jids[1]]
+    assert judgment_search.search_judgments(["締約上過失"], exclude=[jids[0]])["excluded"] == 1
+
+
+def test_excluded_judgment_cannot_be_read_by_citation_or_jid(fake_fjud, tmp_path, capsys):
+    calls, jids = fake_fjud
+    path = str(tmp_path / "defendant_p2.jsonl")
+    for target in ("111年度台上字第101號", "TPSV,111,台上,101,20990101"):
+        assert main.cmd_judgment(judgment_args(target, log=path, exclude=[jids[0]])) == 1
+        assert capsys.readouterr().err.startswith("excluded")
+    assert calls == {"search": 0, "fetch": []}  # 連字號查詢都不做
+    assert [e["status"] for e in entries(path)] == ["excluded", "excluded"]
+    assert main.cmd_judgment(judgment_args(jids[2], log=path, exclude=[jids[0]])) == 0
+
+
+def test_unparseable_exclusion_is_a_usage_error(fake_fjud, capsys):
+    assert main.cmd_search_judgments(search_args(None, exclude=["原案判決"])) == 2
+    assert main.cmd_judgment(judgment_args("111年度台上字第101號", exclude=["原案判決"])) == 2
+    assert "--exclude 須為裁判字號" in capsys.readouterr().err
+    assert fake_fjud[0] == {"search": 0, "fetch": []}
 
 
 def test_statute_reads_are_logged_but_not_counted(tmp_path):

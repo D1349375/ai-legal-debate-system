@@ -23,9 +23,10 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
                                                           依關鍵字上網搜尋法規條文
   python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD] [--json]
                                                           依字號或 JID 讀判決全文(經快取，印去換行版)
-  python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <案件資料夾>] [--json]
+  python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <案件資料夾>] [--exclude <來源裁判>] [--json]
                                                           印出該階段的檢索規則(調度員填範本的 {RETRIEVAL_RULES})
   檢索指令共用：--snapshot <本次實跑快照資料夾>(角色與查證讀同一版本)、--log <檢索紀錄檔>(記錄每次查詢並計算本輪預算)
+  search-judgments、judgment 另有 --issue <爭點id>、--exclude <字號或 JID>(不提供的裁判，如示範案的來源裁判)
 """
 import argparse
 import json
@@ -439,6 +440,7 @@ def cmd_article(args):
 
 def cmd_judgment(args):
     from engine import judgment_text, retrieval_cache
+    from engine.judgment_search import exclusion_keys
     from engine.search_log import BudgetExceeded
     from engine.verify import JUDGMENT_CITATION_RE, JUDGMENTS_DIR, _document_type
     snapshot, log = _snapshot(args), _search_log(args)
@@ -454,6 +456,18 @@ def cmd_judgment(args):
 
     if doc_date and (len(doc_date) != 8 or not doc_date.isdigit()):
         return fail('invalid_document_date', '--doc-date 須為 YYYYMMDD', 2)
+    try:
+        excluded = exclusion_keys(getattr(args, 'exclude', None))
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    try:
+        hit = bool(excluded & exclusion_keys([target]))
+    except ValueError:
+        hit = False  # 字號格式錯誤由下方照常回報
+    if hit:
+        # 依字號比對，在查任何來源之前就拒絕：排除的裁判連字號查詢都不做
+        return fail('excluded', 'excluded：此裁判在本案的排除清單內，不提供全文')
     if ',' in target:
         jid = target
     else:
@@ -521,7 +535,7 @@ def cmd_search_judgments(args):
     from engine.search_log import BudgetExceeded
     log = _search_log(args)
     query = {'keywords': args.kw or [], 'case_cause': args.title, 'date_from': args.date_from, 'date_to': args.date_to,
-             'pages': args.pages, 'fetch': args.fetch, 'sort': args.sort}
+             'pages': args.pages, 'fetch': args.fetch, 'sort': args.sort, 'exclude': getattr(args, 'exclude', None) or []}
     if log:
         try:
             log.check_search()
@@ -533,7 +547,8 @@ def cmd_search_judgments(args):
         r = search_judgments(args.kw or (), case_cause=args.title, date_from=args.date_from, date_to=args.date_to,
                              pages=args.pages, fetch=args.fetch, include_rulings=args.include_rulings,
                              min_size_kb=args.min_size, sort=args.sort, save_dir=args.save_dir,
-                             snapshot=_snapshot(args), max_live_fetches=log.remaining_fetches() if log else None)
+                             snapshot=_snapshot(args), max_live_fetches=log.remaining_fetches() if log else None,
+                             exclude=getattr(args, 'exclude', None) or ())
     except ValueError as error:
         print(str(error), file=sys.stderr)
         return 2
@@ -624,7 +639,7 @@ def cmd_search_statutes(args):
 def cmd_retrieval_rules(args):
     from engine import retrieval_rules
     try:
-        r = retrieval_rules.build(args.phase, side=args.side, case_dir=args.case_dir)
+        r = retrieval_rules.build(args.phase, side=args.side, case_dir=args.case_dir, exclude=getattr(args, 'exclude', None))
     except ValueError as error:
         print(str(error), file=sys.stderr)
         return 2
@@ -738,7 +753,7 @@ def main():
                    help="date=裁判日期新到舊(預設)；size=裁判大小大到小，長篇多為實體判決，但全文較長且年代較舊")
     p.add_argument("--save-dir", help="把查詢結果與抓到的全文存到此資料夾")
     p.add_argument("--json", action="store_true", help="輸出結構化結果")
-    _retrieval_options(p, issue=True)
+    _retrieval_options(p, judgments=True)
     p.set_defaults(fn=cmd_search_judgments)
 
     p = sub.add_parser("search-statutes", help="依關鍵字上網搜尋法規條文(全國法規資料庫)")
@@ -753,7 +768,7 @@ def main():
     p.add_argument("target", help="例如：111年度台上字第1069號、最高法院111年度台上字第1069號，或 JID")
     p.add_argument("--doc-date", help="同字號多份文件時指定裁判日期 YYYYMMDD")
     p.add_argument("--json", action="store_true", help="輸出結構化結果(含原文與去換行版)")
-    _retrieval_options(p, issue=True)
+    _retrieval_options(p, judgments=True)
     p.set_defaults(fn=cmd_judgment)
 
     p = sub.add_parser("retrieval-rules", help="印出該階段的檢索規則(給調度員填範本的 {RETRIEVAL_RULES})")
@@ -762,6 +777,8 @@ def main():
     p.add_argument("--side", choices=("plaintiff", "defendant"),
                    help="與 --case-dir 一起給時印出該角色的 --snapshot 與 --log 路徑")
     p.add_argument("--case-dir", help="案件資料夾，例如 database/live_runs/case-<案件ID>")
+    p.add_argument("--exclude", action="append",
+                   help="示範案的來源裁判(字號或 JID，可重複)；帶進角色與法官的 search-judgments、judgment 指令")
     p.add_argument("--json", action="store_true", help="輸出結構化結果(含規則全文、預算與路徑)")
     p.set_defaults(fn=cmd_retrieval_rules)
 
@@ -773,11 +790,13 @@ def main():
     sys.exit(args.fn(args))
 
 
-def _retrieval_options(p, issue=False):
+def _retrieval_options(p, judgments=False):
     p.add_argument("--snapshot", help="本角色的快照資料夾({RETRIEVAL_CACHE_DIR}，<快照根目錄>/plaintiff 或 defendant)")
     p.add_argument("--log", help="本角色本階段的檢索紀錄檔({SEARCH_LOG_PATH})；依檔名的階段(p1、p2、p4、p5 或 stage1～3)計算查詢預算")
-    if issue:
+    if judgments:
         p.add_argument("--issue", help="這次查詢針對的爭點 id(如 I1)，記入檢索紀錄")
+        p.add_argument("--exclude", action="append",
+                       help="不提供的裁判(字號或 JID，可重複)，例如示範案的來源裁判；同字號的每一份文件都排除")
 
 
 if __name__ == "__main__":
