@@ -382,8 +382,9 @@ def cmd_party(args):
 
 
 def _snapshot(args):
-    from engine.verify import SNAPSHOT_ENV
-    return getattr(args, 'snapshot', None) or os.environ.get(SNAPSHOT_ENV) or None
+    """檢索指令只用明示的 --snapshot(該角色的快照子資料夾)。環境變數 LEGAL_DEBATE_RUN_SNAPSHOT 指向案件的快照根目錄，
+    只給查證與落地用；角色漏給 --snapshot 時若退回根目錄，對造就能從根目錄看出我方讀過哪些判決。"""
+    return getattr(args, 'snapshot', None) or None
 
 
 def _search_log(args):
@@ -445,7 +446,7 @@ def cmd_judgment(args):
 
     def fail(status, message, code=1):
         if log:
-            log.append('judgment', query, status)
+            log.append('judgment', query, status, issue=args.issue)
         print(message, file=sys.stderr)
         return code
 
@@ -482,7 +483,8 @@ def cmd_judgment(args):
     except retrieval_cache.RetrievalUnavailable as error:
         return fail('retrieval_unavailable', str(error))
     if log:
-        log.append('judgment', query, 'found', hits=1, fetched=[{'jid': jid, 'served_from': entry['served_from']}])
+        log.append('judgment', query, 'found', hits=1, fetched=[{'jid': jid, 'served_from': entry['served_from']}],
+                   issue=args.issue)
     if args.json:
         print(json.dumps({**entry, 'flat_text': judgment_text.flatten(entry['text'])}, ensure_ascii=False, indent=2))
         return 0
@@ -506,6 +508,8 @@ def _iso(compact_date):
 
 # 2026-11-01 評估：常見法條(民法第184、179、767條)單獨搜尋有五、六千筆，依日期排序的前兩頁只涵蓋約一個月。
 MANY_RESULTS = 200
+# 「常一起引用的法條」只列出現在兩份以上判決者，最多這麼多條
+SHARED_STATUTES_SHOWN = 10
 
 
 def cmd_search_judgments(args):
@@ -518,7 +522,7 @@ def cmd_search_judgments(args):
         try:
             log.check_search()
         except BudgetExceeded as error:
-            log.append('search-judgments', query, 'budget_exceeded')
+            log.append('search-judgments', query, 'budget_exceeded', issue=args.issue)
             print(f"budget_exceeded：{error}", file=sys.stderr)
             return 1
     try:
@@ -531,11 +535,11 @@ def cmd_search_judgments(args):
         return 2
     except NETWORK_ERRORS as error:
         if log:
-            log.append('search-judgments', query, 'retrieval_unavailable')
+            log.append('search-judgments', query, 'retrieval_unavailable', issue=args.issue)
         print(f"retrieval_unavailable：司法院裁判書查詢系統連線失敗（已重試；{error}），不代表查無判決", file=sys.stderr)
         return 1
     if log:
-        log.append('search-judgments', r['query'], 'found', hits=r['total'], counts_as_search=True,
+        log.append('search-judgments', r['query'], 'found', hits=r['total'], counts_as_search=True, issue=args.issue,
                    fetched=[{'jid': row['jid'], 'served_from': row['served_from']} for row in r['rows'] if row.get('fetched')])
     if args.json:
         print(json.dumps(r, ensure_ascii=False, indent=2))
@@ -565,6 +569,11 @@ def cmd_search_judgments(args):
             for sentence in row["matched_sentences"]:
                 print(f"   命中：{sentence}")
         print(f"   {row['url']}")
+    shared = [c for c in r["statute_counts"] if c["judgments"] >= 2][:SHARED_STATUTES_SHOWN]
+    if shared:
+        fetched = sum(1 for row in r["rows"] if row.get("fetched"))
+        print(f"\n抓回的 {fetched} 份判決常一起引用的實體法條（可檢查有沒有漏掉該一起主張的補充性法條）：")
+        print("、".join(f"{c['statute']}（{c['judgments']} 份）" for c in shared))
     if r["saved_to"]:
         print(f"\n已存檔：{r['saved_to']}")
     if log:
@@ -619,7 +628,7 @@ def main():
 
     p = sub.add_parser("record", help="落地攻防論證或法官訊問(JSON 檔)")
     p.add_argument("--json", required=True)
-    p.add_argument("--snapshot", help="本次實跑快照資料夾；判例落地查證讀同一版本全文")
+    p.add_argument("--snapshot", help="案件的快照根目錄；判例落地查證讀雙方讀過的同一版本全文")
     p.set_defaults(fn=cmd_record)
 
     p = sub.add_parser("finalize", help="機械死穴彙整+分歧統計，印出判決錨點")
@@ -639,7 +648,7 @@ def main():
     p.add_argument('--review-json', help='獨立查證的結構化結果；與同次機械查證核對後存入本案')
     p.add_argument('--prepare-only', action='store_true', help='唯讀輸出本案查證清單、判例身分資料與版本提示')
     p.add_argument('--candidate-json', help='尚未落地的評估草稿；將新增與採用引用納入查證清單')
-    p.add_argument('--snapshot', help='本次實跑快照資料夾；比對角色讀過的同一版本全文與條文')
+    p.add_argument('--snapshot', help='案件的快照根目錄；比對雙方角色讀過的同一版本全文與條文')
     p.set_defaults(fn=cmd_verify)
 
     p = sub.add_parser("verdict", help="落地法官判決書")
@@ -714,7 +723,7 @@ def main():
                    help="date=裁判日期新到舊(預設)；size=裁判大小大到小，長篇多為實體判決，但全文較長且年代較舊")
     p.add_argument("--save-dir", help="把查詢結果與抓到的全文存到此資料夾")
     p.add_argument("--json", action="store_true", help="輸出結構化結果")
-    _retrieval_options(p)
+    _retrieval_options(p, issue=True)
     p.set_defaults(fn=cmd_search_judgments)
 
     p = sub.add_parser("search-statutes", help="依關鍵字上網搜尋法規條文(全國法規資料庫)")
@@ -729,20 +738,22 @@ def main():
     p.add_argument("target", help="例如：111年度台上字第1069號、最高法院111年度台上字第1069號，或 JID")
     p.add_argument("--doc-date", help="同字號多份文件時指定裁判日期 YYYYMMDD")
     p.add_argument("--json", action="store_true", help="輸出結構化結果(含原文與去換行版)")
-    _retrieval_options(p)
+    _retrieval_options(p, issue=True)
     p.set_defaults(fn=cmd_judgment)
 
     args = parser.parse_args()
-    if getattr(args, 'snapshot', None):
+    if args.cmd in ('record', 'verify') and args.snapshot:
         # record 的判例落地查證在 engine/role_protocol.py 內呼叫查證引擎，以環境變數把快照傳下去。
         from engine.verify import SNAPSHOT_ENV
         os.environ[SNAPSHOT_ENV] = os.path.abspath(args.snapshot)
     sys.exit(args.fn(args))
 
 
-def _retrieval_options(p):
-    p.add_argument("--snapshot", help="本次實跑快照資料夾({RETRIEVAL_CACHE_DIR})；用到的全文與條文都存一份")
-    p.add_argument("--log", help="本角色本輪的檢索紀錄檔({SEARCH_LOG_PATH})；依檔名的 stage1/2/3 計算查詢預算")
+def _retrieval_options(p, issue=False):
+    p.add_argument("--snapshot", help="本角色的快照資料夾({RETRIEVAL_CACHE_DIR}，<快照根目錄>/plaintiff 或 defendant)")
+    p.add_argument("--log", help="本角色本階段的檢索紀錄檔({SEARCH_LOG_PATH})；依檔名的階段(p1、p2、p4、p5 或 stage1～3)計算查詢預算")
+    if issue:
+        p.add_argument("--issue", help="這次查詢針對的爭點 id(如 I1)，記入檢索紀錄")
 
 
 if __name__ == "__main__":

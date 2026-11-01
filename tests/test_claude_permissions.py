@@ -38,8 +38,9 @@ def _events(blocks, stop):
 
 
 def fake_api(commands):
-    """每次請求帶著 Bash 工具就送出下一個指令，送完回 end_turn。"""
-    queue = list(commands)
+    """每次請求帶著該工具就送出下一個工具呼叫，送完回 end_turn。
+    commands 每筆為 (名稱, Bash 指令) 或 (名稱, 工具名稱, 工具輸入)。"""
+    queue = [c if len(c) == 3 else (c[0], "Bash", {"command": c[1], "description": c[0]}) for c in commands]
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -50,11 +51,11 @@ def fake_api(commands):
             if not self.path.startswith("/v1/messages") or "count_tokens" in self.path:
                 payload, ctype = b'{"input_tokens": 1}', "application/json"
             else:
-                has_bash = any(t.get("name") == "Bash" for t in body.get("tools") or [])
-                if has_bash and queue:
-                    name, cmd = queue.pop(0)
-                    evs = _events([{"type": "tool_use", "id": f"toolu_{name}", "name": "Bash",
-                                    "input": {"command": cmd, "description": name}}], "tool_use")
+                tools = {t.get("name") for t in body.get("tools") or []}
+                if queue and queue[0][1] in tools:
+                    name, tool, tool_input = queue.pop(0)
+                    evs = _events([{"type": "tool_use", "id": f"toolu_{name}", "name": tool,
+                                    "input": tool_input}], "tool_use")
                 else:
                     evs = _events([{"type": "text", "text": "done"}], "end_turn")
                 if body.get("stream"):
@@ -71,11 +72,72 @@ def fake_api(commands):
     return ThreadingHTTPServer(("127.0.0.1", 0), Handler)
 
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(live_run.__file__)))
+
+
+def run_probe(tmp_path, cases):
+    """用與 live_run 相同的旗標跑真的 Claude Code，回傳被權限拒絕的工具呼叫名稱集合。
+
+    Claude Code 2.1.x 對 Read 的路徑拒絕不列在 result 的 permission_denials，而是工具結果回錯誤
+    「File is in a directory that is denied by your permission settings」(2026-11-01 實測)，兩種都算拒絕。"""
+    prefix, missing = live_run.resolve_claude_command()
+    if prefix is None:
+        pytest.skip(missing)
+    server = fake_api(cases)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "CLAUDE_CODE_OAUTH"))}
+    env.update(ANTHROPIC_BASE_URL=f"http://127.0.0.1:{server.server_address[1]}",
+               ANTHROPIC_API_KEY="sk-ant-api03-localprobe-not-a-real-key", CLAUDE_CONFIG_DIR=str(tmp_path / "cfg"),
+               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1", DISABLE_TELEMETRY="1", DISABLE_AUTOUPDATER="1",
+               DISABLE_ERROR_REPORTING="1")
+    try:
+        p = subprocess.run(live_run.build_args(prefix, "probe", model="claude-sonnet-5-5", budget_usd=1),
+                           cwd=ROOT, env=env, capture_output=True, timeout=180, stdin=subprocess.DEVNULL)
+        events = [json.loads(line) for line in p.stdout.decode("utf-8", "replace").splitlines() if line.startswith("{")]
+        result = [e for e in events if e.get("type") == "result"][-1]
+        denied = {d["tool_use_id"] for d in result.get("permission_denials") or []}
+        for event in events:
+            content = (event.get("message") or {}).get("content") if event.get("type") == "user" else None
+            for block in content if isinstance(content, list) else []:
+                if block.get("type") == "tool_result" and block.get("is_error") and "denied by your permission settings" in str(block.get("content")):
+                    denied.add(block["tool_use_id"])
+        return {tool_id.replace("toolu_", "") for tool_id in denied}
+    finally:
+        server.shutdown()
+
+
+def test_retrieval_cache_snapshots_and_logs_cannot_be_read_directly(tmp_path):
+    """快取、案件快照與檢索紀錄禁止 Read／Glob／Grep；同一個執行資料夾的其他檔案照常可讀。"""
+    case_dir = os.path.join(ROOT, "database", "live_runs", "case-probe-read")
+    snapshot = os.path.join(case_dir, "retrieval_cache", "plaintiff", "judgments")
+    logs = os.path.join(case_dir, "search_logs")
+    cache = os.path.join(ROOT, "database", "retrieval_cache", "judgments")
+    run_dir = os.path.join(ROOT, "database", "live_runs", "run-probe-read")
+    created = [d for d in (case_dir, run_dir, os.path.join(ROOT, "database", "retrieval_cache")) if not os.path.exists(d)]
+    for folder in (snapshot, logs, cache, run_dir):
+        os.makedirs(folder, exist_ok=True)
+    files = {"snapshot": os.path.join(snapshot, "probe.json"), "log": os.path.join(logs, "plaintiff_p1.jsonl"),
+             "cache": os.path.join(cache, "probe-read.json"), "run": os.path.join(run_dir, "role.json")}
+    for path in files.values():
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("{}")
+    cases = [(f"read_{name}", "Read", {"file_path": path}) for name, path in files.items()]
+    cases += [("glob_snapshot", "Glob", {"pattern": "**/*.json", "path": os.path.join(case_dir, "retrieval_cache")}),
+              ("grep_logs", "Grep", {"pattern": "query", "path": logs})]
+    try:
+        denied = run_probe(tmp_path, cases)
+        assert denied == {"read_snapshot", "read_log", "read_cache", "glob_snapshot", "grep_logs"}
+    finally:
+        os.remove(files["cache"])
+        for folder in created:
+            shutil.rmtree(folder, ignore_errors=True)
+
+
 def test_bash_redirect_outside_runs_dir_is_denied(tmp_path):
     prefix, missing = live_run.resolve_claude_command()
     if prefix is None:
         pytest.skip(missing)
-    root = os.path.dirname(os.path.dirname(os.path.abspath(live_run.__file__)))
+    root = ROOT
     inside_dir = os.path.join(root, "database", "live_runs", "probe-redirect")
     outside = (tmp_path / "outside.txt").as_posix()
     cases = [

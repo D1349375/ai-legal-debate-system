@@ -247,3 +247,41 @@ def test_ssl_error_is_retried(monkeypatch):
         return ARTICLE_PAGE, "https://law.moj.gov.tw/x"
     monkeypatch.setattr(law_lookup, "_fetch_article_page", flaky)
     assert verify.verify_statute_citation("民法", "184")["status"] == "published" and len(calls) == 2
+
+
+# ───────────── 快照依角色分開 ─────────────
+
+def test_side_snapshots_do_not_reveal_what_the_other_side_read(fjud_calls, tmp_path):
+    root = tmp_path / "case-snap"
+    retrieval_cache.get_judgment(JID, snapshot=str(root / "plaintiff"))  # 原告讀過
+    seen_by_defendant = retrieval_cache.get_judgment(JID, snapshot=str(root / "defendant"))
+    # 被告讀同一份時取自長期快取，看不出原告讀過；內容仍是同一版本
+    assert seen_by_defendant["served_from"] == "retrieval_cache"
+    assert seen_by_defendant["sha256"] == retrieval_cache.peek_judgment(JID, str(root / "plaintiff"))[0]["sha256"]
+    recorded = json.loads((root / "defendant" / "judgments" / f"{JID}.json").read_text(encoding="utf-8"))
+    assert recorded["snapshot_source"] == "retrieval_cache" and fjud_calls["fetch"] == [JID]
+    assert not (root / "judgments").exists()  # 角色只寫自己的子資料夾，不寫案件根目錄
+
+
+def test_verification_with_case_root_reads_both_sides(fjud_calls, tmp_path, monkeypatch):
+    root = tmp_path / "case-snap"
+    retrieval_cache.get_judgment(JID, snapshot=str(root / "defendant"))
+    verify.verify_judgment_citation("111", "台上", "1069", snapshot=str(root / "defendant"))
+    monkeypatch.setenv(retrieval_cache.CACHE_ENV, str(tmp_path / "empty-cache"))
+    monkeypatch.setattr(fjud, "advanced_search", lambda *a, **k: pytest.fail("快照已有，不應連網"))
+    monkeypatch.setattr(fjud, "fetch_document", lambda *a, **k: pytest.fail("快照已有，不應連網"))
+    result = verify.verify_judgment_citation("111", "台上", "1069", snapshot=str(root))
+    assert result["status"] == "published" and result["verified_via"] == "run_snapshot"
+    manifest = retrieval_cache.snapshot_manifest(str(root))
+    assert {(m["jid"], m["scope"]) for m in manifest["judgments"]} == {(JID, "defendant")}
+
+
+def test_retrieval_commands_ignore_the_case_root_env(fjud_calls, tmp_path, monkeypatch):
+    """環境變數指向案件根目錄(查證用)；角色漏給 --snapshot 時不得把讀過的判決記到雙方都看得到的根目錄。"""
+    import argparse
+    import main
+    root = tmp_path / "case-snap"
+    monkeypatch.setenv(verify.SNAPSHOT_ENV, str(root))
+    args = argparse.Namespace(target=JID, doc_date=None, json=True, snapshot=None, log=None, issue=None)
+    assert main.cmd_judgment(args) == 0
+    assert not (root / "judgments").exists()

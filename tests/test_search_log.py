@@ -6,7 +6,9 @@ import pytest
 
 import main
 from engine import fjud, judgment_search, law_lookup
-from engine.search_log import BUDGETS, BudgetExceeded, SearchLog
+from engine.search_log import PHASES, BudgetExceeded, SearchLog
+
+STAGE2 = {"searches": PHASES["stage2"][1], "fetches": PHASES["stage2"][2]}
 
 TEXT = "最高法院民事判決\n主文\n上訴駁回。\n理由\n按締約上過失責任，以契約未成立為前提。"
 
@@ -37,32 +39,45 @@ def fake_fjud(monkeypatch):
 
 def search_args(log, fetch=0, **overrides):
     base = dict(kw=["締約上過失"], title=None, date_from=None, date_to=None, pages=1, fetch=fetch,
-                include_rulings=False, min_size=None, sort="date", save_dir=None, json=False, snapshot=None, log=log)
+                include_rulings=False, min_size=None, sort="date", save_dir=None, json=False, snapshot=None, log=log,
+                issue=None)
     return argparse.Namespace(**{**base, **overrides})
 
 
-def judgment_args(target, log=None, doc_date=None, snapshot=None):
-    return argparse.Namespace(target=target, doc_date=doc_date, json=False, snapshot=snapshot, log=log)
+def judgment_args(target, log=None, doc_date=None, snapshot=None, issue=None):
+    return argparse.Namespace(target=target, doc_date=doc_date, json=False, snapshot=snapshot, log=log, issue=issue)
 
 
 def entries(path):
     return [json.loads(line) for line in open(path, encoding="utf-8")]
 
 
-@pytest.mark.parametrize("name,stage,budget", [
-    ("plaintiff_stage1.jsonl", 1, BUDGETS[1]), ("defendant-stage3.jsonl", 3, BUDGETS[3]), ("search.jsonl", None, BUDGETS[2]),
+@pytest.mark.parametrize("name,phase,searches,fetches", [
+    ("plaintiff_p1.jsonl", "p1", 8, 10),
+    ("defendant_p2.jsonl", "p2", 8, 10),
+    ("defendant-answer.jsonl", "p2", 8, 10),
+    ("plaintiff_p4.jsonl", "p4", 4, 5),
+    ("defendant_closing.jsonl", "p5", 2, 3),
+    ("plaintiff_stage1.jsonl", "stage1", 8, 10),
+    ("defendant-stage3.jsonl", "stage3", 4, 5),
+    ("search.jsonl", None, 4, 5),
+    ("plaintiff_p3.jsonl", None, 4, 5),  # 法官階段不檢索，沒有自己的預算
 ])
-def test_stage_and_budget_come_from_file_name(tmp_path, name, stage, budget):
+def test_phase_and_budget_come_from_file_name(tmp_path, name, phase, searches, fetches):
     log = SearchLog(str(tmp_path / name))
-    assert log.stage == stage and log.budget == budget
+    assert log.phase == phase and log.budget == {"searches": searches, "fetches": fetches}
+
+
+def test_side_name_is_not_mistaken_for_a_phase(tmp_path):
+    assert SearchLog(str(tmp_path / "plaintiff.jsonl")).phase is None
 
 
 def test_search_budget_is_enforced_by_the_command(fake_fjud, tmp_path, capsys):
     path = str(tmp_path / "plaintiff_stage2.jsonl")
-    for _ in range(BUDGETS[2]["searches"]):
+    for _ in range(STAGE2["searches"]):
         assert main.cmd_search_judgments(search_args(path)) == 0
     assert main.cmd_search_judgments(search_args(path)) == 1
-    assert "已達本輪搜尋預算" in capsys.readouterr().err
+    assert "已達本階段搜尋預算" in capsys.readouterr().err
     statuses = [e["status"] for e in entries(path)]
     assert statuses == ["found"] * 4 + ["budget_exceeded"] and fake_fjud[0]["search"] == 4
 
@@ -87,7 +102,7 @@ def test_judgment_reads_cached_text_after_budget_but_refuses_new_fetch(fake_fjud
     out = capsys.readouterr().out
     assert "來源：長期快取" in out and "按締約上過失責任，以契約未成立為前提。" in out
     assert main.cmd_judgment(judgment_args(jids[6], log=path)) == 1
-    assert "已達本輪全文預算" in capsys.readouterr().err
+    assert "已達本階段全文預算" in capsys.readouterr().err
     assert entries(path)[-1]["status"] == "budget_exceeded" and len(calls["fetch"]) == 5
 
 
@@ -129,6 +144,31 @@ def test_statute_reads_are_logged_but_not_counted(tmp_path):
     log.append("search-statutes", {"keyword": "知有損害"}, "found", hits=3)
     assert log.fetches_used == 0 and log.searches_used == 0
     with pytest.raises(BudgetExceeded):
-        for _ in range(BUDGETS[1]["searches"] + 1):
+        for _ in range(PHASES["stage1"][1] + 1):
             log.check_search()
             log.append("search-judgments", {}, "found", counts_as_search=True)
+
+
+def test_issue_id_is_recorded_for_search_and_judgment(fake_fjud, tmp_path):
+    calls, jids = fake_fjud
+    path = str(tmp_path / "plaintiff_p4.jsonl")
+    assert main.cmd_search_judgments(search_args(path, fetch=1, issue="I2")) == 0
+    assert main.cmd_judgment(judgment_args(jids[0], log=path, issue="I2")) == 0
+    logged = entries(path)
+    assert [e["issue"] for e in logged] == ["I2", "I2"] and {e["phase"] for e in logged} == {"p4"}
+
+
+def test_shared_statutes_across_fetched_judgments_are_listed(fake_fjud, monkeypatch, capsys):
+    statutes = iter([["民法第184條", "民法第191條之2", "民法第195條"], ["民法第184條", "民法第195條"],
+                     ["民法第184條", "民法第217條"]])
+    original = judgment_search.judgment_text.summarize
+    monkeypatch.setattr(judgment_search.judgment_text, "summarize",
+                        lambda text, kw, names: {**original(text, kw, names), "statutes": next(statutes)})
+    result = judgment_search.search_judgments(["車禍"], fetch=3)
+    assert result["statute_counts"][:2] == [{"statute": "民法第184條", "judgments": 3},
+                                             {"statute": "民法第195條", "judgments": 2}]
+    monkeypatch.setattr(judgment_search, "search_judgments", lambda *a, **k: result)
+    assert main.cmd_search_judgments(search_args(None)) == 0
+    out = capsys.readouterr().out
+    assert "常一起引用的實體法條" in out and "民法第184條（3 份）、民法第195條（2 份）" in out
+    assert "民法第217條（1 份）" not in out  # 只出現在一份判決的不列

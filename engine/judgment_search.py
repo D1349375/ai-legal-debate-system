@@ -6,13 +6,14 @@
 
 上限：每次最多 MAX_PAGES 頁、MAX_FETCH 份全文，請求間隔由 fjud.Session 控制。
 全文經 engine/retrieval_cache.py 取得：快照、長期快取或預先內容已有的不上網；上網抓到的寫回快取。
-max_live_fetches 為本輪全文預算剩餘份數(engine/search_log.py)，用完時快取沒有的就不抓，列表照常回傳。
+max_live_fetches 為本階段全文預算剩餘份數(engine/search_log.py)，用完時快取沒有的就不抓，列表照常回傳。
 """
 import json
 import os
 import re
 import ssl
 import urllib.error
+from collections import Counter
 from datetime import datetime, timezone
 
 from engine import fjud, judgment_text, retrieval_cache
@@ -67,7 +68,7 @@ def search_judgments(keywords=(), case_cause=None, date_from=None, date_to=None,
             entry = retrieval_cache.get_judgment(row['jid'], snapshot=snapshot, session=session, timeout=timeout,
                                                  allow_live=live_left is None or live_left > 0)
         except retrieval_cache.LiveFetchNotAllowed:
-            row['fetch_error'] = '已達本輪全文預算，快取沒有這份，未抓取'
+            row['fetch_error'] = '已達本階段全文預算，快取沒有這份，未抓取'
             continue
         except retrieval_cache.RetrievalUnavailable as error:
             row['fetch_error'] = f"連線失敗（已重試）：{error.reason}；不代表查無資料"
@@ -79,10 +80,18 @@ def search_judgments(keywords=(), case_cause=None, date_from=None, date_to=None,
 
     output = {'query': query, 'fetched_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
               'total': result['total'], 'page_count': result['page_count'], 'pages_read': result['pages_read'],
-              'rows': rows, 'unverifiable': sum(not r['verifiable'] for r in rows), 'saved_to': None}
+              'rows': rows, 'unverifiable': sum(not r['verifiable'] for r in rows),
+              'statute_counts': statute_counts(rows), 'saved_to': None}
     if save_dir:
         _save(save_dir, output, texts)
     return output
+
+
+def statute_counts(rows):
+    """抓回全文的判決中，各實體法條出現在幾份判決 → [{'statute', 'judgments'}]，多到少(同數依首次出現順序)。
+    實務常把完全性法條與補充性法條一起引用(如車禍案的民法第184、191條之2、195條)，用來檢查有沒有漏掉該一起主張的法條。"""
+    counts = Counter(statute for row in rows if row.get('fetched') for statute in row['statutes'])
+    return [{'statute': statute, 'judgments': n} for statute, n in counts.most_common()]
 
 
 def _save(save_dir, output, texts):

@@ -5,9 +5,13 @@
 - 條文以 pcode＋條號為鍵，7 天有效(官方每週更新)，過期重抓；重抓失敗不用過期版本。
 - 搜尋結果列表不快取(總筆數與排序會變，2026-11-01 評估相差 1～4%)。
 
-每次實跑快照(snapshot)放在實跑資料夾，由調度員以 {RETRIEVAL_CACHE_DIR} 傳給指令的 --snapshot：
-本次用到的每份判決與條文都存一份(內容、來源、抓取時間、雜湊)，之後的角色與查證都先讀快照，確保讀到同一版本，
-事後檢討與重播不需網路。字號 → JID 的對照也存在快照(citations/)，同一次實跑不用重查。
+每個案件一份快照(snapshot)，跨律師確認關卡與續跑沿用：本案用到的每份判決與條文都存一份(內容、來源、抓取時間、
+雜湊)，之後的角色與查證都先讀快照，確保讀到同一版本，事後檢討與重播不需網路。字號 → JID 的對照也存在快照
+(citations/)，同一案件不用重查。
+
+快照依角色分開：<快照根目錄>/plaintiff/、<快照根目錄>/defendant/，由調度員以 {RETRIEVAL_CACHE_DIR} 傳給該角色指令的
+--snapshot。判決內容是公開資料，但讀過哪些判決會透露研究方向(屬於內部分析)，所以對造不得共用。
+查證與調度員以快照根目錄為 --snapshot：讀取時一併查雙方子資料夾，自己新讀的記在根目錄。
 
 每筆記錄一個 JSON 檔、寫入時先寫暫存檔再改名：雙方角色會同時執行，不共用同一個索引檔就不會互相覆寫。
 連線失敗重試一次；仍失敗且快取沒有時拋 RetrievalUnavailable，訊息寫明「不代表查無資料」，不退回本地舊版法典。
@@ -30,6 +34,15 @@ STATUTE_TTL = timedelta(days=7)
 UNAVAILABLE_NOTE = '網路無法連線且無快取，不代表查無資料'
 # served_from：本次從哪裡取得。snapshot_source：寫進快照時的來源(預先內容／長期快取／上網)。
 SERVED_FROM = ('run_snapshot', 'retrieval_cache', 'corpus', 'live')
+SNAPSHOT_SIDES = ('plaintiff', 'defendant')
+
+
+def snapshot_dirs(snapshot):
+    """讀取快照時要查的資料夾：本身，加上底下存在的角色子資料夾(以根目錄讀取時涵蓋雙方)。"""
+    if not snapshot:
+        return []
+    sides = [os.path.join(snapshot, side) for side in SNAPSHOT_SIDES]
+    return [snapshot] + [path for path in sides if os.path.isdir(path)]
 
 
 class LiveFetchNotAllowed(Exception):
@@ -117,8 +130,8 @@ def _corpus_judgment(jid, corpus_dir):
 
 def peek_judgment(jid, snapshot=None, corpus_dir=None):
     """不連網：→ (entry, served_from)，都沒有時 (None, None)。"""
-    if snapshot:
-        entry = _read(_judgment_path(snapshot, jid))
+    for folder in snapshot_dirs(snapshot):
+        entry = _read(_judgment_path(folder, jid))
         if entry:
             return entry, 'run_snapshot'
     entry = _read(_judgment_path(cache_dir(), jid))
@@ -182,8 +195,8 @@ def judgment_candidates(jyear, jcase, jno, snapshot=None, corpus_dir=None, doc_d
     search 為上網查字號的函式(預設 FJUD 進階搜尋)，回傳 JID 清單；連線失敗重試一次，仍失敗拋 RetrievalUnavailable。
     """
     prefix = f"TPSV,{jyear},{jcase},{jno},"
-    if snapshot:
-        recorded = _read(_citation_path(snapshot, prefix))
+    for folder in snapshot_dirs(snapshot):
+        recorded = _read(_citation_path(folder, prefix))
         if recorded is not None:
             return {'jids': recorded['jids'], 'served_from': 'run_snapshot'}
     jids, served = corpus_jids(prefix, corpus_dir or CORPUS_JUDGMENTS_DIR), 'corpus'
@@ -223,8 +236,9 @@ def is_fresh(entry, now=None):
 def peek_article(pcode, flno, snapshot=None):
     """不連網：→ (entry, served_from)，不論是否過期；都沒有時 (None, None)。呼叫端以 is_fresh 判斷能否放行。"""
     key = _article_key(pcode, flno)
-    for base, served in ((snapshot, 'run_snapshot'), (cache_dir(), 'retrieval_cache')):
-        entry = _read(_article_path(base, key)) if base else None
+    places = [(folder, 'run_snapshot') for folder in snapshot_dirs(snapshot)] + [(cache_dir(), 'retrieval_cache')]
+    for base, served in places:
+        entry = _read(_article_path(base, key))
         if entry and (is_fresh(entry) or served == 'retrieval_cache'):
             return entry, served
     return None, None
@@ -260,16 +274,19 @@ def get_article(law, flno, snapshot=None, timeout=fjud.DEFAULT_TIMEOUT):
 # ───────────────────────── 快照與快取盤點 ─────────────────────────
 
 def snapshot_manifest(snapshot):
-    """→ 快照內每份判決與條文的來源、抓取時間、雜湊(不含全文)，供實跑紀錄與驗收比對。"""
+    """→ 快照內每份判決與條文的來源、抓取時間、雜湊(不含全文)，供實跑紀錄與驗收比對。
+    scope 為記錄所在的角色子資料夾，根目錄(查證與調度員)為 case。"""
     manifest = {'judgments': [], 'statutes': [], 'citations': []}
-    for kind in manifest:
-        folder = os.path.join(snapshot, kind)
-        if not os.path.isdir(folder):
-            continue
-        for name in sorted(os.listdir(folder)):
-            entry = _read(os.path.join(folder, name)) if name.endswith('.json') else None
-            if entry:
-                manifest[kind].append({k: v for k, v in entry.items() if k != 'text'})
+    for base in snapshot_dirs(snapshot):
+        scope = 'case' if base == snapshot else os.path.basename(base)
+        for kind in manifest:
+            folder = os.path.join(base, kind)
+            if not os.path.isdir(folder):
+                continue
+            for name in sorted(os.listdir(folder)):
+                entry = _read(os.path.join(folder, name)) if name.endswith('.json') else None
+                if entry:
+                    manifest[kind].append({**{k: v for k, v in entry.items() if k != 'text'}, 'scope': scope})
     return manifest
 
 

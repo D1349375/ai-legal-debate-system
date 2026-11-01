@@ -21,10 +21,13 @@
 |---|---|
 | `18e19fc` | 階段一：`article`、`search-statutes`、`search-judgments` 三個指令；修正判決查證兩個既有問題 |
 | `abb9a0c` | 階段二：評估腳本與結果、評估報告、計畫、組長提案 |
+| `a5ae6c7` | 定案「只用網路＋快取」、本交接文件 |
+| `616edfa` | 引用設計討論稿 `citation-needs-redesign.md` |
+| `966fcbc` | 階段三步驟 1、2、4（程式與測試） |
+| `2fa1c6b` | 計畫第七節第 0 項、本文件的進度 |
+| （下一筆） | 配合組長《書狀交換架構改版規格》的檢索調整，見下方「配合書狀交換架構」 |
 
-本文件與計畫、提案在 2026-11-01 的最後一次改版（定案「只用網路＋快取」）若尚未 commit，以工作區內容為準。
-
-### 階段三進度（2026-11-01 第二個工作階段，尚未 commit）
+### 階段三進度（2026-11-01 第二個工作階段）
 
 | 步驟 | 狀態 | 程式 |
 |---|---|---|
@@ -36,13 +39,29 @@
 
 做法上的決定：
 
-- **快照與預算怎麼傳**：指令加 `--snapshot <資料夾>`、`--log <檔案>`；`record`、`verify` 也接受 `--snapshot`。預算的輪次由紀錄檔名的 `stage1`／`stage2`／`stage3` 判斷，看不出時套用最嚴的 Stage 2、3 預算；不用另一個設定檔（角色改得到）。
+- **快照與預算怎麼傳**：指令加 `--snapshot <資料夾>`、`--log <檔案>`；`record`、`verify` 也接受 `--snapshot`。預算的階段由紀錄檔名判斷，不用另一個設定檔（角色改得到）。快照與階段名稱的最新規則見下方「配合書狀交換架構」。
 - **預算計數**：搜尋次數只算 `search-judgments`；全文份數只算實際上網抓的判決，`article`、`search-statutes` 只記錄不計入。
 - **字號 → JID**：快照內記錄（同一次實跑不重查）；不做長期快取（計畫「搜尋結果不做長期快取」）。指定日期且長期快取已有該份時不上網；沒指定日期時仍上網，因為快取無法確認是否還有同字號其他文件。
 - **UI 的 `local_cache_only`**：改指「只有過期條文快取」或「判決快取有、但官方未確認唯一性」，仍不放行。
 - **自動重試**：所有官網連線失敗重試一次（含 `search-statutes`、`search-judgments` 的搜尋本身）。
 
 尚待決定或等引用設計定案的部分見文末「階段三未完成事項」。
+
+### 配合書狀交換架構（組長《LegalDebate 書狀交換架構改版規格》v0.1）
+
+組長可能依該規格把流程改成 P0～P6（起訴狀 → 答辯狀 → 爭點整理表 → 準備書狀 → 言詞辯論意旨狀 → 診斷）。檢索做成和流程無關的服務，配合規格做了以下調整：
+
+| 調整 | 原因 | 程式 |
+|---|---|---|
+| **快照依角色分開**：`<快照根目錄>/plaintiff/`、`<快照根目錄>/defendant/`；查證與調度員以根目錄為 `--snapshot`，讀取時涵蓋雙方，新讀的記在根目錄 | 判決內容公開，但讀過哪些判決會透露研究方向；規格 P2 明定被告看不到原告的內部分析 | `engine/retrieval_cache.py`（`snapshot_dirs`） |
+| **檢索指令只用明示的 `--snapshot`**，不讀環境變數 | 環境變數指向根目錄；角色漏給參數時若退回根目錄，對造就看得到 | `main.py`（`_snapshot`） |
+| **快照以案件為單位**：UI 實跑的環境變數改為 `database/live_runs/case-<案件ID>/retrieval_cache/`，續跑沿用 | 規格的律師確認關卡會把一個案件分成多次執行；最後的查證要比對前面讀過的全文 | `server/live_run.py`（`case_dir`） |
+| **禁止 Read／Glob／Grep 直接讀**長期快取、案件快照與檢索紀錄 | 同一個 Claude Code 程序的角色共用權限，只能全部禁止；指令以 Python 讀檔不受影響。已用真的 Claude Code 驗證（`tests/test_claude_permissions.py`，需設 `LEGALDEBATE_PROBE_CLAUDE=1`）。注意：Read 被拒時 CLI 不列在 `permission_denials`，而是工具結果回錯誤 | `server/live_run.py`（`DISALLOWED_TOOLS`） |
+| **預算認規格的階段名稱**：`p1`／`complaint` 8／10、`p2`／`scenario`／`answer` 8／10（劇本與答辯狀共用一檔）、`p4`／`brief` 4／5、`p5`／`closing` 2／3；`stage1～3` 保留；看不出階段時 4／5 | 規格把三輪改成 P1～P5；P5 只收斂既有爭點 | `engine/search_log.py` |
+| **檢索紀錄記爭點**：`search-judgments`、`judgment` 加選填 `--issue <爭點id>` | 規格 P4 以爭點 id 組織攻防 | `main.py`、`engine/search_log.py` |
+| **判決常一起引用的法條**：抓回全文後列出出現在兩份以上判決的實體法條 | 原告寫起訴狀時檢查有沒有漏掉該一起主張的補充性法條 | `engine/judgment_search.py`（`statute_counts`）、`main.py` |
+
+紀錄檔建議放 `database/live_runs/case-<案件ID>/search_logs/<side>_<階段>.jsonl`（例如 `plaintiff_p1.jsonl`）；指令與佔位符要等新範本出來後由 SKILL.md 寫明。
 
 ### 不要碰的檔案
 
@@ -60,7 +79,7 @@ commit 時一律用 `git add <明確檔名>`，不要用 `git add -A` 或 `git a
 
 ### 測試
 
-- 全部：`python -m pytest -q`，約 5 分鐘，交接時 **451 passed、1 skipped**（skip 是需手動啟用的 Claude 權限探針）。階段三步驟 1、2、4 完成後不連網 **479 passed、1 skipped**；改動相關的連網測試 11 項全過。
+- 全部：`python -m pytest -q`，約 5 分鐘，交接時 **451 passed、1 skipped**（skip 是需手動啟用的 Claude 權限探針）。階段三步驟 1、2、4 完成後不連網 **479 passed、1 skipped**；改動相關的連網測試 11 項全過。配合書狀交換架構調整後不連網 **491 passed、2 skipped**（兩項 skip 都是 Claude Code 權限探針，設 `LEGALDEBATE_PROBE_CLAUDE=1` 實跑皆通過）。
 - `tests/conftest.py` 把檢索快取改到每個測試的暫存目錄；測試不會讀寫 `database/retrieval_cache/`。
 - 不連網：`python -m pytest -q -m "not network"`。
 - 連網測試標記為 `network`（見 `pytest.ini`），會實際打官方網站。
@@ -207,6 +226,15 @@ CLI 都在 `main.py`：`article`、`search-judgments`、`search-statutes`。
 ---
 
 ## 七、階段三未完成事項（2026-11-01 第二個工作階段結束時）
+
+### 配合書狀交換架構的後續（依序）
+
+1. `python main.py retrieval-rules --phase <階段>`：印出各階段的檢索步驟、預算與可用指令，組長的新範本只放 `{RETRIEVAL_RULES}`，內容由檢索這邊維護。
+2. 介面文件 `docs/zh/retrieval-interface.md`：可用指令、三個佔位符（`{RETRIEVAL_RULES}`、`{SEARCH_LOG_PATH}`、`{RETRIEVAL_CACHE_DIR}`）、各階段規則與預算、紀錄檔命名、快照路徑、查證狀態值。
+3. 組長的新範本出來後：範本加入佔位符、SKILL.md 寫明調度員怎麼建立快照與紀錄檔；之後以 v2 案例實跑驗收。現行 stage1～3 範本會被取代，先不改；下方「重跑腳本」的阻礙也隨之消失。
+4. 規格第二期（被告模式）：查證與搜尋擴大到下級審判決，並解析上傳起訴狀裡的引用。
+
+要和組長對齊：新框架的基準分支（規格寫 main，但 main 比本分支落後 54 個 commit）、P1 輸入改成檢索指令、§255 檢查改用書狀明確輸出的 `basis` 清單。
 
 ### 等引用設計（[citation-needs-redesign.md](citation-needs-redesign.md)）第七節定案
 

@@ -130,4 +130,4 @@ def test_fetched_texts_go_to_cache_and_are_not_fetched_again(fake_fjud, tmp_path
 def test_live_fetch_budget_skips_uncached_texts_but_keeps_list(fake_fjud):
     result = js.search_judgments(["締約上過失"], fetch=3, max_live_fetches=0)
     assert fake_fjud["fetch"] == []
-    assert len(result["rows"]) == 4 and "已達本輪全文預算" in result["rows"][0]["fetch_error"]
+    assert len(result["rows"]) == 4 and "已達本階段全文預算" in result["rows"][0]["fetch_error"]
