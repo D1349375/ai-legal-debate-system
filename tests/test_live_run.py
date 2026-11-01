@@ -145,6 +145,10 @@ class TestLiveRun:
         assert "續跑：從法官訊問開始" in r["events"][0]["text"]
         landed = json.loads((tmp_path / "runs" / f"run-{run_id}" / "landed.json").read_text(encoding="utf-8"))
         assert {(a["side"], a["stage"]) for a in landed["arguments"]} == set(before)
+        # 續跑是另一次執行，但檢索快照以案件為單位沿用，最後的查證才比對得到前一次讀過的全文
+        snapshots = {(tmp_path / "runs" / f"run-{rid}" / "snapshot_env.txt").read_text(encoding="utf-8")
+                     for rid in (first["id"], run_id)}
+        assert snapshots == {str(tmp_path / "runs" / f"case-{case_id}" / "retrieval_cache")}
         with get_session(db_url) as s:
             after = {(a.side, a.stage): (a.id, a.created_at, a.reasoning)
                      for a in s.query(DebateArgument).filter_by(case_id=case_id).all()}
@@ -342,6 +346,10 @@ class TestCommandAndStream:
         allowed = args[args.index("--allowedTools") + 1:args.index("--disallowedTools")]
         assert allowed == list(live_run.ALLOWED_TOOLS)
         assert "Bash(python main.py *)" in allowed and not any(a == "Bash" or a == "Write" for a in allowed)
+        # 讀過哪些判決、搜過哪些詞會透露該方研究方向：快取、快照與檢索紀錄不給 agent 直接讀
+        disallowed = args[args.index("--disallowedTools") + 1:]
+        assert {"WebFetch", "WebSearch", "Read(/database/retrieval_cache/**)", "Read(/database/live_runs/*/retrieval_cache/**)",
+                "Read(/database/live_runs/*/search_logs/**)"} <= set(disallowed)
         assert args[args.index("--max-budget-usd") + 1] == "15"
 
     def test_pleading_prompt_runs_only_step_9c_for_chosen_documents(self):

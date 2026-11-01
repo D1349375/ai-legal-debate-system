@@ -203,19 +203,21 @@ class TestVerify:
         s = get_session(db_url)
         assert s.query(CitationVerification).filter_by(citation_text="民法第197條").one().status == "published"
 
-    def test_statute_live_timeout_falls_back_to_local_cache_and_is_not_published(self, client, monkeypatch, db_url):
+    def test_statute_live_timeout_with_stale_cache_is_not_published(self, client, monkeypatch, db_url, seed_article):
+        seed_article("B0000001", "197", days_old=10)
         monkeypatch.setattr(engine_verify, "verify_statute_citation", lambda law, art, timeout: {
-            "status": "verification_failed", "reason": "<urlopen error timed out>"})
+            "status": "network_error", "reason": "<urlopen error timed out>"})
         r = self._verify(client, ["民法第197條"])[0]
-        assert r["status"] == "local_cache_only" and r["verified_via"] == "local_statute_cache"
+        assert r["status"] == "local_cache_only" and r["verified_via"] == "retrieval_cache_stale"
         assert r["gate"] == "blocked" and r["persisted"] is False
         assert r["live_attempt"] == {"tried": True, "outcome": "timeout", "error": "<urlopen error timed out>"}
-        assert r["local_cache"]["file"] == "corpus/statutes/民法.txt" and r["local_cache"]["fetched_at"]
+        assert r["local_cache"]["fetched_at"] and "超過 7 天" in r["note"]
         from database.schema import CitationVerification
         assert make_session_factory(db_url)().query(CitationVerification).filter_by(
             citation_text="民法第197條").count() == 0
 
-    def test_live_exception_is_reported_not_raised(self, client, monkeypatch):
+    def test_live_exception_is_reported_not_raised(self, client, monkeypatch, seed_article):
+        seed_article("B0000001", "197", days_old=10)
         def raise_reset(*a, **k):
             raise ConnectionResetError("連線被重設")
         monkeypatch.setattr(engine_verify, "verify_statute_citation", raise_reset)
@@ -225,9 +227,9 @@ class TestVerify:
 
     def test_statute_without_local_cache_fails_honestly(self, client, monkeypatch):
         monkeypatch.setattr(engine_verify, "verify_statute_citation", lambda law, art, timeout: {
-            "status": "verification_failed", "reason": "offline"})
-        r = self._verify(client, ["民事訴訟法第277條"])[0]  # 無本地快取
-        assert r["status"] == "verification_failed" and r["gate"] == "blocked" and "verified_via" in r
+            "status": "network_error", "reason": "offline"})
+        r = self._verify(client, ["民事訴訟法第277條"])[0]  # 無快取
+        assert r["status"] == "network_error" and r["gate"] == "blocked" and "verified_via" in r
 
     def test_nonexistent_statute_is_not_found(self, client, monkeypatch):
         monkeypatch.setattr(engine_verify, "verify_statute_citation", lambda law, art, timeout: {
@@ -245,20 +247,28 @@ class TestVerify:
     def test_nonexistent_judgment_offline_is_unverifiable_not_not_found(self, client, monkeypatch):
         """離線時不得宣稱「查無」(沒查到 ≠ 查證過不存在)，也絕不可放行。"""
         monkeypatch.setattr(engine_verify, "verify_judgment_citation", lambda y, c, n, timeout: {
-            "status": "verification_failed", "reason": "<urlopen error [Errno 11001] getaddrinfo failed>"})
+            "status": "network_error", "reason": "<urlopen error [Errno 11001] getaddrinfo failed>"})
         r = self._verify(client, [NONEXISTENT])[0]
-        assert r["status"] == "verification_failed" and r["gate"] == "blocked"
+        assert r["status"] == "network_error" and r["gate"] == "blocked"
         assert r["live_attempt"]["outcome"] == "network_error"
 
-    def test_offline_mode_never_touches_network(self, client, no_network):
+    def test_offline_mode_never_touches_network(self, client, no_network, seed_article):
+        seed_article("B0000001", "197", days_old=10)
         rs = self._verify(client, ["民法第197條", NONEXISTENT, "最高法院115年度台簡上字第8號"], mode="offline")
         by = {r["citation_text"]: r for r in rs}
         assert by["民法第197條"]["status"] == "local_cache_only"
         assert by["民法第197條"]["live_attempt"]["outcome"] == "skipped_offline_mode"
-        assert by[NONEXISTENT]["status"] == "verification_failed"
+        assert by[NONEXISTENT]["status"] == "network_error"
         assert by["最高法院115年度台簡上字第8號"]["status"] == "published"
 
-    def test_skip_live_after_prior_failure(self, client, no_network):
+    def test_fresh_statute_cache_is_published_without_network(self, client, no_network, seed_article):
+        seed_article("B0000001", "184", days_old=2, text="第 184 條\n因故意或過失，不法侵害他人之權利者")
+        r = self._verify(client, ["民法第184條"], mode="offline")[0]
+        assert r["status"] == "published" and r["verified_via"] == "retrieval_cache" and r["gate"] == "pass"
+        assert "7 天內有效" in r["note"] and r["primary_source_url"].startswith("https://law.moj.gov.tw/")
+
+    def test_skip_live_after_prior_failure(self, client, no_network, seed_article):
+        seed_article("B0000001", "197", days_old=10)
         r = self._verify(client, ["民法第197條"], skip_live=True)[0]
         assert r["live_attempt"]["outcome"] == "skipped_after_failure" and r["status"] == "local_cache_only"
 
@@ -266,7 +276,8 @@ class TestVerify:
         rs = self._verify(client, ["被告顯係推諉卸責之詞", "民事訴訟法第0條"], mode="offline")
         assert rs[0]["status"] == "unparseable" and rs[0]["gate"] == "blocked"
 
-    def test_previous_record_is_reported_separately_from_this_run(self, client, no_network):
+    def test_previous_record_is_reported_separately_from_this_run(self, client, no_network, seed_article):
+        seed_article("B0000001", "474", days_old=10)
         r = self._verify(client, ["民法第474條"], mode="offline")[0]
         assert r["status"] == "local_cache_only"  # 本次沒有官方比對
         assert r["previous_record"]["status"] == "published"  # 先前紀錄另列，不混為本次結果
@@ -325,7 +336,7 @@ class TestStaticAndHealth:
     def test_health_reports_live_generation_disabled(self, client):
         h = client.get("/api/health").json()
         assert h["status"] == "ok" and h["live_generation"]["enabled"] is False
-        assert h["corpus"]["judgments"] > 1000 and h["corpus"]["statutes"] == 5
+        assert h["corpus"]["judgments"] > 1000 and h["retrieval_cache"] == {"judgments": 0, "statutes": 0}
 
     def test_root_serves_ui_without_redirect_and_assets(self, client):
         r = client.get("/", follow_redirects=False)

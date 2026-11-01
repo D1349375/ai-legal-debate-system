@@ -65,10 +65,11 @@ class TestExtract:
     def test_recognized_and_unrecognized_citations(self):
         found = services.extract_citations(
             "依民法第184條第1項及土地法第34條之1，參最高法院108年度台上字第1號、臺灣高等法院110年度上字第5號，"
-            "並依民法第184條。民事訴訟法第277條")
+            "並依民法第184條。民事訴訟法第277條，另依外星人保護法第3條")
+        # 法規名稱索引裡的法規(如土地法)都認得；索引外的名稱與下級審字號仍列為無法查證
         assert [(c["citation_text"], c["recognized"]) for c in found] == [
-            ("民法第184條", True), ("土地法第34條之1", False), ("最高法院108年度台上字第1號", True),
-            ("110年度上字第5號", False), ("民事訴訟法第277條", True)]
+            ("民法第184條", True), ("土地法第34條之1", True), ("最高法院108年度台上字第1號", True),
+            ("110年度上字第5號", False), ("民事訴訟法第277條", True), ("外星人保護法第3條", False)]
 
 
 class TestVersions:
@@ -128,21 +129,25 @@ class TestVersions:
         r = client.get(f"/api/cases/c1/pleadings/{v['id']}/export")
         assert r.status_code == 409 and "未放行" in r.json()["detail"]
 
-    def test_unrecognized_and_offline_citations_are_not_passed(self, client, calls, monkeypatch):
+    def test_unrecognized_and_offline_citations_are_not_passed(self, client, calls, monkeypatch, seed_article):
+        seed_article("B0000001", "184", days_old=10)
         monkeypatch.setattr(engine_verify, "verify_statute_citation",
-                            lambda law, art, timeout: {"status": "verification_failed", "reason": "timed out"})
-        v = save(client, DRAFT + "\n另依民法第184條及土地法第34條之1。").json()
+                            lambda law, art, timeout: {"status": "network_error", "reason": "timed out"})
+        v = save(client, DRAFT + "\n另依民法第184條、土地法第34條之1及外星人保護法第3條。").json()
         by = {c["citation_text"]: c for c in v["citation_check"]}
         assert by["民法第184條"]["status"] == "local_cache_only" and by["民法第184條"]["gate"] == "blocked"
-        assert by["土地法第34條之1"]["status"] == "unknown_law" and "無法辨識" in by["土地法第34條之1"]["note"]
-        assert v["blocked_count"] == 2 and not v["exportable"]
+        # 法規名稱索引裡的法規都能查證：「土地法」不再被當成未支援，只是本次連不上
+        assert by["土地法第34條之1"]["status"] == "network_error"
+        assert by["外星人保護法第3條"]["status"] == "unsupported_law" and "尚未支援" in by["外星人保護法第3條"]["note"]
+        assert v["blocked_count"] == 3 and not v["exportable"]
         # 網路恢復後重新查證：只重查未通過者；認不得的寫法仍不放行
         monkeypatch.setattr(engine_verify, "verify_statute_citation",
                             lambda law, art, timeout: {"status": "published", "primary_source_url": "https://law.moj.gov.tw/184"})
         r = client.post(f"/api/cases/c1/pleadings/{v['id']}/reverify", json={})
         again = {c["citation_text"]: c for c in r.json()["citation_check"]}
         assert again["民法第184條"]["gate"] == "pass" and again["民法第184條"]["change"] == "added"
-        assert again["土地法第34條之1"]["gate"] == "blocked" and r.json()["exportable"] is False
+        assert again["土地法第34條之1"]["gate"] == "pass"
+        assert again["外星人保護法第3條"]["gate"] == "blocked" and r.json()["exportable"] is False
 
     def test_system_version_without_record_can_be_reverified(self, client, db_url, calls):
         s = get_session(db_url)

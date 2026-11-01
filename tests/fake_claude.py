@@ -72,6 +72,9 @@ def main():
     with open(os.path.join(ROOT, run_dir, "case.json"), encoding="utf-8") as f:
         case = json.load(f)
     assert case["case_id"] == case_id
+    # 記下後端給的案件快照根目錄，供測試確認續跑沿用同一份快照
+    with open(os.path.join(ROOT, run_dir, "snapshot_env.txt"), "w", encoding="utf-8") as f:
+        f.write(os.environ.get("LEGAL_DEBATE_RUN_SNAPSHOT", ""))
     tool("Read", {"file_path": os.path.join(ROOT, run_dir, "case.json")})
     with_quota = os.environ.get("FAKE_CLAUDE_QUOTA") == "1"
     if with_quota:

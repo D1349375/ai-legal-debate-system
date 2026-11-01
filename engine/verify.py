@@ -1,43 +1,35 @@
 """法規/判例引用查證(對應實作規劃 1.3，比照 Startup Guide 的 draft→fact_checked→published)。
 
-權威來源固定：法規查 law.moj.gov.tw(全國法規資料庫)；判例查優先比對本地種子語料庫
-(corpus/judgments，加速路徑)，未命中則即時查證司法院裁判書查詢系統 FJUD
-(judgment.judicial.gov.tw，2026-08-09 新增，不再受限於本地 1,088 筆語料庫範圍)。
-快取(corpus/)只是比對用的加速層，不是權威來源本身——統條文一律回頭比對官網原文，
-不直接信任快取內容。
-
-FJUD 查證機制(2026-08-09 實測確認可行)：FJUD 為 ASP.NET WebForms 應用，搜尋須先 GET
-首頁取得 __VIEWSTATE/__VIEWSTATEGENERATOR/__EVENTVALIDATION，再以完整裁判案號字串
-(如「115年度台上字第1037號」)POST 回 default.aspx 觸發搜尋，回應中會附一個查詢結果頁連結
-(qryresultlst.aspx?ty=JUDBOOK&q=<token>)，GET 該連結取得結果列表，其中 data.aspx 連結的
-id 參數即為完整 JID(格式與本地語料庫檔名、司法院裁判書開放 API 之 JID 一致，如
-「TPSV,115,台上,1037,20260722,1」)。單一裁判字號通常只會命中一筆，若命中多筆則逐一比對
-JID 內嵌的年度/案號/字別/字號是否與查證目標完全一致，避免誤採其他相近案號。
+權威來源固定：法規查 law.moj.gov.tw(全國法規資料庫)；判例查司法院裁判書查詢系統 FJUD
+(judgment.judicial.gov.tw)。2026-11-01 起兩者都經 engine/retrieval_cache.py 取得：
+- 判決：本次實跑快照 → 長期快取 → corpus/judgments(唯讀預先內容) → 上網，抓到的寫回快取；
+  查證與角色讀同一份全文。字號查詢用 FJUD 進階搜尋的字號欄位(engine/fjud.py)，同字號多份文件須指定日期。
+- 條文：7 天內的快取可放行(verified_via 註明來源與抓取時間)；過期或沒有就上網，重試一次仍失敗回
+  network_error。不退回 corpus/statutes/*.txt 的舊版法典：用過時條文放行比查不到更危險。
+- 法規名稱：法務部開放資料建的名稱索引(corpus/statutes/law_index.json)裡的法規都能查；已廢止法規
+  歸為 version_unverified，索引查無的名稱為 unsupported_law。
 """
-import http.client
+import functools
 import json
 import os
 import re
-import time
-import urllib.error
-import urllib.parse
-import urllib.request
 
-FJUD_BASE = "https://judgment.judicial.gov.tw/FJUD"
-_FJUD_HEADERS = {
-    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "zh-TW,zh;q=0.9",
-}
+from engine import fjud, retrieval_cache
+from engine.law_lookup import (  # noqa: F401 - 舊呼叫端仍由此匯入
+    DEFAULT_TIMEOUT, STATUTES_DIR, _fetch_article_page, _network_call, _parse_article_html,
+    known_law_names, resolve_law,
+)
+
+FJUD_BASE = fjud.FJUD_BASE
+_FJUD_HEADERS = fjud.HEADERS
 
 CORPUS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'corpus')
-STATUTES_DIR = os.path.join(CORPUS_DIR, 'statutes')
 JUDGMENTS_DIR = os.path.join(CORPUS_DIR, 'judgments')
+# 本次實跑快照(engine/retrieval_cache.py)；CLI 的 --snapshot 或 UI 實跑以環境變數指定，查證與角色讀同一版本。
+SNAPSHOT_ENV = 'LEGAL_DEBATE_RUN_SNAPSHOT'
 
-# 五部 Phase 1 MVP 民事側法規的官方 pcode(全國法規資料庫)，見 corpus/statutes/*_source.json
-# 民事訴訟法(2026-08-08 依 legal-debate skill 端到端測試發現新增：舉證責任等程序法引用在
-# 民事案件攻防中極常見，原五部實體法規清單未涵蓋，導致機械查證閘門持續擋下合理引用）
+# 2026-11-01 前查證引擎只認這 11 部(含簡稱)；之後改用法規名稱索引(corpus/statutes/law_index.json，11,804 部)，
+# 此表只留給既有測試核對索引與 pcode 一致。
 STATUTE_PCODES = {
     "民法": "B0000001",
     "公司法": "J0080001",
@@ -46,9 +38,7 @@ STATUTE_PCODES = {
     "消費者保護法": "J0170001",
     "刑法": "C0000001",
     "民事訴訟法": "B0010001",
-    # 2026-10-28 商工規則「合併解散」需引用第24條(消滅公司訴訟由存續公司承受)而新增，無本地快取
     "企業併購法": "J0080041",
-    # 2026-11-01 依實跑引用補上；pcode 已對全國法規資料庫標題核對，無本地快取
     "銀行法": "G0380001",
     "民法債編施行法": "B0000003",
     "民事訴訟法施行法": "B0010002",
@@ -59,18 +49,11 @@ STATUTE_PCODES = {
 # (兩者是完全不同的條文，前者為汽車駕駛人責任，後者為工作物所有人責任)，卻回傳 published，
 # 是比查不到更危險的靜默誤判。法規全文資料庫(law.moj.gov.tw)的 flno 參數對子條文採「N-M」格式
 # (如 flno=191-2)，故子條文號需轉換後才能查對正確條文。
-_ARTICLE_PATTERN = r'第\s*([0-9]+(?:-[0-9]+)?)\s*條(?:\s*之\s*([0-9]+))?'
-STATUTE_CITATION_RE = re.compile(
-    '(' + '|'.join(sorted(STATUTE_PCODES, key=len, reverse=True)) + ')' + _ARTICLE_PATTERN
+_ARTICLE_REF_RE = re.compile(r'第\s*([0-9]+(?:-[0-9]+)?)\s*條(?:\s*之\s*([0-9]+))?')
+_NAME_WINDOW = 40
+UNSUPPORTED_STATUTE_RE = re.compile(
+    r'([㐀-鿿]+?(?:法|條例|規則|辦法|通則))\s*第\s*([0-9]+(?:-[0-9]+)?)\s*條(?:\s*之\s*([0-9]+))?'
 )
-# 不在 STATUTE_PCODES 的法規仍要解析成法條，查證時回 unknown_law；否則會顯示「無法解析」，像是引用寫錯。
-UNSUPPORTED_STATUTE_RE = re.compile(r'([一-鿿]{2,20}?(?:法|條例|規則|細則|辦法|通則))' + _ARTICLE_PATTERN)
-# 舊版條文只比對現行條文會驗錯版本，查得到現行條文也不算查證通過。
-_HISTORICAL_MARK = r'修正前|舊法|舊版|歷史版本'
-HISTORICAL_STATUTE_RE = re.compile(
-    _HISTORICAL_MARK + r'|[0-9]{2,4}\s*年(?:度)?(?:版)?[^第]{0,25}(?:法|條例)|[0-9]{2,4}\s*年(?:度)?版')
-# 草稿文字裡緊接在法規名稱前的版本說明；抽取引用時要連同法條一起保留。
-HISTORICAL_PREFIX_RE = re.compile(r'(?:' + _HISTORICAL_MARK + r'|[0-9]{2,4}\s*年(?:度)?(?:版)?(?:修正)?(?:之)?)\s*$')
 # 字別(台上/台簡抗/台抗等)原為列舉白名單，2026-08-09 端到端測試發現本地語料庫實際涵蓋
 # 台上/台再/台抗/台簡上/台簡抗/台簡聲/台聲共7種字別，列舉版只認得3種，其餘4種(尤其常見的
 # 「台簡上」)一律 unparseable，等同於機械查證閘門會擋下所有引用該字別判例的合法引用——
@@ -79,154 +62,141 @@ HISTORICAL_PREFIX_RE = re.compile(r'(?:' + _HISTORICAL_MARK + r'|[0-9]{2,4}\s*�
 JUDGMENT_CITATION_RE = re.compile(r'(最高法院)?\s*([0-9]{2,3})年度(台[^\s字0-9]{1,3})字第\s*([0-9]+)\s*號')
 
 
+@functools.lru_cache(maxsize=1)
+def _law_names():
+    return frozenset(known_law_names())
+
+
+class _StatuteMatch:
+    def __init__(self, text, start, end, law_name, article_no):
+        self._text, self._span, self.law_name, self.article_no = text, (start, end), law_name, article_no
+
+    def group(self, index=0):
+        if index:
+            raise IndexError('法條引用比對只提供 group(0)，名稱與條號請用 law_name、article_no')
+        return self._text
+
+    def start(self):
+        return self._span[0]
+
+    def end(self):
+        return self._span[1]
+
+    def span(self):
+        return self._span
+
+
+class _StatuteCitationFinder:
+    """在文字中找「法規名稱第N條(之M)」；介面同正規式的 search／finditer。
+
+    法規名稱取「第N條」前方文字中、名稱索引裡最長的那一段(避免把「依土地法第34條」切成「依土地法」，
+    也讓「民法債編施行法」不會被切成「民法」)；索引外的名稱不在此列，由 UNSUPPORTED_STATUTE_RE 另行辨認。
+    """
+
+    def finditer(self, text):
+        names = _law_names()
+        for m in _ARTICLE_REF_RE.finditer(text):
+            before = text[max(0, m.start() - _NAME_WINDOW):m.start()]
+            stripped = before.rstrip()
+            name = next((stripped[i:] for i in range(len(stripped)) if stripped[i:] in names), None)
+            if name is None:
+                continue
+            start = m.start() - (len(before) - len(stripped)) - len(name)
+            article_no = m.group(1) + (f"-{m.group(2)}" if m.group(2) else '')
+            yield _StatuteMatch(text[start:m.end()], start, m.end(), name, article_no)
+
+    def search(self, text):
+        return next(self.finditer(text), None)
+
+
+STATUTE_CITATION_RE = _StatuteCitationFinder()
+
+
 def parse_citation(citation_text):
     m = STATUTE_CITATION_RE.search(citation_text)
     if m:
-        article_no = m.group(2)
-        if m.group(3):
-            article_no = f"{article_no}-{m.group(3)}"
-        return {"type": "statute", "law_name": m.group(1), "article_no": article_no}
+        return {"type": "statute", "law_name": m.law_name, "article_no": m.article_no}
     m = JUDGMENT_CITATION_RE.search(citation_text)
     if m:
         return {"type": "judgment", "jyear": m.group(2), "jcase": m.group(3), "jno": m.group(4)}
     m = UNSUPPORTED_STATUTE_RE.search(citation_text)
     if m:
-        article_no = f"{m.group(2)}-{m.group(3)}" if m.group(3) else m.group(2)
+        article_no = m.group(2) + (f"-{m.group(3)}" if m.group(3) else "")
         return {"type": "statute", "law_name": m.group(1), "article_no": article_no}
     return {"type": "unknown"}
 
 
-def is_historical_statute(citation_text):
-    return parse_citation(citation_text)["type"] == "statute" and bool(HISTORICAL_STATUTE_RE.search(citation_text))
+def _historical_version(citation_text, version_hint=None):
+    if isinstance(version_hint, dict):
+        version_fields = ('version_hint', 'version', 'applicable_version', 'historical_version',
+                          'version_note', 'law_version', 'statute_version')
+        if any(version_hint.get(key) and str(version_hint[key]).strip().lower() not in
+               ('current', '現行', '現行法', '現行版本') for key in version_fields):
+            return True
+    hint = json.dumps(version_hint, ensure_ascii=False) if isinstance(version_hint, (dict, list)) else str(version_hint or "")
+    text = f"{citation_text} {hint}"
+    return bool(re.search(r'修正前|舊法|舊版|歷史版本|(?:民國)?\d{2,4}\s*年(?:度)?(?:版)?[^第]{0,25}(?:法|條例)|\d{2,4}\s*年(?:度)?版', text)
+                or version_hint is True)
 
 
-HISTORICAL_NOTE = "引用的是舊版條文，查證引擎只比對現行條文，無法確認當時內容；請律師另行核對"
-DEFAULT_TIMEOUT = 20
-FJUD_MAX_PAGES = 10
-_NETWORK_ERRORS = (OSError, http.client.HTTPException)  # URLError、逾時與 SSL 錯誤都是 OSError
-NETWORK_RETRY_DELAY = 2  # 秒。只重試一次:UI 逐條查證時連線失敗就停，重試太多次斷網會卡很久
+def citation_warning(citation_text, version_hint=None):
+    """落地前的純本機分類；不以現行條文替歷史版本或已廢止法規背書。"""
+    parsed = parse_citation(citation_text)
+    if parsed['type'] != 'statute':
+        return None
+    common = {**parsed, 'citation_text': citation_text, 'source_type': 'statute'}
+    if _historical_version(citation_text, version_hint):
+        return {**common, 'status': 'version_unverified', 'note': '歷史條文版本尚未查證，律師待核；不得作為書狀引用'}
+    law = resolve_law(parsed['law_name'])
+    if law is None:
+        return {**common, 'status': 'unsupported_law',
+                'note': '法規名稱索引查無此法規，查證引擎尚未支援，律師待核；不表示法規不存在'}
+    if law.get('abandoned'):
+        return {**common, 'status': 'version_unverified',
+                'note': f"{law['law_name']}已廢止，官網條文不是現行法；律師待核，不得作為書狀引用"}
+    return None
 
 
-class FjudSearchIncomplete(Exception):
-    """FJUD 搜尋沒有跑完(取不到查詢欄位或超過頁數上限)。沒看完不等於查無，不得回報 not_found。"""
+def _snapshot(snapshot):
+    return snapshot or os.environ.get(SNAPSHOT_ENV) or None
 
 
-def _retry_once(fetch):
-    """連線偶爾暫時失敗(實跑見過 SSL 錯誤，重試就過)。再失敗才交給呼叫端回 verification_failed；
-    查無與 FjudSearchIncomplete 不是連線問題，不重試。"""
+# 查證結果的 verified_via：本次實際從哪裡取得比對內容
+_VIA = {'run_snapshot': 'run_snapshot', 'retrieval_cache': 'retrieval_cache', 'corpus': 'local_corpus'}
+
+
+def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT, *, citation_text=None, version_hint=None,
+                            snapshot=None):
+    """條文在快取有效期(7 天)內以快取放行並註明抓取時間；過期或沒有就上網(重試一次)，仍失敗回 network_error，
+    不用過期版本或本地舊版法典放行。"""
+    warning = citation_warning(citation_text or f'{law_name}第{article_no}條', version_hint)
+    if warning:
+        return warning
+    law = resolve_law(law_name)
+    if law is None:
+        return {"status": "unsupported_law", "law_name": law_name, "article_no": article_no}
+    common = {'law_name': law_name, 'article_no': article_no, 'official_name': law['law_name'], 'pcode': law['pcode']}
     try:
-        return fetch()
-    except _NETWORK_ERRORS:
-        time.sleep(NETWORK_RETRY_DELAY)
-        return fetch()
+        r = retrieval_cache.get_article(law, article_no, snapshot=_snapshot(snapshot), timeout=timeout)
+    except retrieval_cache.RetrievalUnavailable as error:
+        return {**common, 'status': 'network_error', 'reason': str(error), 'note': '官網無法連線且無有效快取，非查無此條'}
+    if r['status'] == 'not_found':
+        return {**common, 'status': 'not_found', 'primary_source_url': r['url'], 'attempts': r['attempts'],
+                'note': '官網查無此條（已重查確認），可能條號有誤或該條已刪除'}
+    if r['status'] != 'found':
+        return {**common, 'status': 'network_error', 'reason': r.get('reason'), 'primary_source_url': r.get('url'),
+                'note': '官網頁面無法辨認條文，非查無此條'}
+    return {**common, 'status': 'published', 'primary_source_url': r['url'], 'matched_text': r['text'],
+            'verified_via': _VIA.get(r['served_from'], 'law_moj_live'), 'fetched_at': r['fetched_at'],
+            'modified_date': r.get('modified_date'), 'attempts': r['attempts']}
 
 
-def _fetch_single_article(pcode, article_no, timeout=DEFAULT_TIMEOUT):
-    url = f"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode={pcode}&flno={article_no}"
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        html = resp.read().decode("utf-8")
-    if "查無資料" in html:
-        return None, url
-    start = html.find('<div class="law-article">')
-    if start == -1:
-        return None, url
-    end = html.find('<div class="clearfix">', start)
-    if end == -1:
-        end = start + 3000
-    fragment = html[start:end]
-    fragment = re.sub(r'<div[^>]*>', '\n', fragment)
-    fragment = re.sub(r'</div>', '\n', fragment)
-    fragment = re.sub(r'<[^>]+>', '', fragment)
-    lines = [l.strip() for l in fragment.split('\n') if l.strip()]
-    text = f"第 {article_no} 條\n" + '\n'.join(lines)
-    return text, url
+def _fjud_search(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT):
+    """以 FJUD 進階搜尋的字號欄位找最高法院民事裁判，回傳 JID 清單(可能為空、一筆、或多筆)。
 
-
-def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT):
-    pcode = STATUTE_PCODES.get(law_name)
-    if pcode is None:
-        return {"status": "unknown_law", "law_name": law_name, "article_no": article_no}
-    try:
-        live_text, url = _retry_once(lambda: _fetch_single_article(pcode, article_no, timeout=timeout))
-    except _NETWORK_ERRORS as e:
-        return {"status": "verification_failed", "reason": str(e), "law_name": law_name,
-                "article_no": article_no}
-    if live_text is None:
-        return {"status": "not_found", "law_name": law_name, "article_no": article_no,
-                "primary_source_url": url,
-                "note": "官網查無此條，可能條號有誤或該條已刪除"}
-    return {"status": "published", "law_name": law_name, "article_no": article_no,
-            "primary_source_url": url, "matched_text": live_text}
-
-
-def _fjud_extract_hidden_fields(html):
-    def extract(name):
-        m = re.search(r'id="' + name + r'"[^>]*value="([^"]*)"', html)
-        return m.group(1) if m else ""
-    return {
-        "__VIEWSTATE": extract("__VIEWSTATE"),
-        "__VIEWSTATEGENERATOR": extract("__VIEWSTATEGENERATOR"),
-        "__EVENTVALIDATION": extract("__EVENTVALIDATION"),
-    }
-
-
-def _fjud_next_page(list_html):
-    m = re.search(r'id="hlNext"[^>]*href="([^"]+)"', list_html)
-    return urllib.parse.urljoin(f"{FJUD_BASE}/", m.group(1).replace("&amp;", "&")) if m else None
-
-
-def _fjud_search(citation_query, timeout=DEFAULT_TIMEOUT, is_target=None):
-    """搜尋 FJUD，回傳讀到的 JID 清單(可能為空、一筆、或多筆)，is_target 命中時提早停止。
-
-    搜尋是關鍵字比對，真正的字號不一定排在前面：105年度台簡上字第33號共 50 筆結果，它排在第 3 頁，
-    2026-11-01 前只讀第一頁，因而把存在的判決誤判為查無。所以依法院層級排序並讀完所有頁。
-    """
-    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
-    req = urllib.request.Request(f"{FJUD_BASE}/default.aspx", headers=_FJUD_HEADERS)
-    with opener.open(req, timeout=timeout) as resp:
-        home_html = resp.read().decode("utf-8")
-    hidden = _fjud_extract_hidden_fields(home_html)
-    if not hidden["__VIEWSTATE"]:
-        raise FjudSearchIncomplete("司法院首頁取不到查詢欄位")
-    data = dict(hidden)
-    data.update({
-        "judtype": "JUDBOOK",
-        "whosub": "0",
-        "txtKW": citation_query,
-        "ctl00$cp_content$btnSimpleQry": "送出查詢",
-    })
-    body = urllib.parse.urlencode(data).encode("utf-8")
-    headers2 = dict(_FJUD_HEADERS)
-    headers2.update({
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Referer": f"{FJUD_BASE}/default.aspx",
-        "Origin": "https://judgment.judicial.gov.tw",
-    })
-    req2 = urllib.request.Request(f"{FJUD_BASE}/default.aspx", data=body, headers=headers2)
-    with opener.open(req2, timeout=timeout) as resp2:
-        search_html = resp2.read().decode("utf-8")
-    m = re.search(r'qryresultlst\.aspx\?ty=JUDBOOK&(?:amp;)?q=([0-9a-f]+)', search_html)
-    if not m:
-        return []
-    token = m.group(1)
-    time.sleep(1.5)  # 緊接著發第二個請求容易被拒，實測需短暫延遲(見 corpus/COLLECTION_LOG.md 類似教訓)
-    list_url = f"{FJUD_BASE}/qryresultlst.aspx?ty=JUDBOOK&q={token}&sort=LG"
-    referer = f"{FJUD_BASE}/default.aspx"
-    jids = []
-    for page in range(1, FJUD_MAX_PAGES + 1):
-        req3 = urllib.request.Request(list_url, headers={**_FJUD_HEADERS, "Referer": referer})
-        with opener.open(req3, timeout=timeout) as resp3:
-            list_html = resp3.read().decode("utf-8")
-        raw_ids = re.findall(r'data\.aspx\?ty=JD&(?:amp;)?id=([^"&]+)', list_html)
-        page_jids = [urllib.parse.unquote(raw_id) for raw_id in raw_ids]
-        jids += page_jids
-        next_url = _fjud_next_page(list_html)
-        if not next_url or (is_target and any(is_target(j) for j in page_jids)):
-            return jids
-        referer, list_url = list_url, next_url
-        time.sleep(1.5)
-    raise FjudSearchIncomplete(f"搜尋結果超過 {FJUD_MAX_PAGES} 頁，沒有看完")
+    2026-11-01 前用簡易搜尋輸入完整字號，那是全文搜尋，會先命中內文引用該字號的其他法院裁判，
+    不在本地語料又被他案引用過的最高法院裁判因此一律誤報 not_found。"""
+    return [row['jid'] for row in fjud.advanced_search(citation=(jyear, jcase, jno), pages=1, timeout=timeout)['rows']]
 
 
 def _jid_matches(jid, jyear, jcase, jno):
@@ -234,59 +204,140 @@ def _jid_matches(jid, jyear, jcase, jno):
     return len(parts) >= 4 and parts[0] == "TPSV" and parts[1] == jyear and parts[2] == jcase and parts[3] == jno
 
 
-def multiple_documents_note(count):
-    return f"此字號有 {count} 份文件，查證只確認字號存在，請律師確認引用的是哪一份"
+def _document_type(text):
+    first_line = next((line.strip() for line in text.splitlines() if line.strip()), '')
+    match = re.search(r'(判決|裁定)', first_line)
+    return match.group(1) if match else None
 
 
-def verify_judgment_citation(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT):
-    prefix = f"TPSV,{jyear},{jcase},{jno},"
-    if not os.path.isdir(JUDGMENTS_DIR):
-        candidates = []
-    else:
-        candidates = sorted(f for f in os.listdir(JUDGMENTS_DIR) if f.startswith(prefix) and f.endswith('.txt'))
-    if candidates:
-        path = os.path.join(JUDGMENTS_DIR, candidates[0])
-        with open(path, encoding='utf-8') as f:
-            content = f.read()
-        result = {"status": "published", "jyear": jyear, "jcase": jcase, "jno": jno,
-                  "source_file": path, "matched_text": content[:200], "verified_via": "local_corpus"}
-        if len(candidates) > 1:
-            result["candidates"] = candidates
-            result["note"] = multiple_documents_note(len(candidates))
-        return result
+def _document(entry, served):
+    """快取記錄 → 查證結果的文件欄位。預先內容沿用原本的來源檔與 PDF 網址。"""
+    document = {'jid': entry['jid'], 'doc_date': entry['doc_date'], 'doc_type': _document_type(entry['text']),
+                'jtitle': entry.get('case_cause'), 'full_text': entry['text'], 'matched_text': entry['text'][:200],
+                'primary_source_url': entry.get('source_pdf_url') or entry.get('source_url'),
+                'verified_via': _VIA.get(served, 'fjud_live'), 'fetched_at': entry.get('fetched_at')}
+    if entry.get('source_file'):
+        document['source_file'] = entry['source_file']
+    return document
 
-    # 本地語料庫未命中，退而求其次即時查證 FJUD(不再直接回報 not_in_phase1_seed_corpus 了事)。
+
+def _cached_document(jid, snapshot):
+    """不連網取全文；有的話記進快照，查證與角色比對同一份。"""
+    try:
+        entry = retrieval_cache.get_judgment(jid, snapshot=snapshot, corpus_dir=JUDGMENTS_DIR, allow_live=False)
+    except retrieval_cache.LiveFetchNotAllowed:
+        return None
+    return _document(entry, entry['served_from'])
+
+
+def verify_judgment_citation(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT, *, doc_date=None, snapshot=None):
+    """字號 → 文件身分。字號對照與全文都先查快照、預先內容與長期快取，沒有才上網(重試一次)；
+    同字號多份文件時須以 doc_date 唯一識別。"""
+    common = {'jyear': jyear, 'jcase': jcase, 'jno': jno}
+    if doc_date is not None:
+        doc_date = re.sub(r'[-/]', '', str(doc_date))
+        if not re.fullmatch(r'\d{8}', doc_date):
+            return {**common, 'status': 'invalid_document_date', 'reason': 'doc_date 必須是 YYYYMMDD'}
+    snapshot = _snapshot(snapshot)
     citation_query = f"{jyear}年度{jcase}字第{jno}號"
     try:
-        jids = _retry_once(lambda: _fjud_search(citation_query, timeout=timeout,
-                                                is_target=lambda j: _jid_matches(j, jyear, jcase, jno)))
-    except (*_NETWORK_ERRORS, FjudSearchIncomplete) as e:
-        return {"status": "verification_failed", "jyear": jyear, "jcase": jcase, "jno": jno,
-                "reason": str(e), "note": "FJUD 即時查證未完成(連線失敗或結果沒有看完)，非查無此判決，可重試"}
-
-    matched = [j for j in jids if _jid_matches(j, jyear, jcase, jno)]
-    if not matched:
-        return {"status": "not_found", "jyear": jyear, "jcase": jcase, "jno": jno,
-                "fjud_query": citation_query, "fjud_raw_hits": jids,
+        found = retrieval_cache.judgment_candidates(
+            jyear, jcase, jno, snapshot=snapshot, corpus_dir=JUDGMENTS_DIR,
+            search=lambda: _fjud_search(jyear, jcase, jno, timeout=timeout), timeout=timeout)
+    except retrieval_cache.RetrievalUnavailable as error:
+        return {"status": "network_error", **common, "reason": str(error), "note": "FJUD 即時查證連線失敗，非查無此判決"}
+    if not found['jids']:
+        return {"status": "not_found", **common, "fjud_query": citation_query, "fjud_raw_hits": found.get('raw_hits', []),
                 "note": "FJUD 即時查證查無此裁判字號，可能字號有誤，或非最高法院裁判(本查證僅涵蓋TPSV前綴/最高法院)"}
-    jid = matched[0]
-    url = f"{FJUD_BASE}/data.aspx?ty=JD&id={urllib.parse.quote(jid)}&ot=in"
-    return {"status": "published", "jyear": jyear, "jcase": jcase, "jno": jno,
-            "primary_source_url": url, "jid": jid, "verified_via": "fjud_live",
+    documents = []
+    for jid in found['jids']:
+        entry, served = retrieval_cache.peek_judgment(jid, snapshot, JUDGMENTS_DIR)
+        documents.append(_document(entry, served) if entry else {'jid': jid, 'doc_date': retrieval_cache.doc_date_of(jid)})
+    public_candidates = [{k: v for k, v in d.items() if k not in ('full_text', 'matched_text')} for d in documents]
+    selected = [d for d in documents if doc_date is None or d['doc_date'] == doc_date]
+    if not selected:
+        return {**common, 'status': 'not_found', 'candidates': public_candidates, 'reason': '該字號沒有指定日期的裁判文件'}
+    if len(selected) > 1:
+        return {**common, 'status': 'ambiguous', 'candidates': public_candidates,
+                'reason': '同一字號有多份文件，須指定可唯一識別的 doc_date'}
+    jid = selected[0]['jid']
+    document = _cached_document(jid, snapshot)
+    if document is not None:
+        return {**common, **document, 'status': 'published', 'candidates': public_candidates}
+    return {"status": "published", **common, "primary_source_url": fjud.document_url(jid), "jid": jid,
+            "doc_date": selected[0]['doc_date'], 'candidates': public_candidates,
+            "verified_via": "fjud_live" if found['served_from'] == 'live' else _VIA[found['served_from']],
             "note": "僅確認裁判字號存在且可由律師自行點開原文核對，未涵蓋裁判全文之實質內容比對"}
 
 
-def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT):
+def verify_precedent_note(note, timeout=DEFAULT_TIMEOUT, *, snapshot=None):
+    """第一、二層：文件身分、案由與原文摘句；不代替獨立支持性查證。"""
+    if not isinstance(note, dict):
+        return {'status': 'invalid_precedent_note', 'reason': 'precedent_note 必須是物件'}
+    required = ('citation', 'doc_date', 'doc_type', 'case_cause', 'quote', 'proposition')
+    missing = [key for key in required if not isinstance(note.get(key), str) or not note[key].strip()]
+    if missing:
+        return {'status': 'invalid_precedent_note', 'citation_text': note.get('citation'),
+                'reason': '缺少判例資料：' + ', '.join(missing)}
+    parsed = parse_citation(note['citation'])
+    if parsed['type'] != 'judgment':
+        return {'status': 'unparseable', 'citation_text': note['citation'], 'reason': '不是可解析的裁判字號'}
+    snapshot = _snapshot(snapshot)
+    result = verify_judgment_citation(parsed['jyear'], parsed['jcase'], parsed['jno'], timeout=timeout,
+                                      doc_date=note['doc_date'], snapshot=snapshot)
+    result.update(citation_text=note['citation'], source_type='judgment', precedent_note=dict(note), support_review_required=True)
+    if result['status'] != 'published':
+        return result
+    if not result.get('full_text') and result.get('jid'):
+        # 與角色讀的是同一份：快照 → 長期快取 → 預先內容 → 上網，抓到的寫回快取與快照。
+        try:
+            entry = retrieval_cache.get_judgment(result['jid'], snapshot=snapshot, corpus_dir=JUDGMENTS_DIR, timeout=timeout)
+        except retrieval_cache.RetrievalUnavailable as error:
+            return {**result, 'status': 'network_error', 'reason': str(error)}
+        result.update({k: v for k, v in _document(entry, entry['served_from']).items() if k != 'source_file'})
+    if result.get('doc_type') != note['doc_type']:
+        return {**result, 'status': 'doc_type_mismatch', 'reason': f"引用文種 {note['doc_type']} 與原文 {result.get('doc_type')} 不符"}
+    # 只忽略網頁與文字檔的換行空白，不容許改寫摘句。
+    normalize = lambda text: re.sub(r'\s+', '', text or '')
+    if normalize(note['quote']) not in normalize(result.get('full_text')):
+        return {**result, 'status': 'quote_not_found', 'reason': '原文摘句不是裁判全文的子字串'}
+    if not result.get('jtitle'):
+        return {**result, 'status': 'document_identity_unverified', 'reason': '未取得官方裁判案由，不能核對文件身分'}
+    normalize_cause = lambda cause: re.sub(r'^請求|等$', '', normalize(cause))
+    if normalize_cause(note['case_cause']) != normalize_cause(result['jtitle']):
+        if not isinstance(note.get('analogy_reason'), str) or not note['analogy_reason'].strip():
+            return {**result, 'status': 'analogy_required', 'reason': '案由不同，須提供 analogy_reason 交獨立查證'}
+        return {**result, 'status': 'needs_explanation', 'note': '需說明：案由不同；類推理由交獨立查證角色判斷'}
+    return result
+
+
+def validate_precedent_notes(notes, *, snapshot=None):
+    if not isinstance(notes, list):
+        raise ValueError('precedent_notes 必須是陣列')
+    results = [verify_precedent_note(note, snapshot=snapshot) for note in notes]
+    errors = [r for r in results if r['status'] not in ('published', 'needs_explanation')]
+    if errors:
+        raise ValueError('判例查證拒絕落地：' + '; '.join(f"{r.get('citation_text', '')}: {r['status']} {r.get('reason', '')}" for r in errors))
+    return results
+
+
+def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT, *, precedent_notes=None, version_hints=None, snapshot=None):
+    notes = {note['citation']: note for note in (precedent_notes or []) if isinstance(note, dict) and 'citation' in note}
+    hints = version_hints or {}
     results = []
     for citation_text in citation_texts:
         parsed = parse_citation(citation_text)
-        if is_historical_statute(citation_text):
-            result = {"status": "version_unverified", "law_name": parsed["law_name"], "article_no": parsed["article_no"],
-                      "note": HISTORICAL_NOTE}
-        elif parsed["type"] == "statute":
-            result = verify_statute_citation(parsed["law_name"], parsed["article_no"], timeout=timeout)
+        if parsed["type"] == "statute":
+            result = verify_statute_citation(parsed["law_name"], parsed["article_no"], timeout=timeout,
+                                            citation_text=citation_text, version_hint=hints.get(citation_text),
+                                            snapshot=snapshot)
         elif parsed["type"] == "judgment":
-            result = verify_judgment_citation(parsed["jyear"], parsed["jcase"], parsed["jno"], timeout=timeout)
+            note = notes.get(citation_text)
+            if note is None:
+                note = next((n for n in notes.values() if parse_citation(n['citation']) == parsed), None)
+            result = (verify_precedent_note(note, timeout=timeout, snapshot=snapshot) if note else
+                      verify_judgment_citation(parsed["jyear"], parsed["jcase"], parsed["jno"], timeout=timeout,
+                                               snapshot=snapshot))
         else:
             result = {"status": "unparseable"}
         result["citation_text"] = citation_text

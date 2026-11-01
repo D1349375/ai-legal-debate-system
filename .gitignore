@@ -50,6 +50,8 @@ htmlcov/
 *.log
 # UI 即時執行的 Claude Code 執行紀錄與暫存檔
 database/live_runs/
+# 上網檢索的長期快取(判決全文、7 天內條文)，可重新抓取
+database/retrieval_cache/
 _tmp/
 tmp/
 

@@ -19,7 +19,7 @@ from database.schema import (
 )
 from engine.aggregate import compile_weak_points, disagreement, VALID_SIDES
 from engine.party_issues import procedural_issues
-from engine.verify import is_historical_statute, parse_citation
+from engine.verify import citation_warning, parse_citation
 
 _DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'legal_debate.db')
 # UI 觸發即時執行時，後端以此環境變數把自己使用的資料庫交給 Claude Code 子程序，
@@ -292,9 +292,9 @@ def _assert_all_published(session, citations_used):
     by_key = {}
     for r in all_rows:
         by_key.setdefault(_citation_key(r.citation_text), r.status)
-    # 舊版條文的 key 與現行條文相同，不能借現行條文的查證紀錄放行
+    # 舊版條文的 key 與現行條文相同，不能借現行條文的查證紀錄放行；已廢止與索引外的法規同樣不放行
     unpublished = [c for c in citations_used
-                   if is_historical_statute(c) or by_key.get(_citation_key(c)) != 'published']
+                   if citation_warning(c) or by_key.get(_citation_key(c)) != 'published']
     if unpublished:
         raise ValueError(f"以下引用尚未查證為 published，拒絕落地: {unpublished}")
 

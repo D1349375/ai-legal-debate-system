@@ -39,11 +39,14 @@
 
   var STATUS = {
     published: { cls: "ok", icon: "✓", label: "已查證通過" },
-    local_cache_only: { cls: "warn", icon: "◐", label: "僅本地快取,未比對官方" },
+    local_cache_only: { cls: "warn", icon: "◐", label: "僅過期或未確認的快取,未比對官方" },
     not_found: { cls: "bad", icon: "✗", label: "確認查無此依據" },
+    network_error: { cls: "warn", icon: "⏱", label: "連線失敗,無法完成查證" },
     verification_failed: { cls: "warn", icon: "⏱", label: "無法完成查證" },
     unparseable: { cls: "warn", icon: "?", label: "無法解析" },
+    unsupported_law: { cls: "warn", icon: "?", label: "法規不在名稱索引" },
     unknown_law: { cls: "warn", icon: "?", label: "法規不在查證範圍" },
+    ambiguous: { cls: "warn", icon: "?", label: "同字號多份文件,須指定日期" },
     version_unverified: { cls: "warn", icon: "?", label: "舊版條文,版本未查證" },
   };
   function statusLabel(status) { return (STATUS[status] && STATUS[status].label) || status; }
@@ -52,6 +55,9 @@
     local_corpus: "本地判決語料庫(司法院裁判書開放資料)",
     fjud_live: "司法院裁判書查詢系統 FJUD 即時查詢",
     local_statute_cache: "本地法典快取(非權威來源)",
+    retrieval_cache: "檢索快取(先前自官方抓取)",
+    retrieval_cache_stale: "超過 7 天的條文快取(未與官方比對)",
+    run_snapshot: "本次實跑快照(先前自官方抓取)",
   };
   var LIVE_OUTCOME = {
     ok: "即時查詢成功",
@@ -60,6 +66,7 @@
     skipped_offline_mode: "離線模式:未連網",
     skipped_after_failure: "前一筆已連線失敗,本筆略過即時查詢",
     not_attempted: "本地已命中,無須連網",
+    cache_hit: "快取命中,無須連網",
   };
 
   var RUN_STATUS = {
@@ -804,7 +811,7 @@
       if (r.verified_via) line("來源", VIA[r.verified_via] || r.verified_via);
       if (r.primary_source_url) line("原文", h("a", { href: r.primary_source_url, target: "_blank", rel: "noopener noreferrer", text: "開啟官方頁面" }));
       if (r.live_attempt) line("即時查詢", (LIVE_OUTCOME[r.live_attempt.outcome] || r.live_attempt.outcome) + (r.live_attempt.error ? "(" + r.live_attempt.error + ")" : ""));
-      if (r.local_cache) line("本地快取資料", "取得於 " + fmtTime(r.local_cache.fetched_at) + "；法規修正日 " + (r.local_cache.amendment_date || "—"));
+      if (r.local_cache) line("快取資料", "抓取於 " + fmtTime(r.local_cache.fetched_at) + "；法規修正日 " + (r.local_cache.amendment_date || "—"));
       if (r.status === "not_found" && r.fjud_query) line("查詢結果", "以「" + r.fjud_query + "」查詢司法院系統，回傳 " + r.fjud_hit_count + " 筆近似結果，無一為此字號");
       if (r.note) line("說明", r.note);
     }
@@ -832,7 +839,7 @@
     var run = runsFor(d.case.case_id), v = run.verify, opts = state.verifyOpts;
     var cites = d.citations;
     var head = panelHead("引用查證", null,
-      "每一條引用都當作「未經證實」處理：判例先比對本地判決語料庫(1,000 餘份最高法院裁判)，未命中再即時查司法院系統；法條即時查全國法規資料庫，逾時則退回本地法典快取——但退回的結果只標示為「僅本地快取」，不算通過、不寫入紀錄。");
+      "每一條引用都當作「未經證實」處理：判例先比對判決預先內容(1,000 餘份最高法院裁判)與快取，未命中再即時查司法院系統；法條 7 天內讀快取，否則即時查全國法規資料庫。連線失敗時，過期或未確認的快取只標示為待核，不算通過、不寫入紀錄。");
     if (!cites.length) return [head, emptyState("此案件的論證沒有引用任何法條或判例。")];
 
     var seg = h("div", { class: "seg", role: "group", "aria-label": "查證模式" },
@@ -857,7 +864,7 @@
       stat(results.length ? String(count(function (r) { return r.status === "published"; })) : "—", "✓ 已查證通過", "ok"),
       stat(results.length ? String(count(function (r) { return r.status === "local_cache_only"; })) : "—", "◐ 僅本地快取(未比對官方)", "warn"),
       stat(results.length ? String(count(function (r) { return r.status === "not_found"; })) : "—", "✗ 確認查無", "bad"),
-      stat(results.length ? String(count(function (r) { return ["verification_failed", "unparseable", "unknown_law", "version_unverified"].indexOf(r.status) >= 0; })) : "—", "⏱ 無法完成查證／無法解析", "warn"));
+      stat(results.length ? String(count(function (r) { return ["network_error", "verification_failed", "unparseable", "unsupported_law", "unknown_law", "version_unverified", "ambiguous"].indexOf(r.status) >= 0; })) : "—", "⏱ 無法完成查證／無法解析", "warn"));
 
     var out = [head, controls, tiles];
     if (v.notice) out.push(banner("warn", "!", [h("strong", { text: "網路狀態" }), "：" + v.notice]));
@@ -1598,8 +1605,9 @@
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "資料來源" }),
         h("p", { class: "detail-note", text: "案件與論證：本機資料庫。" +
           (hl && hl.database.seeded_from_fixture ? "本次啟動時資料庫為空，已自動匯入示範案例存檔。" : "") }),
-        hl ? h("p", { class: "detail-note", text: "本地語料庫：最高法院判決 " + hl.corpus.judgments + " 份、法典 " + hl.corpus.statutes + " 部。" }) : null,
-        h("p", { class: "detail-note", text: "查證權威來源：法規＝法務部全國法規資料庫；判決＝本地語料庫 → 司法院裁判書查詢系統。" })),
+        hl ? h("p", { class: "detail-note", text: "判決預先內容 " + hl.corpus.judgments + " 份；檢索快取：判決 " +
+          (hl.retrieval_cache ? hl.retrieval_cache.judgments : 0) + " 份、條文 " + (hl.retrieval_cache ? hl.retrieval_cache.statutes : 0) + " 條。" }) : null,
+        h("p", { class: "detail-note", text: "查證權威來源：法規＝法務部全國法規資料庫(7 天內快取)；判決＝快取與預先內容 → 司法院裁判書查詢系統。" })),
       d.live_runs && d.live_runs.length ? h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "即時執行" }),
         d.live_runs.map(function (r) {
           return meta("執行 #" + r.id + (r.kind === "pleadings" ? "(只補產" + docsText(r.documents) + ")" : ""), runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +

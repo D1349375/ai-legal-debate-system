@@ -18,7 +18,8 @@ from pydantic import BaseModel, Field
 
 from database.db import default_db_path, make_session_factory
 from database.schema import Case
-from engine.verify import JUDGMENTS_DIR, STATUTES_DIR
+from engine import retrieval_cache
+from engine.verify import JUDGMENTS_DIR
 from engine.gcis import validate_ban
 from server import seed, services
 from server.live_run import LiveRunManager
@@ -149,8 +150,9 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
             "database": {"path": "database/legal_debate.db" if db_url is None else "(自訂資料庫)",
                          "cases": db.query(Case).count(),
                          "seeded_from_fixture": app.state.seeded},
-            "corpus": {"judgments": _count_files(JUDGMENTS_DIR, ".txt"),
-                       "statutes": _count_files(STATUTES_DIR, ".txt")},
+            # 判決預先內容(唯讀，查找時視為快取)與上網抓過的長期快取；法條只從官網與 7 天快取取得，不再有本地法典。
+            "corpus": {"judgments": _count_files(JUDGMENTS_DIR, ".txt")},
+            "retrieval_cache": retrieval_cache.cache_counts(),
             "live_generation": runner.availability(),
             "default_db_file": os.path.basename(default_db_path()),
         }

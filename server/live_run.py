@@ -23,6 +23,7 @@ from sqlalchemy import or_
 from database.db import DB_URL_ENV, default_db_path, pleading_side
 from database.schema import Case, CourtQuestion, DebateArgument, LiveRun, PleadingDraft, Verdict
 from engine.aggregate import VALID_SIDES
+from engine.verify import SNAPSHOT_ENV
 
 DEFAULT_MODEL = "claude-sonnet-5-5"
 DEFAULT_BUDGET_USD = 15.0
@@ -41,7 +42,12 @@ QUOTA_WARN_AT = 0.9
 # 寫檔由 Edit 規則管轄(Write(...) 規則不會比對)，限定在本次執行資料夾的上層 database/live_runs/。
 ALLOWED_TOOLS = ("Bash(python main.py *)", "Skill(legal-debate *)", "Read", "Grep", "Glob", "Agent",
                  f"Edit(/{RUNS_DIR_REL}/**)")
-DISALLOWED_TOOLS = ("WebFetch", "WebSearch")
+# 檢索快取、案件快照(依角色分子資料夾)與檢索紀錄不給任何 agent 用 Read／Grep／Glob 直接讀：讀過哪些判決、搜過哪些詞
+# 會透露該方研究方向，而同一個 Claude Code 程序裡的角色共用權限，無法只禁對造。檢索指令以 Python 讀檔，不受影響。
+DISALLOWED_TOOLS = ("WebFetch", "WebSearch", "Read(/database/retrieval_cache/**)",
+                    f"Read(/{RUNS_DIR_REL}/*/retrieval_cache/**)", f"Read(/{RUNS_DIR_REL}/*/search_logs/**)")
+# 案件層級的資料夾：律師確認關卡與續跑會把一個案件分成多次執行，快照與檢索紀錄要跨執行沿用。
+CASE_DIR_PREFIX = "case-"
 
 RESULT_ERRORS = {
     "error_max_budget_usd": "已達花費上限，Claude Code 自行停止",
@@ -620,6 +626,10 @@ class LiveRunManager:
     def _log_abs(self, path):
         return path if os.path.isabs(path) else os.path.join(self.root, *path.split("/"))
 
+    def case_dir(self, case_id):
+        """案件層級資料夾(絕對路徑)：快照 retrieval_cache/ 與檢索紀錄 search_logs/ 跨多次執行沿用。"""
+        return os.path.join(self.runs_dir, f"{CASE_DIR_PREFIX}{case_id}")
+
     def _run_dir(self, run_id):
         """給 Claude 與存進 DB 的路徑：在專案內用相對路徑(正斜線),否則用絕對路徑。"""
         abs_dir = os.path.join(self.runs_dir, f"run-{run_id}")
@@ -704,7 +714,10 @@ class LiveRunManager:
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = self.model  # CLI 2.1.251 前此變數優先於 Agent 的 model 參數
             env["PYTHONIOENCODING"] = "utf-8"
             env["PYTHONUTF8"] = "1"
-            popen_kw = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+            # 案件快照根目錄：查證與判例落地以此比對雙方讀過的同一版本(engine/retrieval_cache.py)。
+            # 各角色的檢索指令另以 --snapshot 指定 <根目錄>/plaintiff 或 defendant，不讀這個環境變數。
+            env[SNAPSHOT_ENV] = os.path.join(self.case_dir(case_id), "retrieval_cache")
+            popen_kw =({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | getattr(subprocess, "CREATE_NO_WINDOW", 0)}
                         if os.name == "nt" else {"start_new_session": True})
             stderr_file = open(os.path.join(abs_dir, "stderr.log"), "wb")
             try:

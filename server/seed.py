@@ -87,7 +87,7 @@ def collect_live_checks(session):
         r = verify_citations([text], timeout=20)[0]
         entry = {"citation_text": text, "status": r.get("status"), "checked_at": _now_iso(),
                  "source_type": r.get("source_type"), "note": r.get("note")}
-        if r.get("status") == "verification_failed":
+        if r.get("status") == "network_error":
             continue  # 查不到就不記錄，避免把「連線失敗」誤當成有意義的先前結果
         if r.get("status") == "not_found":
             entry["verified_via"] = "fjud_live"
