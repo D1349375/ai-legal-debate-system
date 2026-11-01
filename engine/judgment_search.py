@@ -5,6 +5,8 @@
 標為不可引用、不抓全文。
 
 上限：每次最多 MAX_PAGES 頁、MAX_FETCH 份全文，請求間隔由 fjud.Session 控制。
+全文經 engine/retrieval_cache.py 取得：快照、長期快取或預先內容已有的不上網；上網抓到的寫回快取。
+max_live_fetches 為本輪全文預算剩餘份數(engine/search_log.py)，用完時快取沒有的就不抓，列表照常回傳。
 """
 import json
 import os
@@ -13,7 +15,8 @@ import ssl
 import urllib.error
 from datetime import datetime, timezone
 
-from engine import fjud, judgment_text
+from engine import fjud, judgment_text, retrieval_cache
+from engine.law_lookup import with_retry
 
 MAX_PAGES = 5
 MAX_FETCH = 10
@@ -28,10 +31,11 @@ def _check_date(value, label):
 
 
 def search_judgments(keywords=(), case_cause=None, date_from=None, date_to=None, pages=2, fetch=0,
-                     include_rulings=False, min_size_kb=None, sort='date', save_dir=None, timeout=fjud.DEFAULT_TIMEOUT):
+                     include_rulings=False, min_size_kb=None, sort='date', save_dir=None, timeout=fjud.DEFAULT_TIMEOUT,
+                     snapshot=None, max_live_fetches=None):
     """→ {'query', 'fetched_at', 'total', 'page_count', 'pages_read', 'rows', 'unverifiable', 'saved_to'}。
 
-    搜尋本身連線失敗時拋出網路例外；抓個別全文失敗只記在該列 fetch_error，不丟掉已取得的列表。
+    搜尋本身連線失敗重試一次，仍失敗時拋出網路例外；抓個別全文失敗只記在該列 fetch_error，不丟掉已取得的列表。
     """
     keywords = [k.strip() for k in keywords if k and k.strip()]
     if not keywords and not case_cause:
@@ -49,25 +53,29 @@ def search_judgments(keywords=(), case_cause=None, date_from=None, date_to=None,
     query = {'keywords': keywords, 'case_cause': case_cause, 'date_from': date_from, 'date_to': date_to,
              'pages': pages, 'fetch': fetch, 'include_rulings': include_rulings, 'min_size_kb': min_size_kb,
              'sort': sort, 'court': '最高法院', 'category': '民事'}
-    result = fjud.advanced_search(keywords, case_cause=case_cause, date_from=date_from, date_to=date_to,
-                                  pages=pages, min_size_kb=min_size_kb, sort=SORTS[sort], session=session)
+    result = with_retry(lambda: fjud.advanced_search(keywords, case_cause=case_cause, date_from=date_from, date_to=date_to,
+                                                     pages=pages, min_size_kb=min_size_kb, sort=SORTS[sort], session=session))
     rows = result['rows']
     for row in rows:
         row['verifiable'] = row['jid'].startswith(VERIFIABLE_PREFIX)
     candidates = [r for r in rows if r['verifiable'] and (include_rulings or r['doc_type'] == '判決')][:fetch]
     names = judgment_text.law_names() if candidates else None
     texts = {}
+    live_left = max_live_fetches
     for row in candidates:
         try:
-            document = fjud.fetch_document(row['jid'], session=session)
-        except NETWORK_ERRORS as error:
-            row['fetch_error'] = f"連線失敗：{error}"
+            entry = retrieval_cache.get_judgment(row['jid'], snapshot=snapshot, session=session, timeout=timeout,
+                                                 allow_live=live_left is None or live_left > 0)
+        except retrieval_cache.LiveFetchNotAllowed:
+            row['fetch_error'] = '已達本輪全文預算，快取沒有這份，未抓取'
             continue
-        if not document['full_text']:
-            row['fetch_error'] = '官網頁面無法辨認全文'
+        except retrieval_cache.RetrievalUnavailable as error:
+            row['fetch_error'] = f"連線失敗（已重試）：{error.reason}；不代表查無資料"
             continue
-        texts[row['jid']] = document['full_text']
-        row.update(judgment_text.summarize(document['full_text'], keywords, names), fetched=True)
+        if entry['served_from'] == 'live' and live_left is not None:
+            live_left -= 1
+        texts[row['jid']] = entry['text']
+        row.update(judgment_text.summarize(entry['text'], keywords, names), fetched=True, served_from=entry['served_from'])
 
     output = {'query': query, 'fetched_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
               'total': result['total'], 'page_count': result['page_count'], 'pages_read': result['pages_read'],

@@ -41,12 +41,14 @@ def fake_fjud(monkeypatch):
     monkeypatch.setattr(fjud, "advanced_search", search)
     monkeypatch.setattr(fjud, "fetch_document", fetch)
     monkeypatch.setattr(js.judgment_text, "law_names", lambda: {"民法": "民法"})
+    monkeypatch.setattr("engine.law_lookup.time.sleep", lambda seconds: None)
     return calls
 
 
 def test_fetch_only_verifiable_judgments_and_keep_list_on_fetch_failure(fake_fjud):
     result = js.search_judgments(["締約上過失"], fetch=3)
-    assert fake_fjud["fetch"] == ["TPSV,111,台上,1069,20250716,1", "TPSV,112,台上,2536,20240124,1"]
+    # 連線失敗重試一次
+    assert fake_fjud["fetch"] == ["TPSV,111,台上,1069,20250716,1"] + ["TPSV,112,台上,2536,20240124,1"] * 2
     first, ruling, family, failed = result["rows"]
     assert first["fetched"] and first["statutes"] == ["民法第245條之1"]
     assert first["disposition"].startswith("原判決除假執行部分外廢棄")
@@ -111,5 +113,21 @@ def test_cli_network_failure_is_not_reported_as_no_result(monkeypatch, capsys):
     def down(*a, **k):
         raise urllib.error.URLError("unreachable")
     monkeypatch.setattr(fjud, "advanced_search", down)
+    monkeypatch.setattr("engine.law_lookup.time.sleep", lambda seconds: None)
     assert main.cmd_search_judgments(args()) == 1
     assert "不代表查無判決" in capsys.readouterr().err
+
+
+def test_fetched_texts_go_to_cache_and_are_not_fetched_again(fake_fjud, tmp_path):
+    snapshot = tmp_path / "snapshot"
+    js.search_judgments(["締約上過失"], fetch=1, snapshot=str(snapshot))
+    again = js.search_judgments(["締約上過失"], fetch=1)
+    assert fake_fjud["fetch"] == ["TPSV,111,台上,1069,20250716,1"]
+    assert again["rows"][0]["served_from"] == "retrieval_cache"
+    assert (snapshot / "judgments" / "TPSV,111,台上,1069,20250716,1.json").is_file()
+
+
+def test_live_fetch_budget_skips_uncached_texts_but_keeps_list(fake_fjud):
+    result = js.search_judgments(["締約上過失"], fetch=3, max_live_fetches=0)
+    assert fake_fjud["fetch"] == []
+    assert len(result["rows"]) == 4 and "已達本輪全文預算" in result["rows"][0]["fetch_error"]

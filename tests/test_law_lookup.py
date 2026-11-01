@@ -102,11 +102,12 @@ def test_unknown_article_layout_is_not_reported_as_missing_article(monkeypatch):
     assert "不代表條文不存在" in result["reason"]
 
 
-def test_ssl_error_is_network_error(monkeypatch):
+def test_ssl_error_without_cache_is_retrieval_unavailable(monkeypatch):
     def fetch(*args, **kwargs):
         raise ssl.SSLEOFError("temporary EOF")
     monkeypatch.setattr(law_lookup, "_fetch_article_page", fetch)
-    assert law_lookup.lookup_article("民法", "184", index=INDEX)["status"] == "network_error"
+    result = law_lookup.lookup_article("民法", "184", index=INDEX)
+    assert result["status"] == "retrieval_unavailable" and "不代表查無資料" in result["reason"]
 
 
 def test_abandoned_law_plain_text_layout_is_read_and_flagged(monkeypatch):
@@ -167,7 +168,7 @@ def test_search_statutes_network_error_is_not_empty_result(monkeypatch):
         raise ssl.SSLEOFError("EOF")
     monkeypatch.setattr(law_lookup, "_get_law_page", down)
     result = law_lookup.search_statutes("知有損害", index=INDEX)
-    assert result["status"] == "network_error" and "不代表查無條文" in result["reason"]
+    assert result["status"] == "retrieval_unavailable" and "不代表查無條文" in result["reason"]
 
 
 @pytest.mark.parametrize("kwargs", [{"keyword": " "}, {"keyword": "x", "max_laws": 6}])

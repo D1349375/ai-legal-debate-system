@@ -84,12 +84,13 @@ def test_citation_lookup_uses_number_fields(monkeypatch):
     assert calls[0]["citation"] == ("111", "台上", "1069") and calls[0]["pages"] == 1
 
 
-def test_verify_fetch_uses_full_document(monkeypatch):
+def test_cache_fetch_uses_full_document(monkeypatch):
+    from engine import retrieval_cache
     html = fixture("document.html")
     monkeypatch.setattr(fjud.Session, "get", lambda self, url, referer=None: html)
-    result = verify._fetch_judgment_text("TPSV,111,台上,1069,20250716,1")
-    assert result["doc_type"] == "判決" and result["jtitle"] == "請求損害賠償"
-    assert len(result["full_text"]) > 4000
+    entry = retrieval_cache.get_judgment("TPSV,111,台上,1069,20250716,1")
+    assert entry["served_from"] == "live" and entry["case_cause"] == "請求損害賠償"
+    assert verify._document_type(entry["text"]) == "判決" and len(entry["text"]) > 4000
 
 
 def test_session_keeps_gap_between_requests(monkeypatch):

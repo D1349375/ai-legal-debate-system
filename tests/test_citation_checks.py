@@ -3,6 +3,7 @@ import ssl
 
 import pytest
 
+import engine.law_lookup as law_lookup
 import engine.verify as verify
 
 
@@ -43,19 +44,21 @@ def test_unsupported_law_is_distinct_from_unparseable():
 def test_old_version_never_fetches_or_passes_current_law(monkeypatch, citation, hint):
     def no_current_fetch(*args, **kwargs):
         pytest.fail("歷史版本不可用現行條文冒充")
-    monkeypatch.setattr(verify, "_fetch_single_article", no_current_fetch)
+    monkeypatch.setattr(law_lookup, "_fetch_article_page", no_current_fetch)
     result = verify.verify_citations([citation], version_hints={citation: hint})[0]
     assert result["status"] == "version_unverified"
 
 
-def test_ssl_error_is_network_error_not_not_found(monkeypatch):
+def test_ssl_error_is_retried_once_then_network_error_not_not_found(monkeypatch):
     calls = []
     def fetch(*args, **kwargs):
         calls.append(1)
         raise ssl.SSLEOFError("temporary EOF")
-    monkeypatch.setattr(verify, "_fetch_single_article", fetch)
-    assert verify.verify_statute_citation("民法", "184")["status"] == "network_error"
-    assert len(calls) == 1
+    monkeypatch.setattr(law_lookup, "_fetch_article_page", fetch)
+    monkeypatch.setattr(law_lookup.time, "sleep", lambda seconds: None)
+    result = verify.verify_statute_citation("民法", "184")
+    assert result["status"] == "network_error" and "不代表查無資料" in result["reason"]
+    assert len(calls) == 2
 
 
 def precedent_note(**changes):

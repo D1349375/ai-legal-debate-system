@@ -7,7 +7,6 @@
 引擎本身不含 LLM 推理——原告/被告/法官的論證是過去由 Claude Code subagent 產生後
 經 `main.py record` 落地，這裡回傳的論證內容全部是重播，呼叫端(UI)必須標示為錄製紀錄。
 """
-import functools
 import json
 import os
 import re
@@ -28,16 +27,18 @@ from engine.aggregate import VALID_SIDES, disagreement
 from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
+from engine import retrieval_cache
+from engine.law_lookup import resolve_law
 from engine.verify import (
-    JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES, STATUTES_DIR,
+    JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE,
     parse_citation,
 )
 
 SIDE_ORDER = {side: i for i, side in enumerate(VALID_SIDES)}
 
 # 查證狀態(UI 只認這幾種，不得憑空新增其他「看起來通過」的狀態)：
-#   published            權威來源比對通過(官網即時 / FJUD 即時 / 本地判決語料庫[司法院開放資料])
-#   local_cache_only     官網即時查詢失敗，僅本地法典快取有此條——不等於通過，閘門不放行、不寫入 DB
+#   published            權威來源比對通過(官網即時 / FJUD 即時 / 7 天內的條文快取 / 判決快取與預先內容[司法院開放資料])
+#   local_cache_only     官網即時查詢失敗，只有過期的條文快取或未確認唯一性的判決快取——不等於通過，閘門不放行、不寫入 DB
 #   not_found            權威來源明確回報查無(捏造/錯誤引用會落在這裡)
 #   verification_failed  無法完成官方查證(網路逾時/離線/被略過)，既非通過也非查無
 #   unparseable          格式無法解析為法條或裁判字號
@@ -46,11 +47,6 @@ STATUSES = ("published", "local_cache_only", "not_found", "verification_failed",
             "unparseable", "unknown_law")
 
 _ALLOWED_SOURCE_HOSTS = ("https://law.moj.gov.tw/", "https://judgment.judicial.gov.tw/")
-
-_STATUTE_FILES = {
-    "民法": "民法.txt", "公司法": "公司法.txt", "勞動基準法": "勞動基準法.txt",
-    "勞基法": "勞動基準法.txt", "消費者保護法": "消費者保護法.txt", "刑法": "刑法.txt",
-}  # 民事訴訟法、企業併購法無本地快取，只能走官網即時查證
 
 
 def _rel_corpus_path(path):
@@ -826,42 +822,9 @@ def run_finalize(session, case_id):
     return result
 
 
-# ───────────────────────── verify(本地優先 + 即時查詢逾時退回) ─────────────────────────
-
-@functools.lru_cache(maxsize=None)
-def _load_statute_cache(law_file):
-    path = os.path.join(STATUTES_DIR, law_file)
-    if not os.path.isfile(path):
-        return None
-    with open(path, encoding="utf-8") as f:
-        content = f.read()
-    articles = {}
-    for m in re.finditer(r"^### 第 (\d+(?:-\d+)?) 條\n(.*?)(?=^### |^## |\Z)", content, re.S | re.M):
-        articles[m.group(1)] = m.group(2).strip()
-    meta = {}
-    meta_path = os.path.join(STATUTES_DIR, law_file.replace(".txt", "_source.json"))
-    if os.path.isfile(meta_path):
-        with open(meta_path, encoding="utf-8") as f:
-            meta = json.load(f)
-    return {"articles": articles, "meta": meta}
-
-
-def _local_statute(law_name, article_no):
-    law_file = _STATUTE_FILES.get(law_name)
-    cache = _load_statute_cache(law_file) if law_file else None
-    if not cache or article_no not in cache["articles"]:
-        return None
-    return {"text": cache["articles"][article_no], "law_file": law_file, "meta": cache["meta"]}
-
-
-def _local_judgment(jyear, jcase, jno):
-    prefix = f"TPSV,{jyear},{jcase},{jno},"
-    if not os.path.isdir(JUDGMENTS_DIR):
-        return None
-    for name in os.listdir(JUDGMENTS_DIR):
-        if name.startswith(prefix) and name.endswith(".txt"):
-            return os.path.join(JUDGMENTS_DIR, name)
-    return None
+# ───────────────────────── verify(快取優先 + 即時查詢失敗時如實回報) ─────────────────────────
+# 與查證引擎相同的來源順序(engine/retrieval_cache.py)：判決為長期快取與預先內容(corpus/judgments)，條文為 7 天內的快取，
+# 都沒有才即時查官方。不再讀 corpus/statutes/*.txt 的舊版法典：過期條文只能標 local_cache_only，不放行。
 
 
 def _classify_live_failure(reason):
@@ -876,16 +839,23 @@ def _live_query(fn, *args, timeout):
         return None, {"tried": True, "outcome": _classify_live_failure(str(e)), "error": f"{type(e).__name__}: {e}"}
     if r.get("status") in ("verification_failed", "network_error"):
         return None, {"tried": True, "outcome": _classify_live_failure(r.get("reason")), "error": r.get("reason")}
+    if r.get("verified_via") in ("retrieval_cache", "run_snapshot", "local_corpus"):
+        return r, {"tried": False, "outcome": "cache_hit", "error": None}
     return r, {"tried": True, "outcome": "ok", "error": None}
+
+
+def _cache_record(entry):
+    return {"fetched_at": entry.get("fetched_at"), "source_url": _safe_url(entry.get("url") or entry.get("source_url")),
+            "amendment_date": entry.get("modified_date")}
 
 
 def verify_one(session, citation_text, *, mode="auto", timeout=6.0, persist=True,
                skip_live=False, recorded_checks=None):
     """單條引用查證。
 
-    mode='auto'：本地判決語料庫優先；未命中或屬法條則即時查官方來源(逾 timeout 秒視為失敗)。
-    mode='offline'：完全不連網，只比對本地快取(結果不會是 published[法條]，也不會寫入 DB)。
-    skip_live：呼叫端(批次查證)已確認網路不通時，略過即時查詢、直接退回本地。
+    mode='auto'：快取(判決預先內容、條文 7 天內快取)優先；沒有才即時查官方來源(逾 timeout 秒視為失敗)。
+    mode='offline'：完全不連網，只用快取；過期條文或未確認唯一性的判決只會是 local_cache_only。
+    skip_live：呼叫端(批次查證)已確認網路不通時，略過即時查詢、直接看快取。
     回傳的 status/verified_via/live_attempt 皆為本次實際發生的事，不含任何預設或假設通過。
     """
     started = time.perf_counter()
@@ -914,70 +884,79 @@ def verify_one(session, citation_text, *, mode="auto", timeout=6.0, persist=True
 
     elif parsed["type"] == "statute":
         law, art = parsed["law_name"], parsed["article_no"]
-        if law not in STATUTE_PCODES:
+        official = resolve_law(law)
+        if official is None:
             out["status"] = "unknown_law"
-            out["note"] = f"「{law}」不在查證引擎範圍"
+            out["note"] = f"「{law}」不在法規名稱索引"
         else:
             live = None
             if live_allowed:
                 live, out["live_attempt"] = _live_query(engine_verify.verify_statute_citation, law, art, timeout=timeout)
             else:
                 out["live_attempt"]["outcome"] = skipped_outcome
+            cached, _ = retrieval_cache.peek_article(official["pcode"], art)
+            if live is None and cached is not None and retrieval_cache.is_fresh(cached):
+                live = {"status": "published", "verified_via": "retrieval_cache", "primary_source_url": cached["url"],
+                        "matched_text": cached["text"], "fetched_at": cached["fetched_at"]}
             if live is not None:
                 out["status"] = live["status"]
-                out["verified_via"] = "law_moj_live"
+                out["verified_via"] = live.get("verified_via") or "law_moj_live"
                 out["primary_source_url"] = _safe_url(live.get("primary_source_url"))
                 out["note"] = live.get("note")
+                if live.get("fetched_at") and out["verified_via"] != "law_moj_live":
+                    out["note"] = f"條文快取抓取於 {live['fetched_at']}（7 天內有效）"
                 if live.get("matched_text"):
                     out["matched_excerpt"] = live["matched_text"][:300]
+            elif cached is not None:
+                out["status"] = "local_cache_only"
+                out["verified_via"] = "retrieval_cache_stale"
+                out["matched_excerpt"] = cached["text"][:300]
+                out["local_cache"] = _cache_record(cached)
+                out["note"] = "官網即時查詢未完成；只有超過 7 天的條文快取，未與官方現行條文比對，不放行"
             else:
-                local = _local_statute(law, art)
-                if local is not None:
-                    out["status"] = "local_cache_only"
-                    out["verified_via"] = "local_statute_cache"
-                    out["matched_excerpt"] = local["text"][:300]
-                    meta = local["meta"]
-                    out["local_cache"] = {"file": f"corpus/statutes/{local['law_file']}",
-                                          "fetched_at": meta.get("fetched_at_utc"),
-                                          "amendment_date": meta.get("amendment_date_roc")}
-                    out["note"] = "官網即時查詢未完成；僅在本地法典快取找到此條文，未與官方原文比對，不放行"
-                else:
-                    out["status"] = "verification_failed"
-                    out["note"] = ("官網即時查詢未完成，且本地無此法規快取，無法判定" if law not in _STATUTE_FILES
-                                   else "官網即時查詢未完成，本地快取亦無此條號，無法判定")
+                out["status"] = "verification_failed"
+                out["note"] = "官網即時查詢未完成，且沒有此條文的快取，無法判定；不代表查無此條"
 
     else:  # judgment
         jy, jc, jn = parsed["jyear"], parsed["jcase"], parsed["jno"]
         prefix = f"TPSV,{jy},{jc},{jn},"
-        candidates = sorted(n for n in os.listdir(JUDGMENTS_DIR) if n.startswith(prefix) and n.endswith(".txt")) if os.path.isdir(JUDGMENTS_DIR) else []
-        local_path = _local_judgment(jy, jc, jn) if len(candidates) == 1 else None
+        candidates = retrieval_cache.corpus_jids(prefix, JUDGMENTS_DIR)
         if len(candidates) > 1:
             out.update(status="ambiguous", candidates=candidates,
                        note="同一字號有多份文件，須指定日期；不能任取第一份", gate="blocked")
             out["elapsed_ms"] = round((time.perf_counter() - started) * 1000)
             return out
-        if local_path is not None:
+        if candidates:
             out["status"] = "published"
             out["verified_via"] = "local_corpus"
-            out["local_file"] = _rel_corpus_path(local_path)
-            out["note"] = "本地判決語料庫命中(司法院裁判書開放資料)，未連網"
+            out["local_file"] = _rel_corpus_path(os.path.join(JUDGMENTS_DIR, candidates[0] + ".txt"))
+            out["note"] = "判決預先內容命中(司法院裁判書開放資料)，未連網"
         else:
             live = None
             if live_allowed:
                 live, out["live_attempt"] = _live_query(engine_verify.verify_judgment_citation, jy, jc, jn, timeout=timeout)
             else:
                 out["live_attempt"]["outcome"] = skipped_outcome
+            cached = retrieval_cache.cached_jids(prefix)
             if live is not None:
                 out["status"] = live["status"]
-                out["verified_via"] = "fjud_live"
+                out["verified_via"] = live.get("verified_via") or "fjud_live"
                 out["primary_source_url"] = _safe_url(live.get("primary_source_url"))
                 out["note"] = live.get("note")
                 if live["status"] == "not_found":
                     out["fjud_query"] = live.get("fjud_query")
                     out["fjud_hit_count"] = len(live.get("fjud_raw_hits", []))
+                if live["status"] == "ambiguous":
+                    out["candidates"] = [c.get("jid") for c in live.get("candidates", [])]
+            elif cached:
+                out["status"] = "local_cache_only"
+                out["verified_via"] = "retrieval_cache"
+                out["candidates"] = cached
+                out["note"] = ("長期快取有此字號的全文，但官方(司法院 FJUD)即時查詢未完成，無法確認是否還有同字號的其他文件，"
+                               "依零容忍原則不放行")
             else:
                 out["status"] = "verification_failed"
-                out["note"] = "本地判決語料庫查無此字號；官方(司法院 FJUD)即時查詢未完成，無法確認是否存在，依零容忍原則不放行"
+                out["note"] = "預先內容與快取都沒有此字號；官方(司法院 FJUD)即時查詢未完成，無法確認是否存在，依零容忍原則不放行"
 
     out["gate"] = "pass" if out["status"] == "published" else "blocked"
     if persist and out["status"] == "published" and out["source_type"]:

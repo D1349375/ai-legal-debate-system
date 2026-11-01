@@ -80,13 +80,13 @@ def is_procedural(doc_type, disposition_text):
 
 
 def law_names():
-    """→ {判決中可能出現的法規名稱: 官方全名}；查證引擎認得的簡稱(如「勞基法」)對應到全名。"""
-    from engine.law_lookup import load_law_index, resolve_law
-    from engine.verify import STATUTE_PCODES
+    """→ {判決中可能出現的法規名稱: 官方全名}；簡稱(如「勞基法」，law_lookup.ALIASES)對應到全名。"""
+    from engine.law_lookup import ALIASES, load_law_index
     index = load_law_index()
     names = {name: name for name in index}
-    for alias in STATUTE_PCODES:
-        names.setdefault(alias, (resolve_law(alias, index) or {}).get('law_name', alias))
+    for alias, official in ALIASES.items():
+        if official in index:
+            names.setdefault(alias, official)
     return names
 
 

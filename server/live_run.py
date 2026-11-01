@@ -23,6 +23,7 @@ from sqlalchemy import or_
 from database.db import DB_URL_ENV, default_db_path, pleading_side
 from database.schema import Case, CourtQuestion, DebateArgument, JudgeBundle, LiveRun, PleadingDraft, Verdict
 from engine.aggregate import VALID_SIDES
+from engine.verify import SNAPSHOT_ENV
 
 DEFAULT_MODEL = "claude-sonnet-5-5"
 DEFAULT_BUDGET_USD = 15.0
@@ -713,7 +714,10 @@ class LiveRunManager:
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = self.model  # CLI 2.1.251 前此變數優先於 Agent 的 model 參數
             env["PYTHONIOENCODING"] = "utf-8"
             env["PYTHONUTF8"] = "1"
-            popen_kw = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+            # 本次實跑快照：角色與查證透過 main.py 讀到的判決與條文都存一份在執行資料夾(engine/retrieval_cache.py)，
+            # prompt 漏給 --snapshot 時也不會各讀各的版本。
+            env[SNAPSHOT_ENV] = os.path.join(abs_dir, "retrieval_cache")
+            popen_kw =({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | getattr(subprocess, "CREATE_NO_WINDOW", 0)}
                         if os.name == "nt" else {"start_new_session": True})
             stderr_file = open(os.path.join(abs_dir, "stderr.log"), "wb")
             try:
