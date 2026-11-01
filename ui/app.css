@@ -428,6 +428,11 @@ pre.raw { font-family: var(--font-mono); font-size: 11px; color: var(--text-seco
   width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);
   background: var(--bg-input); color: var(--text-primary); font: inherit; font-size: 13px; line-height: 1.7; resize: vertical;
 }
+.form-field select { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 6px 8px; font: inherit; font-size: 13px; }
+.input-row { border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; }
+.input-row-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+.precheck-row { padding: 8px 0; border-top: 1px solid var(--border-light); font-size: 13px; }
+.precheck-row p { margin: 0 0 2px; }
 @media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } }
 
 /* ===== 訴狀版本 ===== */

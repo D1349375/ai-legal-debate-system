@@ -13,7 +13,11 @@ import os
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
+from engine.case_input import (
+    clean_claim_amount, clean_evidence, clean_known_gaps, clean_opponent_responses, clean_represented_side,
+)
 from engine.internal_review import strip_internal_review
+from engine.precheck import precheck
 from database.schema import (
     Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck, LiveRun,
 )
@@ -64,15 +68,53 @@ def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def record_case(session, *, case_id, case_type, facts_summary, claims, parties=None, created_via=None):
+def _dumps_or_none(value):
+    return json.dumps(value, ensure_ascii=False) if value else None
+
+
+def record_case(session, *, case_id, case_type, facts_summary, claims, parties=None, created_via=None,
+                protocol=None, represented_side=None, claim_amount=None, evidence=None,
+                opponent_responses=None, known_gaps=None):
     if session.query(Case).filter_by(case_id=case_id).one_or_none():
         raise ValueError(f"{case_id} 已存在，不可覆寫")
+    if protocol not in (None, "v2"):
+        raise ValueError(f"非法 protocol: {protocol}")
+    if protocol == "v2":
+        represented_side = clean_represented_side(represented_side)
     row = Case(case_id=case_id, case_type=case_type, facts_summary=facts_summary,
                claims=claims, created_at=_now_iso(), created_via=created_via,
-               parties_json=json.dumps(parties, ensure_ascii=False) if parties else None)
+               parties_json=json.dumps(parties, ensure_ascii=False) if parties else None,
+               protocol=protocol, represented_side=represented_side, claim_amount=clean_claim_amount(claim_amount),
+               evidence_json=_dumps_or_none(clean_evidence(evidence)),
+               opponent_responses_json=_dumps_or_none(clean_opponent_responses(opponent_responses)),
+               known_gaps_json=_dumps_or_none(clean_known_gaps(known_gaps)))
     session.add(row)
     session.commit()
     return row
+
+
+def case_payload(row):
+    """案件輸入的完整內容,給 UI、角色檔與即時執行的 case.json 用。"""
+    return {"case_id": row.case_id, "case_type": row.case_type, "facts_summary": row.facts_summary, "claims": row.claims,
+            "parties": json.loads(row.parties_json) if row.parties_json else None,
+            "protocol": row.protocol, "represented_side": row.represented_side, "claim_amount": row.claim_amount,
+            "evidence": json.loads(row.evidence_json) if row.evidence_json else [],
+            "opponent_known_responses": json.loads(row.opponent_responses_json) if row.opponent_responses_json else [],
+            "known_gaps": json.loads(row.known_gaps_json) if row.known_gaps_json else []}
+
+
+def case_precheck(row):
+    return precheck(row.case_type, row.claims, row.claim_amount, json.loads(row.evidence_json) if row.evidence_json else [])
+
+
+def plaintiff_view(session, case_id):
+    """原告方的角色檔:案件輸入全部、商工查核與程序事項、起訴前檢查。"""
+    row = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if row is None:
+        raise ValueError(f"找不到案件 {case_id}")
+    checks = latest_party_checks(session, case_id)
+    return {"role": "plaintiff", "case": case_payload(row), "party_checks": checks,
+            "procedural_issues": procedural_issues(checks), "precheck": case_precheck(row)}
 
 
 def record_argument(session, *, case_id, side, stage, position, reasoning,

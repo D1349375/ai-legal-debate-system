@@ -14,6 +14,13 @@ class Case(Base):
     # UI 建立案件時才有:雙方當事人名稱/統編(JSON)與建立途徑。CLI 落地的舊案件為 NULL。
     parties_json = Column(Text, nullable=True)
     created_via = Column(String, nullable=True)  # NULL=CLI(main.py case) / 'ui'
+    # 書狀交換流程才有。NULL=舊流程(facts_summary 是唯一輸入);v2 的 facts_summary 是我方主張的事實經過。
+    protocol = Column(String, nullable=True)  # NULL / 'v2'
+    represented_side = Column(String, nullable=True)  # 第一期固定 plaintiff
+    claim_amount = Column(Integer, nullable=True)  # 非金錢請求或未定時留空,不要求填數字
+    evidence_json = Column(Text, nullable=True)  # JSON array:id(甲證N)/type/date/description/proves
+    opponent_responses_json = Column(Text, nullable=True)  # JSON array:source/date/text
+    known_gaps_json = Column(Text, nullable=True)  # JSON array of string
 
 class DebateArgument(Base):
     __tablename__ = 'debate_arguments'

@@ -14,7 +14,7 @@ import time
 
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
-    record_pleading_edit, latest_party_checks, pleading_side,
+    record_pleading_edit, latest_party_checks, pleading_side, case_payload, case_precheck,
 )
 from sqlalchemy import func
 
@@ -79,7 +79,8 @@ def _next_case_id(session):
     return f"{prefix}{n:03d}"
 
 
-def create_case(session, *, case_type, facts_summary, claims, parties, case_id=None, cases_dir=None):
+def create_case(session, *, case_type, facts_summary, claims, parties, case_id=None, cases_dir=None,
+                claim_amount=None, evidence=None, opponent_responses=None, known_gaps=None):
     """UI 建立案件:只落地使用者輸入的文字，不補寫任何案情。統編查核由呼叫端另以 party_check_one 進行。"""
     case_id = case_id or _next_case_id(session)
     if not CASE_ID_RE.match(case_id):
@@ -87,7 +88,9 @@ def create_case(session, *, case_type, facts_summary, claims, parties, case_id=N
     if case_id in _load_input_cases(cases_dir):
         raise ValueError(f"{case_id} 已是 data/cases 中的案件輸入，請換一個 ID")
     row = record_case(session, case_id=case_id, case_type=case_type.strip(), facts_summary=facts_summary.strip(),
-                      claims=claims.strip(), parties=parties, created_via="ui")
+                      claims=claims.strip(), parties=parties, created_via="ui", protocol="v2",
+                      represented_side="plaintiff", claim_amount=claim_amount, evidence=evidence,
+                      opponent_responses=opponent_responses, known_gaps=known_gaps)
     return row.case_id
 
 
@@ -637,11 +640,9 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     stamps = sorted([a["created_at"] for a in arguments] + [q["created_at"] for q in questions])
     party_checks = latest_party_checks(session, case_id)
     return {
-        "case": {"case_id": case_row.case_id, "case_type": case_row.case_type,
-                 "facts_summary": case_row.facts_summary, "claims": case_row.claims,
-                 "created_at": case_row.created_at, "source": "database",
-                 "created_via": case_row.created_via,
-                 "parties": json.loads(case_row.parties_json) if case_row.parties_json else None},
+        "case": {**case_payload(case_row), "created_at": case_row.created_at, "source": "database",
+                 "created_via": case_row.created_via},
+        "precheck": case_precheck(case_row) if case_row.protocol == "v2" else None,
         "provenance": {"kind": _provenance_kind(arguments),
                        "model_ids": sorted({a["model_id"] for a in arguments if a["model_id"]}),
                        "first_recorded_at": stamps[0] if stamps else None,

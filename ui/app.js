@@ -21,7 +21,7 @@
 
   var TABS = [
     { key: "overview", label: "案件總覽" },
-    { key: "parties", label: "當事人查核" },
+    { key: "parties", label: "起訴前檢查" },
     { key: "debate", label: "攻防過程" },
     { key: "aggregate", label: "機械彙整" },
     { key: "verify", label: "引用查證" },
@@ -313,11 +313,16 @@
         return h("div", { class: "meta-row" }, h("span", { class: "meta-key", text: SIDE[side].label }),
           h("span", { class: "meta-val", text: p.name + (p.ban ? "(統編 " + p.ban + ")" : "(未提供統編，不查核)") }));
       })) : null,
-      card("案件事實(原始輸入全文)", paragraphs(d.case.facts_summary),
+      card(isV2(d) ? "我方主張的事實經過(原始輸入全文)" : "案件事實(原始輸入全文)", paragraphs(d.case.facts_summary),
         chip("neutral", d.case.case_type || "未填案由")),
-      card("請求／訴之聲明(原始輸入全文)", paragraphs(d.case.claims)),
+      card("請求／訴之聲明(原始輸入全文)", paragraphs(d.case.claims),
+        isV2(d) ? chip("neutral", d.case.claim_amount == null ? "金額未填" : "金額 " + fmtAmount(d.case.claim_amount) + " 元") : null),
+      isV2(d) ? caseInputCards(d) : null,
+      isV2(d) && d.precheck ? banner("warn", "!", [h("strong", { text: "起訴前檢查：" + d.precheck.procedure.type + "，另有 " + d.precheck.warnings.length + " 則提示" }), " ",
+        h("button", { class: "btn small", type: "button", onclick: function () { switchTab("parties"); }, text: "查看" })]) : null,
       h("p", { class: "detail-note",
-        text: "以上為本案唯一的原始文字輸入，系統沒有另外收到起訴狀、契約或證物等檔案；正式使用時應以律師提供的完整案件卷證作為輸入。" }),
+        text: isV2(d) ? "以上是律師輸入的內容，系統不會補寫案情。"
+          : "以上為本案唯一的原始文字輸入，系統沒有另外收到起訴狀、契約或證物等檔案；正式使用時應以律師提供的完整案件卷證作為輸入。" }),
       h("div", { class: "stat-grid" },
         stat(s.arguments + " / 6", "攻防論證(雙方 × 3 階段)"),
         stat(String(s.questions), "法官訊問(皆有依據可回溯)"),
@@ -330,6 +335,33 @@
         })),
       prepListCard(d),
     ];
+  }
+  function isV2(d) { return d.case.protocol === "v2"; }
+  function fmtAmount(n) { return Number(n).toLocaleString("en-US"); }
+  function caseInputCards(d) {
+    var c = d.case;
+    return [
+      card("證據清單", c.evidence.length ? c.evidence.map(function (e) {
+        return h("div", { class: "meta-row" }, h("span", { class: "meta-key", text: e.id }),
+          h("span", { class: "meta-val", text: e.description + (e.date ? "(" + e.date + ")" : "") + (e.proves ? "；待證事實：" + e.proves : "") }));
+      }) : h("p", { class: "detail-note", text: "沒有列證據。" })),
+      c.opponent_known_responses.length ? card("對方已知反應", c.opponent_known_responses.map(function (r) {
+        return h("div", { class: "meta-row" }, h("span", { class: "meta-key", text: r.source || "來源未填" }),
+          h("span", { class: "meta-val", text: r.text + (r.date ? "(" + r.date + ")" : "") }));
+      })) : null,
+      c.known_gaps.length ? card("已知缺口(只給律師與原告方)", c.known_gaps.map(function (g) { return h("p", { text: g }); })) : null,
+    ];
+  }
+  function precheckCard(d) {
+    var p = d.precheck;
+    return card("程序與時效提示", [
+      banner("warn", "!", p.note),
+      h("div", { class: "precheck-row" }, h("p", null, h("strong", { text: "程序類型：" + p.procedure.type }), "。" + p.procedure.message),
+        h("p", { class: "detail-note", text: "條文：" + p.procedure.legal_basis.join("、") })),
+      p.warnings.map(function (w) {
+        return h("div", { class: "precheck-row" }, h("p", { text: w.message }),
+          w.legal_basis.length ? h("p", { class: "detail-note", text: "條文：" + w.legal_basis.join("、") }) : null);
+      })]);
   }
   function stat(num, label, cls) {
     return h("div", { class: "stat " + (cls || "") }, h("div", { class: "stat-num", text: num }), h("div", { class: "stat-label", text: label }));
@@ -529,8 +561,9 @@
   }
   function partiesPanel(d) {
     var checks = d.party_checks || {};
-    return [panelHead("當事人查核", chip("ok", "⚡ 即時執行"),
+    return [panelHead("起訴前檢查", chip("ok", "⚡ 即時執行"),
       "以統一編號查詢經濟部商工登記，確認當事人名稱、法定代理人、公司狀態與管轄法院。本分頁為即時查詢，不呼叫 AI。"),
+      isV2(d) && d.precheck ? precheckCard(d) : null,
       banner("warn", "!", "查核結果僅反映商工登記公示資料，不代表該公司涉入本案；登記為查詢當下的狀態。"),
       h("div", { class: "party-grid" }, SIDES.map(function (side) { return partyCard(d, side); })),
       d.procedural_issues && d.procedural_issues.issues.length ? banner("rec", "→", [
@@ -1216,7 +1249,8 @@
 
   // ───────────── 建立新案件 ─────────────
   function openCreate(prefill) {
-    state.creating = Object.assign({ case_id: "", case_type: "", facts_summary: "", claims: "",
+    state.creating = Object.assign({ case_id: "", case_type: "", facts_summary: "", claims: "", claim_amount: "",
+      evidence: [], responses: [], known_gaps: "",
       p_name: "", p_ban: "", d_name: "", d_ban: "", busy: false, error: null, step: null }, prefill || {});
     state.caseId = null; state.detail = null;
     try { history.replaceState(null, "", "#/new"); } catch (e) { /* file:// 等環境略過 */ }
@@ -1232,21 +1266,71 @@
       h("span", { class: "field-label", text: label + (o.optional ? "(選填)" : "") }), input,
       o.hint ? h("span", { class: "detail-note", text: o.hint }) : null);
   }
+  var EVIDENCE_TYPES = [["contract", "契約或協議"], ["bank_record", "匯款或帳務"], ["chat_log", "對話紀錄"], ["letter", "存證信函"],
+    ["other_document", "其他文書"], ["non_document", "非文書"]];
+  function rowInput(row, key, label, opts) {
+    var o = opts || {}, f = state.creating;
+    return h("label", { class: "form-field" + (o.wide ? " wide" : "") },
+      h("span", { class: "field-label", text: label }),
+      h("input", { type: o.type || "text", maxlength: o.max, placeholder: o.placeholder, value: row[key] || "",
+        disabled: f.busy ? true : null, oninput: function (e) { row[key] = e.target.value; } }));
+  }
+  function rowRemove(list, index, label) {
+    return h("button", { class: "btn small", type: "button", disabled: state.creating.busy ? true : null, text: "移除" + label,
+      onclick: function () { list.splice(index, 1); renderPanel(); } });
+  }
+  function evidenceRows(f) {
+    return [
+      f.evidence.map(function (row, i) {
+        return h("div", { class: "input-row" },
+          h("div", { class: "input-row-head" }, h("strong", { text: "甲證" + (i + 1) }), rowRemove(f.evidence, i, "此證據")),
+          h("div", { class: "form-grid" },
+            h("label", { class: "form-field" }, h("span", { class: "field-label", text: "類型" }),
+              h("select", { disabled: f.busy ? true : null, onchange: function (e) { row.type = e.target.value; } },
+                EVIDENCE_TYPES.map(function (t) { return h("option", { value: t[0], selected: row.type === t[0] ? true : null, text: t[1] }); }))),
+            rowInput(row, "date", "日期(選填)", { type: "date" }),
+            rowInput(row, "description", "證據內容", { wide: true, max: 2000, placeholder: "例：原告匯款 100 萬元至被告帳戶的匯款單" }),
+            rowInput(row, "proves", "待證事實(選填)", { wide: true, max: 1000, placeholder: "例：金錢交付" })));
+      }),
+      h("button", { class: "btn small", type: "button", disabled: f.busy ? true : null, text: "＋ 新增證據",
+        onclick: function () { f.evidence.push({ type: "other_document", date: "", description: "", proves: "" }); renderPanel(); } }),
+    ];
+  }
+  function responseRows(f) {
+    return [
+      f.responses.map(function (row, i) {
+        return h("div", { class: "input-row" },
+          h("div", { class: "input-row-head" }, h("strong", { text: "第 " + (i + 1) + " 則" }), rowRemove(f.responses, i, "此則")),
+          h("div", { class: "form-grid" },
+            rowInput(row, "source", "來源", { max: 100, placeholder: "例：存證信函回函、LINE、調解" }),
+            rowInput(row, "date", "日期(選填)", { type: "date" }),
+            rowInput(row, "text", "對方說了什麼", { wide: true, max: 5000 })));
+      }),
+      h("button", { class: "btn small", type: "button", disabled: f.busy ? true : null, text: "＋ 新增對方反應",
+        onclick: function () { f.responses.push({ source: "", date: "", text: "" }); renderPanel(); } }),
+    ];
+  }
   function createPanel(f) {
     return [
-      panelHead("建立新案件", null, "輸入的文字原樣寫入本機資料庫，作為三角色攻防的唯一案件輸入。系統不會補寫案情；正式使用時請以律師掌握的完整卷證為準。"),
+      panelHead("建立新案件", null, "目前只支援代理原告。輸入的文字原樣寫入本機資料庫，系統不會補寫案情；正式使用時請以律師掌握的完整卷證為準。"),
       h("form", { class: "card form-card", onsubmit: function (e) { e.preventDefault(); submitCreate(f); } },
         h("div", { class: "form-grid" },
           formField(f, "case_type", "案由", { max: 60, placeholder: "例：買賣價金、侵權行為損害賠償" }),
           formField(f, "case_id", "案件 ID", { optional: true, max: 64, placeholder: "留空自動產生(ui-日期-序號)",
             hint: "只能用英數字、點、底線、連字號" }),
-          formField(f, "facts_summary", "案件事實", { multiline: true, rows: 9, max: 20000, wide: true,
-            hint: "時間、金額、契約與往來經過等，以你實際掌握者為限" }),
+          formField(f, "facts_summary", "我方主張的事實經過", { multiline: true, rows: 9, max: 20000, wide: true,
+            hint: "時間、金額、契約與往來經過等，以你實際掌握者為限。模擬被告讀不到這段，只讀得到起訴狀寫進去的內容" }),
           formField(f, "claims", "請求／訴之聲明", { multiline: true, rows: 3, max: 5000, wide: true }),
+          formField(f, "claim_amount", "請求金額(新臺幣元)", { optional: true, max: 15, inputmode: "numeric", placeholder: "例：1000000",
+            hint: "非金錢請求或未定可留空，只用來提示程序類型" }),
           formField(f, "p_name", "原告名稱", { max: 100 }),
           formField(f, "p_ban", "原告統一編號", { optional: true, max: 12, inputmode: "numeric", placeholder: "8 位數字" }),
           formField(f, "d_name", "被告名稱", { max: 100 }),
-          formField(f, "d_ban", "被告統一編號", { optional: true, max: 12, inputmode: "numeric", placeholder: "8 位數字" })),
+          formField(f, "d_ban", "被告統一編號", { optional: true, max: 12, inputmode: "numeric", placeholder: "8 位數字" }),
+          h("div", { class: "form-field wide" }, h("span", { class: "field-label", text: "證據清單(選填，依序編為甲證 1、甲證 2…)" }), evidenceRows(f)),
+          h("div", { class: "form-field wide" }, h("span", { class: "field-label", text: "對方已知反應(選填，例如 LINE、存證信函、調解時的說法)" }), responseRows(f)),
+          formField(f, "known_gaps", "已知缺口", { optional: true, multiline: true, rows: 3, max: 5000, wide: true,
+            hint: "一行一項。只給律師與原告方，模擬被告讀不到" })),
         f.error ? banner("bad", "✗", "建立失敗：" + f.error) : null,
         f.step ? banner("warn", "⏱", f.step) : null,
         h("div", { class: "controls" },
@@ -1262,11 +1346,21 @@
     var missing = [["case_type", "案由"], ["facts_summary", "案件事實"], ["claims", "請求"], ["p_name", "原告名稱"], ["d_name", "被告名稱"]]
       .filter(function (k) { return !f[k[0]].trim(); }).map(function (k) { return k[1]; });
     if (missing.length) { f.error = "請填寫：" + missing.join("、"); renderPanel(); return; }
+    var amount = f.claim_amount.replace(/[,，\s]/g, "");
+    if (amount && !/^[0-9]+$/.test(amount)) { f.error = "請求金額只能填整數，或留空"; renderPanel(); return; }
+    if (f.evidence.some(function (row) { return !row.description.trim(); })) { f.error = "有證據沒有寫內容；不需要的請移除"; renderPanel(); return; }
+    if (f.responses.some(function (row) { return !row.text.trim(); })) { f.error = "有對方反應沒有寫內容；不需要的請移除"; renderPanel(); return; }
     f.busy = true; f.error = null; f.step = "寫入資料庫…"; renderPanel();
     var created;
     try {
       created = await api("/api/cases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
         case_id: f.case_id.trim() || null, case_type: f.case_type, facts_summary: f.facts_summary, claims: f.claims,
+        claim_amount: amount ? Number(amount) : null,
+        evidence: f.evidence.map(function (row, i) {
+          return { id: "甲證" + (i + 1), type: row.type, date: row.date || null, description: row.description, proves: row.proves || null };
+        }),
+        opponent_known_responses: f.responses.map(function (row) { return { source: row.source || null, date: row.date || null, text: row.text }; }),
+        known_gaps: f.known_gaps.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean),
         plaintiff: { name: f.p_name, ban: f.p_ban.trim() || null }, defendant: { name: f.d_name, ban: f.d_ban.trim() || null } }) });
     } catch (e) {
       f.busy = false; f.step = null; f.error = e.message; renderPanel(); return;
@@ -1280,12 +1374,12 @@
         var r = await api("/api/party-check", { method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ban: p.ban, input_name: p.name, case_id: created.case_id, role: role }) });
         notices.push(r.query_status === "failed"
-          ? { cls: "bad", icon: "✗", text: SIDE[role].label + "商工查核未完成(" + ((r.errors[0] || {}).error || "連線失敗") + ")；可到「當事人查核」分頁重試。" }
+          ? { cls: "bad", icon: "✗", text: SIDE[role].label + "商工查核未完成(" + ((r.errors[0] || {}).error || "連線失敗") + ")；可到「起訴前檢查」分頁重試。" }
           : { cls: (r.warnings || []).length ? "warn" : "ok", icon: (r.warnings || []).length ? "!" : "✓",
             text: SIDE[role].label + "商工查核：" + (r.name || "已查詢") + (r.via === "recorded" ? "(本次即時查詢失敗，顯示錄製的查詢結果)" : "") +
               ((r.warnings || []).length ? "，警示 " + r.warnings.length + " 項，已轉成起訴審查事項" : "，無規則警示") });
       } catch (e) {
-        notices.push({ cls: "bad", icon: "✗", text: SIDE[role].label + "商工查核失敗：" + e.message + "；可到「當事人查核」分頁重試。" });
+        notices.push({ cls: "bad", icon: "✗", text: SIDE[role].label + "商工查核失敗：" + e.message + "；可到「起訴前檢查」分頁重試。" });
       }
     }
     state.caseNotices[created.case_id] = notices;
@@ -1573,6 +1667,10 @@
   function prefillFrom(d) {
     var p = d.case.parties || {}, pl = p.plaintiff || {}, df = p.defendant || {};
     return { case_type: d.case.case_type || "", facts_summary: d.case.facts_summary || "", claims: d.case.claims || "",
+      claim_amount: d.case.claim_amount == null ? "" : String(d.case.claim_amount),
+      evidence: (d.case.evidence || []).map(function (e) { return { type: e.type || "other_document", date: e.date || "", description: e.description, proves: e.proves || "" }; }),
+      responses: (d.case.opponent_known_responses || []).map(function (r) { return { source: r.source || "", date: r.date || "", text: r.text }; }),
+      known_gaps: (d.case.known_gaps || []).join("\n"),
       p_name: pl.name || "", p_ban: pl.ban || "", d_name: df.name || "", d_ban: df.ban || "" };
   }
 
@@ -1583,7 +1681,7 @@
     var d = state.detail;
     if (state.creating) {
       box.append(h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "建立案件須知" }),
-        h("p", { class: "detail-note", text: "案件事實只寫你實際掌握的內容；系統與 AI 都不會替你補寫案情。" }),
+        h("p", { class: "detail-note", text: "事實經過只寫你實際掌握的內容；系統與 AI 都不會替你補寫案情。建立後會顯示程序類型、調解與時效提示，只是提示，不阻擋後續流程。" }),
         h("p", { class: "detail-note", text: "統一編號選填。填了會在建立後立即查核經濟部商工登記，查核結果轉成起訴審查補正事項，在 Stage 1 之前交給雙方。自然人或沒有統編的一方不查。" }),
         h("p", { class: "detail-note", text: "建立後可在案件總覽按「即時執行」，由本機 Claude Code 跑完整攻防。" })));
       return;

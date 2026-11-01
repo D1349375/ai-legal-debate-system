@@ -20,7 +20,7 @@ import threading
 
 from sqlalchemy import or_
 
-from database.db import DB_URL_ENV, default_db_path, pleading_side
+from database.db import DB_URL_ENV, case_payload, default_db_path, pleading_side
 from database.schema import Case, CourtQuestion, DebateArgument, LiveRun, PleadingDraft, Verdict
 from engine.aggregate import VALID_SIDES
 from engine.verify import SNAPSHOT_ENV
@@ -696,13 +696,11 @@ class LiveRunManager:
                 run_dir = self._run_dir(run_id)
                 row.log_path = f"{run_dir}/stream.jsonl"
                 s.commit()
-                case_payload = {"case_id": case.case_id, "case_type": case.case_type,
-                                "facts_summary": case.facts_summary, "claims": case.claims,
-                                "parties": json.loads(case.parties_json) if case.parties_json else None}
+                input_payload = case_payload(case)
             abs_dir = self._log_abs(run_dir)
             os.makedirs(abs_dir, exist_ok=True)
             with open(os.path.join(abs_dir, "case.json"), "w", encoding="utf-8") as f:
-                json.dump(case_payload, f, ensure_ascii=False, indent=2)
+                json.dump(input_payload, f, ensure_ascii=False, indent=2)
             if landed_export:
                 with open(os.path.join(abs_dir, "landed.json"), "w", encoding="utf-8") as f:
                     json.dump(landed_export, f, ensure_ascii=False, indent=2)

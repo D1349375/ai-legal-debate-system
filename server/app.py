@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from database.db import default_db_path, make_session_factory
 from database.schema import Case
 from engine import retrieval_cache
+from engine.case_input import clean_evidence, clean_opponent_responses
 from engine.verify import JUDGMENTS_DIR
 from engine.gcis import validate_ban
 from server import seed, services
@@ -52,6 +53,20 @@ class PartyInput(BaseModel):
     ban: str | None = Field(default=None, max_length=12)
 
 
+class EvidenceInput(BaseModel):
+    id: str = Field(max_length=20)
+    type: str | None = Field(default=None, max_length=30)
+    date: str | None = Field(default=None, max_length=10)
+    description: str = Field(max_length=2000)
+    proves: str | None = Field(default=None, max_length=1000)
+
+
+class OpponentResponseInput(BaseModel):
+    source: str | None = Field(default=None, max_length=100)
+    date: str | None = Field(default=None, max_length=10)
+    text: str = Field(max_length=5000)
+
+
 class CreateCaseRequest(BaseModel):
     case_id: str | None = Field(default=None, max_length=64)
     case_type: str = Field(min_length=1, max_length=60)
@@ -59,6 +74,11 @@ class CreateCaseRequest(BaseModel):
     claims: str = Field(min_length=2, max_length=5000)
     plaintiff: PartyInput
     defendant: PartyInput
+    represented_side: Literal["plaintiff"] = "plaintiff"  # 第一期只做原告模式
+    claim_amount: int | None = Field(default=None, ge=0)
+    evidence: list[EvidenceInput] = Field(default_factory=list, max_length=200)
+    opponent_known_responses: list[OpponentResponseInput] = Field(default_factory=list, max_length=100)
+    known_gaps: list[str] = Field(default_factory=list, max_length=100)
 
 
 class RunRequest(BaseModel):
@@ -181,10 +201,19 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
                 if ban is None:
                     raise HTTPException(422, f"{'原告' if role == 'plaintiff' else '被告'}統一編號須為 8 位數字")
             parties[role] = {"name": p.name.strip(), "ban": ban}
+        evidence = [e.model_dump() for e in req.evidence]
+        responses = [r.model_dump() for r in req.opponent_known_responses]
+        try:
+            clean_evidence(evidence)
+            clean_opponent_responses(responses)
+        except ValueError as e:
+            raise HTTPException(422, str(e))
         try:
             case_id = services.create_case(db, case_type=req.case_type, facts_summary=req.facts_summary,
                                            claims=req.claims, parties=parties,
-                                           case_id=(req.case_id or "").strip() or None, cases_dir=cases_dir)
+                                           case_id=(req.case_id or "").strip() or None, cases_dir=cases_dir,
+                                           claim_amount=req.claim_amount, evidence=evidence,
+                                           opponent_responses=responses, known_gaps=req.known_gaps)
         except ValueError as e:
             raise HTTPException(409, str(e))
         return {"case_id": case_id, "parties": parties}

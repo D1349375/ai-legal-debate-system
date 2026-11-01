@@ -5,6 +5,8 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 
 用法:
   python main.py case     --json <file>                 案件輸入
+  python main.py precheck --case-id X                    起訴前檢查的提示(程序類型、調解、時效)
+  python main.py role-view --case-id X --role plaintiff  印出該角色可讀的案件資料
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
   python main.py finalize --case-id X [--for-judge]      機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點；--for-judge 只印給法官讀的部分
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
@@ -37,9 +39,10 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     sys.stderr.reconfigure(encoding='utf-8')
 
 from database.db import (
-    get_session, record_case, record_argument, record_question,
+    get_session, record_case, record_argument, record_question, case_precheck, plaintiff_view,
     admission_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
 )
+from database.schema import Case
 from engine.admission_check import admission_problems, looks_factual, strings_in
 from engine.aggregate import judge_view
 from engine.internal_review import review_warnings, strip_internal_review
@@ -65,9 +68,40 @@ def cmd_case(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
-    row = record_case(session, case_id=payload["case_id"], case_type=payload["case_type"],
-                       facts_summary=payload["facts_summary"], claims=payload["claims"])
+    extra = {}
+    if payload.get("protocol") == "v2":  # 沒有 protocol 的 JSON 維持舊流程，舊案件不受影響
+        extra = {"protocol": "v2", "represented_side": payload.get("represented_side", "plaintiff"),
+                 "parties": payload.get("parties"), "claim_amount": payload.get("claim_amount"),
+                 "evidence": payload.get("evidence"), "opponent_responses": payload.get("opponent_known_responses"),
+                 "known_gaps": payload.get("known_gaps")}
+    try:
+        row = record_case(session, case_id=payload["case_id"], case_type=payload["case_type"],
+                          facts_summary=payload["facts_summary"], claims=payload["claims"], **extra)
+    except ValueError as e:
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
     print(f"已落地案件 {row.case_id}")
+    return 0
+
+
+def cmd_precheck(args):
+    session = get_session()
+    row = session.query(Case).filter_by(case_id=args.case_id).one_or_none()
+    if row is None:
+        print(f"找不到案件 {args.case_id}", file=sys.stderr)
+        return 1
+    print(json.dumps(case_precheck(row), ensure_ascii=False, indent=2))
+    return 0
+
+
+def cmd_role_view(args):
+    session = get_session()
+    try:
+        view = plaintiff_view(session, args.case_id)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+    print(json.dumps(view, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -579,6 +613,15 @@ def main():
     p = sub.add_parser("case", help="落地案件輸入")
     p.add_argument("--json", required=True)
     p.set_defaults(fn=cmd_case)
+
+    p = sub.add_parser("precheck", help="印出起訴前檢查的提示(程序類型、調解、時效),不呼叫 LLM")
+    p.add_argument("--case-id", required=True)
+    p.set_defaults(fn=cmd_precheck)
+
+    p = sub.add_parser("role-view", help="印出某角色可讀的案件資料")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--role", choices=("plaintiff",), required=True)
+    p.set_defaults(fn=cmd_role_view)
 
     p = sub.add_parser("record", help="落地攻防論證或法官訊問(JSON 檔)")
     p.add_argument("--json", required=True)
