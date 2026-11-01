@@ -8,6 +8,8 @@
   network_error。不退回 corpus/statutes/*.txt 的舊版法典：用過時條文放行比查不到更危險。
 - 法規名稱：法務部開放資料建的名稱索引(corpus/statutes/law_index.json)裡的法規都能查；已廢止法規
   歸為 version_unverified，索引查無的名稱為 unsupported_law。
+- 連上官網但頁面無法辨認條文或裁判全文時回 full_text_unavailable，與連線失敗的 network_error 分開；
+  不讓它落到 doc_type_mismatch、quote_not_found 而讓人以為引用寫錯。兩者都不放行。
 """
 import functools
 import json
@@ -184,8 +186,8 @@ def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT, *, ci
         return {**common, 'status': 'not_found', 'primary_source_url': r['url'], 'attempts': r['attempts'],
                 'note': '官網查無此條（已重查確認），可能條號有誤或該條已刪除'}
     if r['status'] != 'found':
-        return {**common, 'status': 'network_error', 'reason': r.get('reason'), 'primary_source_url': r.get('url'),
-                'note': '官網頁面無法辨認條文，非查無此條'}
+        return {**common, 'status': 'full_text_unavailable', 'reason': r.get('reason'), 'primary_source_url': r.get('url'),
+                'note': '全國法規資料庫頁面無法辨認條文，不代表引用寫錯或查無此條'}
     return {**common, 'status': 'published', 'primary_source_url': r['url'], 'matched_text': r['text'],
             'verified_via': _VIA.get(r['served_from'], 'law_moj_live'), 'fetched_at': r['fetched_at'],
             'modified_date': r.get('modified_date'), 'attempts': r['attempts']}
@@ -292,6 +294,9 @@ def verify_precedent_note(note, timeout=DEFAULT_TIMEOUT, *, snapshot=None):
         # 與角色讀的是同一份：快照 → 長期快取 → 預先內容 → 上網，抓到的寫回快取與快照。
         try:
             entry = retrieval_cache.get_judgment(result['jid'], snapshot=snapshot, corpus_dir=JUDGMENTS_DIR, timeout=timeout)
+        except retrieval_cache.FullTextUnavailable as error:
+            return {**result, 'status': 'full_text_unavailable', 'reason': str(error),
+                    'note': '官網頁面無法辨認裁判全文，未能比對文種與摘句；不代表引用寫錯'}
         except retrieval_cache.RetrievalUnavailable as error:
             return {**result, 'status': 'network_error', 'reason': str(error)}
         result.update({k: v for k, v in _document(entry, entry['served_from']).items() if k != 'source_file'})
