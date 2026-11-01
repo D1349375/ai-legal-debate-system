@@ -172,15 +172,18 @@ def cmd_verdict(args):
         print("拒絕落地:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
         return 1
     try:
+        anchor = finalize_case(session, case_id=args.case_id)
         row = record_verdict(
             session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
             verdict_reasoning=analysis, risk_map=payload["risk_map"],
-            mechanical_anchor_json=payload["mechanical_anchor_json"],
+            mechanical_anchor_json=anchor,
             protocol_version=PROTOCOL_VERSION, citations_used=payload.get("citations_used", []),
         )
     except ValueError as e:
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
+    if "mechanical_anchor_json" in payload and payload["mechanical_anchor_json"] != anchor:
+        print("警告:模型提供的機械彙整與程式重算結果不同，已改用機械結果落地", file=sys.stderr)
     print(f"已落地判決 {row.case_id}")
     return 0
 

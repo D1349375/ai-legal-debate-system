@@ -20,9 +20,7 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from database.db import (  # noqa: E402
-    finalize_case, get_session, pleading_side, record_argument, record_pleading, record_question, record_verdict,
-)
+from database.db import get_session, pleading_side, record_argument, record_pleading, record_question  # noqa: E402
 from database.schema import CourtQuestion, DebateArgument, PleadingDraft, Verdict  # noqa: E402
 
 DRAFTS = {"plaintiff": "民事起訴狀\n訴之聲明\n一、被告應給付原告。",
@@ -65,7 +63,7 @@ def main():
         print(json.dumps({"loggedIn": logged_in, "authMethod": "claude.ai" if logged_in else "none"}))
         return 0 if logged_in else 1
     expected_db_url = os.environ.get("FAKE_CLAUDE_EXPECT_DB_URL")
-    if expected_db_url and os.environ.get("LEGALDEBATE_DB_URL") != expected_db_url:
+    if not expected_db_url or os.environ.get("LEGALDEBATE_DB_URL") != expected_db_url:
         print("假 Claude 收到的資料庫位址與測試預期不同", file=sys.stderr)
         return 4
     prompt = argv[argv.index("-p") + 1]
@@ -165,11 +163,18 @@ def main():
             record_argument(s, case_id=case_id, side=side, stage=stage, position=f"{side} s{stage}", reasoning="推理",
                             cited_statutes=[], cited_precedents=[], falsifier="若對方補證則讓步", model_id=model)
             landed(f"已落地論證 {case_id} {side} stage{stage}")
-    anchor = finalize_case(s, case_id=case_id)
     if not has(Verdict):
-        record_verdict(s, case_id=case_id, verdict_main_text="評估", verdict_reasoning="理由",
-                       risk_map={"對原告不利之處": [], "對被告不利之處": [], "建議補強證據": []},
-                       mechanical_anchor_json=anchor, protocol_version="test", citations_used=[])
+        verdict_file = os.path.join(ROOT, run_dir, "verdict.json")
+        with open(verdict_file, "w", encoding="utf-8") as f:
+            json.dump({"verdict_main_text": "評估", "verdict_analysis": "理由",
+                       "risk_map": {"對原告不利之處": [], "對被告不利之處": [], "建議補強證據": []},
+                       "citations_used": []}, f, ensure_ascii=False)
+        result = subprocess.run([sys.executable, "main.py", "verdict", "--case-id", case_id,
+                                 "--json", verdict_file], cwd=ROOT, env=os.environ.copy(),
+                                capture_output=True, text=True, encoding="utf-8", timeout=60)
+        if result.returncode:
+            print(result.stderr, file=sys.stderr)
+            return result.returncode
     for side in wanted:
         if not has_pleading(side):
             land_pleading(side)

@@ -239,6 +239,7 @@ code, .mono { font-family: var(--font-mono); }
 .banner.bad { color: var(--bad-fg); background: var(--bad-bg); border-color: var(--bad-bd); }
 .banner.warn { color: var(--warn-fg); background: var(--warn-bg); border-color: var(--warn-bd); }
 .banner.rec { color: var(--rec-fg); background: var(--rec-bg); border-color: var(--rec-bd); }
+.anchor-check .banner + .banner { margin-top: 8px; }
 .banner strong { font-weight: 700; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }

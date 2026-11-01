@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from database.db import (
     get_session, make_session_factory, record_argument, record_case, record_pleading,
-    record_question, record_verdict, upsert_citation,
+    record_party_check, record_question, record_verdict, upsert_citation,
 )
 from engine import verify as engine_verify
 from server import seed, services
@@ -146,6 +146,85 @@ class TestCases:
         s.close()
         check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
         assert check["consistent"] is False and "原告引用清單差異" in check["differences"][0]
+
+    def test_anchor_check_reports_stored_response_excerpt_difference(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["weak_points"][0]["response_excerpt"] = "從略"
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is False
+        assert "被告論證摘錄(內容與重算不同)" in check["stored_differs"]
+
+    def test_anchor_check_labels_missing_response_excerpt(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["weak_points"][0].pop("response_excerpt")
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert "被告論證摘錄(落地紀錄未存)" in check["stored_differs"]
+
+    def test_anchor_check_reports_stored_procedural_issue_id_difference(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        record_party_check(s, case_id="c1", role="plaintiff", query_ban="00000001",
+                           result={"entity_type": "company", "query_status": "ok", "warnings": []}, raw={})
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"]["issues"] = [{"id": "plaintiff:dissolved"}]
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is False
+        assert "程序事項 ID(內容與重算不同)" in check["stored_differs"]
+
+    def test_anchor_check_labels_missing_procedural_issue_ids(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        record_party_check(s, case_id="c1", role="plaintiff", query_ban="00000001",
+                           result={"entity_type": "company", "query_status": "ok", "warnings": []}, raw={})
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"].pop("issues")
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert "程序事項 ID(落地紀錄未存)" in check["stored_differs"]
+
+    def test_anchor_check_skips_procedural_ids_without_case_party_checks(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"]["issues"] = [{"id": "plaintiff:dissolved"}]
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is True and check["stored_differs"] == []
+        assert any("沒有該案件的商工查核紀錄" in note and "沒有比對" in note for note in check["notes"])
+
+    def test_anchor_check_ignores_procedural_text_when_ids_match(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"]["notes"] = ["舊查核文字"]
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is True and check["stored_differs"] == []
 
     def test_pleading_citation_check_reparses_draft(self, client):
         checks = {c["citation_text"]: c for c in client.get("/api/cases/c1").json()["pleading"]["citation_check"]}

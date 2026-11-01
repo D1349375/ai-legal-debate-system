@@ -70,7 +70,7 @@ description: >-
 python main.py finalize --case-id <case_id>
 python main.py finalize --for-judge --case-id <case_id>
 ```
-第一個指令取得完整的 `mechanical_anchor_json`(`weak_points` + `position_drift` + `procedural_issues`),只用來在 Step 8 落地評估。第二個指令取得給法官讀的版本(`concession_conditions` + `procedural_issues`),不含引用清單差異與論證摘錄。`procedural_issues` 取 finalize 當下最新的商工查核結果;若 Step 1 之後重新查核過,以這裡為準。
+第一個指令取得完整的機械彙整(`weak_points` + `position_drift` + `procedural_issues`)，只供核對，不用抄進 verdict JSON；`main.py verdict` 落地時會自行重算。第二個指令取得給法官讀的版本(`concession_conditions` + `procedural_issues`),不含引用清單差異與論證摘錄。`procedural_issues` 取 finalize 當下最新的商工查核結果;若 Step 1 之後重新查核過,以這裡為準。
 
 ### Step 7 — 法官頒布爭點強弱評估(獨立 subagent)
 - prompt 套用 `templates/verdict_prompt.txt`,餵入 `python main.py public-args --case-id <case_id>` 的輸出(雙方三階段公開紀錄,不含內部檢討)+ 法官訊問 + Step 6 的 `--for-judge` 輸出。法官要逐條回應讓步條件,可以不同意,沒有預先決定的方向。
@@ -90,7 +90,7 @@ python main.py finalize --for-judge --case-id <case_id>
   ```
   python main.py verdict --case-id <case_id> --json <path>
   ```
-  (JSON 含 `verdict_main_text`/`verdict_analysis`/`risk_map`/`mechanical_anchor_json`/`citations_used`)。`record_verdict` 若偵測到未 published 引用會直接拒絕落地(`ValueError`,`main.py` 回傳 exit code 1)——這是機械閘門,不是你的判斷空間,遇到報錯不要試圖繞過。
+  (JSON 含 `verdict_main_text`/`verdict_analysis`/`risk_map`/`citations_used`，不需 `mechanical_anchor_json`；`main.py verdict` 會自行重算後存入)。`record_verdict` 若偵測到未 published 引用會直接拒絕落地(`ValueError`,`main.py` 回傳 exit code 1)——這是機械閘門,不是你的判斷空間,遇到報錯不要試圖繞過。
   `main.py verdict` 另會拒絕把民事訴訟法第249條與最高法院115年度台抗字第105號放在同一個括號裡的評估(並列讀起來像該裁定也支持駁回)。遇到這個報錯,把報錯原文交回同一個法官 subagent,請它只改這處引註的寫法後重新輸出;不要自己改寫評估內容。
   `main.py verdict` 也會拒絕「自承、自認、自陳、坦承」沒有緊接引述真實原句的評估;Step 7 已先檢查過,這裡是最後一道。
 

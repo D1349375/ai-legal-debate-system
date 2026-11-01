@@ -928,9 +928,17 @@
   function anchorBanner(a) {
     if (!a) return null;
     var ps = a.recomputed.position_drift;
-    if (!a.consistent) return banner("bad", "✗", [h("strong", { text: "與落地時的計算結果不一致" }), "：" + a.differences.join("；")]);
+    var note = a.notes && a.notes.length ? banner("rec", "i", a.notes.join("；")) : null;
+    function withNote(main) { return note ? h("div", { class: "anchor-check" }, main, note) : main; }
+    if (!a.consistent) return withNote(banner("bad", "✗", [
+      h("strong", { text: "落地時的機械彙整與重算不同" }),
+      "。這是落地紀錄與目前資料重算的差異；單憑比對不能判定原因。",
+      a.stored_differs && a.stored_differs.length ? " 落地欄位差異：" + a.stored_differs.join("、") + "。" : "",
+      a.differences.length ? " 其他比對差異：" + a.differences.join("；") + "。" : "",
+      a.minor_differences.length ? " 另有僅括號內文字不同的讓步條件。" : "",
+    ]));
     if (a.minor_differences.length) {
-      return banner("warn", "!", [
+      return withNote(banner("warn", "!", [
         h("strong", { text: "引用清單差異一致，但讓步條件文字有細微出入" }),
         "。落地時記錄的引用清單差異，與現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")；但 " +
         a.minor_differences.map(function (m) { return m.note; }).join("；") + "。",
@@ -939,10 +947,11 @@
             h("p", null, h("strong", { text: "落地紀錄的版本：" }), m.stored),
             h("p", null, h("strong", { text: "Stage 3 原文(現行)：" }), m.current)]);
         }),
-      ]);
+      ]));
     }
-    return banner("ok", "✓", [h("strong", { text: "與落地時的計算結果一致" }),
-      "：落地時記錄的引用清單差異與讓步條件，跟現在重新計算的結果完全相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")。"]);
+    return withNote(banner("ok", "✓", [h("strong", { text: "已比對欄位與落地時的計算結果一致" }),
+      "：落地時記錄的引用清單差異、讓步條件、論證摘錄" + (note ? "" : "與程序事項 ID") +
+      "，跟現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")。"]));
   }
 
   // ───────────── 分頁：訴狀骨架 ─────────────

@@ -35,6 +35,7 @@ def db_url(tmp_path):
 
 def make_client(db_url, tmp_path, monkeypatch, mode="full", enabled=True, **live):
     monkeypatch.setenv("FAKE_CLAUDE_MODE", mode)
+    monkeypatch.setenv("FAKE_CLAUDE_EXPECT_DB_URL", db_url)
     opts = {"enabled": enabled, "command": [sys.executable, FAKE], "runs_dir": str(tmp_path / "runs"), **live}
     app = create_app(db_url=db_url, cases_dir=str(tmp_path / "none"), seed_on_empty=False,
                      local_clients=("testclient",), live=opts)

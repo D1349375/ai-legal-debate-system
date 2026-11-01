@@ -254,29 +254,45 @@ def _collect_citations(arguments, lookup, recorded_checks):
     return citations
 
 
-def _anchor_check(stored_anchor, arguments):
-    """把落地當時的 mechanical_anchor_json 與「現在重新機械計算」的結果比對(finalize 為決定性函數)。"""
-    stage3 = [a for a in arguments if a["stage"] == 3]
-    if len({a["side"] for a in stage3}) < len(VALID_SIDES):
-        return None
-    now = drift_detail(arguments)
-    stored_drift = (stored_anchor or {}).get("position_drift", {})
-    stored_falsifiers = {p.get("side"): p.get("falsifier") for p in (stored_anchor or {}).get("weak_points", [])}
-    now_falsifiers = {a["side"]: a["falsifier"] for a in stage3}
-    diffs, minor = [], []
+def _anchor_check(stored_anchor, current_anchor, *, has_party_checks):
+    """比對落地錨點與目前的 finalize_case 結果；只以程序事項 ID 判斷該欄位。"""
+    stored_anchor = stored_anchor or {}
+    stored_drift = stored_anchor.get("position_drift") or {}
+    current_drift = current_anchor["position_drift"]
+    stored_points = {p.get("side"): p for p in stored_anchor.get("weak_points", [])}
+    current_points = {p["side"]: p for p in current_anchor["weak_points"]}
+    diffs, stored_differs, minor, notes = [], [], [], []
     for side in VALID_SIDES:
         label = "原告" if side == "plaintiff" else "被告"
-        if stored_drift.get(side) != now[side]["ratio"]:
-            diffs.append(f"{label}引用清單差異：落地時 {stored_drift.get(side)}，本次重新計算 {now[side]['ratio']}")
-        stored_f, now_f = stored_falsifiers.get(side), now_falsifiers.get(side)
+        if stored_drift.get(side) != current_drift[side]:
+            diffs.append(f"{label}引用清單差異：落地時 {stored_drift.get(side)}，本次重新計算 {current_drift[side]}")
+        stored_point, current_point = stored_points.get(side, {}), current_points[side]
+        stored_f, now_f = stored_point.get("falsifier"), current_point.get("falsifier")
         if stored_f != now_f:
             if _strip_parens(stored_f) == _strip_parens(now_f):
                 minor.append({"side": side, "stored": stored_f, "current": now_f,
                               "note": f"{label}方讓步條件的文字與最終階段原文略有出入(僅括號內文字不同)，實質內容一致"})
             else:
                 diffs.append(f"{label}方讓步條件與落地時不同")
-    return {"consistent": not diffs, "differences": diffs, "minor_differences": minor,
-            "recomputed": {"position_drift": {s: now[s]["ratio"] for s in VALID_SIDES}}}
+        if "response_excerpt" not in stored_point:
+            stored_differs.append(f"{label}論證摘錄(落地紀錄未存)")
+        elif stored_point["response_excerpt"] != current_point.get("response_excerpt"):
+            stored_differs.append(f"{label}論證摘錄(內容與重算不同)")
+    if has_party_checks:
+        stored_procedure = stored_anchor.get("procedural_issues")
+        if not isinstance(stored_procedure, dict) or "issues" not in stored_procedure:
+            stored_differs.append("程序事項 ID(落地紀錄未存)")
+        elif not isinstance(stored_procedure["issues"], list):
+            stored_differs.append("程序事項 ID(內容與重算不同)")
+        else:
+            stored_ids = {issue.get("id") for issue in stored_procedure["issues"]}
+            current_ids = {issue.get("id") for issue in current_anchor["procedural_issues"]["issues"]}
+            if stored_ids != current_ids:
+                stored_differs.append("程序事項 ID(內容與重算不同)")
+    else:
+        notes.append("這個資料庫沒有該案件的商工查核紀錄，無法重算程序事項，沒有比對。")
+    return {"consistent": not diffs and not stored_differs, "differences": diffs, "minor_differences": minor,
+            "stored_differs": stored_differs, "notes": notes, "recomputed": {"position_drift": current_drift}}
 
 
 def _provenance_kind(arguments):
@@ -608,7 +624,10 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "risk_map": json.loads(verdict_row.risk_map), "mechanical_anchor": anchor,
             "protocol_version": verdict_row.protocol_version, "created_at": verdict_row.created_at,
             "origin": origin(verdict_row.created_at),
-            "anchor_check": _anchor_check(anchor, arguments),
+            "anchor_check": (_anchor_check(
+                anchor, finalize_case(session, case_id=case_id),
+                has_party_checks=session.query(PartyCheck.id).filter_by(case_id=case_id).first() is not None)
+                             if len({a["side"] for a in arguments if a["stage"] == 3}) >= len(VALID_SIDES) else None),
         }
 
     pleading_rows = session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
