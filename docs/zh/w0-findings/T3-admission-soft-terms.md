@@ -44,6 +44,7 @@ W0 訊問 3 寫「你方 Stage 1 自陳這一點「證據不明,需查證」」�
 - 開始時間:2026-11-02 03:05（台北時間）
 - 結束時間:2026-11-02 03:18（台北時間）
 - 基準 commit:`fc98eb9`
+- T3 實作 commit:`b24c343d42b4a5acb910a9cc34cbcf8a77486448`（hash 回填另以文件 commit 提交）
 - 基準測試(指令與數字):`python -m pytest -q -m 'not network' --basetemp .t3-pytest-offline-baseline --tb=short`，`298 passed, 1 skipped, 13 deselected`（測後已刪暫存資料夾）。另曾誤跑未排除網路標記的全套，結果 `311 passed, 1 skipped`，不作離線基準。
 
 ### 迭代過程
