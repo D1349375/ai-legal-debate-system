@@ -28,6 +28,7 @@ from engine.aggregate import VALID_SIDES, disagreement
 from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
+from engine.internal_review import strip_internal_review
 from engine.verify import (
     HISTORICAL_NOTE, HISTORICAL_PREFIX_RE, JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES,
     STATUTES_DIR, is_historical_statute, multiple_documents_note, parse_citation,
@@ -520,7 +521,7 @@ def procedural_view(session, case_id, party_checks, arguments, questions, last_r
     """
     view = procedural_issues(party_checks)
     plaintiff_s1 = next((a for a in arguments if a["side"] == "plaintiff" and a["stage"] == 1), None)
-    s1_text = f"{plaintiff_s1['position']}\n{plaintiff_s1['reasoning']}" if plaintiff_s1 else ""
+    s1_text = f"{plaintiff_s1['position']}\n{strip_internal_review(plaintiff_s1['reasoning'])}" if plaintiff_s1 else ""
     for issue in view["issues"]:
         issue["cured_in_stage1"] = cured_in(s1_text, issue["id"])
         issue["followed_up_in"] = [q["seq"] for q in questions if issue["id"] in (q["based_on"] or "")]

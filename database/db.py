@@ -13,6 +13,7 @@ import os
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
+from engine.internal_review import strip_internal_review
 from database.schema import (
     Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck, LiveRun,
 )
@@ -119,6 +120,23 @@ def _arg_to_dict(row):
     }
 
 
+def admission_sources(session, case_id):
+    """自承類用語可以引述的原文:案件事實與雙方論證(不含 falsifier，那是假設句)。"""
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    sources = {"plaintiff": [], "defendant": [], "facts": [case.facts_summary] if case else []}
+    for row in session.query(DebateArgument).filter_by(case_id=case_id).all():
+        sources[row.side] += [row.position or "", strip_internal_review(row.reasoning)]
+    return sources
+
+
+def public_arguments(session, *, case_id, through_stage=3):
+    """法官與對手摘要可以讀的論證:濾掉內部檢討，不含 falsifier(讓步條件另由 judge_view 給法官)。"""
+    rows = session.query(DebateArgument).filter_by(case_id=case_id).all()
+    return [{"side": r.side, "stage": r.stage, "position": r.position, "argument": strip_internal_review(r.reasoning),
+             "cited_statutes": json.loads(r.cited_statutes or "[]"), "cited_precedents": json.loads(r.cited_precedents or "[]")}
+            for r in sorted(rows, key=lambda r: (r.stage, r.side)) if r.stage <= through_stage]
+
+
 def finalize_case(session, *, case_id):
     """機械死穴彙整 + 分歧統計，回傳判決錨點(不落地成獨立資料表——結果直接作為
     record_verdict() 呼叫時 mechanical_anchor_json 的輸入，避免另開一張只為過渡用的表)。
@@ -169,7 +187,7 @@ def pleading_materials(session, *, case_id, side):
         "case": {"case_id": case.case_id, "case_type": case.case_type, "facts_summary": case.facts_summary,
                  "claims": case.claims, "parties": json.loads(case.parties_json) if case.parties_json else None},
         "side": side,
-        "own_stage3": {"position": own.position, "argument": own.reasoning, "falsifier": own.falsifier,
+        "own_stage3": {"position": own.position, "argument": strip_internal_review(own.reasoning), "falsifier": own.falsifier,
                        "citations": citations(own), "model_id": own.model_id},
         "opponent_stage3_summary": None if opp is None else {
             "side": other, "position": opp.position, "citations": [c["citation_text"] for c in citations(opp)]},

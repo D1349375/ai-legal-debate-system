@@ -104,10 +104,21 @@ HISTORICAL_NOTE = "引用的是舊版條文，查證引擎只比對現行條文�
 DEFAULT_TIMEOUT = 20
 FJUD_MAX_PAGES = 10
 _NETWORK_ERRORS = (OSError, http.client.HTTPException)  # URLError、逾時與 SSL 錯誤都是 OSError
+NETWORK_RETRY_DELAY = 2  # 秒。只重試一次:UI 逐條查證時連線失敗就停，重試太多次斷網會卡很久
 
 
 class FjudSearchIncomplete(Exception):
     """FJUD 搜尋沒有跑完(取不到查詢欄位或超過頁數上限)。沒看完不等於查無，不得回報 not_found。"""
+
+
+def _retry_once(fetch):
+    """連線偶爾暫時失敗(實跑見過 SSL 錯誤，重試就過)。再失敗才交給呼叫端回 verification_failed；
+    查無與 FjudSearchIncomplete 不是連線問題，不重試。"""
+    try:
+        return fetch()
+    except _NETWORK_ERRORS:
+        time.sleep(NETWORK_RETRY_DELAY)
+        return fetch()
 
 
 def _fetch_single_article(pcode, article_no, timeout=DEFAULT_TIMEOUT):
@@ -137,7 +148,7 @@ def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT):
     if pcode is None:
         return {"status": "unknown_law", "law_name": law_name, "article_no": article_no}
     try:
-        live_text, url = _fetch_single_article(pcode, article_no, timeout=timeout)
+        live_text, url = _retry_once(lambda: _fetch_single_article(pcode, article_no, timeout=timeout))
     except _NETWORK_ERRORS as e:
         return {"status": "verification_failed", "reason": str(e), "law_name": law_name,
                 "article_no": article_no}
@@ -247,8 +258,8 @@ def verify_judgment_citation(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT):
     # 本地語料庫未命中，退而求其次即時查證 FJUD(不再直接回報 not_in_phase1_seed_corpus 了事)。
     citation_query = f"{jyear}年度{jcase}字第{jno}號"
     try:
-        jids = _fjud_search(citation_query, timeout=timeout,
-                            is_target=lambda j: _jid_matches(j, jyear, jcase, jno))
+        jids = _retry_once(lambda: _fjud_search(citation_query, timeout=timeout,
+                                                is_target=lambda j: _jid_matches(j, jyear, jcase, jno)))
     except (*_NETWORK_ERRORS, FjudSearchIncomplete) as e:
         return {"status": "verification_failed", "jyear": jyear, "jcase": jcase, "jno": jno,
                 "reason": str(e), "note": "FJUD 即時查證未完成(連線失敗或結果沒有看完)，非查無此判決，可重試"}

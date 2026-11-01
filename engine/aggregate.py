@@ -1,7 +1,7 @@
 """機械聚合層:攻防弱點彙整與立場位移統計。
 
-純函數、不碰 DB、不呼叫 LLM——同 DebateSystem 的邊界原則，法官 Stage 4 的判決敘述
-不得偏離這裡算出來的錨點方向(見 database/schema.py 的 Verdict.mechanical_anchor_json)。
+純函數、不碰 DB、不呼叫 LLM——同 DebateSystem 的邊界原則。法官評估只讀 judge_view 的部分，
+要逐條回應但可以不同意(完整結果存進 database/schema.py 的 Verdict.mechanical_anchor_json 供核對)。
 
 輸入的每個 argument 皆為 dict，欄位對應 database.schema.DebateArgument 落地後的內容
 (cited_statutes/cited_precedents 已由呼叫端從 JSON 字串解析為 list，本檔案不處理 JSON)。
@@ -31,6 +31,14 @@ def compile_weak_points(stage3_arguments):
         })
     points.sort(key=lambda p: (p["falsifier"] is None, p["side"]))
     return points
+
+
+def judge_view(anchor):
+    """給法官讀的部分:讓步條件原文與程序事項。不含引用清單差異與論證摘錄，避免被讀成立場變化或弱點。"""
+    return {
+        "concession_conditions": [{"side": p["side"], "condition": p["falsifier"]} for p in anchor["weak_points"]],
+        "procedural_issues": anchor["procedural_issues"],
+    }
 
 
 def disagreement(stage1_arguments, stage3_arguments):

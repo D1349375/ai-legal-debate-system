@@ -189,12 +189,56 @@ class TestNetworkErrors:
     @pytest.mark.parametrize("error", [ssl.SSLError("bad"), http.client.IncompleteRead(b""), ConnectionResetError("x"),
                                        TimeoutError("t")])
     def test_connection_errors_do_not_abort_the_batch(self, monkeypatch, error):
+        monkeypatch.setattr(verify_module.time, "sleep", lambda s: None)
         def boom(*a, **k):
             raise error
         monkeypatch.setattr(verify_module, "_fetch_single_article", boom)
         monkeypatch.setattr(verify_module, "_fjud_search", boom)
         results = verify_citations(["民法第184條", "最高法院105年度台簡上字第33號"])
         assert [r["status"] for r in results] == ["verification_failed", "verification_failed"]
+
+
+class TestNetworkRetry:
+    def _flaky(self, monkeypatch, name, failures, result):
+        calls = []
+        def fetch(*a, **k):
+            calls.append(1)
+            if len(calls) <= failures:
+                raise ssl.SSLError("bad")
+            return result
+        monkeypatch.setattr(verify_module, name, fetch)
+        monkeypatch.setattr(verify_module.time, "sleep", lambda s: None)
+        return calls
+
+    def test_statute_passes_after_one_transient_failure(self, monkeypatch):
+        calls = self._flaky(monkeypatch, "_fetch_single_article", 1, ("第 184 條", "https://law"))
+        assert verify_citations(["民法第184條"])[0]["status"] == "published"
+        assert len(calls) == 2
+
+    def test_statute_fails_after_the_single_retry(self, monkeypatch):
+        calls = self._flaky(monkeypatch, "_fetch_single_article", 5, None)
+        assert verify_citations(["民法第184條"])[0]["status"] == "verification_failed"
+        assert len(calls) == 2
+
+    def test_judgment_search_retries_once(self, monkeypatch):
+        jid = "TPSV,105,台簡上,33,20161026"
+        calls = self._flaky(monkeypatch, "_fjud_search", 1, [jid])
+        assert verify_judgment_citation("105", "台簡上", "33")["status"] == "published"
+        assert len(calls) == 2
+
+    def test_not_found_is_not_retried(self, monkeypatch):
+        calls = self._flaky(monkeypatch, "_fjud_search", 0, [])
+        assert verify_judgment_citation("105", "台上", "99999")["status"] == "not_found"
+        assert len(calls) == 1
+
+    def test_incomplete_search_is_not_retried(self, monkeypatch):
+        calls = []
+        def incomplete(*a, **k):
+            calls.append(1)
+            raise verify_module.FjudSearchIncomplete("沒有看完")
+        monkeypatch.setattr(verify_module, "_fjud_search", incomplete)
+        assert verify_judgment_citation("105", "台上", "99999")["status"] == "verification_failed"
+        assert len(calls) == 1
 
 
 class TestSupportedLaws:

@@ -134,7 +134,7 @@ def resume_instructions(plan, run_dir):
                       if "questions" in plan["landed_keys"] else "")
     return f"""9. 本次是續跑。資料庫已落地：{"、".join(plan["landed"])}。這些紀錄一律不得覆寫、刪除或重新落地(SKILL.md「落地紀律」)。
    從 SKILL.md {plan["from_step"]}({plan["from_label"]})開始。之前的步驟只做 Step 1 的檢索詞整理與 Step 1.5 的 `python main.py issues`,不要再派 subagent 重做已落地的階段。
-   已落地的論證、法官訊問與評估已由 UI 從資料庫匯出到 {run_dir}/landed.json(唯讀);後續步驟需要前階段的輸出(含對造結構化摘要)時，以這個檔案為準。{side_note}{no_uncontested}
+   已落地的論證、法官訊問與評估已由 UI 從資料庫匯出到 {run_dir}/landed.json(唯讀);後續步驟需要前階段的輸出時，以這個檔案為準；但它含雙方內部檢討，給法官與摘對手摘要仍要用 `python main.py public-args`。{side_note}{no_uncontested}
 """
 
 

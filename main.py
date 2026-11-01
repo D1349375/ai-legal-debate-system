@@ -6,8 +6,10 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 用法:
   python main.py case     --json <file>                 案件輸入
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
-  python main.py finalize --case-id X                    機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點
+  python main.py finalize --case-id X [--for-judge]      機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點；--for-judge 只印給法官讀的部分
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
+  python main.py public-args --case-id X [--through-stage N]  印出法官與對手摘要可讀的論證(濾掉內部檢討)
+  python main.py check-judge --case-id X --json <file>    落地前檢查法官輸出(整批訊問或評估)，不寫入資料庫
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
   python main.py pleading --case-id X --draft-file <file> --citations <file> [--side plaintiff|defendant]
@@ -27,13 +29,17 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
 
 from database.db import (
     get_session, record_case, record_argument, record_question,
-    finalize_case, record_verdict, record_pleading, upsert_citation,
+    admission_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
 )
+from engine.admission_check import admission_problems, looks_factual, strings_in
+from engine.aggregate import judge_view
+from engine.internal_review import review_warnings, strip_internal_review
 from engine.party_issues import mixed_dismissal_citations
 from engine.verify import verify_citations
 
-PROTOCOL_VERSION = "v1-2026-08-07"
+PROTOCOL_VERSION = "v1.1-2026-11-02"
 PLEADING_LABEL = {"plaintiff": "起訴狀", "defendant": "答辯狀"}
+_ADMISSION_REFUSAL = "寫「自承、自認、自陳、坦承」要緊接引述該方原句(例如:被告自承「……」),請退回法官 subagent 改寫:"
 
 
 def _pick(payload, *keys):
@@ -56,15 +62,51 @@ def cmd_case(args):
     return 0
 
 
+def _verdict_admission_problems(session, case_id, payload, analysis):
+    return [p for text in strings_in([payload["verdict_main_text"], analysis, payload["risk_map"]])
+            for p in admission_problems(text, admission_sources(session, case_id))]
+
+
+def cmd_public_args(args):
+    session = get_session()
+    print(json.dumps({"case_id": args.case_id, "arguments": public_arguments(session, case_id=args.case_id, through_stage=args.through_stage)},
+                     ensure_ascii=False, indent=2))
+    return 0
+
+
+def cmd_check_judge(args):
+    """落地前檢查法官輸出，不寫入資料庫。訊問要整批通過才落地:部分落地後中斷，續跑會把法官訊問當成已完成。"""
+    with open(args.json, 'r', encoding='utf-8') as f:
+        payload = json.load(f)
+    session = get_session()
+    if "questions" in payload:
+        sources = admission_sources(session, args.case_id)
+        problems = [f"第 {i} 則:{p}" for i, q in enumerate(payload["questions"], 1)
+                    for p in admission_problems(q["question_text"], sources, target_side=q["target_side"])]
+    else:
+        problems = _verdict_admission_problems(session, args.case_id, payload, _pick(payload, "verdict_analysis", "verdict_reasoning"))
+    if problems:
+        print("未通過:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
+        return 1
+    print("法官輸出檢查通過")
+    return 0
+
+
 def cmd_record(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
     try:
         if "question_text" in payload:
+            problems = admission_problems(payload["question_text"], admission_sources(session, payload["case_id"]),
+                                          target_side=payload["target_side"])
+            if problems:
+                raise ValueError(_ADMISSION_REFUSAL + ";".join(problems))
             row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
                                    target_side=payload["target_side"], based_on=payload["based_on"])
             print(f"已落地訊問 {row.case_id} -> {row.target_side}")
+            if row.target_side == "defendant" and not row.based_on.startswith("官方事實層") and looks_factual(row.question_text):
+                print("警告:這則訊問看起來要被告回答事實,被告沒有本人的事實,請確認是否該改成給原告的準備題", file=sys.stderr)
             return 0
         row = record_argument(
             session, case_id=payload["case_id"], side=payload["side"], stage=int(payload["stage"]),
@@ -76,12 +118,19 @@ def cmd_record(args):
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地論證 {row.case_id} {row.side} stage{row.stage}")
+    problems = admission_problems(strip_internal_review(row.reasoning), admission_sources(session, row.case_id), allow_first_person=True)
+    if problems:
+        print("警告:論證含未引述原句的自承類用語,請確認:" + ";".join(problems), file=sys.stderr)
+    for warning in review_warnings(row.reasoning):
+        print("警告:" + warning, file=sys.stderr)
     return 0
 
 
 def cmd_finalize(args):
     session = get_session()
     result = finalize_case(session, case_id=args.case_id)
+    if args.for_judge:
+        result = judge_view(result)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
@@ -118,6 +167,10 @@ def cmd_verdict(args):
               "115台抗105 只接在法院應依職權調查實際代表權之後", file=sys.stderr)
         return 1
     session = get_session()
+    problems = _verdict_admission_problems(session, args.case_id, payload, analysis)
+    if problems:
+        print("拒絕落地:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
+        return 1
     try:
         row = record_verdict(
             session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
@@ -284,11 +337,22 @@ def main():
 
     p = sub.add_parser("finalize", help="機械彙整(雙方讓步條件+引用清單差異)，印出評估錨點")
     p.add_argument("--case-id", required=True)
+    p.add_argument("--for-judge", action="store_true", help="只印給法官讀的讓步條件與程序事項")
     p.set_defaults(fn=cmd_finalize)
 
     p = sub.add_parser("issues", help="依案件的商工查核結果印出法官應依職權調查的程序事項")
     p.add_argument("--case-id", required=True)
     p.set_defaults(fn=cmd_issues)
+
+    p = sub.add_parser("public-args", help="印出法官與對手摘要可讀的論證(濾掉內部檢討)")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--through-stage", type=int, choices=(1, 2, 3), default=3)
+    p.set_defaults(fn=cmd_public_args)
+
+    p = sub.add_parser("check-judge", help="落地前檢查法官輸出(整批訊問或評估)，不寫入資料庫")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--json", required=True)
+    p.set_defaults(fn=cmd_check_judge)
 
     p = sub.add_parser("verify", help="引用查證")
     p.add_argument("citations", nargs="+")

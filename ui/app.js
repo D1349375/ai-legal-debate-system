@@ -321,6 +321,7 @@
         SIDES.map(function (side) {
           return stat(pleadingOf(d, side) ? "已完成" : "尚未產生", DOCUMENT[side].short + "骨架(" + SIDE[side].label + ")");
         })),
+      prepListCard(d),
     ];
   }
   function stat(num, label, cls) {
@@ -557,6 +558,7 @@
         h("span", { class: "arg-time", text: "落地 " + fmtTime(a.created_at), title: "model_id：" + (a.model_id || "落地時未記錄") })),
       h("div", { class: "arg-body" },
         field("主張立場", h("div", { class: "arg-position prewrap", text: a.position })),
+        a.reasoning.indexOf("【內部檢討】") >= 0 ? h("p", { class: "detail-note", text: "【內部檢討】段落只給律師與該方後續輪次看，法官與對造讀不到。" }) : null,
         fold("展開完整推理(" + a.reasoning.length + " 字)", paragraphs(a.reasoning)),
         cites.length ? field("引用(✓ 已查證通過／✗ 先前查證為查無／? 尚無查證通過的紀錄)", h("div", { class: "chip-row" },
           a.cited_precedents.map(function (t) { return citeChip(t, idx); }),
@@ -574,6 +576,16 @@
       })));
   }
 
+  function isPrepQuestion(q) { return /^準備清單/.test(q.based_on || ""); }
+  function prepListCard(d) {
+    var items = d.questions.filter(isPrepQuestion);
+    if (!items.length) return null;
+    return card("原告的準備清單(共 " + items.length + " 項)", [
+      h("p", { class: "detail-note", text: "被告 agent 沒有被告本人的事實，所以法官把想問被告的事實題改成問原告。以下都是假設，不是對方實際主張；這個版本假設案件事實來自原告方。原告的回答在攻防過程分頁的 Stage 2。" }),
+      items.map(function (q) { return h("div", { class: "judge-q-text prewrap", text: q.question_text }); }),
+    ]);
+  }
+
   function questionsBlock(d) {
     if (!d.questions.length) return null;
     return h("section", { class: "judge-band" },
@@ -582,6 +594,7 @@
         return h("div", { class: "judge-q" },
           h("div", { class: "judge-q-head" }, sideChip(q.target_side, "問" + SIDE[q.target_side].label + "(第 " + q.seq + " 則)"),
             /^官方事實層/.test(q.based_on || "") ? chip("judge", "補正追問・依商工登記") : null,
+            isPrepQuestion(q) ? chip("judge", "準備題・假設") : null,
             h("span", { class: "arg-time", text: "落地 " + fmtTime(q.created_at) })),
           h("div", { class: "judge-q-text prewrap", text: q.question_text }),
           h("div", { class: "judge-q-basis" }, h("b", { text: "訊問依據(based_on，須回溯至具體論點)：" }), q.based_on));
