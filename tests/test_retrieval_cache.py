@@ -108,13 +108,18 @@ def test_budget_refusal_still_reads_cached_texts(fjud_calls):
     assert retrieval_cache.get_judgment(JID, allow_live=False)["served_from"] == "retrieval_cache"
 
 
-def test_candidates_with_date_use_cache_but_without_date_ask_fjud(fjud_calls, offline):
+def test_cached_text_does_not_settle_which_documents_a_citation_has(offline):
+    """同字號同一天可有多份(115台上192 有 20260325 的序號 1、2)；快取只有一份時不能當成唯一，要上網確認。"""
     retrieval_cache.store_judgment(JID, TEXT, "請求損害賠償", fjud.document_url(JID))
-    found = retrieval_cache.judgment_candidates("111", "台上", "1069", doc_date="20250716")
-    assert found == {"jids": [JID], "served_from": "retrieval_cache"}
-    # 沒指定日期時，快取無法確認是否還有同字號的其他文件
     with pytest.raises(retrieval_cache.RetrievalUnavailable):
         retrieval_cache.judgment_candidates("111", "台上", "1069")
+    result = verify.verify_judgment_citation("111", "台上", "1069", doc_date="20250716")
+    assert result["status"] == "network_error"
+
+
+def test_same_day_documents_stay_ambiguous_even_with_a_date():
+    result = verify.verify_judgment_citation("115", "台上", "192", doc_date="20260325")
+    assert result["status"] == "ambiguous" and len(result["candidates"]) == 2
 
 
 def test_candidates_from_fjud_are_recorded_in_snapshot(fjud_calls, tmp_path):

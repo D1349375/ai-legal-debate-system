@@ -186,12 +186,11 @@ def cached_jids(prefix):
                                               if n.startswith(prefix) and n.endswith('.json')) if entry)
 
 
-def judgment_candidates(jyear, jcase, jno, snapshot=None, corpus_dir=None, doc_date=None,
-                        search=None, timeout=fjud.DEFAULT_TIMEOUT):
+def judgment_candidates(jyear, jcase, jno, snapshot=None, corpus_dir=None, search=None, timeout=fjud.DEFAULT_TIMEOUT):
     """裁判字號 → {'jids', 'served_from'}：同字號的全部文件(多份時由呼叫端依日期選)。
 
-    查找順序：快照的字號對照 → 預先內容(視為完整) → 指定日期且長期快取已有該份 → 上網進階搜尋。
-    沒指定日期時只靠長期快取無法確認是否還有同字號的其他文件，所以仍上網。
+    查找順序：快照的字號對照 → 預先內容(視為完整) → 上網進階搜尋。長期快取只存全文，不能用來確認字號有哪些文件：
+    同字號甚至同一天可以有多份(115台上192 有 20260325 的序號 1、2 兩份)，快取裡只有其中一份時會被誤當成唯一。
     search 為上網查字號的函式(預設 FJUD 進階搜尋)，回傳 JID 清單；連線失敗重試一次，仍失敗拋 RetrievalUnavailable。
     """
     prefix = f"TPSV,{jyear},{jcase},{jno},"
@@ -200,8 +199,6 @@ def judgment_candidates(jyear, jcase, jno, snapshot=None, corpus_dir=None, doc_d
         if recorded is not None:
             return {'jids': recorded['jids'], 'served_from': 'run_snapshot'}
     jids, served = corpus_jids(prefix, corpus_dir or CORPUS_JUDGMENTS_DIR), 'corpus'
-    if not jids and doc_date:
-        jids, served = [j for j in cached_jids(prefix) if doc_date_of(j) == doc_date], 'retrieval_cache'
     if not jids:
         search = search or (lambda: [row['jid'] for row in fjud.advanced_search(
             citation=(jyear, jcase, jno), pages=1, timeout=timeout)['rows']])

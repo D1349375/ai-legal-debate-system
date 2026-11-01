@@ -242,7 +242,7 @@ def verify_judgment_citation(jyear, jcase, jno, timeout=DEFAULT_TIMEOUT, *, doc_
     citation_query = f"{jyear}年度{jcase}字第{jno}號"
     try:
         found = retrieval_cache.judgment_candidates(
-            jyear, jcase, jno, snapshot=snapshot, corpus_dir=JUDGMENTS_DIR, doc_date=doc_date,
+            jyear, jcase, jno, snapshot=snapshot, corpus_dir=JUDGMENTS_DIR,
             search=lambda: _fjud_search(jyear, jcase, jno, timeout=timeout), timeout=timeout)
     except retrieval_cache.RetrievalUnavailable as error:
         return {"status": "network_error", **common, "reason": str(error), "note": "FJUD 即時查證連線失敗，非查無此判決"}

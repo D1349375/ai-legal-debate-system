@@ -461,7 +461,7 @@ def cmd_judgment(args):
             return 2
         try:
             found = retrieval_cache.judgment_candidates(m.group(2), m.group(3), m.group(4), snapshot=snapshot,
-                                                        corpus_dir=JUDGMENTS_DIR, doc_date=doc_date)
+                                                        corpus_dir=JUDGMENTS_DIR)
         except retrieval_cache.RetrievalUnavailable as error:
             return fail('retrieval_unavailable', str(error))
         selected = [j for j in found['jids'] if not doc_date or retrieval_cache.doc_date_of(j) == doc_date]
