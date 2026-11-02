@@ -293,7 +293,9 @@ flowchart TD
 **範本修改**:
 - 公開論證依爭點組織,每段以 `【爭點 I1】` 開頭,回應闡明問題。
 - 保留現有四步驟、M10、M15、falsifier、對造判例查核。
-- 對手資料維持結構化摘要,同現行 Step 4。
+- 對手資料維持結構化摘要,但來源改成對造的書狀,不沿用現行 Step 4 從 `public-args` 摘對造 stage 1。v2 的 stage 1 是 P1、P2 的分析,不是書狀:原告分析的公開段落仍有事實經過與沒列進起訴狀的證據,被告讀到就破了 P2 的隔離。
+  - P4:原告拿模擬答辯狀與逐點表態,被告拿律師確認版起訴狀,雙方都拿爭點整理表與闡明。
+  - P5:另給對造 P4 的摘要(`position`、最強論點逐字一句、引用),只摘對造 stage 2。準備書狀本來就會送達對造,寫進去的事實可以給。
 - 輸出新增 `basis` 清單。
 - 檢索紀錄 P4 用 `<side>_p4.jsonl`、P5 用 `<side>_p5.jsonl`,查詢加 `--issue <爭點 id>`。P5 只深化既有爭點,這是系統收斂設計,不寫成法律禁止引用新法條。
 
@@ -306,7 +308,7 @@ flowchart TD
 
 ### 5.7 P6 診斷與起訴狀 v2
 
-法官讀 `role-view --role judge` 與 `public-args`、`finalize --for-judge`。`risk_map` 保留舊鍵,新增:
+法官讀 `role-view --role judge`、雙方 stage 2、3 的公開論證與 `finalize --for-judge`。不給 stage 1:原告分析的公開段落等於間接給了事實經過,和 5.5「法官不讀 `facts_summary`」不一致;要補的事實由律師看 `fact_gaps` 決定。`risk_map` 保留舊鍵,新增:
 
 | 鍵 | 內容 |
 |---|---|

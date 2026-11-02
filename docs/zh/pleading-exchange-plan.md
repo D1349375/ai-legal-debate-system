@@ -204,7 +204,7 @@ W1–W8 最晚可以延到 11/4 中午。超過就不做擴充,全力收斂主�
 - `engine/issue_sheet.py`:爭點涵蓋檢查;第 255 條與推測字樣警告。
 - `SKILL.md` Step 7–8。
 
-**陷阱**:`aggregate.py`、`public_arguments` 不動。`pleading_materials` 只給舊案用。對手摘要仍由 `public-args` 萃取,最強論點要逐字。
+**陷阱**:`aggregate.py`、`public_arguments` 不動。`pleading_materials` 只給舊案用。P4 的對手資料是對造書狀(規格 5.6),不是 `public-args` 的 stage 1;P5 的對手摘要只從對造 stage 2 萃取,最強論點要逐字。測試要用哨兵字串驗被告在 P4 讀不到事實經過。
 
 **測試**:
 - T6.1 缺爭點段落被拒;推測爭點不強制。
