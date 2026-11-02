@@ -473,3 +473,4 @@ V35–V37 是人工判斷,單案只能看方向,不能當統計結論。
 | T3 自承檢查補資料缺口詞 | `b24c343d42b4a5acb910a9cc34cbcf8a77486448` | 離線全套 `303 passed, 1 skipped, 13 deselected`（基準 `298 passed`）；T3 新增 5 個測試情境 | 補四個缺口詞；三份紀錄新增被擋 1 句（該擋），誤擋 0；「承認」僅量測，建議暫不加入；真實 Claude 實跑待 C1 驗證。 Claude 檢核通過(2026-11-02)。 |
 | T4 段落外自我檢討警告 | `77570560de8d855e7a3819d5d12d0437bcde9d4d` | 離線全套 `307 passed, 1 skipped, 13 deselected`（基準 `303 passed`）；新增 4 項測試 | 逐句量測新增警告 3 句、誤報 0/3；讀案重算使執行摘要與攻防卡片顯示次數，深淺色 UI 已看；真實 Claude 實跑待 C1 驗證。 Claude 檢核通過(2026-11-02)。 |
 | T5 即時執行停用 PowerShell 工具 | `8a24d3e` | 離線全套 `309 passed, 1 skipped, 13 deselected`（基準 `307 passed`）；新增 2 項測試 | `--disallowedTools` 加 `PowerShell`，prompt 與 SKILL Step 8 寫明用 Bash 工具、一次一個指令；依過去紀錄 `init` 工具清單判斷被禁止的工具會從清單移除，模型是否真的看不到待 C1 驗證。 |
+| T6 匯出到指定位置與孤兒列 | 未 commit | 離線全套 `312 passed, 1 skipped, 13 deselected`（基準 `309 passed`，接在 T5 後）；新增 3 項測試 | `export-demo --out` 寫到指定資料夾不碰 `demo/`；案件已不在 `cases` 表的論證、訊問、評估、書狀與商工查詢不匯出並逐表列出，不刪資料庫。V39 斷網重播由組長做。 |

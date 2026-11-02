@@ -16,11 +16,12 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
                                                           落地訴狀草稿(預設原告起訴狀；defendant=被告答辯狀)
   python main.py pleading-source --case-id X --side defendant  印出該方撰狀素材(Stage 3+查證狀態),不重跑攻防補產書狀用
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
-  python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
+  python main.py export-demo [--live-checks] [--out <資料夾>]  把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
 """
 import argparse
 import json
+import os
 import sys
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
@@ -246,18 +247,25 @@ def cmd_serve(args):
 def cmd_export_demo(args):
     from server import seed
     session = get_session()
+    # 沒給 --out 時寫進 demo/(進 git);給了就三個檔都寫到該資料夾
+    fixture_path, live_path, party_path = (
+        os.path.join(args.out, os.path.basename(p)) if args.out else p
+        for p in (seed.FIXTURE_PATH, seed.LIVE_CHECKS_PATH, seed.PARTY_CHECKS_PATH))
+    for table, by_case in seed.orphan_rows(session).items():
+        detail = "、".join(f"{case_id} {n} 筆" for case_id, n in by_case.items())
+        print(f"不匯出 {table}:案件已不在 cases 表({detail})")
     # 維持既有 --live-checks 同時匯出案件 fixture 的行為；僅單獨 --party-checks 略過。
     if not args.party_checks or args.live_checks:
-        counts = seed.write_fixture(session)
-        print(f"已匯出 {seed.FIXTURE_PATH}:{counts}")
+        counts = seed.write_fixture(session, fixture_path)
+        print(f"已匯出 {fixture_path}:{counts}")
     if args.live_checks:
-        checks = seed.write_live_checks(session)
-        print(f"已記錄 {len(checks)} 筆即時查證結果到 {seed.LIVE_CHECKS_PATH}")
+        checks = seed.write_live_checks(session, live_path)
+        print(f"已記錄 {len(checks)} 筆即時查證結果到 {live_path}")
         for c in checks:
             print(f"  {c['citation_text']} → {c['status']}")
     if args.party_checks:
-        checks = seed.write_party_checks(session)
-        print(f"已匯出 {len(checks)} 筆過去實際商工查詢到 {seed.PARTY_CHECKS_PATH}")
+        checks = seed.write_party_checks(session, party_path)
+        print(f"已匯出 {len(checks)} 筆過去實際商工查詢到 {party_path}")
     return 0
 
 
@@ -392,6 +400,7 @@ def main():
     p.add_argument("--live-checks", action="store_true",
                    help="另對 DB 中無 published 紀錄的引用實際連線查證並記錄(需要網路)")
     p.add_argument("--party-checks", action="store_true", help="匯出既有商工實際查詢結果供離線重播")
+    p.add_argument("--out", help="寫到這個資料夾，不寫 demo/(先驗證再決定要不要進 git)")
     p.set_defaults(fn=cmd_export_demo)
 
     p = sub.add_parser("party", help="依統編即時查核商工登記當事人")
