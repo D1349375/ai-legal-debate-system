@@ -149,7 +149,7 @@ def build_pleading_prompt(case_id, run_dir, documents):
     sides = " / ".join(f"--side {side}" for side in documents)
     return f"""/legal-debate {case_id}
 
-本次由 LegalDebate UI 以無人值守方式(claude -p)觸發，過程中沒有人能回答問題。只跑 .claude/skills/legal-debate/SKILL.md 的 Step 9C(只替既有案件補產書狀骨架),不跑其他步驟；需要使用者決定的地方，依 SKILL.md 最保守的做法處理，並在最後的回覆說明，不要停下來等待。
+本次由 LegalDebate UI 以無人值守方式(claude -p)觸發，過程中沒有人能回答問題。只跑 .claude/skills/legal-debate/references/legacy-v1.md 的 Step 9C(只替既有案件補產書狀骨架;舊流程已從 SKILL.md 搬到該檔),不跑其他步驟；需要使用者決定的地方，依該檔最保守的做法處理，並在最後的回覆說明，不要停下來等待。
 
 本次執行的固定條件：
 1. 案件 {case_id} 的攻防、評估與查證結果已在資料庫，案件輸入檔是 {run_dir}/case.json。不要執行 `python main.py case`、`record`、`finalize`、`verdict`、`party`;既有紀錄一律不動。
@@ -158,7 +158,7 @@ def build_pleading_prompt(case_id, run_dir, documents):
 4. 落地用 `python main.py pleading --case-id {case_id} --draft-file <檔案> --citations <檔案> --side <一方>`,一份書狀落地一次。
 5. 所有暫存檔(書狀草稿、引用清單、查證用的清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
 6. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
-7. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；未通過查證的引用不寫進書狀，並在最後回覆列出。
+7. 查證閘門報錯時照 legacy-v1.md 處理，不得繞過、不得自行改寫引用；未通過查證的引用不寫進書狀，並在最後回覆列出。
 8. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
 """
 

@@ -260,13 +260,31 @@ def pleading_side(row):
     return row.side or 'plaintiff'
 
 
-def record_pleading(session, *, case_id, draft_text, citations_used, side='plaintiff'):
-    """side=plaintiff 為民事起訴狀骨架，defendant 為民事答辯狀骨架；兩方走同一道查證閘門。"""
+# 每一方的主要書狀:原告是起訴狀、被告是答辯狀。舊流程 pleading_type 為 NULL,依 side 推定。
+MAIN_PLEADING_TYPE = {"plaintiff": "complaint", "defendant": "answer"}
+
+
+def is_main_pleading(row, side):
+    """這一列是不是該方的主要書狀(起訴狀或答辯狀);模擬的準備書狀、言詞辯論意旨狀不算。"""
+    return pleading_side(row) == side and row.pleading_type in (None, MAIN_PLEADING_TYPE[side])
+
+
+PLEADING_TYPES = ("complaint", "answer", "brief", "closing")
+
+
+def record_pleading(session, *, case_id, draft_text, citations_used, side='plaintiff', pleading_type=None, round=None,
+                    is_simulated=None, structured=None):
+    """side=plaintiff 為民事起訴狀骨架，defendant 為民事答辯狀骨架；兩方走同一道查證閘門。
+    書狀交換流程另記 pleading_type、round、is_simulated 與模型交的結構化內容(structured);舊流程這些欄位為 NULL。"""
     if side not in VALID_SIDES:
         raise ValueError(f"非法 side: {side}")
+    if pleading_type not in (None, *PLEADING_TYPES):
+        raise ValueError(f"非法 pleading_type: {pleading_type}")
     _assert_all_published(session, citations_used)
     row = PleadingDraft(case_id=case_id, draft_text=draft_text, side=side,
-                         citation_verification_status='published', generated_at=_now_iso())
+                         citation_verification_status='published', generated_at=_now_iso(),
+                         pleading_type=pleading_type, round=round, is_simulated=is_simulated,
+                         structured_json=json.dumps(structured, ensure_ascii=False) if structured is not None else None)
     session.add(row)
     session.commit()
     return row
@@ -287,6 +305,7 @@ def record_pleading_edit(session, *, case_id, parent_id, draft_text, citation_ch
     status = 'published' if all(c.get("gate") == "pass" for c in citation_check) else 'blocked'
     row = PleadingDraft(case_id=case_id, draft_text=draft_text, citation_verification_status=status,
                         side=pleading_side(parent),  # 編輯起訴狀得到的仍是起訴狀，答辯狀亦同
+                        pleading_type=parent.pleading_type, round=parent.round, is_simulated=parent.is_simulated,
                         generated_at=_now_iso(), source='lawyer_edit', parent_id=parent_id,
                         citation_check_json=json.dumps(citation_check, ensure_ascii=False))
     session.add(row)

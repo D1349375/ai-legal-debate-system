@@ -1,6 +1,6 @@
 # 書狀交換改版:接手文件
 
-> 更新於 2026-11-02。給下一個接手的 agent 或組員。每完成一項就更新第 2、3 節。
+> 更新於 2026-11-02(W2 程式完成後)。給下一個接手的 agent 或組員。每完成一項就更新第 2、3 節。
 > 決賽 2026-11-07,程式 11/5 晚上凍結。
 
 ## 1. 先讀這些
@@ -20,8 +20,8 @@
 
 | 分支 | 工作目錄 | commit | 用途 | 遠端 |
 |---|---|---|---|---|
-| `pleading-exchange` | `.claude/worktrees/pleading-exchange` | `ca38d03` 之後的文件 commit | 新架構主線 | **沒有 push** |
-| `main-finals-fixes` | `.claude/worktrees/main-finals-fixes` | `cf6f98c` | 新架構沒過時的退路 | 比遠端多 2 個 commit,沒有 push |
+| `pleading-exchange` | `.claude/worktrees/pleading-exchange` | `e1b5436`,W2 改動未 commit | 新架構主線 | `e1b5436` 已 push |
+| `main-finals-fixes` | `.claude/worktrees/main-finals-fixes` | `cf6f98c` 之後 W0 修正陸續 commit(T1–T3 已完成) | 新架構沒過時的退路;W0 修正 T1–T6 在這裡 | 以 `git log` 為準 |
 | `main` | 專案根目錄 | `aeb618e` | 最後保底,沒動 | 已同步 |
 | `origin/retrieval-optimization` | 無 | `e8404f7` | 組員的檢索來源 | 組員維護 |
 
@@ -29,46 +29,35 @@
 |---|---|---|
 | R0 檢索搬入 | 完成,`7ae2d9d` | 離線 383 項、連網 11 項、CLI 實測、瀏覽器示範案 25/25 |
 | W1 案件輸入與起訴前檢查 | 完成,`ca38d03` | 離線 427 項、2 項略過;瀏覽器走過建案與舊案,深淺色都看過 |
-| W0 第二批修正實跑 | **下一步,還沒跑** | 無 |
-| W2–W11 | 未開始 | 無 |
+| W0 第二批修正實跑 | 完成,在 `main-finals-fixes` 跑(2026-11-02) | 依手冊判準通過;找到 9 項問題,T1–T6 由 Codex 在 `main-finals-fixes` 修,T7 再合併進本分支。見 `git show main-finals-fixes:docs/live-run-records/w0-2026-11-02.md` 與該分支 `docs/zh/w0-findings/README.md` |
+| W2 起訴狀 v1 | 程式與範本完成,**未 commit** | 離線 451 項、2 項略過(新增 24 項);P1 實跑見 `docs/live-run-records/w2-2026-11-02.md` |
+| W3–W11 | 未開始 | 無 |
 
-**新流程還沒真正運作。** 新建案件會標 `protocol=v2`、存進新欄位,但 `SKILL.md` 與範本還是舊流程,模型還讀不到證據清單,也還沒用新檢索指令。W2 起才接上。目前也還沒有任何 Claude 實跑紀錄。
+**新流程只接上 P0、P1。** v2 案件走新的 `SKILL.md` Step 1–3:原告分析(新檢索指令)→ 撰狀 subagent 交 JSON → `main.py complaint` 檢查事實對應、由程式組成正文、查證後落地。Step 4 以後暫時借舊流程(`references/legacy-v1.md`),被告仍讀全部案件事實,W4 才改。UI 的「開始執行」還沒有「只跑到起訴狀」的選項(W3 的 `stop_after`)。
 
 ## 3. 下一步
 
-### 3.1 W0:第二批修正實跑
+### 3.1 W0:已完成
 
-在 `main-finals-fixes` 跑,不是新分支。目的是先有基準,之後出錯才分得清是新架構還是第二批。
+2026-11-02 在 `main-finals-fixes` 跑完,依手冊判準通過(11 分 54 秒、2.89 美元、分類器中止 0)。找到的問題在該分支 `docs/zh/w0-findings/`:T1–T6 由 Codex 修在 `main-finals-fixes`,T7 合併進本分支;T8(條文內容核對)、T9(最強論點選句)只修本分支。**本分支不要自己修 T1–T6**,等 T7 合併,避免衝突。
 
-1. 確認訂閱額度。一次約 15 分鐘,實跑 #4 用掉 5 小時視窗約 27%(單次數字)。
-2. 在 `.claude/worktrees/main-finals-fixes` 啟動:
+### 3.2 W2:起訴狀 v1(程式完成,等使用者同意 commit)
 
-   ```bash
-   python main.py serve --port 8124 --no-browser
-   ```
+做了什麼、和計畫不同的地方、實跑結果:計畫第 6 節 W2 列、[iteration-log.md](iteration-log.md)、`docs/live-run-records/w2-2026-11-02.md`。
 
-3. 瀏覽器開 `http://127.0.0.1:8124`,建新案件:
-   - 案由、事實、請求:照 `data/cases/test-2026-10-27-gcis-001.json`。
-   - 原告統編 `29112102`,被告是自然人,不填統編。
-   - 書狀選「兩份都產」,按開始執行。
-4. 跑完依 `main-finals-fix-list.md` 的 V30–V46 檢查。V35–V37 要人工逐句對照。
-5. 把時間、花費、分類器中止次數寫進 `docs/live-run-records/` 與該文件。不要 commit 語料全文或本機路徑。
-6. 判斷:
-   - 全部落地、V35 不成立數為 0:W0 通過。
-   - 法官被自承檢查一直擋:照該文件文末的分級流程。
-   - 分類器中止明顯變多:照規格第 8 節,把 `【內部檢討】` 改成結果型欄位。
-7. 更新第 2 節與 `iteration-log.md`。
+- `retrieval-rules` 還沒有,`SKILL.md`「P1 檢索規則」一節是暫代的固定文字,組員做好後改成填指令輸出。
+- 實跑沒有走 UI 按鈕:用 `LiveRunManager.start` 同一條程式路徑,只在 prompt 末尾加「只跑到 Step 3」(W3 才有 `stop_after`)。所以 UI 會把這次執行判為「不完整」(缺 Stage 2、3 等),這是預期的。
+- W0 的 T1(資料庫環境變數)還沒合併:實跑時不要設 `LEGALDEBATE_DB_URL`,用 worktree 預設資料庫。
 
-### 3.2 W2:起訴狀 v1
+### 3.3 W3:關卡 1 與續跑(下一步)
 
-照計畫 W2 做。W0 沒有結果前不要開始。
+照計畫 W3。W2 留下的接點:
 
-- `retrieval-rules` 如果還沒有,先把 `retrieval-interface.md` 第八節的規則寫進 `SKILL.md`,範本照放 `{RETRIEVAL_RULES}`,組員做好再換。
-- 先寫測試 T2.1–T2.7,再實作。
-- 只跑到 P1,用商工解散案,一次約 5–8 分鐘(估計)。
-- 完成後才進 W3。
+- `resume_plan`、`pipeline_missing` 還把任一書狀當成 Step 9 完成;v2 案件在 P1 就有起訴狀,一定要依 `protocol` 分流(第 7 節陷阱)。
+- `get_case_detail` 已依 `pleading_type` 只取起訴狀/答辯狀(`database/db.py` `is_main_pleading`);`server/live_run.py` 的 `_system_pleadings` 與 `pleading_materials` 還沒改。
+- 起訴狀的結構化內容在 `PleadingDraft.structured_json`;畫面目前只顯示正文,事實缺口與律師附註在正文後的【本稿產出說明】。
 
-### 3.3 之後
+### 3.4 之後
 
 W3 關卡 1、W4 答辯狀、W5 爭點表、W6 準備書狀、W7 診斷與 v2、W8 全程實跑、W9 三劇本、W10 全文互看、W11 對外材料。每項的細節在計畫裡。
 
@@ -94,7 +83,7 @@ python -X utf8 -m pytest -q -m network -p no:cacheprovider tests/test_verify.py 
 python main.py verify "最高法院105年度台簡上字第33號" "最高法院105年度台上字第99999號"
 ```
 
-預期:離線約 3 分鐘,目前 427 項通過;連網 11 項通過;第三條前者 `published`、後者 `not_found`。
+預期:離線約 4 分鐘,目前 451 項通過;連網 11 項通過;第三條前者 `published`、後者 `not_found`。
 
 手動試用時要用暫存資料與快取,不要寫進真的資料庫:
 

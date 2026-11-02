@@ -87,6 +87,11 @@ class PleadingDraft(Base):
     # 哪一方的書狀:plaintiff=民事起訴狀、defendant=民事答辯狀。2026-10-29 新增，之前的紀錄為 NULL,一律視同 plaintiff
     # (當時只產原告起訴狀)。律師編輯版沿用原稿的 side。
     side = Column(String, nullable=True)
+    # 書狀交換流程(protocol=v2)才有。NULL=舊流程,依 side 推定(起訴狀或答辯狀)。
+    pleading_type = Column(String, nullable=True)  # complaint / answer / brief / closing
+    round = Column(Integer, nullable=True)  # 起訴狀 v1=1;準備書狀、言詞辯論意旨狀依輪次
+    is_simulated = Column(Integer, nullable=True)  # 1=回應系統模擬對手的文件(P2–P5),畫面標「模擬」
+    structured_json = Column(Text, nullable=True)  # 模型交的結構化內容(事實點、請求權基礎、事實缺口等),正文由程式組成
 
 
 class PartyCheck(Base):

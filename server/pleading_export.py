@@ -2,6 +2,7 @@
 cleanDraftNote、pleadingDoc 的標題處理)：畫面上不顯示的內部備註，匯出也不帶。只產生匯出文字，資料庫原文不動。
 
 改動任一邊的規則時，另一邊要一起改。
+例外:正文的事實點編號〔CF1〕畫面照顯示(律師編輯與逐點表態要用),只有匯出移除(server/services.py export_pleading_text)。
 """
 import re
 

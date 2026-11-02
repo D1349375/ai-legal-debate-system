@@ -109,7 +109,7 @@ def main():
         record_pleading(s, case_id=case_id, side=side, citations_used=[], draft_text=DRAFTS[side])
         landed(f"已落地{'起訴狀' if side == 'plaintiff' else '答辯狀'}草稿 {case_id}")
 
-    if "只跑 .claude/skills/legal-debate/SKILL.md 的 Step 9C" in prompt:
+    if "的 Step 9C(只替既有案件補產書狀骨架" in prompt:
         for side in wanted:
             tool("Bash", {"command": f"python main.py pleading-source --case-id {case_id} --side {side}"})
             if mode != "partial":

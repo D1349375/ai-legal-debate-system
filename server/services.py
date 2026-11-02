@@ -14,7 +14,7 @@ import time
 
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
-    record_pleading_edit, latest_party_checks, pleading_side, case_payload, case_precheck,
+    record_pleading_edit, latest_party_checks, pleading_side, is_main_pleading, case_payload, case_precheck,
 )
 from sqlalchemy import func
 
@@ -24,6 +24,7 @@ from database.schema import (
 from engine import verify as engine_verify
 from engine import gcis, party_rules
 from engine.aggregate import VALID_SIDES, disagreement
+from engine.fact_points import strip_cf_tags
 from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
@@ -480,6 +481,7 @@ def export_pleading_text(case_id, version):
               "錄製紀錄(過去由 Claude Code 產生後落地)")  # 書狀由主 agent 撰寫(SKILL.md Step 9),不經 subagent
     body, note = (pleading_export.system_draft_for_export(version["draft_text"], version["side"]) if version["source"] == "system"
                   else (version["draft_text"], None))  # 系統版去掉畫面上不顯示的內部備註；資料庫原文不動
+    body = strip_cf_tags(body)  # 事實點編號〔CF1〕只給畫面與逐點表態用,律師版也一樣不帶出去
     lines = [body.rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
              f"案件:{case_id}", f"書狀:{version['document']}", f"版本:{version['label']}", f"來源:{source}",
              f"產生／存檔時間:{version['generated_at']}", f"匯出時間:{_now_iso()}",
@@ -621,7 +623,8 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     # 每一方各取最新的系統產生版；沒有就是 None(UI 照實顯示尚未產生，不拿另一方的書狀充數)
     pleadings = {}
     for side in VALID_SIDES:
-        system_rows = [r for r in pleading_rows if _is_system(r) and pleading_side(r) == side]
+        # 依書狀類型過濾:之後的模擬準備書狀、言詞辯論意旨狀不能蓋掉起訴狀或答辯狀
+        system_rows = [r for r in pleading_rows if _is_system(r) and is_main_pleading(r, side)]
         pleading = None
         if system_rows:
             pleading_row = system_rows[-1]
@@ -633,6 +636,9 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                 "draft_count": len(system_rows),
                 "citation_check": _pleading_citation_check(pleading_row.draft_text, lookup),
             }
+            if pleading_row.pleading_type:  # 書狀交換流程才有;舊案回應維持原樣
+                pleading.update(pleading_type=pleading_row.pleading_type, round=pleading_row.round,
+                                structured=json.loads(pleading_row.structured_json) if pleading_row.structured_json else None)
         pleadings[side] = pleading
     pleading_versions = [pleading_version(r, lookup, origin) for r in pleading_rows]
 
