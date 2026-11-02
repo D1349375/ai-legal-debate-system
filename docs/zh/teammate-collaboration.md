@@ -102,12 +102,13 @@
 
 ## 9. 目前狀態(2026-11-02 晚)
 
-| 分支 | 內容 | 檢核 | 合併 |
-|---|---|---|---|
-| `t5-windows-tools` | T5 停用 PowerShell | 通過(309 passed) | 待合併進 `main-finals-fixes` |
-| `t6-export-out` | T6 `export-demo --out`、孤兒列(含 T5) | 通過(312 passed);W0 資料庫複本匯出時,作廢那次 16 筆孤兒列都沒匯出 | 待合併;V39 斷網重播由組長做 |
-| `v2-flow-fixes` 的 `ab2c008`、`8b2d16e` | P2 檢索規則、舊設計殘留清單 | 通過 | 待合併進 `pleading-exchange` |
-| `w4-defendant-view` | W4 被告角色檔、逐點表態檢查 | 通過 | 待合併;合併時計畫表 W3、W4 兩列衝突,組長解 |
-| `t8-statute-claims` | T8 `statute-claims` | 通過 | 待合併;SKILL 與法官範本等 T7 |
+組員到目前為止的分支都已檢核通過並合併:
 
-後三條和 `pleading-exchange` 一起試合併:離線全套 560 passed、2 skipped。
+| 分支 | 內容 | 合併進 | 備註 |
+|---|---|---|---|
+| `t5-windows-tools`、`t6-export-out` | T5 停用 PowerShell;T6 `export-demo --out`、孤兒列 | `main-finals-fixes`(快轉到 `ed12d84`,檢核紀錄 `d4bee0d`) | T6 用 W0 資料庫複本匯出時,作廢那次 16 筆孤兒列都沒匯出。V39 斷網重播由組長做 |
+| `v2-flow-fixes`(到 `8b2d16e`) | P2 檢索規則、舊設計殘留清單 | `pleading-exchange` | |
+| `w4-defendant-view` | W4 被告角色檔、逐點表態檢查 | `pleading-exchange` | 計畫表 W3、W4 兩列衝突,保留兩邊。`defendant_view` 改接 `current_complaint` 由組長在接 W4 時做 |
+| `t8-statute-claims` | T8 `statute-claims` | `pleading-exchange` | SKILL 與法官範本等 T7 |
+
+合併後 `pleading-exchange` 離線全套 560 passed、2 skipped。之後新的工作從合併後的最新 `pleading-exchange` 開分支。
