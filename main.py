@@ -38,6 +38,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
                                                           印出該階段的檢索規則(調度員填範本的 {RETRIEVAL_RULES})
   python main.py prompt stage1_prompt --out <檔> --set KEY=VALUE [--phase p1 --side plaintiff --case-dir <案件資料夾>]
                                                           把範本填好寫成檔，只印路徑(subagent 自己讀，主 agent 不經手全文)
+  python main.py check-summary --case-id X --json <摘要檔>  檢查對手摘要(最強論點逐字、無條件或讓步字樣、引用在清單內);只警告，結束碼 0;檔案或格式錯誤為 2
   檢索指令共用：--snapshot <本次實跑快照資料夾>(角色與查證讀同一版本)、--log <檢索紀錄檔>(記錄每次查詢並計算本輪預算)
   search-judgments、judgment 另有 --issue <爭點id>、--exclude <字號或 JID>(不提供的裁判，如示範案的來源裁判)
 """
@@ -1223,6 +1224,33 @@ def cmd_revision(args):
     return 0
 
 
+def cmd_check_summary(args):
+    """檢查寫給對手的摘要檔(T9)。只警告:警告印到 stderr，結束碼 0；摘要檔讀不到、格式錯誤或找不到案件為 2。"""
+    from engine.summary_check import summary_warnings, validate_summary
+    try:
+        with open(args.json, 'r', encoding='utf-8') as f:
+            summary = validate_summary(json.load(f))
+    except OSError as e:
+        print(f"無法檢查:讀不到摘要檔({e.__class__.__name__}: {args.json})", file=sys.stderr)
+        return 2
+    except json.JSONDecodeError as e:
+        print(f"無法檢查:摘要檔不是合法的 JSON({e})", file=sys.stderr)
+        return 2
+    except ValueError as e:
+        print(f"無法檢查:摘要檔格式錯誤，{e}", file=sys.stderr)
+        return 2
+    session = get_session()
+    case = session.query(Case).filter_by(case_id=args.case_id).one_or_none()
+    if case is None:
+        print(f"無法檢查:找不到案件 {args.case_id}", file=sys.stderr)
+        return 2
+    warnings = summary_warnings(summary, public_arguments(session, case_id=args.case_id), case.protocol)
+    for w in warnings:
+        print(f"警告:{w}", file=sys.stderr)
+    print(f"摘要檢查:{len(warnings)} 則警告")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="LegalDebate 落地 CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -1412,6 +1440,11 @@ def main():
     p.add_argument("--review-json", help="判決實質核對結果 JSON 陣列:[{citation, supports, reason}]")
     p.add_argument("--snapshot", help="案件的快照根目錄;引用判決時用來核對原告讀過全文(UI 執行時由環境變數提供)")
     p.set_defaults(fn=cmd_revision)
+
+    p = sub.add_parser("check-summary", help="檢查寫給對手的摘要檔(最強論點逐字、無條件或讓步字樣、引用在清單內)，只警告")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--json", required=True, help="摘要檔:side、stage、position、strongest_point、cited_statutes、cited_precedents")
+    p.set_defaults(fn=cmd_check_summary)
 
     args = parser.parse_args()
     if args.cmd in ('record', 'verify') and args.snapshot:
