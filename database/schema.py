@@ -21,6 +21,10 @@ class Case(Base):
     evidence_json = Column(Text, nullable=True)  # JSON array:id(甲證N)/type/date/description/proves
     opponent_responses_json = Column(Text, nullable=True)  # JSON array:source/date/text
     known_gaps_json = Column(Text, nullable=True)  # JSON array of string
+    # 律師確認關卡(JSON object,key 為關卡名稱,目前只有 complaint=關卡 1)。每個關卡只寫一次,不可覆寫。
+    # 值:action(continue/finish)、version_id、source(system/lawyer_edit)、by(ui=在 UI 按下確認/auto=無人值守自動通過)、
+    # recorded_at;auto 另有 run_id 與 note(未經律師確認)。
+    gates_json = Column(Text, nullable=True)
 
 class DebateArgument(Base):
     __tablename__ = 'debate_arguments'
@@ -129,6 +133,8 @@ class LiveRun(Base):
     kind = Column(String, nullable=True)  # NULL/'full'=完整流程；'pleadings'=只替已跑完攻防的案件補產書狀(Step 9C)
     # 使用者選擇產生的書狀(逗號分隔:plaintiff=起訴狀、defendant=答辯狀);2026-10-30 新增，之前的執行為 NULL
     documents = Column(String, nullable=True)
+    # 書狀交換流程的停止點:complaint=只跑到起訴狀 v1(停在關卡 1);NULL=不指定(關卡 1 自動通過)或舊流程
+    stop_after = Column(String, nullable=True)
 
 
 def init_db(db_path='sqlite:///database/legal_debate.db'):

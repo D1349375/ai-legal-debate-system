@@ -114,7 +114,8 @@ def plaintiff_view(session, case_id):
         raise ValueError(f"找不到案件 {case_id}")
     checks = latest_party_checks(session, case_id)
     return {"role": "plaintiff", "case": case_payload(row), "party_checks": checks,
-            "procedural_issues": procedural_issues(checks), "precheck": case_precheck(row)}
+            "procedural_issues": procedural_issues(checks), "precheck": case_precheck(row),
+            "complaint": current_complaint(session, case_id)}
 
 
 def record_argument(session, *, case_id, side, stage, position, reasoning,
@@ -311,6 +312,82 @@ def record_pleading_edit(session, *, case_id, parent_id, draft_text, citation_ch
     session.add(row)
     session.commit()
     return row
+
+
+GATES = ("complaint",)  # 關卡 1:律師確認起訴狀
+GATE_ACTIONS = ("continue", "finish")  # 確認並繼續 / 到此結束
+GATE_BY = ("ui", "auto")  # 在 UI 按下確認 / 無人值守執行未指定停止點，自動通過(未經律師確認)
+
+
+def case_gates(row):
+    try:
+        gates = json.loads(row.gates_json) if row.gates_json else {}
+    except ValueError:
+        return {}
+    return gates if isinstance(gates, dict) else {}
+
+
+def system_complaints(session, case_id):
+    """流程產生的起訴狀(書狀交換流程才有 pleading_type;不含律師編輯版),依落地順序。"""
+    return [r for r in session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
+            if r.source in (None, 'system') and r.pleading_type == 'complaint']
+
+
+def record_gate(session, *, case_id, gate, version_id, action, by, run_id=None, note=None, check=None):
+    """記錄律師確認關卡。結構規則在這裡硬擋：只有書狀交換流程的案件有關卡；版本必須是該案件的起訴狀
+    (系統原稿或律師編輯版)且查證放行；每個關卡只寫一次，不可覆寫。
+    找不到案件或版本時 raise LookupError,其他違規 raise ValueError。
+    check(row):呼叫端在結構檢查之後的額外檢查(server/services.py 用畫面同一套規則看引用目前是否仍放行)。"""
+    if gate not in GATES:
+        raise ValueError(f"非法關卡:{gate}")
+    if action not in GATE_ACTIONS:
+        raise ValueError(f"非法 action:{action}(只能是 continue、finish)")
+    if by not in GATE_BY:
+        raise ValueError(f"非法 by:{by}")
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if case is None:
+        raise LookupError(f"找不到案件 {case_id}")
+    if case.protocol != 'v2':
+        raise ValueError("只有書狀交換流程(protocol v2)的案件有律師確認關卡")
+    gates = case_gates(case)
+    if gate in gates:
+        raise ValueError(f"{case_id} 的關卡 1 已在 {gates[gate].get('recorded_at')} 記錄(版本 #{gates[gate].get('version_id')}),不可覆寫")
+    row = session.get(PleadingDraft, version_id)
+    if row is None or row.case_id != case_id:
+        raise LookupError(f"{case_id} 找不到書狀版本 #{version_id}")
+    if pleading_side(row) != 'plaintiff' or row.pleading_type != 'complaint':
+        raise ValueError(f"版本 #{version_id} 不是起訴狀;關卡 1 只能確認起訴狀")
+    if row.citation_verification_status != 'published':
+        raise ValueError(f"版本 #{version_id} 有引用未通過查證，不能確認;請先重新查證或移除該引用")
+    if check is not None:
+        check(row)
+    entry = {"action": action, "version_id": row.id, "source": "system" if row.source in (None, 'system') else row.source,
+             "by": by, "recorded_at": _now_iso()}
+    if run_id is not None:
+        entry["run_id"] = run_id
+    if note:
+        entry["note"] = note
+    case.gates_json = json.dumps({**gates, gate: entry}, ensure_ascii=False)
+    session.commit()
+    return entry
+
+
+def current_complaint(session, case_id):
+    """之後各步驟要讀的起訴狀：關卡 1 已記錄時是確認的那一版(可能是律師編輯版);還沒確認時是最新的系統原稿
+    (confirmed=False)。舊流程案件或還沒有起訴狀時回傳 None。"""
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if case is None:
+        return None
+    gate = case_gates(case).get("complaint")
+    if gate:
+        row = session.get(PleadingDraft, gate["version_id"])
+    else:
+        rows = system_complaints(session, case_id)
+        row = rows[-1] if rows else None
+    if row is None:
+        return None
+    return {"version_id": row.id, "source": "system" if row.source in (None, 'system') else row.source,
+            "confirmed": gate is not None, "gate": gate, "draft_text": row.draft_text}
 
 
 def _citation_key(citation_text):

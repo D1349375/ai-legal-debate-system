@@ -15,6 +15,7 @@ import time
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
     record_pleading_edit, latest_party_checks, pleading_side, is_main_pleading, case_payload, case_precheck,
+    case_gates, record_gate, system_complaints,
 )
 from sqlalchemy import func
 
@@ -24,7 +25,7 @@ from database.schema import (
 from engine import verify as engine_verify
 from engine import gcis, party_rules
 from engine.aggregate import VALID_SIDES, disagreement
-from engine.fact_points import strip_cf_tags
+from engine.fact_points import new_paragraphs_without_cf, strip_cf_tags
 from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
@@ -377,7 +378,8 @@ def _db_check(citations, lookup):
     return out
 
 
-def pleading_version(row, lookup, origin):
+def pleading_version(row, lookup, origin, parent_text=None):
+    """parent_text:律師編輯版的上一版全文，用來找出新增卻沒有〔CF…〕標記的段落(只有書狀交換流程的起訴狀才比對)。"""
     if _is_system(row):
         check = _db_check(extract_citations(row.draft_text), lookup)
         blocked = [c for c in check if c["gate"] != "pass"]
@@ -388,13 +390,18 @@ def pleading_version(row, lookup, origin):
         blocked = [c for c in check if c["gate"] != "pass"]
         status = row.citation_verification_status
         version_origin = {"kind": "lawyer_edit"}
-    return {"id": row.id, "source": "system" if _is_system(row) else "lawyer_edit", "parent_id": row.parent_id,
-            "side": pleading_side(row), "document": PLEADING_DOCUMENT[pleading_side(row)],
-            "label": ("系統產生版" if _is_system(row) else "律師編輯版") + f" #{row.id}",
-            "generated_at": row.generated_at, "draft_text": row.draft_text, "origin": version_origin,
-            "status": status, "citation_check": check, "blocked_count": len(blocked),
-            "exportable": status == "published" and not blocked,
-            "lint_warnings": pleading_export.lint_pleading(row.draft_text, pleading_side(row))}
+    version = {"id": row.id, "source": "system" if _is_system(row) else "lawyer_edit", "parent_id": row.parent_id,
+               "side": pleading_side(row), "document": PLEADING_DOCUMENT[pleading_side(row)],
+               "label": ("系統產生版" if _is_system(row) else "律師編輯版") + f" #{row.id}",
+               "generated_at": row.generated_at, "draft_text": row.draft_text, "origin": version_origin,
+               "status": status, "citation_check": check, "blocked_count": len(blocked),
+               "exportable": status == "published" and not blocked,
+               "lint_warnings": pleading_export.lint_pleading(row.draft_text, pleading_side(row))}
+    if row.pleading_type:  # 書狀交換流程才有;舊案回應維持原樣
+        version.update(pleading_type=row.pleading_type, new_paragraphs_without_cf=(
+            new_paragraphs_without_cf(parent_text, row.draft_text)
+            if not _is_system(row) and row.pleading_type == "complaint" and parent_text is not None else []))
+    return version
 
 
 def _verify_entries(session, citations, *, parent_keys, mode, timeout, recorded_checks, lookup):
@@ -432,7 +439,7 @@ def save_pleading_edit(session, case_id, parent_id, draft_text, *, mode="auto", 
     new_keys = {c["key"] for c in citations}
     row = record_pleading_edit(session, case_id=case_id, parent_id=parent_id, draft_text=draft_text,
                                citation_check=entries)
-    version = pleading_version(row, _citation_lookup(session), None)
+    version = pleading_version(row, _citation_lookup(session), None, parent_text=parent.draft_text)
     version["removed_citations"] = [c["citation_text"] for c in parent_citations if c["key"] not in new_keys]
     return version
 
@@ -469,7 +476,30 @@ def find_pleading_version(session, case_id, version_id):
     row = session.get(PleadingDraft, version_id)
     if row is None or row.case_id != case_id:
         return None
-    return pleading_version(row, _citation_lookup(session), _origin_resolver(_runs_for(session, case_id)))
+    parent = session.get(PleadingDraft, row.parent_id) if row.parent_id else None
+    return pleading_version(row, _citation_lookup(session), _origin_resolver(_runs_for(session, case_id)),
+                            parent_text=parent.draft_text if parent is not None else None)
+
+
+def confirm_complaint_gate(session, case_id, version_id, action):
+    """關卡 1:使用者在 UI 選定起訴狀版本，確認並繼續(continue)或到此結束(finish)。結構規則由 record_gate 硬擋；
+    引用用畫面同一套規則再看一次(系統原稿依目前查證紀錄，律師版依存檔或重新查證的結果),有任一條未放行就不能確認。
+    找不到時 raise LookupError,其他不允許的情況 raise ValueError。"""
+    def citations_pass(row):
+        v = pleading_version(row, _citation_lookup(session), lambda _at: None)
+        if not v["exportable"]:
+            raise ValueError(f"版本 #{row.id} 有 {v['blocked_count']} 條引用未通過查證，不能確認；請先重新查證或移除該引用")
+    return record_gate(session, case_id=case_id, gate="complaint", version_id=version_id, action=action, by="ui",
+                       check=citations_pass)
+
+
+def gates_view(session, case_row):
+    """書狀交換流程的關卡狀態。pending:起訴狀已落地、還沒記錄關卡 1。舊流程案件回傳 None。"""
+    if case_row.protocol != "v2":
+        return None
+    gate = case_gates(case_row).get("complaint")
+    return {"complaint": gate,
+            "pending": "complaint" if gate is None and system_complaints(session, case_row.case_id) else None}
 
 
 def export_pleading_text(case_id, version):
@@ -640,7 +670,8 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                 pleading.update(pleading_type=pleading_row.pleading_type, round=pleading_row.round,
                                 structured=json.loads(pleading_row.structured_json) if pleading_row.structured_json else None)
         pleadings[side] = pleading
-    pleading_versions = [pleading_version(r, lookup, origin) for r in pleading_rows]
+    texts = {r.id: r.draft_text for r in pleading_rows}
+    pleading_versions = [pleading_version(r, lookup, origin, parent_text=texts.get(r.parent_id)) for r in pleading_rows]
 
     citations = _collect_citations(arguments, lookup, recorded_checks)
     stamps = sorted([a["created_at"] for a in arguments] + [q["created_at"] for q in questions])
@@ -649,6 +680,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
         "case": {**case_payload(case_row), "created_at": case_row.created_at, "source": "database",
                  "created_via": case_row.created_via},
         "precheck": case_precheck(case_row) if case_row.protocol == "v2" else None,
+        "gates": gates_view(session, case_row),
         "provenance": {"kind": _provenance_kind(arguments),
                        "model_ids": sorted({a["model_id"] for a in arguments if a["model_id"]}),
                        "first_recorded_at": stamps[0] if stamps else None,

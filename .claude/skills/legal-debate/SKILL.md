@@ -29,7 +29,7 @@ description: >-
 
 ## 書狀交換流程(protocol v2)
 
-目前接上的是 Step 1–3(P0、P1)。之後的步驟見「Step 4 以後」。
+目前接上的是 Step 1–3(P0、P1)與關卡 1。之後的步驟見「Step 4 以後」。
 
 ### 路徑
 
@@ -77,13 +77,21 @@ description: >-
 2. 開一個新的撰狀 subagent,prompt **逐字套用** `templates/complaint_prompt.txt`,填 `{CASE_ID}`、`{ROLE_VIEW_PATH}`、`{ANALYSIS_PATH}`(上一點的檔)、`{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`(與 Step 2 相同)。把回覆原樣存成 `complaint.json`。
 3. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --check`。印「未通過」就把報錯原文交回**同一個**撰狀 subagent,請它只改被點名的地方後重新輸出整份 JSON。同一份最多退回 2 次(含第一次共 3 次);3 次都沒通過就停在這裡,不落地,在最後回覆列出每次的報錯原文。通過時會印出程式組成的正文與「落地前要全部 published 的引用」。
 4. **開一個新的、乾淨的查證 subagent**(不能是撰狀的同一個),交給它:
-   - 執行 `python main.py verify <上一步列出的全部引用> --snapshot database/live_runs/case-<案件ID>/retrieval_cache`(UI 執行時環境變數已指向根目錄,`--snapshot` 可省略),確認存在性。
+   - 執行 `python main.py verify <上一步列出的全部引用> --snapshot database/live_runs/case-<案件ID>/retrieval_cache --read-by plaintiff`(UI 執行時環境變數已指向根目錄,`--snapshot` 可省略),確認存在性,以及原告在本案用 `judgment` 讀過全文(摘句由第 5 點落地時比對)。只有 `published` 放行;`not_read_by_side`(原告沒讀過全文)和其他狀態一樣退回撰狀。
    - 對 `complaint.json` 的每一個 `precedent_notes`,用 `python main.py judgment <字號>`(不加 `--snapshot`、不加 `--log`,不搜尋)讀全文,核對案由與爭點是否真的支持 `proposition`。
    - 回覆嚴格 JSON 陣列 `[{"citation": "字號", "supports": true 或 false, "reason": "一句話,寫依據全文哪一段"}]`;沒有判決時回 `[]`。把這個陣列原樣存成 `citation_review.json`,不要改寫或補內容。
-5. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --review-json citation_review.json` 落地。程式會再擋一次:引用未 published、判決實質核對不支持、判例摘句不是全文原句(`quote_not_found`)、文件身分不符、連線失敗(`network_error`)、同字號多份(`ambiguous`)都不落地。
+5. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --review-json citation_review.json` 落地(CLI 執行時另加 `--snapshot database/live_runs/case-<案件ID>/retrieval_cache`)。程式會再擋一次,只有 `published` 放行:引用未通過查證、判決實質核對不支持、判例摘句不是全文原句、原告沒用 `judgment` 讀過全文(`not_read_by_side`)都不落地。
    - 被擋的引用:回頭請撰狀 subagent 刪掉或改用通過的引用(算一次退回),不得自己改寫引用內容。
    - `lint_pleading` 的模擬流程用語警告只警告,照實列入最後回覆。
 6. 起訴狀 v1 落地後畫面就看得到;當事人欄由程式依商工查核帶入,已解散公司的法定代理人寫「清算人(待查明…)」,這是刻意的,不要要求補姓名。
+
+### 關卡 1 — 律師確認起訴狀
+
+關卡由 UI 記錄,你不記錄、不判斷,也不要替律師選版本。
+
+- 指示寫「只跑到起訴狀」:起訴狀 v1 落地後就停,直接到 Step 10。律師在 UI 選定版本(可先編輯成律師版)後確認並繼續,或到此結束。
+- 指示寫「跑完全程」、沒有停止點:關卡 1 自動通過,UI 在執行結束時記為「未經律師確認」,你接著做 Step 4 以後。
+- 續跑指示寫明關卡 1 確認的版本時,之後每一步需要起訴狀都讀那一版(`landed.json` 的 `confirmed_complaint`;`role-view` 的 `complaint` 也是那一版),不要改用資料庫裡的其他版本,也不要重新產生或落地起訴狀 v1。
 
 ### Step 4 以後
 

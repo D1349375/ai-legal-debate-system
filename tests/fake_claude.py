@@ -9,6 +9,7 @@ FAKE_CLAUDE_QUOTA=1 在開始與結束各送一則 rate_limit_event(訂閱額度
 書狀只落地 prompt「本次要產生的書狀」列出的那幾份；prompt 是「只跑 Step 9C」時只補產這幾份書狀，不跑攻防。
 prompt 是續跑時，照 prompt 的指示跳過資料庫已有的紀錄，並確認 landed.json 存在；
 FAKE_CLAUDE_FORCE_RELAND=1 則故意重新落地已有的紀錄，驗證資料庫層會拒絕覆寫。
+case.json 的 protocol 是 v2(書狀交換流程)時改走 run_v2(見該函數)。
 """
 import json
 import os
@@ -21,12 +22,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from database.db import (  # noqa: E402
-    finalize_case, get_session, pleading_side, record_argument, record_pleading, record_question, record_verdict,
+    finalize_case, get_session, plaintiff_view, pleading_side, record_argument, record_pleading, record_question,
+    record_verdict,
 )
 from database.schema import CourtQuestion, DebateArgument, PleadingDraft, Verdict  # noqa: E402
 
 DRAFTS = {"plaintiff": "民事起訴狀\n訴之聲明\n一、被告應給付原告。",
           "defendant": "民事答辯狀\n答辯聲明\n一、原告之訴及假執行之聲請均駁回。"}
+COMPLAINT = ("民事起訴狀\n訴之聲明\n一、被告甲、乙間就系爭房地所為之贈與行為應予撤銷。\n事實及理由\n"
+             "一、原告公司於民國104年4月間解散。〔CF1〕\n")
 
 
 def emit(obj):
@@ -102,6 +106,8 @@ def main():
 
     s = get_session()
     model = os.environ.get("CLAUDE_CODE_SUBAGENT_MODEL")
+    if case.get("protocol") == "v2":
+        return run_v2(s, case_id, run_dir, prompt, mode, model)
     m = re.search(r"本次要產生的書狀：([^。\n]*)", prompt)
     wanted = [side for side, label in (("plaintiff", "原告起訴狀"), ("defendant", "被告答辯狀")) if m and label in m.group(1)]
 
@@ -183,6 +189,65 @@ def main():
           "permission_denials": [], "usage": {"input_tokens": 9, "output_tokens": 99},
           "modelUsage": {"claude-sonnet-5-5": {"inputTokens": 188, "outputTokens": 138510, "cacheReadInputTokens": 6185052,
                                                "cacheCreationInputTokens": 389538, "costUSD": 3.21}}})
+    return 0
+
+
+def run_v2(s, case_id, run_dir, prompt, mode, model):
+    """書狀交換流程(protocol v2):P1 原告分析與起訴狀 v1;prompt 寫「只跑到起訴狀」時就停。
+    沒有停止點或是關卡 1 之後的續跑，接著照 SKILL.md「Step 4 以後」的過渡做法跑舊流程(被告 Stage 1 起)。
+    partial:只落地原告分析就回報完成;FAKE_CLAUDE_STOP_AFTER_P1=1:沒有停止點，但起訴狀落地後就回報完成。
+    關卡之後會把讀到的起訴狀版本(原告角色檔的 complaint)寫進 complaint_read.txt,供測試確認續跑讀的是確認版。"""
+    resume = "本次是續跑" in prompt
+    if resume:
+        with open(os.path.join(ROOT, run_dir, "landed.json"), encoding="utf-8") as f:
+            json.load(f)
+        tool("Read", {"file_path": os.path.join(ROOT, run_dir, "landed.json")})
+
+    def has(model_cls, **kw):
+        return s.query(model_cls).filter_by(case_id=case_id, **kw).count() > 0
+
+    tool("Bash", {"command": f"python main.py role-view --case-id {case_id} --role plaintiff"})
+    if not has(DebateArgument, side="plaintiff", stage=1):
+        tool("Agent", {"description": "原告請求權基礎檢驗"})
+        record_argument(s, case_id=case_id, side="plaintiff", stage=1, position="撤銷詐害行為", reasoning="依民法第244條請求",
+                        cited_statutes=[], cited_precedents=[], model_id=model)
+        landed(f"已落地論證 {case_id} plaintiff stage1", parent="agent-1")
+    if mode == "partial":
+        emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 0.5, "result": "完成(其實沒有)"})
+        return 0
+    if not has(PleadingDraft, pleading_type="complaint"):
+        tool("Bash", {"command": f"python main.py complaint --case-id {case_id} --json {run_dir}/complaint.json"})
+        record_pleading(s, case_id=case_id, draft_text=COMPLAINT, citations_used=[], pleading_type="complaint", round=1,
+                        is_simulated=0, structured={"fact_points": [{"id": "CF1", "text": "原告公司於104年4月間解散。"}]})
+        landed(f"已落地起訴狀 v1 {case_id}")
+    if "本次只跑到起訴狀" in prompt or os.environ.get("FAKE_CLAUDE_STOP_AFTER_P1") == "1":
+        emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 1.15, "result": "起訴狀 v1 已落地"})
+        return 0
+    complaint = plaintiff_view(s, case_id)["complaint"]
+    with open(os.path.join(ROOT, run_dir, "complaint_read.txt"), "w", encoding="utf-8") as f:
+        f.write(str(complaint["version_id"]))
+    if not has(DebateArgument, side="defendant", stage=1):
+        tool("Agent", {"description": "被告 Stage 1"})
+        record_argument(s, case_id=case_id, side="defendant", stage=1, position="否認詐害", reasoning="推理",
+                        cited_statutes=[], cited_precedents=[], model_id=model)
+        landed(f"已落地論證 {case_id} defendant stage1", parent="agent-2")
+    if not has(CourtQuestion):
+        record_question(s, case_id=case_id, question_text="請說明", target_side="defendant", based_on="被告 Stage1 立場")
+    for stage in (2, 3):
+        for side in ("plaintiff", "defendant"):
+            if not has(DebateArgument, side=side, stage=stage):
+                record_argument(s, case_id=case_id, side=side, stage=stage, position=f"{side} s{stage}", reasoning="推理",
+                                cited_statutes=[], cited_precedents=[], falsifier="若對方補證則讓步", model_id=model)
+                landed(f"已落地論證 {case_id} {side} stage{stage}")
+    anchor = finalize_case(s, case_id=case_id)
+    if not has(Verdict):
+        record_verdict(s, case_id=case_id, verdict_main_text="評估", verdict_reasoning="理由",
+                       risk_map={"對原告不利之處": [], "對被告不利之處": [], "建議補強證據": []},
+                       mechanical_anchor_json=anchor, protocol_version="test", citations_used=[])
+    if not [r for r in s.query(PleadingDraft).filter_by(case_id=case_id).all() if pleading_side(r) == "defendant"]:
+        land = record_pleading(s, case_id=case_id, side="defendant", citations_used=[], draft_text=DRAFTS["defendant"])
+        landed(f"已落地答辯狀草稿 {case_id} #{land.id}")
+    emit({"type": "result", "subtype": "success", "is_error": False, "total_cost_usd": 2.5, "result": "全部完成"})
     return 0
 
 

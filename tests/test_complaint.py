@@ -269,6 +269,52 @@ class TestComplaintCommand:
             assert s.query(PleadingDraft).count() == 0
 
 
+class TestReadByPlaintiff:
+    """起訴狀引用的判決要原告方在本案用 judgment 讀過全文(docs/zh/retrieval-interface.md 第十三節第 4 項)。
+    落地在同一個程序裡跑,判決全文由假的 fjud 提供,不連網。"""
+    JID = "TPSV,111,台上,1069,20250716,1"
+    TEXT = "最高法院民事判決\n111年度台上字第1069號\n主文\n原判決廢棄。\n理由\n按締約上過失責任，以契約未成立為前提。"
+    NOTE = {"citation": "最高法院111年度台上字第1069號", "doc_date": "20250716", "doc_type": "判決",
+            "case_cause": "請求損害賠償", "quote": "按締約上過失責任，以契約未成立為前提。", "proposition": "締約上過失以契約未成立為前提"}
+
+    def land(self, db_url, tmp_path, monkeypatch, *, read, snapshot=True):
+        import argparse
+        import main
+        from engine import fjud, retrieval_cache
+        monkeypatch.setattr(fjud, "fetch_document", lambda jid, timeout=None, session=None: {
+            "jid": jid, "url": fjud.document_url(jid), "full_text": self.TEXT, "case_cause": "請求損害賠償"})
+        monkeypatch.setattr(fjud, "advanced_search", lambda citation=None, **kw: {
+            "rows": [{"jid": self.JID}] if citation == ("111", "台上", "1069") else []})
+        monkeypatch.setenv(DB_URL_ENV, db_url)
+        root = tmp_path / "case-snap"
+        if read:  # 原告用 judgment 讀過全文
+            assert main.cmd_judgment(argparse.Namespace(target=self.JID, doc_date=None, json=True, log=None, issue=None,
+                                                        snapshot=str(root / "plaintiff"))) == 0
+        else:  # 全文只是被 search-judgments --fetch 存進快照,不算讀過
+            retrieval_cache.get_judgment(self.JID, snapshot=str(root / "plaintiff"))
+        with get_session(db_url) as s:
+            upsert_citation(s, citation_text=self.NOTE["citation"], source_type="judgment", status="published")
+        p = payload(citations=["民法第244條", self.NOTE["citation"]], precedent_notes=[self.NOTE])
+        review = write(tmp_path, [{"citation": self.NOTE["citation"], "supports": True, "reason": "理由欄第一段"}], "review.json")
+        return main.cmd_complaint(argparse.Namespace(case_id="v2", json=write(tmp_path, p), check=False, review_json=review,
+                                                     snapshot=str(root) if snapshot else None))
+
+    def test_judgment_the_plaintiff_did_not_read_is_refused(self, db_url, tmp_path, monkeypatch, capsys):
+        assert self.land(db_url, tmp_path, monkeypatch, read=False) == 1
+        assert "not_read_by_side" in capsys.readouterr().err
+        with get_session(db_url) as s:
+            assert s.query(PleadingDraft).count() == 0
+
+    def test_judgment_needs_the_case_snapshot(self, db_url, tmp_path, monkeypatch, capsys):
+        assert self.land(db_url, tmp_path, monkeypatch, read=True, snapshot=False) == 1
+        assert "快照根目錄" in capsys.readouterr().err
+
+    def test_judgment_the_plaintiff_read_lands(self, db_url, tmp_path, monkeypatch, capsys):
+        assert self.land(db_url, tmp_path, monkeypatch, read=True) == 0, capsys.readouterr().err
+        with get_session(db_url) as s:
+            assert s.query(PleadingDraft).count() == 1
+
+
 @pytest.fixture
 def client(db_url, tmp_path):
     app = create_app(db_url=db_url, cases_dir=str(tmp_path / "none"), live_checks_path=str(tmp_path / "none.json"),

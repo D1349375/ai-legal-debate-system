@@ -85,6 +85,13 @@ class RunRequest(BaseModel):
     kind: Literal["full", "pleadings"] = "full"  # pleadings:只替既有案件補產書狀(SKILL.md Step 9C)
     # 要產生的書狀，由使用者選擇以控制花費。完整流程省略時兩份都產；補產時必填
     documents: list[Literal["plaintiff", "defendant"]] | None = Field(default=None, min_length=1, max_length=2)
+    # 書狀交換流程(protocol v2)的停止點:complaint=只跑到起訴狀 v1,停在關卡 1。省略=跑完全程(關卡 1 自動通過)
+    stop_after: Literal["complaint"] | None = None
+
+
+class GateRequest(BaseModel):
+    version_id: int
+    action: Literal["continue", "finish"]  # 確認並繼續 / 到此結束
 
 
 class PleadingEditRequest(BaseModel):
@@ -222,11 +229,25 @@ def create_app(db_url=None, cases_dir=CASES_DIR, fixture_path=seed.FIXTURE_PATH,
     def start_run(case_id: str, req: RunRequest | None = None, resume: bool = Query(False)):
         try:
             req = req or RunRequest()
-            return runner.start(case_id, kind=req.kind, resume=resume, documents=req.documents)
+            return runner.start(case_id, kind=req.kind, resume=resume, documents=req.documents, stop_after=req.stop_after)
         except PermissionError as e:
             raise HTTPException(403, f"即時執行未啟用:{e}")
         except ValueError as e:
             raise HTTPException(409, str(e))
+
+    @app.post("/api/cases/{case_id}/gates/complaint", dependencies=[Depends(local_only)])
+    def confirm_complaint(case_id: str, req: GateRequest, db=Depends(get_db)):
+        """關卡 1:選定起訴狀版本後確認並繼續，或到此結束。只寫一次，不可覆寫；之後以續跑往下跑。"""
+        active = runner._active
+        if active is not None and active.case_id == case_id:
+            raise HTTPException(409, f"此案件的執行 #{active.run_id} 還在執行中，結束後才能確認關卡 1")
+        try:
+            gate = services.confirm_complaint_gate(db, case_id, req.version_id, req.action)
+        except LookupError as e:
+            raise HTTPException(404, str(e))
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+        return {"case_id": case_id, "gate": "complaint", "record": gate, "resume": runner.resume_plan(case_id)}
 
     @app.get("/api/runs/{run_id}")
     def run_status(run_id: int, since: int = Query(0, ge=0)):

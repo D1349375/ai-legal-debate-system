@@ -73,3 +73,11 @@ def strip_cf_tags(text):
 
 def cf_ids(text):
     return CF_TAG_RE.findall(text or "")
+
+
+def new_paragraphs_without_cf(parent_text, text):
+    """律師版比上一版多出的段落(以行為單位，去頭尾空白比對)中沒有〔CF…〕標記的。
+    這些段落不會進逐點表態；只提示，不阻擋確認(規格 5.3)。"""
+    old = {line.strip() for line in (parent_text or "").splitlines()}
+    return [line.strip() for line in (text or "").splitlines()
+            if line.strip() and line.strip() not in old and not CF_TAG_RE.search(line)]

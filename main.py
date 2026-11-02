@@ -352,7 +352,8 @@ def cmd_complaint(args):
             raise ValueError("判決實質核對:" + ";".join(review_problems))
         if payload.get("precedent_notes"):
             from engine.verify import validate_precedent_notes  # 摘句與文件身分(快照 → 快取 → 上網)
-            validate_precedent_notes(payload["precedent_notes"])
+            # 起訴狀引用的判決要原告方在本案用 judgment 讀過全文(not_read_by_side 不放行);需要案件快照根目錄
+            validate_precedent_notes(payload["precedent_notes"], snapshot=args.snapshot, read_by="plaintiff")
         stored = stored_complaint(payload)
         if review is not None:
             stored["citation_review"] = review
@@ -871,6 +872,7 @@ def main():
     p.add_argument("--json", required=True, help="撰狀 subagent 輸出的起訴狀 JSON")
     p.add_argument("--check", action="store_true", help="只檢查並印出組成後的正文，不落地")
     p.add_argument("--review-json", help="判決實質核對結果 JSON 陣列:[{citation, supports, reason}]")
+    p.add_argument("--snapshot", help="案件的快照根目錄;引用判決時用來核對原告讀過全文(UI 執行時由環境變數提供)")
     p.set_defaults(fn=cmd_complaint)
 
     p = sub.add_parser("pleading-source", help="印出某一方的撰狀素材(Stage 3 原文、對造摘要、引用查證狀態)")

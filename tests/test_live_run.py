@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 from database.db import get_session, make_session_factory, record_argument, record_case, record_pleading
 from database.schema import DebateArgument, LiveRun
-from server import live_run
+from server import live_run, services
 from server.app import create_app
 
 FAKE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fake_claude.py")
@@ -42,9 +42,16 @@ def make_client(db_url, tmp_path, monkeypatch, mode="full", enabled=True, **live
 
 
 def create(client, **over):
-    r = client.post("/api/cases", json={**CASE, **over})
-    assert r.status_code == 201, r.text
-    return r.json()["case_id"]
+    """舊流程(protocol 為 NULL)的 UI 案件。W1 起 UI 建的案件都是 v2,書狀交換流程的執行另見 tests/test_gate.py;
+    這裡測的是舊流程的完整執行與續跑，所以直接落地舊案件。"""
+    payload = {**CASE, **over}
+    with client.app.state.live.factory() as s:
+        case_id = services._next_case_id(s)
+        record_case(s, case_id=case_id, case_type=payload["case_type"], facts_summary=payload["facts_summary"],
+                    claims=payload["claims"], created_via="ui",
+                    parties={role: {"name": payload[role]["name"], "ban": payload[role].get("ban")}
+                             for role in ("plaintiff", "defendant")})
+    return case_id
 
 
 def run_to_end(client, case_id):
@@ -165,7 +172,8 @@ class TestLiveRun:
                 "from_key": "stage1", "from_label": "Stage 1 爭點整理", "from_step": "Step 2",
                 "missing_sides": ["defendant"]}
         p = live_run.build_prompt("c1", "database/live_runs/run-9", plan)
-        assert "本次是續跑" in p and "不得覆寫、刪除或重新落地" in p and "從 SKILL.md Step 2" in p
+        assert "本次是續跑" in p and "不得覆寫、刪除或重新落地" in p
+        assert "從 references/legacy-v1.md Step 2" in p and "SKILL.md Step 2" not in p  # 舊流程步驟已搬到 legacy-v1.md
         assert "database/live_runs/run-9/landed.json" in p and "只派被告的 subagent" in p
         assert "uncontested_points" not in p
         assert "本次是續跑" not in live_run.build_prompt("c1", "database/live_runs/run-9")

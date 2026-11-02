@@ -1035,6 +1035,9 @@
     var vs = versionsOf(d, pleadingSide(d));
     var sel = vs.filter(function (v) { return v.id === state.pleadingSel[d.case.case_id]; })[0];
     if (sel) return sel;
+    var g = complaintGate(d);  // 關卡 1 確認過的版本：之後各步驟讀的就是它，預設顯示
+    var confirmed = g && pleadingSide(d) === "plaintiff" && vs.filter(function (v) { return v.id === g.version_id; })[0];
+    if (confirmed) return confirmed;
     var sys = vs.filter(function (v) { return v.source === "system"; });
     return sys[sys.length - 1] || vs[vs.length - 1];
   }
@@ -1138,6 +1141,7 @@
   function pleadingEditor(d, ed) {
     return card("編輯" + DOCUMENT[pleadingSide(d)].short + "為新版本(基於 #" + ed.parentId + ")", [
       h("p", { class: "detail-note", text: "存檔時原稿保留不動，另存為「律師編輯版」新版本。新增或改動的引用會當場重新查證(判例先比對本地語料庫再查司法院；法條查全國法規資料庫)；未通過者照實標示，該版本不能匯出。" }),
+      d.gates && pleadingSide(d) === "plaintiff" ? h("p", { class: "detail-note", text: "〔CF…〕是事實點編號，之後模擬被告逐點表態時用；匯出時會移除。新寫的段落沒有〔CF…〕時不會進逐點表態，存檔後會提示，不阻擋。" }) : null,
       h("p", { class: "detail-note", text: "系統只辨識「法規名第N條」與「最高法院N年度台X字第N號」寫法；其他看起來像引用的文字(如其他法規、下級審字號)會標為無法查證、不放行。" }),
       h("label", { class: "pleading-editor", for: "pleading-text" },
         h("span", { class: "field-label", text: "訴狀內容" }),
@@ -1153,6 +1157,58 @@
           text: ed.busy ? "查證中…" : "另存新版本並查證" }),
         h("button", { class: "btn", type: "button", disabled: ed.busy ? true : null, text: "取消",
           onclick: function () { delete state.pleadingEdit[d.case.case_id]; renderPanel(); } }))]);
+  }
+
+  // ───────────── 關卡 1:律師確認起訴狀(書狀交換流程) ─────────────
+  function complaintGate(d) { return d.gates ? d.gates.complaint : null; }
+  var GATE_ACTION = { "continue": "確認並繼續", finish: "到此結束" };
+  function gateHow(g) { return g.by === "auto" ? "無人值守執行自動通過，未經律師確認" : "在 UI 確認"; }
+  async function confirmGate(d, v, action) {
+    var id = d.case.case_id, kind = v.source === "lawyer_edit" ? "律師編輯版" : "系統原稿";
+    var ok = window.confirm(action === "continue"
+      ? "以「" + kind + " #" + v.id + "」確認起訴狀並繼續？\n\n・之後的步驟(被告防禦分析起)一律讀這一版。\n・確認後不能更改；要用別的版本只能另建案件。\n・確認後回到案件總覽按「續跑」才會開始，不會自動花費。"
+      : "在關卡 1 到此結束，採用「" + kind + " #" + v.id + "」？\n\n・案件停在起訴狀，不再往下跑；這一版可以匯出。\n・確認後不能更改。");
+    if (!ok) return;
+    state.pleadingBusy[id] = true; delete state.pleadingNotice[id]; renderPanel();
+    try {
+      await api("/api/cases/" + encodeURIComponent(id) + "/gates/complaint", { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version_id: v.id, action: action }) });
+      state.pleadingNotice[id] = banner("ok", "✓", "關卡 1 已記錄：" + GATE_ACTION[action] + "，採用" + kind + " #" + v.id + "。" +
+        (action === "continue" ? "回到案件總覽即可從「被告防禦分析」續跑。" : "案件停在這裡。"));
+      await reloadDetailQuietly();
+    } catch (e) {
+      state.pleadingNotice[id] = banner("bad", "✗", "無法確認：" + e.message);
+    }
+    state.pleadingBusy[id] = false;
+    if (state.caseId === id) renderPanel();
+  }
+  function gateCard(d, v) {
+    if (!d.gates || pleadingSide(d) !== "plaintiff") return null;
+    var g = d.gates.complaint, id = d.case.case_id;
+    if (g) {
+      var kind = g.source === "lawyer_edit" ? "律師編輯版" : "系統原稿";
+      return banner(g.by === "auto" ? "warn" : "ok", g.by === "auto" ? "!" : "✓", [h("strong", { text: "關卡 1 已記錄：" + GATE_ACTION[g.action] }),
+        "：採用" + kind + " #" + g.version_id + "(" + gateHow(g) + "，" + fmtTime(g.recorded_at) + ")。" +
+        (g.action === "continue" ? "之後各步驟一律讀這一版。" : "案件停在起訴狀。") +
+        (v.id !== g.version_id ? "目前檢視的是 #" + v.id + "，不是確認版。" : "")]);
+    }
+    if (!d.gates.pending) return null;
+    var running = (d.live_runs || []).some(function (r) { return r.status === "running"; });
+    var busy = state.pleadingBusy[id] || running;
+    var blocked = !v.exportable, noCf = v.new_paragraphs_without_cf || [];
+    return card("關卡 1：確認起訴狀", [
+      h("p", { class: "detail-note", text: "起訴狀 v1 已落地，流程停在這裡等你決定。可先「編輯為新版本」修改(原稿保留)，再選定要用的版本：" +
+        "「確認並繼續」後，續跑從被告防禦分析開始，之後一律讀這一版；「到此結束」則案件停在起訴狀，可匯出。確認後不可更改。" }),
+      h("p", { class: "detail-note", text: "目前選定：" + v.label + (v.source === "lawyer_edit" ? "(基於 #" + v.parent_id + ")" : "") + "。要換版本請用上方的版本列。" }),
+      blocked ? banner("bad", "✗", "此版本有 " + v.blocked_count + " 條引用未通過查證，不能確認。請先重新查證，或編輯移除該引用。") : null,
+      noCf.length ? banner("warn", "!", [h("strong", { text: "這些新段落沒有〔CF…〕標記，不會進逐點表態" }),
+        "(只提示，不阻擋)：" + noCf.map(function (t) { return "「" + (t.length > 40 ? t.slice(0, 40) + "…" : t) + "」"; }).join("、")]) : null,
+      running ? banner("warn", "⏳", "此案件有執行進行中，結束後才能確認。") : null,
+      h("div", { class: "controls" },
+        h("button", { class: "btn primary", type: "button", disabled: busy || blocked ? true : null,
+          onclick: function () { confirmGate(d, v, "continue"); }, text: "以此版本確認並繼續" }),
+        h("button", { class: "btn", type: "button", disabled: busy || blocked ? true : null,
+          onclick: function () { confirmGate(d, v, "finish"); }, text: "到此結束" }))]);
   }
 
   function documentSwitch(d, locked) {
@@ -1172,12 +1228,15 @@
     var ed = state.pleadingEdit[id];
     if (!vs.length) return [panelHead("訴狀骨架初稿", null, lede), documentSwitch(d, false), partyPleadingCard(d),
       emptyState([h("p", { text: "此案件尚未產生" + doc.label + "骨架。" }),
+        d.gates ? h("p", { class: "detail-note", text: side === "defendant"
+          ? "書狀交換流程：答辯狀在關卡 1 確認起訴狀之後的續跑才產生(或在跑完全程時產生)。系統不會拿另一方的書狀充數。"
+          : "書狀交換流程：起訴狀 v1 在即時執行的第一段(P1)產生。" }) :
         h("p", { class: "detail-note", text: (side === "defendant"
           ? "答辯狀骨架於 2026-10-29 加入流程，之前跑完的案件只產生了原告起訴狀；之後的案件只產使用者選的書狀。"
           : "即時執行時只產使用者選的書狀；沒選起訴狀的案件就不會有。") +
           "系統不會拿另一方的書狀充數。已有該方 Stage 3 與查證結果的案件，可依 legal-debate 流程 Step 9C 只補產這一份，不必重跑整場攻防。" })]),
       pleadingRunCard(d, side, false)];
-    var v = selectedVersion(d), busy = state.pleadingBusy[id];
+    var v = selectedVersion(d), busy = state.pleadingBusy[id], gate = side === "plaintiff" ? complaintGate(d) : null;
     var exportUrl = API_BASE + "/api/cases/" + encodeURIComponent(id) + "/pleadings/" + v.id + "/export";
     var out = [
       panelHead("訴狀骨架初稿", versionChip(v), lede),
@@ -1186,11 +1245,12 @@
         return h("button", { class: "btn small", type: "button", "aria-pressed": String(x.id === v.id), disabled: ed ? true : null,
           onclick: function () { state.pleadingSel[id] = x.id; renderPanel(); } },
           x.label + (x.source === "system" ? (x.origin.kind === "live" ? "・⚡即時生成" : "・⏺錄製") : "・基於 #" + x.parent_id) +
-          (x.exportable ? "・✓" : "・✗ 未放行"));
+          (x.exportable ? "・✓" : "・✗ 未放行") + (gate && gate.version_id === x.id ? "・關卡 1 採用" : ""));
       })),
       state.pleadingNotice[id] || null,
     ];
     if (ed) { out.push(pleadingEditor(d, ed)); return out; }
+    out.push(gateCard(d, v));
     var note = v.source === "system" ? splitDraftNote(v.draft_text).note : null;
     out.push(versionBanner(v, d),
       v.lint_warnings && v.lint_warnings.length ? banner("warn", "!", [h("strong", { text: "書狀正文含模擬流程用語" }),
@@ -1432,10 +1492,27 @@
     } catch (e) { lr.error = e.message; }
   }
   // mode:full(新案件完整流程) / resume(續跑) / pleadings(只補產書狀，Step 9C);documents:使用者選的書狀
-  async function startRun(d, mode, documents) {
+  // 書狀交換流程(protocol v2)不選書狀，改選停止點：stopAfter="complaint" 只跑到起訴狀 v1(停在關卡 1)，null 跑完全程
+  function v2RunConfirm(d, resume, stopAfter) {
+    var hl = liveInfo(), head = "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，";
+    var cap = "每次上限 " + hl.budget_usd + " 美元，超過即中止；訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用。";
+    var from = resume ? "從「" + d.resume.from_label + "」續跑，已落地的" + d.resume.landed.join("、") + "不會重做，也不會被覆寫或刪除。" : "";
+    if (stopAfter === "complaint") {
+      return head + (from || "") + "只跑到起訴狀 v1(原告請求權基礎檢驗 → 起訴狀 → 引用查證)，落地後停在關卡 1 等你確認。\n\n" +
+        "・2026-11-02 實跑一次(單次，不是平均)：5 分 12 秒、估算 1.15 美元。\n・" + cap + "\n\n確定開始？";
+    }
+    var gate = complaintGate(d);
+    return head + (from || "跑完全程。") + "\n\n" +
+      (gate ? "・起訴狀以關卡 1 採用的" + (gate.source === "lawyer_edit" ? "律師編輯版" : "系統原稿") + " #" + gate.version_id + "為準。\n"
+        : "・關卡 1 自動通過：起訴狀 v1 不經律師確認就往下跑，紀錄會標「未經律師確認」。要先確認，請改按「只產起訴狀」。\n") +
+      "・被告防禦分析以後目前借舊流程(過渡做法)：模擬被告仍讀得到全部案件事實，不只起訴狀。\n" +
+      "・這段的時間與花費還沒有用新流程實測。" + cap + "\n\n確定開始？";
+  }
+  async function startRun(d, mode, documents, stopAfter) {
     var hl = liveInfo(), id = d.case.case_id, pleadings = mode === "pleadings", resume = mode === "resume";
+    var v2 = d.case.protocol === "v2";
     var docs = docsText(documents);
-    var ok = window.confirm(pleadings
+    var ok = window.confirm(v2 ? v2RunConfirm(d, resume, stopAfter) : pleadings
       ? "即將在這台電腦以你的 Claude 帳號啟動 Claude Code(模型 " + hl.model + ")，只產生" + docs + "骨架(legal-debate Step 9C)，不重跑攻防。\n\n" +
         "・只補產書狀的時間與花費尚未實測(訂閱帳號會占用 Claude 用量額度，與其他 Claude Code 使用共用)；每次上限 " + hl.budget_usd + " 美元，超過即中止。\n" +
         "・執行中可取消；既有的攻防、評估與其他書狀不會被更動。\n\n確定開始？"
@@ -1451,7 +1528,7 @@
     try {
       var r = await api("/api/cases/" + encodeURIComponent(id) + "/runs" + (resume ? "?resume=true" : ""), { method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: pleadings ? "pleadings" : "full", documents: documents }) });
+        body: JSON.stringify(v2 ? { kind: "full", stop_after: stopAfter || null } : { kind: pleadings ? "pleadings" : "full", documents: documents }) });
       var lr = liveLog(r.run.id);
       lr.events = r.events; lr.since = r.event_count; lr.loaded = true;
       state.health = await api("/api/health");
@@ -1549,6 +1626,9 @@
     return h("div", { class: "run-view" },
       h("div", { class: "run-head" }, chip(st.cls, runLabel(run)), h("strong", { text: "執行 #" + run.id + (run.resume_from ? "(從" + run.resume_from + "續跑)" : "") }),
         run.kind === "pleadings" ? chip("neutral", "只補產" + docsText(run.documents) + "(Step 9C)")
+          : run.stop_after === "complaint" ? chip("neutral", "只產起訴狀(停在關卡 1)")
+          // 沒有停止點的 v2 執行不加標籤:W3 之前的執行(例如 W2 實跑)也是空值，當時是在指示裡另外寫明只跑到起訴狀
+          : d.case.protocol === "v2" ? null
           : run.documents ? chip("neutral", "書狀：" + docsText(run.documents)) : null,
         h("span", { class: "detail-note", text: "開始 " + fmtTime(run.started_at) + "・經過 " + elapsed(run) + "・模型 " + run.model +
           (run.cost_usd != null ? "・估算花費 " + run.cost_usd.toFixed(2) + " 美元" : "") + (run.exit_code != null ? "・結束碼 " + run.exit_code : "") }),
@@ -1576,6 +1656,10 @@
     if (!latest && hasRecords) return null;  // 錄製案件：不提供重跑
     var body = [], rp = d.resume;
     if (latest) body.push(runView(latest, d));
+    if (d.case.protocol === "v2" && (!latest || latest.status !== "running")) {
+      body.push(v2RunControls(d, hl, rp, hasRecords));
+      return card("即時執行(Claude Code)", body, latest ? chip(RUN_STATUS[latest.status].cls, runLabel(latest)) : null);
+    }
     if (!latest || latest.status !== "running") {
       if (hasRecords && !(rp && rp.possible)) {
         body.push(h("p", { class: "detail-note", text: "此案件已有落地紀錄，不能整件重跑(落地紀錄不可覆寫)。" +
@@ -1612,6 +1696,46 @@
     }
     return card("即時執行(Claude Code)", body, latest ? chip(RUN_STATUS[latest.status].cls, runLabel(latest)) : null);
   }
+  // 書狀交換流程的執行按鈕：新案件或還沒過關卡 1 的續跑，可選「只產起訴狀」或「跑完全程」；關卡 1 等待中時引導去確認
+  function v2RunControls(d, hl, rp, hasRecords) {
+    var id = d.case.case_id, busy = state.liveBusy[id];
+    var runBtn = function (mode, stopAfter, primary, label) {
+      return h("button", { class: "btn" + (primary ? " primary" : ""), type: "button", disabled: busy ? true : null,
+        onclick: function () { startRun(d, mode, null, stopAfter); } },
+        h("span", { class: "ico", "aria-hidden": "true", text: "▶" }), busy ? "啟動中…" : label);
+    };
+    var gate = complaintGate(d);
+    if (rp && rp.gate_pending) {
+      return [banner("warn", "⏸", [h("strong", { text: "停在關卡 1" }), "：起訴狀 v1 已落地，等你在「訴狀骨架」分頁選定版本，確認並繼續，或到此結束。確認前不能續跑。"]),
+        h("button", { class: "btn primary", type: "button", text: "前往訴狀骨架確認", onclick: function () { switchTab("pleading"); } })];
+    }
+    if (hasRecords && !(rp && rp.possible)) {
+      return [h("p", { class: "detail-note", text: (rp && rp.reason ? rp.reason + "。" : "") +
+          "落地紀錄不可覆寫，不能整件重跑；要用同樣內容再模擬一次，請另建案件。" }),
+        h("button", { class: "btn small", type: "button", text: "以此案件內容建立新案件", onclick: function () { openCreate(prefillFrom(d)); } })];
+    }
+    if (!hl.enabled) return banner("warn", "!", "即時執行停用：" + hl.reason);
+    if (hl.auth && hl.auth.checked && !hl.auth.logged_in) return banner("bad", "✗", [h("strong", { text: "無法執行" }), "：" + hl.auth.detail + "。登入後重新整理本頁。"]);
+    if (hl.active_run) return banner("warn", "⏳", "目前已有執行進行中(案件 " + hl.active_run.case_id + "，執行 #" + hl.active_run.id + ")，同一時間只能跑一件。");
+    var out = [hl.quota ? knownQuota(hl.quota, hl.quota_warn_at) : null];
+    if (hasRecords) {
+      out.push(h("p", { class: "detail-note", text: "資料庫已落地：" + rp.landed.join("、") + "。可從「" + rp.from_label + "」續跑；已落地的紀錄不會重做，也不會被覆寫或刪除。" +
+        (gate ? "起訴狀以關卡 1 採用的 #" + gate.version_id + "為準。" : "") + "每次上限 " + hl.budget_usd + " 美元。" }));
+      if (rp.stop_after_allowed) {
+        out.push(h("div", { class: "controls" }, runBtn("resume", "complaint", true, "續跑到起訴狀(停在關卡 1)"),
+          runBtn("resume", null, false, "續跑全程(關卡 1 自動通過)")));
+      } else {
+        out.push(h("div", { class: "controls" }, runBtn("resume", null, true, "從「" + rp.from_label + "」續跑")));
+      }
+      return out;
+    }
+    out.push(h("p", { class: "detail-note", text: "書狀交換流程：先由原告方檢驗請求權基礎、寫起訴狀 v1(事實逐點對應、引用查證)，在關卡 1 停下來讓你確認或修改，" +
+        "確認後再續跑模擬答辯與攻防。只允許 Claude Code 執行 python main.py 指令、讀取專案檔案、派出 subagent；每次上限 " + hl.budget_usd + " 美元(訂閱帳號會占用用量額度)。" }),
+      h("p", { class: "detail-note", text: "「跑完全程」不停在關卡 1，起訴狀不經確認就往下跑，紀錄標「未經律師確認」；只適合事先跑好示範案。" }),
+      h("div", { class: "controls" }, runBtn("full", "complaint", true, "只產起訴狀(停在關卡 1)"),
+        runBtn("full", null, false, "跑完全程(關卡 1 自動通過)")));
+    return out;
+  }
   // 書狀由使用者選(控制花費)：起訴狀、答辯狀或兩份。沒有預選，選了才能開始
   var DOC_CHOICES = [
     { key: "plaintiff", label: "只產起訴狀(原告)", docs: ["plaintiff"] },
@@ -1638,7 +1762,7 @@
   }
   // 只補產某一方的書狀(legal-debate Step 9C):已有該方 Stage 3 的案件，不重跑攻防
   function pleadingRunCard(d, side, has) {
-    if (d.case.source !== "database") return null;
+    if (d.case.source !== "database" || d.case.protocol === "v2") return null;  // 補產(Step 9C)只有舊流程
     var doc = DOCUMENT[side];
     var hl = liveInfo(), runs = (d.live_runs || []).filter(function (r) {
       return r.kind === "pleadings" && (r.documents || []).indexOf(side) >= 0;
