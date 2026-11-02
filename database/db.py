@@ -129,6 +129,16 @@ def admission_sources(session, case_id):
     return sources
 
 
+def attribution_sources(session, case_id):
+    """轉述核對的原文:admission_sources 另加雙方讓步條件。falsifier 只用來標「引自讓步條件」，自承檢查不能引。"""
+    sources = admission_sources(session, case_id)
+    sources["falsifier"] = {"plaintiff": [], "defendant": []}
+    for row in session.query(DebateArgument).filter_by(case_id=case_id).all():
+        if row.falsifier:
+            sources["falsifier"][row.side].append(row.falsifier)
+    return sources
+
+
 def public_arguments(session, *, case_id, through_stage=3):
     """法官與對手摘要可以讀的論證:濾掉內部檢討，不含 falsifier(讓步條件另由 judge_view 給法官)。"""
     rows = session.query(DebateArgument).filter_by(case_id=case_id).all()

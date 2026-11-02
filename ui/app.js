@@ -578,6 +578,26 @@
   }
 
   function isPrepQuestion(q) { return /^準備清單/.test(q.based_on || ""); }
+  function attributionReview(row) {
+    var items = row.attribution_items || [];
+    if (!items.length) return null;
+    var names = { close: "近似(非逐字)", falsifier: "引自讓步條件(假設句)", other_side: "只在另一方原文", missing: "兩方原文均找不到", unquoted: "未引述的承認" };
+    var warns = { other_side: true, missing: true, unquoted: true };
+    return h("div", { class: "attribution-review" },
+      row.attribution_warning_count ? chip("warn", "轉述待核對 " + row.attribution_warning_count + " 處") : null,
+      fold("查看轉述比對（共 " + items.length + " 處）", [
+        h("p", { class: "detail-note", text: "程式比對,非 AI 判斷;只找得到有引號或寫『承認』的轉述。" }),
+        items.map(function (item) {
+          return h("div", { class: "field-label" },
+            h("div", { class: "chip-row" },
+              chip(warns[item.level] ? "warn" : "neutral", (warns[item.level] ? "待核對・" : "") + names[item.level]),
+              sideChip(item.side)),
+            item.quote ? h("p", { class: "prewrap", text: "比對的引號：「" + item.quote + "」" }) : null,
+            h("p", { class: "prewrap", text: "法官原句：" + item.sentence }),
+            item.source_snippet ? h("p", { class: "prewrap", text: "對照原文：" + item.source_snippet }) : null);
+        }),
+      ]));
+  }
   function prepListCard(d) {
     var items = d.questions.filter(isPrepQuestion);
     if (!items.length) return null;
@@ -598,7 +618,8 @@
             isPrepQuestion(q) ? chip("judge", "準備題・假設") : null,
             h("span", { class: "arg-time", text: "落地 " + fmtTime(q.created_at) })),
           h("div", { class: "judge-q-text prewrap", text: q.question_text }),
-          h("div", { class: "judge-q-basis" }, h("b", { text: "訊問依據(based_on，須回溯至具體論點)：" }), q.based_on));
+          h("div", { class: "judge-q-basis" }, h("b", { text: "訊問依據(based_on，須回溯至具體論點)：" }), q.based_on),
+          attributionReview(q));
       }));
   }
 
@@ -903,7 +924,7 @@
     var oldRules = v.protocol_version === "v1-2026-08-07" ? banner("warn", "!", "這份評估在舊規則下產生，當時要求法官不得偏離彙整結果。文中的「錨點」「自承」不代表系統判定，請對照原文。") : null;
     var risk = v.risk_map || {};
     var list = function (items) { return h("ul", { class: "risk-list" }, (items || []).map(function (t) { return h("li", { text: t }); })); };
-    var out = [head, oldRules,
+    var out = [head, oldRules, attributionReview(v),
       card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "落地 " + fmtTime(v.created_at))),
       card("評估理由", paragraphs(delabelJargon(v.verdict_reasoning))),
       proceduralRiskCard(d),

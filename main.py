@@ -30,9 +30,10 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
 
 from database.db import (
     get_session, record_case, record_argument, record_question,
-    admission_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
+    admission_sources, attribution_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
 )
 from engine.admission_check import admission_problems, looks_factual, strings_in
+from engine.attribution_check import attribution_review, attribution_warnings
 from engine.aggregate import judge_view
 from engine.internal_review import review_warnings, strip_internal_review
 from engine.party_issues import mixed_dismissal_citations
@@ -68,6 +69,21 @@ def _verdict_admission_problems(session, case_id, payload, analysis):
             for p in admission_problems(text, admission_sources(session, case_id))]
 
 
+def _question_attributions(question, sources):
+    return [item for field in ("question_text", "based_on")
+            for item in attribution_review(question.get(field), sources, question["target_side"])]
+
+
+def _verdict_attributions(payload, analysis, sources):
+    return [item for text in strings_in([payload["verdict_main_text"], analysis, payload["risk_map"]])
+            for item in attribution_review(text, sources)]
+
+
+def _print_attribution_warnings(items):
+    for item in attribution_warnings(items):
+        print(f"轉述警告（不擋落地、不要退回法官）:{item['level']} {item['side']} {item['sentence']}", file=sys.stderr)
+
+
 def cmd_public_args(args):
     session = get_session()
     print(json.dumps({"case_id": args.case_id, "arguments": public_arguments(session, case_id=args.case_id, through_stage=args.through_stage)},
@@ -84,11 +100,16 @@ def cmd_check_judge(args):
         sources = admission_sources(session, args.case_id)
         problems = [f"第 {i} 則:{p}" for i, q in enumerate(payload["questions"], 1)
                     for p in admission_problems(q["question_text"], sources, target_side=q["target_side"])]
+        quoted = attribution_sources(session, args.case_id)
+        attributions = [item for q in payload["questions"] for item in _question_attributions(q, quoted)]
     else:
-        problems = _verdict_admission_problems(session, args.case_id, payload, _pick(payload, "verdict_analysis", "verdict_reasoning"))
+        analysis = _pick(payload, "verdict_analysis", "verdict_reasoning")
+        problems = _verdict_admission_problems(session, args.case_id, payload, analysis)
+        attributions = _verdict_attributions(payload, analysis, attribution_sources(session, args.case_id))
     if problems:
         print("未通過:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
         return 1
+    _print_attribution_warnings(attributions)
     print("法官輸出檢查通過")
     return 0
 
@@ -106,6 +127,7 @@ def cmd_record(args):
             row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
                                    target_side=payload["target_side"], based_on=payload["based_on"])
             print(f"已落地訊問 {row.case_id} -> {row.target_side}")
+            _print_attribution_warnings(_question_attributions(payload, attribution_sources(session, payload["case_id"])))
             if row.target_side == "defendant" and not row.based_on.startswith("官方事實層") and looks_factual(row.question_text):
                 print("警告:這則訊問看起來要被告回答事實,被告沒有本人的事實,請確認是否該改成給原告的準備題", file=sys.stderr)
             return 0
@@ -186,6 +208,7 @@ def cmd_verdict(args):
     if "mechanical_anchor_json" in payload and payload["mechanical_anchor_json"] != anchor:
         print("警告:模型提供的機械彙整與程式重算結果不同，已改用機械結果落地", file=sys.stderr)
     print(f"已落地判決 {row.case_id}")
+    _print_attribution_warnings(_verdict_attributions(payload, analysis, attribution_sources(session, args.case_id)))
     return 0
 
 

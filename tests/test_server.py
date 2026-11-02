@@ -13,6 +13,7 @@ from database.db import (
 from engine import verify as engine_verify
 from server import seed, services
 from server.app import create_app
+from database.schema import CourtQuestion, Verdict, DebateArgument
 
 NONEXISTENT = "最高法院105年度台上字第99999號"
 
@@ -87,6 +88,33 @@ def no_network(monkeypatch):
 
 
 class TestCases:
+    def test_attribution_recomputed_on_read(self, db_url, client):
+        s = get_session(db_url)
+        s.query(DebateArgument).filter_by(case_id="c1", side="defendant", stage=1).one().reasoning = "惟起訴日卷內未載,本方不寫成已逾期。"
+        q = s.query(CourtQuestion).filter_by(case_id="c1").one()
+        q.question_text = "被告 Stage 3 自己寫明「起訴日卷內未載,不寫成已逾期」。"
+        q.based_on = "被告 Stage 1 表示「雙方都未說過的句子」。"
+        s.query(Verdict).filter_by(case_id="c1").one().verdict_reasoning = "原告民法第184條降為純備位,並承認受民法第197條時效風險壓制。"
+        s.commit()
+        s.close()
+        d = client.get("/api/cases/c1").json()
+        assert d["questions"][0]["attribution_warning_count"] == 1
+        assert [r["level"] for r in d["questions"][0]["attribution_items"]] == ["close", "missing"]
+        assert d["verdict"]["attribution_warning_count"] == 1
+        assert d["verdict"]["attribution_items"][0]["level"] == "unquoted"
+
+    def test_attribution_quote_from_concession_condition_is_not_a_warning(self, db_url, client):
+        s = get_session(db_url)
+        row = s.query(DebateArgument).filter(DebateArgument.case_id == "c1", DebateArgument.side == "plaintiff",
+                                             DebateArgument.falsifier.isnot(None)).first()
+        row.falsifier = "若逾期未補正,起訴不合法,本方即撤回此部分主張。"
+        s.query(CourtQuestion).filter_by(case_id="c1").one().based_on = "原告讓步條件:「若逾期未補正,起訴不合法」。"
+        s.commit()
+        s.close()
+        q = client.get("/api/cases/c1").json()["questions"][0]
+        assert [r["level"] for r in q["attribution_items"]] == ["falsifier"]
+        assert q["attribution_warning_count"] == 0
+
     def test_list_includes_db_and_input_only(self, client):
         cases = {c["case_id"]: c for c in client.get("/api/cases").json()["cases"]}
         assert cases["c1"]["source"] == "database" and cases["c1"]["status"] == "completed"

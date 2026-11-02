@@ -15,7 +15,7 @@ import time
 
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
-    record_pleading_edit, latest_party_checks, pleading_side,
+    record_pleading_edit, latest_party_checks, pleading_side, attribution_sources,
 )
 from sqlalchemy import func
 
@@ -29,6 +29,8 @@ from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
 from engine.internal_review import review_warnings, strip_internal_review
+from engine.admission_check import strings_in
+from engine.attribution_check import attribution_review, attribution_warnings
 from engine.verify import (
     HISTORICAL_NOTE, HISTORICAL_PREFIX_RE, JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES,
     STATUTES_DIR, is_historical_statute, multiple_documents_note, parse_citation,
@@ -631,6 +633,19 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
                 has_party_checks=session.query(PartyCheck.id).filter_by(case_id=case_id).first() is not None)
                              if len({a["side"] for a in arguments if a["stage"] == 3}) >= len(VALID_SIDES) else None),
         }
+
+    if questions or verdict:
+        sources = attribution_sources(session, case_id)
+        for q in questions:
+            items = [item for field in ("question_text", "based_on")
+                     for item in attribution_review(q[field], sources, q["target_side"])]
+            q["attribution_items"] = [item for item in items if item["level"] != "exact"]
+            q["attribution_warning_count"] = len(attribution_warnings(items))
+        if verdict:
+            items = [item for text in strings_in([verdict["verdict_main_text"], verdict["verdict_reasoning"], verdict["risk_map"]])
+                     for item in attribution_review(text, sources)]
+            verdict["attribution_items"] = [item for item in items if item["level"] != "exact"]
+            verdict["attribution_warning_count"] = len(attribution_warnings(items))
 
     pleading_rows = session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
     # 每一方各取最新的系統產生版；沒有就是 None(UI 照實顯示尚未產生，不拿另一方的書狀充數)

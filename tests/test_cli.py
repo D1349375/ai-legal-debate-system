@@ -101,6 +101,21 @@ class TestVerdictMechanicalAnchor:
         assert result.stderr == ""
         assert self._stored(db_url) == expected
 
+    def test_attribution_warnings_do_not_block_record_or_verdict(self, tmp_path):
+        db_url, _ = self._ready_case(tmp_path)
+        question = tmp_path / "question.json"
+        question.write_text(json.dumps({"case_id": "c1", "target_side": "defendant",
+            "question_text": "被告承認沒有原句。", "based_on": "被告 Stage 1 主張"}, ensure_ascii=False), encoding="utf-8")
+        recorded = run_main("record", "--json", str(question), db_url=db_url)
+        assert recorded.returncode == 0 and "轉述警告" in recorded.stderr
+        verdict = tmp_path / "verdict-warning.json"
+        verdict.write_text(json.dumps({"verdict_main_text": "主文", "verdict_analysis":
+            "原告民法第184條降為純備位,並承認受民法第197條時效風險壓制。",
+            "risk_map": {}, "citations_used": []}, ensure_ascii=False), encoding="utf-8")
+        landed = run_main("verdict", "--case-id", "c1", "--json", str(verdict), db_url=db_url)
+        assert landed.returncode == 0 and "轉述警告" in landed.stderr
+        assert self._stored(db_url)
+
     def test_changed_payload_anchor_warns_and_stores_recomputed_value(self, tmp_path):
         db_url, expected = self._ready_case(tmp_path)
         altered = json.loads(json.dumps(expected))
@@ -224,6 +239,20 @@ class TestCheckJudge:
         db_url = _case_with_stage1(tmp_path)
         r = self._check(tmp_path, db_url, {"verdict_main_text": "結論", "verdict_analysis": "被告坦承欠缺證據。", "risk_map": {}})
         assert r.returncode == 1 and "沒有緊接引述" in r.stderr
+
+    def test_attribution_warning_does_not_fail_check(self, tmp_path):
+        db_url = _case_with_stage1(tmp_path)
+        r = self._check(tmp_path, db_url, {"verdict_main_text": "結論", "verdict_analysis":
+            "原告民法第184條降為純備位,並承認受民法第197條時效風險壓制。", "risk_map": {}})
+        assert r.returncode == 0
+        assert "轉述警告" in r.stderr and "不要退回" in r.stderr
+
+    def test_missing_based_on_is_left_to_record(self, tmp_path):
+        # 缺 based_on 由 record 原本的檢查處理;轉述核對不能因此讓 check-judge 當掉
+        db_url = _case_with_stage1(tmp_path)
+        r = self._check(tmp_path, db_url, {"questions": [
+            {"question_text": "依案件所載,此要件應由誰舉證?", "target_side": "defendant"}]})
+        assert r.returncode == 0 and "Traceback" not in r.stderr
 
 
 def test_argument_with_unquoted_admission_warns_but_lands(tmp_path):
