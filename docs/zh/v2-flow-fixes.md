@@ -103,6 +103,8 @@
 
 ## 7. 沒做或沒驗證的
 
+- 之後對照規格與程式又找到 5 處舊設計遺留(自承來源沒有書狀、引用清單差異失真、補正看 stage 1、UI 文字、續跑步驟編號),計畫沒涵蓋或只涵蓋一半，見 [v2-old-design-leftovers.md](v2-old-design-leftovers.md)。這次沒改。
+
 - 只實跑兩次,都只到 P1,單案,不是統計。沒有在 UI 按鈕上跑(還沒有 `stop_after`)。
 - W2 的原始輸出不在這台電腦,主 agent 上下文和 W2 沒有同口徑對照。
 - 查證 subagent 在理由裡寫的提醒(例如「摘句出自本院維持的原審理由」「命題比判決略強」)有存進 `structured_json.citation_review`,但畫面沒顯示,落地也只看 true/false。
