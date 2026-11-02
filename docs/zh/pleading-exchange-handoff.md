@@ -13,6 +13,7 @@
 | 4 | [iteration-log.md](iteration-log.md) | 做過什麼、為什麼 |
 | 5 | [retrieval-interface.md](retrieval-interface.md) | 組員的檢索介面,寫範本前要看 |
 | 6 | [main-finals-fix-list.md](main-finals-fix-list.md) | W0 的檢查清單 V30–V46、M12 退回時的分級流程 |
+| 7 | [teammate-collaboration.md](teammate-collaboration.md) | 組長與組員怎麼分工、分支、檢核、實跑(決賽前) |
 
 規格與組員文件對基準分支的說法不同時,以本文件為準:新架構在 `pleading-exchange`,不從 `retrieval-optimization` 開。
 
