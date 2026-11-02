@@ -81,6 +81,12 @@ Windows 上的 Claude Code CLI 有 `PowerShell` 工具。即時執行只允許 `
 
 ## 檢核結果(Claude 填寫)
 
-- 日期:
-- 結果:
-- 要改的地方:
+- 日期:2026-11-02
+- 結果:**通過。**
+  - `DISALLOWED_TOOLS` 尾端加 `PowerShell`,原本兩項與順序不變;兩份 prompt 改成「一律用 Bash 工具,一次一個指令」;`SKILL.md` Step 8 查證 subagent 指示加一句;新增 2 項測試。`ALLOWED_TOOLS`、`SNAPSHOT_ENV`、UI 工具描述都沒動。
+  - Claude 在暫存 worktree 重跑離線全套:`309 passed`(基準 307 + 新增 2),和紀錄一致。
+  - 依據屬實:本機 CLI `--help` 寫明 `--disallowedTools` 接受工具名稱;實跑 #1–#4 的工具清單都有 `Bash`、`PowerShell`,沒有已禁用的 `WebFetch`、`WebSearch`,被禁用的工具確實會從清單移除。
+  - 測試放 `tests/test_live_run.py` 而不是任務文件指定的 `tests/test_claude_permissions.py`:後者預設整檔略過,放那裡離線全套不會跑,調整合理。
+- 還沒驗證(C1):模型與 subagent 是否真的看不到 PowerShell;查證 subagent 能否一次跑完 `verify`。
+- 留給 T7:`pleading-exchange` 的 v2 prompt(`server/live_run.py` `build_prompt_v2` 第 4 點)仍寫「指令只能用 `python main.py`」,T7 合併時一起改並補測試。組員兩次 P1 實跑被拒的是 Bash 的 `python -c`、heredoc、`>` 導向,不是 PowerShell,T5 處理不到。
+- 要改的地方:無。

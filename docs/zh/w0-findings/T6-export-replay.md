@@ -115,6 +115,11 @@ V39 要求「新案件用 `export-demo` 匯出後,乾淨 clone 斷網可重播�
 
 ## 檢核結果(Claude 填寫)
 
-- 日期:
-- 結果:
-- 要改的地方:
+- 日期:2026-11-02
+- 結果:**第 1、2 點通過**(第 3–5 點 V39 由組長另做,見下)。
+  - `--out` 三種匯出都寫到指定資料夾,沒給時維持寫 `demo/`;測試把預設路徑指到暫存的假 `demo/`,就算 `--out` 失效也不會覆寫進 git 的檔。
+  - 孤兒列只列出、不匯出、不刪;商工查核 `case_id` 為空的單獨查詢照舊匯出,合理。
+  - Claude 在暫存 worktree 重跑離線全套:`312 passed, 1 skipped, 13 deselected`,和紀錄一致。
+  - Claude 用 W0 資料庫**複本**跑 `export-demo --out <暫存>`:印出作廢那次 `live-2026-11-02-gcis-w0` 的論證 6、訊問 7、評估 1、書狀 2 筆不匯出;fixture 6 件案件,`citation_verifications` 100 筆;worktree 的 `demo/` 沒變。
+- 待做(組長):V39 斷網重播、`recorded_live_checks.json` 0 筆的影響與建議。
+- 要改的地方:無。
