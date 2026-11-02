@@ -50,6 +50,7 @@ W0 的 6 份論證都有成對的 `【內部檢討】` 段落,但段落外仍有
 - 開始時間:2026-11-02 03:29（台北）
 - 結束時間:2026-11-02 13:29（台北）
 - 基準 commit:`b4eb2db4acfd9c3a63742104b78c8308c8090b50`
+- 實作 commit:`77570560de8d855e7a3819d5d12d0437bcde9d4d`
 - 基準測試(指令與數字):`python -X utf8 -m pytest -q -m "not network" -p no:cacheprovider --basetemp t4-baseline-elevated --tb=short` → `303 passed, 1 skipped, 13 deselected`。第一次在一般權限下使用 `.t4-pytest-baseline` 因 Windows 暫存目錄 `PermissionError` 失敗，改以可存取權限重跑；基準輪於新增測試前啟動與完成收集。
 
 ### 迭代過程
