@@ -20,6 +20,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py pleading-source --case-id X --side defendant  印出該方撰狀素材(Stage 3+查證狀態),不重跑攻防補產書狀用
   python main.py complaint --case-id X --json <file> [--check] [--review-json <file>]
                                                           書狀交換流程的起訴狀 v1:檢查事實對應、由程式組成正文後落地；--check 只檢查不落地
+  python main.py answer --case-id X --json <file> [--check] [--review-json <file>]   檢查並落地模擬答辯狀(P2,正文由程式組成)
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
@@ -391,6 +392,93 @@ def cmd_complaint(args):
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地起訴狀 v1 {row.case_id}(#{row.id},事實點 {len(payload['fact_points'])} 個)")
+    for warning in warnings:
+        print("警告:" + warning, file=sys.stderr)
+    return 0
+
+
+def cmd_answer(args):
+    """書狀交換流程 P2 模擬答辯狀。模型只交逐點表態、抗辯與理由,正文由 engine/pleading_render.py 組成。
+    被告讀的起訴狀是 current_complaint(關卡 1 確認版;還沒確認時是最新系統原稿),CF 以這一版為準。
+    結構問題硬擋(退回撰狀 subagent),證據種類與流程用語只警告。--check 只檢查並印出正文,不落地。"""
+    from database.db import _assert_all_published, case_payload, current_complaint, defendant_view, latest_party_checks
+    from database.schema import DebateArgument, PleadingDraft
+    from engine.pleading_render import answer_problems, answer_warnings, render_answer, stored_answer
+    from server.pleading_export import lint_pleading
+    from server.services import extract_citations
+    with open(args.json, 'r', encoding='utf-8') as f:
+        payload = json.load(f)
+    session = get_session()
+    case = session.query(Case).filter_by(case_id=args.case_id).one_or_none()
+    if case is None or case.protocol != "v2":
+        print(f"拒絕落地:{args.case_id} 不是書狀交換流程(v2)的案件" if case else f"拒絕落地:找不到案件 {args.case_id}",
+              file=sys.stderr)
+        return 1
+    if session.query(DebateArgument).filter_by(case_id=args.case_id, side="defendant", stage=1).one_or_none() is None:
+        print("拒絕落地:被告的防禦分析(stage 1)還沒落地,先完成防禦分析再撰狀", file=sys.stderr)
+        return 1
+    if not args.check and any(r.pleading_type == "answer" and r.source in (None, "system")
+                              for r in session.query(PleadingDraft).filter_by(case_id=args.case_id).all()):
+        print(f"拒絕落地:{args.case_id} 模擬答辯狀已落地,不可覆寫", file=sys.stderr)
+        return 1
+    current = current_complaint(session, args.case_id)
+    try:
+        if current is None:
+            raise ValueError(f"{args.case_id} 還沒有起訴狀")
+        view = defendant_view(session, args.case_id, complaint_id=current["version_id"])
+    except ValueError as e:
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
+    complaint_text = view["complaint"]["text"]
+    problems = answer_problems(payload, complaint_text=complaint_text, fact_evidence=view["fact_evidence"])
+    if problems:
+        print("未通過,請把以下原因交回撰狀 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n"
+              + "\n".join(f"- {p}" for p in problems), file=sys.stderr)
+        return 1
+    text = render_answer(payload, case=case_payload(case), party_checks=latest_party_checks(session, args.case_id),
+                         procedural=view["procedural_issues"], complaint_text=complaint_text)
+    # 抗辯與理由裡順帶提到的判決也要列進 citations 並附 precedent_notes(引述的起訴狀事實不算被告的引用)
+    own = text.split("答辯理由", 1)[1].split("一、對原告主張事實之表示", 1)[1]
+    in_body = [c["citation_text"] for c in extract_citations("\n".join(
+        line for line in own.splitlines() if not line.startswith("(") or "原告主張「" not in line))]
+    listed = {_judgment_key(c) for c in payload.get("citations", [])}
+    unlisted = [c for c in in_body if _judgment_key(c) != c and _judgment_key(c) not in listed]
+    if unlisted:
+        print("未通過,請把以下原因交回撰狀 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n- 正文提到的判決要列進 "
+              "citations 並附 precedent_notes,或從正文刪除:" + "、".join(unlisted), file=sys.stderr)
+        return 1
+    basis = [b for d in payload.get("defenses") or [] for b in d.get("legal_basis") or []]
+    gate = list(dict.fromkeys(payload.get("citations", []) + basis + in_body))
+    warnings = [f"書狀正文含模擬流程用語,請確認:{h['word']}×{h['count']}" for h in lint_pleading(text, "defendant")]
+    warnings += answer_warnings(payload, fact_evidence=view["fact_evidence"], evidence=view["evidence"])
+    if args.check:
+        print(text)
+        print("結構檢查通過。落地前要全部 published 的引用:" + ("、".join(gate) or "(無)"))
+        for warning in warnings:
+            print("警告:" + warning)
+        return 0
+    review = None
+    if args.review_json:
+        with open(args.review_json, 'r', encoding='utf-8') as f:
+            review = json.load(f)
+    try:
+        _assert_all_published(session, gate)
+        review_problems = _complaint_review_problems(review, payload.get("citations", []))
+        if review_problems:
+            raise ValueError("判決實質核對:" + ";".join(review_problems))
+        if payload.get("precedent_notes"):
+            from engine.verify import validate_precedent_notes
+            # 答辯狀引用的判決要被告方在本案用 judgment 讀過全文
+            validate_precedent_notes(payload["precedent_notes"], snapshot=args.snapshot, read_by="defendant")
+        stored = stored_answer(payload, current["version_id"])
+        if review is not None:
+            stored["citation_review"] = review
+        row = record_pleading(session, case_id=args.case_id, draft_text=text, citations_used=gate, side="defendant",
+                              pleading_type="answer", round=1, is_simulated=1, structured=stored)
+    except ValueError as e:
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
+    print(f"已落地模擬答辯狀 {row.case_id}(#{row.id},回應起訴狀 #{current['version_id']},逐點表態 {len(payload['responses'])} 點)")
     for warning in warnings:
         print("警告:" + warning, file=sys.stderr)
     return 0
@@ -943,6 +1031,14 @@ def main():
     p.add_argument("--review-json", help="判決實質核對結果 JSON 陣列:[{citation, supports, reason}]")
     p.add_argument("--snapshot", help="案件的快照根目錄;引用判決時用來核對原告讀過全文(UI 執行時由環境變數提供)")
     p.set_defaults(fn=cmd_complaint)
+
+    p = sub.add_parser("answer", help="書狀交換流程:檢查並落地模擬答辯狀(正文由程式組成)")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--json", required=True, help="撰狀 subagent 輸出的答辯狀 JSON")
+    p.add_argument("--check", action="store_true", help="只檢查並印出組成後的正文,不落地")
+    p.add_argument("--review-json", help="判決實質核對結果 JSON 陣列:[{citation, supports, reason}]")
+    p.add_argument("--snapshot", help="案件的快照根目錄;引用判決時用來核對被告讀過全文(UI 執行時由環境變數提供)")
+    p.set_defaults(fn=cmd_answer)
 
     p = sub.add_parser("pleading-source", help="印出某一方的撰狀素材(Stage 3 原文、對造摘要、引用查證狀態)")
     p.add_argument("--case-id", required=True)

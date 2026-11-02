@@ -3,6 +3,8 @@
 結構照司法院「民事起訴狀(一般)」參考範例(corpus/pleadings/reference/)。商工查核結果直接進當事人欄,不經模型;
 有 bad 等級程序事項時,法定代理人一律寫「清算人(待查明:…)」之類的待查寫法,不照列登記負責人,也不寫任何姓名。
 """
+import re
+
 from engine import fact_points as cf
 from engine.party_issues import cured_in
 from engine.verify import parse_citation
@@ -211,3 +213,155 @@ def render_complaint(payload, *, case, party_checks, procedural):
 def stored_complaint(payload):
     """落地進 structured_json 的內容:只留規格列出的欄位,模型多給的欄位不存。"""
     return {key: payload.get(key) for key in COMPLAINT_KEYS if key in payload}
+
+
+# ---- P2 模擬答辯狀(規格 5.4)----
+# 結構照司法院民事答辯狀範例:答辯聲明三項、答辯理由、證物、此致。被告是系統模擬的,標題後一律註明
+
+ANSWER_TITLE = "民事答辯狀(模擬答辯,非針對實際起訴狀)"
+ANSWER_KEYS = ("responses", "defenses", "legal_argument", "citations", "precedent_notes", "to_confirm")
+STANCE_LABEL = {"admit": "不爭執", "deny": "否認", "authenticity": "爭執其形式上真正", "to_confirm": "待被告本人確認"}
+GROUND_LABEL = {"insufficient_proof": "原告舉證不足", "alternative_explanation": "另一可能解釋(推測)"}
+_NUMBERED_RE = re.compile(r"^\s*[（(][一二三四五六七八九十]+[)）]")
+_CAUSE_RE = re.compile(r"為請求(.+?)提起訴訟事")
+
+
+def _precedent_note_problems(payload):
+    notes = payload.get("precedent_notes", [])
+    if not isinstance(notes, list) or not all(isinstance(n, dict) and isinstance(n.get("citation"), str) for n in notes):
+        return ["precedent_notes 每筆都要是含 citation 的物件"]
+    citations = payload.get("citations") if isinstance(payload.get("citations"), list) else []
+    noted = {_key(n["citation"]) for n in notes}
+    problems = [f"正式引用的判決要附 precedent_notes(全文原句與命題):{c}" for c in citations
+                if isinstance(c, str) and parse_citation(c)["type"] == "judgment" and _key(c) not in noted]
+    cited = {_key(c) for c in citations if isinstance(c, str)}
+    return problems + [f"precedent_notes 的 {n['citation']} 沒有列在 citations" for n in notes if _key(n["citation"]) not in cited]
+
+
+def answer_problems(payload, *, complaint_text, fact_evidence):
+    """答辯狀 JSON 的結構檢查(硬擋)。complaint_text 是被告讀到的起訴狀正文(關卡 1 確認版),CF 以它為準。"""
+    if not isinstance(payload, dict):
+        return ["答辯狀輸出必須是 JSON 物件"]
+    problems = cf.response_problems(payload.get("responses"), complaint_text=complaint_text, fact_evidence=fact_evidence)
+    defenses = payload.get("defenses", [])
+    if not isinstance(defenses, list):
+        problems.append("defenses 必須是陣列")
+        defenses = []
+    for i, item in enumerate(defenses, 1):
+        if not isinstance(item, dict):
+            problems.append(f"defenses 第 {i} 筆不是物件")
+            continue
+        for key in ("type", "statement"):
+            if not isinstance(item.get(key), str) or not item[key].strip():
+                problems.append(f"defenses 第 {i} 筆的 {key} 不可空白")
+        basis = item.get("legal_basis", [])
+        if not isinstance(basis, list) or not all(isinstance(b, str) for b in basis):
+            problems.append(f"defenses 第 {i} 筆的 legal_basis 必須是字串陣列")
+        else:
+            problems += [f"defenses 第 {i} 筆的 legal_basis 只能放法條,且要寫成「OO法第N條」:{b}"
+                         for b in basis if parse_citation(b)["type"] != "statute"]
+        if not isinstance(item.get("hypothetical"), bool):
+            problems.append(f"defenses 第 {i} 筆的 hypothetical 必須是 true 或 false")
+    if not isinstance(payload.get("legal_argument"), str) or not payload["legal_argument"].strip():
+        problems.append("legal_argument 不可空白")
+    for key in ("citations", "to_confirm"):
+        if not isinstance(payload.get(key, []), list) or not all(isinstance(x, str) for x in payload.get(key, [])):
+            problems.append(f"{key} 必須是字串陣列")
+    return problems + _precedent_note_problems(payload)
+
+
+def answer_warnings(payload, *, fact_evidence, evidence):
+    """只警告:爭執形式上真正(authenticity)對到的證據不是文書時。哪些種類算文書待律師確認,這裡只看種類有沒有「書」或「文」。"""
+    types = {e["id"]: e.get("type") or "未填種類" for e in evidence or []}
+    warnings = []
+    for item in payload.get("responses") or []:
+        if item.get("stance") != "authenticity":
+            continue
+        kinds = [types.get(e, "未填種類") for e in (fact_evidence or {}).get(item.get("fact_id")) or []]
+        if not kinds:
+            warnings.append(f"{item.get('fact_id')} 爭執形式上真正,但這點沒有證據編號,請確認")
+        elif not any("書" in k or "文" in k for k in kinds):
+            warnings.append(f"{item.get('fact_id')} 爭執形式上真正,但證據種類是{'、'.join(kinds)},不是文書,請確認")
+    return warnings
+
+
+def _complaint_facts(complaint_text):
+    """起訴狀正文裡每個〔CF〕那一行的事實文字(去掉編號與標記)。"""
+    facts = {}
+    for line in (complaint_text or "").splitlines():
+        ids = cf.cf_ids(line)
+        if ids:
+            facts.setdefault(ids[0], cf.strip_cf_tags(_NUMBERED_RE.sub("", line)).strip())
+    return facts
+
+
+def _asks_provisional_execution(complaint_text):
+    """起訴狀的訴之聲明有沒有假執行。答辯聲明第一項依此寫「及其假執行之聲請」。"""
+    lines = (complaint_text or "").splitlines()
+    if "訴之聲明" not in lines:
+        return "假執行" in (complaint_text or "")
+    prayers = []
+    for line in lines[lines.index("訴之聲明") + 1:]:
+        if not line.strip() or line.strip() == "事實及理由":
+            break
+        prayers.append(line)
+    return any("假執行" in p for p in prayers)
+
+
+def _sentence(text):
+    text = text.strip()
+    return text if text.endswith(("。", "!", "?", "」")) else text + "。"
+
+
+def render_answer(payload, *, case, party_checks, procedural, complaint_text):
+    """依已通過 answer_problems 的 JSON 組成答辯狀正文。待被告本人確認的事項與律師要決定的事放【本稿產出說明】。"""
+    parties = case.get("parties") or {}
+    lines = [ANSWER_TITLE, "案號:" + PENDING.format("法院分案後之案號"), "承辦股別:" + PENDING.format("股別"), ""]
+    for role in ("plaintiff", "defendant"):
+        lines += party_lines(role, parties.get(role), (party_checks or {}).get(role), procedural)
+        lines.append("")
+    cause = _CAUSE_RE.search(complaint_text or "")
+    lines.append(f"為{cause.group(1) if cause else '原告起訴'}事件,依法提出答辯事:")
+    lines += ["答辯聲明",
+              "一、駁回原告之訴及其假執行之聲請。" if _asks_provisional_execution(complaint_text) else "一、駁回原告之訴。",
+              "二、訴訟費用由原告負擔。", "三、如受不利之判決,願供擔保請准宣告免為假執行。", "", "答辯理由"]
+    facts, order = _complaint_facts(complaint_text), cf.cf_ids(complaint_text)
+    rows = []
+    for i, item in enumerate(sorted(payload["responses"], key=lambda r: order.index(r["fact_id"])), 1):
+        row = f"({numeral(i)})原告主張「{facts.get(item['fact_id'], '')}」〔{item['fact_id']}〕:{STANCE_LABEL[item['stance']]}。"
+        reason = (item.get("reason") or "").strip()
+        if item.get("ground"):
+            row += f"{GROUND_LABEL[item['ground']]}:{_sentence(reason)}"
+        elif reason:
+            row += _sentence(reason)
+        if item.get("hypothetical") and item.get("ground") != "alternative_explanation":
+            row += "(推測)"
+        rows.append(row)
+    sections = [("對原告主張事實之表示", rows)]
+    defenses = []
+    for i, item in enumerate(payload.get("defenses") or [], 1):
+        notes = (["推測"] if item.get("hypothetical") else []) + (
+            ["依據:" + "、".join(item["legal_basis"])] if item.get("legal_basis") else [])
+        defenses.append(f"({numeral(i)}){item['statement'].strip()}" + (f"({';'.join(notes)})" if notes else ""))
+    if defenses:
+        sections.append(("抗辯", defenses))
+    sections.append(("理由", [payload["legal_argument"].strip()]))
+    for i, (heading, body) in enumerate(sections, 1):
+        lines.append(f"{numeral(i)}、{heading}")
+        lines += body
+    lines += ["", "證物名稱及件數:", "(模擬答辯未附證物)", "", "此　致", PENDING.format("受理法院") + "　公鑒",
+              "中華民國(待填)年(待填)月(待填)日"]
+    defendant = party_lines("defendant", parties.get("defendant"), (party_checks or {}).get("defendant"), procedural)
+    lines.append("具狀人　" + defendant[0])
+    lines += ["　　　　" + line for line in defendant if line.startswith("法定代理人")]
+    lines.append("撰狀人　" + PENDING.format("訴訟代理人"))
+    lines += ["", "---", "【本稿產出說明】給律師,不是答辯狀正文",
+              "- 本狀是系統模擬的被告答辯,只依起訴狀與公開資料推演,不是被告實際的答辯",
+              "- 答辯聲明第三項(如受不利之判決,願供擔保請准宣告免為假執行)是否保留,由律師決定"]
+    lines += [f"- 待被告本人確認:{q}" for q in payload.get("to_confirm") or []]
+    return "\n".join(lines) + "\n"
+
+
+def stored_answer(payload, complaint_id):
+    """落地進 structured_json 的內容:規格列出的欄位,加上被告讀的是哪一版起訴狀。"""
+    return {**{key: payload.get(key) for key in ANSWER_KEYS if key in payload}, "complaint_id": complaint_id}
