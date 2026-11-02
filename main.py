@@ -6,7 +6,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 用法:
   python main.py case     --json <file>                 案件輸入
   python main.py precheck --case-id X                    起訴前檢查的提示(程序類型、調解、時效)
-  python main.py role-view --case-id X --role plaintiff [--out <檔>]  印出(或寫成檔)該角色可讀的案件資料
+  python main.py role-view --case-id X --role plaintiff|defendant [--out <檔>]  印出(或寫成檔)該角色可讀的案件資料
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
   python main.py finalize --case-id X [--for-judge]      機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點；--for-judge 只印給法官讀的部分
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
@@ -47,7 +47,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     sys.stderr.reconfigure(encoding='utf-8')
 
 from database.db import (
-    get_session, record_case, record_argument, record_question, case_precheck, plaintiff_view,
+    get_session, record_case, record_argument, record_question, case_precheck, plaintiff_view, defendant_view,
     admission_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
 )
 from database.schema import Case
@@ -105,7 +105,7 @@ def cmd_precheck(args):
 def cmd_role_view(args):
     session = get_session()
     try:
-        view = plaintiff_view(session, args.case_id)
+        view = (plaintiff_view if args.role == "plaintiff" else defendant_view)(session, args.case_id)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 1
@@ -868,7 +868,7 @@ def main():
 
     p = sub.add_parser("role-view", help="印出某角色可讀的案件資料")
     p.add_argument("--case-id", required=True)
-    p.add_argument("--role", choices=("plaintiff",), required=True)
+    p.add_argument("--role", choices=("plaintiff", "defendant"), required=True)
     p.add_argument("--out", help="寫成這個檔，只印路徑")
     p.set_defaults(fn=cmd_role_view)
 

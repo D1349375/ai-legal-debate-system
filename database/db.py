@@ -16,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from engine.case_input import (
     clean_claim_amount, clean_evidence, clean_known_gaps, clean_opponent_responses, clean_represented_side,
 )
+from engine.fact_points import cf_ids
 from engine.internal_review import strip_internal_review
 from engine.precheck import precheck
 from database.schema import (
@@ -116,6 +117,39 @@ def plaintiff_view(session, case_id):
     return {"role": "plaintiff", "case": case_payload(row), "party_checks": checks,
             "procedural_issues": procedural_issues(checks), "precheck": case_precheck(row),
             "complaint": current_complaint(session, case_id)}
+
+
+def defendant_view(session, case_id, complaint_id=None):
+    """被告方的角色檔(規格 5.4):只有起訴狀這一面。給起訴狀正文(保留〔CF〕,去掉【本稿產出說明】)、正文各 CF
+    用到的證據、對方已知反應、商工查核與程序事項;不給事實經過、已知缺口、原告分析、沒列進起訴狀的證據與證明目的。
+    complaint_id 是關卡 1 律師確認的版本(待 W3 從關卡紀錄帶入);沒給就用系統版起訴狀。CF 以這一版正文為準,
+    證據編號取自系統原稿的 fact_points,律師新增的 CF 沒有證據。"""
+    from server.pleading_export import split_draft_note
+    row = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if row is None:
+        raise ValueError(f"找不到案件 {case_id}")
+    drafts = {d.id: d for d in session.query(PleadingDraft).filter_by(case_id=case_id, pleading_type="complaint").all()}
+    if complaint_id is None:
+        complaint_id = max((i for i, d in drafts.items() if d.source in (None, "system")), default=None)
+    complaint = drafts.get(complaint_id)
+    if complaint is None or complaint.citation_verification_status != "published":
+        raise ValueError(f"{case_id} 沒有可以給被告的起訴狀(#{complaint_id})")
+    origin = complaint
+    while origin.structured_json is None and origin.parent_id in drafts:
+        origin = drafts[origin.parent_id]
+    planned = {p["id"]: p.get("evidence_ids") or []
+               for p in json.loads(origin.structured_json or "{}").get("fact_points") or []}
+    text = split_draft_note(complaint.draft_text)[0]
+    fact_evidence = {cf: planned.get(cf, []) for cf in cf_ids(text)}
+    used = {e for ids in fact_evidence.values() for e in ids}
+    evidence = [{k: e[k] for k in ("id", "type", "date", "description")}
+                for e in json.loads(row.evidence_json or "[]") if e["id"] in used]
+    checks = latest_party_checks(session, case_id)
+    return {"role": "defendant", "case_id": case_id,
+            "complaint": {"id": complaint.id, "source": complaint.source or "system", "text": text},
+            "fact_evidence": fact_evidence, "evidence": evidence,
+            "opponent_known_responses": json.loads(row.opponent_responses_json or "[]"),
+            "party_checks": checks, "procedural_issues": procedural_issues(checks)}
 
 
 def record_argument(session, *, case_id, side, stage, position, reasoning,
