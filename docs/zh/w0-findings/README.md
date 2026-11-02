@@ -122,10 +122,14 @@ W0 依手冊判準通過(全部落地、V35 不成立 0、分類器中止 0)。�
 | 8 | [T7 合併進 pleading-exchange](T7-merge.md) | — | `pleading-exchange` | Codex | 否 |
 | 9 | [T8 條文內容核對](T8-statute-content-check.md) | F6 | `pleading-exchange` | Codex | 是(C2,搭下一次跑到 Step 8 的實跑) |
 | 10 | [T9 最強論點選句](T9-strongest-point.md) | F8 | `pleading-exchange` | Codex | 是(W6 的實跑) |
+| 11 | [T10 法官轉述核對](T10-attribution-review.md) | C1 V35 邊界 | `main-finals-fixes` | Codex | 是(C3) |
+| 12 | [T11 受挫評估移進內部檢討段落](T11-public-self-review-template.md) | C1 T4 漏報 | `main-finals-fixes` | Codex | 是(C3) |
+| 13 | C3 修正後重跑(T10、T11) | T10、T11 | `main-finals-fixes` | Claude | 是,約 16 分鐘 |
 
 - T1–T6 互不依賴,但都改 `main.py` 或 `server/`,**照順序一次做一項**,每項檢核通過、commit 之後才開下一項,避免兩項改動混在同一個工作目錄分不開。
 - W2 不必等 T8、T9。T7 合併完成後 W2 就能在 `pleading-exchange` 繼續。
 - C1 要用掉 5 小時額度約 25%,開跑前先確認額度。
+- T10、T11 是 C1 之後加的(2026-11-03),兩項改不同的檔(T10 改程式與 UI,T11 只改 Stage 2、3 範本),仍照順序一次做一項。做法與之後的方向見 [`attribution-roadmap.md`](attribution-roadmap.md)。C3 用 C1 的輸入重跑,和 C1 比。T7 不必等 T10、T11;若 T7 先做,T10、T11 之後要再帶進 `pleading-exchange`。
 
 ## 4. 要使用者決定的事
 

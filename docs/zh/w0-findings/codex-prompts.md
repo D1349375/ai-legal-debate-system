@@ -169,6 +169,59 @@ merge 本身需要一個 merge commit:衝突解完、測試通過後先停下來
 邊做邊填 T9 的實作紀錄;handoff 第 2 節與 iteration-log.md 加一列。不要 commit。做完回報。
 ```
 
+## 11. T10 法官轉述核對(C1 後新增)
+
+工作目錄:`.claude/worktrees/main-finals-fixes`
+
+開始前(使用者與 Claude):`T10-attribution-review.md`、`T11-public-self-review-template.md`、`attribution-roadmap.md` 與 C1 文件的更正要先 commit,讓 Codex 開工時工作目錄是乾淨的。確認 `database/c1-2026-11-02.db`(C1 資料庫複本,不進 git)在工作目錄裡。
+
+```text
+你在 LegalDebate 專案的 main-finals-fixes 分支工作(工作目錄就是目前這個資料夾,不要切分支、不要 push)。回覆與寫文件一律用繁體中文。
+
+先完整讀這幾份,再開始:
+1. docs/zh/w0-findings/README.md 第 5 節(共同規則與「實作紀錄怎麼寫」)
+2. docs/zh/w0-findings/attribution-roadmap.md(為什麼不再加擋詞)
+3. docs/zh/w0-findings/T10-attribution-review.md(本次任務)
+4. docs/live-run-records/c1-2026-11-02.md 的「V35 的邊界」
+5. engine/admission_check.py、engine/internal_review.py,以及 T4 怎麼在讀案件時重算 review_warning_count(server/services.py、ui/app.js)
+
+照 T10 做。重點:
+- 先跑離線全套測試記基準(python -X utf8 -m pytest -q -m "not network" -p no:cacheprovider,--basetemp 指到系統暫存資料夾),先寫測試再實作。測試資料用任務文件列的 C1 句子。
+- 這項只警告、不擋落地:不改 ADMISSION_RE、不把「承認」加進硬擋;check-judge 只有轉述警告時結束碼仍是 0。不呼叫任何模型。
+- 判斷是誰說的之前,先去掉同一句前面引號裡的內容;risk_map 用 strings_in 逐字串處理。任務文件「雛形踩到的坑」逐條避開。
+- 「近似」的門檻與「承認」的排除詞都要靠量測決定,每加一個排除都要有量測到的例句。不要為了讓舊示範案件乾淨而放寬到抓不到 C1 那句「並承認受民法第197條時效風險壓制」。
+- 量測資料:demo/recorded_cases.json、database/legal_debate.db、database/c1-2026-11-02.db。資料庫只讀,要寫就先複製到系統暫存資料夾。量測腳本與輸出放系統暫存資料夾,不進 git。C1 的預期是 close 6、unquoted 1、其他警告 0,不同就寫原因。
+- 看 UI 時用暫存資料庫另開一個沒在用的埠(不要用 8124、8132、8133、8141、8142),深淺色都看;不要關掉別人開著的伺服器。
+- 這台電腦只有 8 GB 記憶體:跑全套測試時不要同時開其他重的程序。
+
+邊做邊填 T10-attribution-review.md 最後的「實作紀錄」與「量測表」,每一次嘗試都寫一列迭代過程。在 docs/zh/main-finals-fix-list.md「W0 後修正」加 T10 一列,commit 欄寫「未 commit」。
+
+不要 commit。做完回報:改了哪些檔、測試數字、量測表重點(各分級數量、誤報率)、與任務文件不同的地方、沒驗證的事。
+```
+
+## 12. T11 受挫評估移進內部檢討段落(C1 後新增)
+
+工作目錄:`.claude/worktrees/main-finals-fixes`。T10 檢核通過、commit 後再做。
+
+```text
+繼續在 main-finals-fixes 分支,不切分支、不 push。繁體中文。
+
+先讀 docs/zh/w0-findings/README.md 第 5 節、docs/zh/w0-findings/T11-public-self-review-template.md(本次任務)、docs/live-run-records/c1-2026-11-02.md 的「T4 漏報的 2 句」,再讀 .claude/skills/legal-debate/templates/stage2_prompt.txt 與 stage3_prompt.txt 全文。
+
+照 T11 做。重點:
+- 只改 stage2_prompt.txt、stage3_prompt.txt 的文字,不改程式、不新增 JSON 欄位、不改 engine/internal_review.py 的詞表、不改法官範本。
+- 受挫評估、現況標記、風險高低寫進【內部檢討】段落;段落外只寫每個候選的處置(繼續主張、改列備位、不再主張)與理由。不再主張的依據仍要公開(V37)。
+- 檔尾 JSON 的 "argument" 說明要同步改,不然模型會照舊寫在段落外。
+- 舉例時用改寫過的說法,不要貼 C1 原句全文。
+- 跑離線全套,確認沒有測試綁著舊文字;要不要加檢查範本文字的測試自己決定,理由寫進紀錄。
+
+邊做邊填 T11 的實作紀錄,「範本改動對照」只貼改到的段落。在 docs/zh/main-finals-fix-list.md「W0 後修正」加 T11 一列。不要 commit。做完回報改了哪些段落、測試數字、沒驗證的事(範本效果要等 C3 實跑)。
+```
+
+## 13. C3 修正後重跑(交給 Claude,不是 Codex)
+
+T10、T11 都 commit 後,跟 Claude 說:「跑 C3」。輸入與做法同 [`C1-rerun.md`](C1-rerun.md)(資料庫用複本、`LEGALDEBATE_DB_URL`、兩份書狀都產),另外看 T10、T11 檢核方式列的項目。C1 的數字:16 分 02 秒、估 3.56 美元、CLI 帳號 5 小時額度 +18%。
+
 ## 共用:檢核通過後讓 Codex commit
 
 ```text
