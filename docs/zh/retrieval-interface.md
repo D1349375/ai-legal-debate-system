@@ -129,7 +129,7 @@ python main.py retrieval-rules --phase p2 --side defendant --case-dir database/l
 
 1. 每個案件建立 `database/live_runs/case-<案件ID>/`，底下 `retrieval_cache/plaintiff/`、`retrieval_cache/defendant/`、`search_logs/`（不存在時指令會自己建，路徑對就好）。**律師確認關卡續跑時沿用同一個案件資料夾**。
 2. 給每個角色填它自己的 `{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`；**不得把對造的快照或紀錄路徑給角色**。三個佔位符可以一次從 `retrieval-rules --phase <階段> --side <side> --case-dir <案件資料夾> --json` 的 `text`、`snapshot`、`log` 取得。
-3. `python main.py record ... --snapshot database/live_runs/case-<案件ID>/retrieval_cache`、`python main.py verify ... --snapshot <同上>`：用案件快照根目錄（查證與判例落地讀雙方讀過的同一版本）。UI 實跑時環境變數已指向根目錄，可省略；Claude Code 直接跑（非 UI）時要明寫。
+3. `python main.py record ... --snapshot database/live_runs/case-<案件ID>/retrieval_cache`、`python main.py verify ... --snapshot <同上>`：用案件快照根目錄（查證與判例落地讀雙方讀過的同一版本）。UI 實跑時環境變數已指向根目錄，可省略；Claude Code 直接跑（非 UI）時要明寫。查某一方書狀的引用時，`verify` 加 `--read-by plaintiff` 或 `--read-by defendant`（見第七節 `not_read_by_side`）。
 4. SKILL.md 現行第 8 步「連線失敗可由調度員手動重試一次；不改引擎加入自動重試」請刪掉：引擎現在自動重試一次。
 
 ---
@@ -165,7 +165,9 @@ python main.py retrieval-rules --phase p2 --side defendant --case-dir database/l
 
 ## 七、查證介面
 
-`python main.py verify <引用...> [--case-id X] [--snapshot <案件快照根目錄>] [--precedent-notes ...] [--version-hints ...] [--review-json ...]`，用法與現行相同，多了 `--snapshot`。
+`python main.py verify <引用...> [--case-id X] [--snapshot <案件快照根目錄>] [--read-by plaintiff|defendant] [--precedent-notes ...] [--version-hints ...] [--review-json ...]`，用法與現行相同，多了 `--snapshot` 與 `--read-by`。
+
+`--read-by`（2026-11-02 加）：查某一方書狀的引用時給該方。該方角色在本案沒有用 `judgment` 讀過全文的判決回 `not_read_by_side`，不放行。`judgment` 讀成功時在該方快照記一筆 `reads/<JID>.json`；`search-judgments --fetch` 也會把全文存進快照，但角色只看到主文與命中句，不算讀過。須搭配案件快照根目錄（`--snapshot` 或環境變數），沒有時結束碼 2。不給 `--read-by` 時行為不變（法官、種子資料、UI 查證照舊）。Python 呼叫端：`verify_citations(..., read_by='plaintiff')`、`validate_precedent_notes(..., read_by=...)`。
 
 ### 法條解析
 
@@ -187,6 +189,7 @@ python main.py retrieval-rules --phase p2 --side defendant --case-dir database/l
 | `version_unverified` | 歷史版本，或法規已廢止 | 否（律師待核） |
 | `unsupported_law` | 名稱索引查無此法規 | 否（律師待核） |
 | `unparseable` | 不是可解析的法條或字號 | 否 |
+| `not_read_by_side` | 有給 `--read-by`：字號（與摘句）查核通過，但引用方在本案沒有用 `judgment` 讀過全文 | 否 |
 | `doc_type_mismatch`、`quote_not_found`、`document_identity_unverified`、`analogy_required`、`invalid_precedent_note`、`invalid_document_date` | 判例文件身分或摘句檢查失敗（既有規則不變） | 否 |
 
 UI 端（`server/services.py`）另有 `local_cache_only`（只有過期條文快取，或判決快取有但官方未確認唯一性）與 `verification_failed`，都不放行。`full_text_unavailable` 在 UI 也照原樣顯示，`live_attempt.outcome` 為 `unrecognized_page`（連得上官網，所以不會觸發批次查證的「網路不通、其餘略過即時查詢」）；案件查證紀錄是這個狀態時，書狀編輯會重新查證。
@@ -288,6 +291,7 @@ main 若另外實作，併回來時 `verify.py` 會大衝突。決賽若用 main
 | 1 | `stage1_prompt.txt` 不只是換佔位符。第 23–38 行允許把記憶中、未命中的判例列進 `cited_precedents`（只在 argument 註明待查證），與第三節、第八節的引用規則衝突；輸出也沒有 `precedent_notes`、`precedent_leads` | 改寫這段：正式引用的判決須本輪用 `judgment` 讀過全文並附 `precedent_notes`，記憶中的判決只進 `precedent_leads`（規格 5.2 也這樣寫）。可參考 `retrieval-optimization` 的 `stage1_prompt.txt` 第 16 行 |
 | 2 | 撰狀 subagent（`complaint_prompt.txt`）能不能檢索，規格沒寫。它輸出的 `precedent_notes.quote` 必須是全文原句 | 建議撰狀不搜尋，只引用分析已讀過、已附 `precedent_notes` 的判決；要重讀時用 `judgment` 加同一個快照與 `plaintiff_p1.jsonl`（快照已有的不計預算）。給它 `{RETRIEVAL_RULES}` 時用同一個 P1 規則 |
 | 3 | W2 實跑用商工解散案，來源是最高法院114年度台上字第1987號裁定，該裁定在 `corpus/judgments/`。計畫把排除參數放到 W8，W2 的實跑檢查沒有防污染 | W2 起就用 `retrieval-rules --phase p1 --side plaintiff --case-dir <案件資料夾> --exclude 114年度台上字第1987號`；跑完檢查 `plaintiff_p1.jsonl` 每筆 `search-judgments` 的 `query.exclude`，以及有沒有任何一筆讀到 1987 號 |
+| 4 | 「正式引用的判決須讀過全文」原本只寫在規則裡，查證不核對：沒讀過的判決 `verify` 會自己上網抓全文比對摘句，照樣 `published`；摘句也可能取自 `search-judgments` 的命中句（可能是當事人主張，不是法院見解） | 書狀撰狀後的查證加 `--read-by <該書狀的一方>`，例如起訴狀：`verify --precedent-notes <檔> --snapshot <案件快照根目錄> --read-by plaintiff`；`not_read_by_side` 和其他非 `published` 一樣退回撰狀。角色的 `judgment` 一定要帶自己的 `--snapshot`（`{RETRIEVAL_CACHE_DIR}`），否則讀過也不會記錄 |
 
 ### SKILL.md 改寫時要一起換的
 
@@ -303,6 +307,7 @@ main 若另外實作，併回來時 `verify.py` 會大衝突。決賽若用 main
   - `judgment` 認得沒有「度」的判例寫法（`73年台上字第1173號`）。讀到民國85年以前的裁判時仍回 `full_text_unavailable`（結束碼 1），有 `--log` 時另自動查一次援引它的近年判決並列出前 5 份（計一次搜尋，紀錄 `note: citing_lookup`）；沒有 `--log`（法官、查證）只印提示，不替它們搜尋。
   - `verify` 不變：判例寫法仍是 `unparseable`、不放行，與「舊判例不能正式引用」一致。民國38年以前的「上字」判例（如 `17年上字第1118號`）兩邊都不認得。
 - **官網忙碌時不再誤報查無**：2026-11-02 重測時官網忙碌，存在的 52台上694、44台上75、71台上737、70台上311 曾被回成 `not_found`（`verify` 會因此把真的引用判成捏造）。原因是送出查詢後的回應頁、或結果頁本身是忙碌頁，程式讀不到結果連結或列就當成 0 筆。現在只有回應頁明寫「查詢結果 0」（或「查無資料」）才算查無；其他情況拋 `fjud.UnexpectedPage`（屬連線問題），照現行流程重試一次，仍失敗為 `retrieval_unavailable`／`network_error`。
+- **「讀過全文才可引用」改由查證核對**：`verify --read-by plaintiff|defendant`，該方沒用 `judgment` 讀過全文的判決回 `not_read_by_side`（第七節）。檢索階段的規則同時告訴角色會核對、`--fetch` 不算讀過；查證階段的規則列出 `--read-by` 用法。W2 要接的只有上表第 4 項。只核對「本案讀過」，不分階段（同一份判決內容不變）。
 - `retrieval-rules` 的 P1 目標原本寫「起訴狀選定的請求權基礎」與「`internal_analysis` 的其他候選」，但分析時還沒有起訴狀，也沒有這個欄位。已改成配合分析→撰狀兩步的寫法。
 - 交接文件第 6 節與規格 5.9 說 `retrieval-rules`、排除參數尚未提供，已過時：兩者都在 `pleading-exchange`。
 

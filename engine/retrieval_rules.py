@@ -65,7 +65,8 @@ OLD_PRECEDENT_RULE = ("民國85年以前的裁判（多為舊判例，例如73�
 WHEN_TO_CITE = [
     "只在這四種情況引用法條：涵攝要件、爭執舉證責任、發動或反擊法定抗辯、回應法官闡明或切換請求權基礎",
     "只有涵攝或抗辯有爭議時才搜判決",
-    "正式引用判決須本輪用 judgment 讀過全文，並附原文摘句與命題；沒讀過全文的判決不得正式引用",
+    "正式引用判決須本輪用 judgment 讀過全文，並附原文摘句與命題；沒讀過全文的判決不得正式引用。查證會核對本方是否"
+    "用 judgment 讀過（search-judgments --fetch 只看到命中句，不算），沒讀過的回 not_read_by_side、不放行",
     OLD_PRECEDENT_RULE,
 ]
 ON_FAILURE = [
@@ -153,11 +154,13 @@ def _no_search_text(code, paths, exclude):
     lines = [f"檢索規則：{label}（{who}）", "檢索方式：不搜尋。不得使用 search-judgments、search-statutes。", "", "可用指令："]
     if code == 'verify':
         root = paths.get('case_snapshot', '<案件快照根目錄>')
-        lines += [f"- 查證：python main.py verify <引用...> --snapshot {root}",
+        lines += [f"- 查證：python main.py verify <引用...> --snapshot {root} --read-by <plaintiff 或 defendant>"
+                  "（查哪一方的書狀就填哪一方）",
                   f"- 讀判決全文：python main.py judgment <字號> [--doc-date YYYYMMDD] --snapshot {root}"
                   "（與雙方角色讀的是同一版本）",
                   "", "查證：",
                   "- 以案件快照根目錄比對雙方讀過的同一份全文與條文",
+                  "- not_read_by_side：字號存在，但引用方沒有用 judgment 讀過全文，不放行",
                   "- 只有 published 放行；network_error（官網無法連線）與 full_text_unavailable（官網頁面無法辨認）"
                   "都不代表查無或引用寫錯，照實回報，不得改判為 published"]
     else:

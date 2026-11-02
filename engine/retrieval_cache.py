@@ -178,6 +178,24 @@ def store_judgment(jid, text, case_cause, source_url, snapshot=None):
     return entry
 
 
+def _read_path(base, jid):
+    return os.path.join(base, 'reads', _file_name(jid))
+
+
+def mark_read(snapshot, jid):
+    """judgment 指令把全文印給角色後記一筆。search-judgments --fetch 也把全文存進快照，但角色只看到主文與命中句，
+    不算讀過；查證以此判斷「該方讀過全文才可正式引用」(verify --read-by)。"""
+    if snapshot:
+        _write(_read_path(snapshot, jid), {'jid': jid, 'read_at': now_iso()})
+
+
+def read_by_side(snapshot, side, jid):
+    """該方角色(以 --snapshot <快照根目錄>/<side> 讀取)是否在本案用 judgment 讀過這份全文。"""
+    if side not in SNAPSHOT_SIDES:
+        raise ValueError(f"side 須為 {'、'.join(SNAPSHOT_SIDES)}")
+    return os.path.isfile(_read_path(os.path.join(snapshot, side), jid))
+
+
 def _citation_path(base, prefix):
     return os.path.join(base, 'citations', _file_name(prefix.rstrip(',')))
 

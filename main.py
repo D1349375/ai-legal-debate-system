@@ -197,7 +197,11 @@ def cmd_verify(args):
     if args.precedent_notes:
         with open(args.precedent_notes, encoding='utf-8') as f:
             notes = json.load(f)
-    results = verify_citations(args.citations, precedent_notes=notes, snapshot=args.snapshot)
+    try:
+        results = verify_citations(args.citations, precedent_notes=notes, snapshot=args.snapshot, read_by=args.read_by)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
     for r in results:
         if r.get("status") == "published":
             upsert_citation(session, citation_text=r["citation_text"], source_type=r["source_type"],
@@ -496,6 +500,7 @@ def cmd_judgment(args):
     if log:
         log.append('judgment', query, 'found', hits=1, fetched=[{'jid': jid, 'served_from': entry['served_from']}],
                    issue=args.issue)
+    retrieval_cache.mark_read(snapshot, jid)
     if args.json:
         print(json.dumps({**entry, 'flat_text': judgment_text.flatten(entry['text'])}, ensure_ascii=False, indent=2))
         return 0
@@ -746,6 +751,8 @@ def main():
     p.add_argument("citations", nargs="+")
     p.add_argument('--precedent-notes', help='判例文件日期、案由及原文摘句 JSON 檔')
     p.add_argument('--snapshot', help='案件的快照根目錄；比對雙方角色讀過的同一版本全文與條文')
+    p.add_argument('--read-by', choices=('plaintiff', 'defendant'),
+                   help='查某一方書狀的引用：該方沒用 judgment 讀過全文的判決回 not_read_by_side，不放行')
     p.set_defaults(fn=cmd_verify)
 
     p = sub.add_parser("verdict", help="落地法官判決書")

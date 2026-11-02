@@ -316,18 +316,46 @@ def verify_precedent_note(note, timeout=DEFAULT_TIMEOUT, *, snapshot=None):
     return result
 
 
-def validate_precedent_notes(notes, *, snapshot=None):
+PASSING = ('published', 'needs_explanation')
+SIDE_LABELS = {'plaintiff': '原告', 'defendant': '被告'}
+
+
+def _read_by_snapshot(snapshot, read_by):
+    snapshot = _snapshot(snapshot)
+    if read_by and not snapshot:
+        raise ValueError('read_by 須搭配案件快照根目錄(--snapshot 或環境變數 LEGAL_DEBATE_RUN_SNAPSHOT)')
+    return snapshot
+
+
+def _require_read(result, snapshot, read_by):
+    """read_by(plaintiff／defendant)：該方角色在本案沒有用 judgment 讀過全文的判決不放行。
+    字號與摘句比對過了也一樣：摘句可能取自 search-judgments 的命中句，沒讀前後文就引用。"""
+    if not read_by or result.get('status') not in PASSING or not result.get('jid'):
+        return result
+    if retrieval_cache.read_by_side(snapshot, read_by, result['jid']):
+        return result
+    return {**result, 'status': 'not_read_by_side', 'read_by': read_by,
+            'reason': f"{SIDE_LABELS.get(read_by, read_by)}在本案沒有用 judgment 讀過這份判決全文",
+            'note': '字號存在，但引用方沒讀過全文，不放行；用 judgment 讀過全文(帶本方的 --snapshot)再引用'}
+
+
+def validate_precedent_notes(notes, *, snapshot=None, read_by=None):
     if not isinstance(notes, list):
         raise ValueError('precedent_notes 必須是陣列')
-    results = [verify_precedent_note(note, snapshot=snapshot) for note in notes]
-    errors = [r for r in results if r['status'] not in ('published', 'needs_explanation')]
+    snapshot = _read_by_snapshot(snapshot, read_by)
+    results = [_require_read(verify_precedent_note(note, snapshot=snapshot), snapshot, read_by) for note in notes]
+    errors = [r for r in results if r['status'] not in PASSING]
     if errors:
         raise ValueError('判例查證拒絕落地：' + '; '.join(f"{r.get('citation_text', '')}: {r['status']} {r.get('reason', '')}" for r in errors))
     return results
 
 
-def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT, *, precedent_notes=None, version_hints=None, snapshot=None):
-    notes = {note['citation']: note for note in (precedent_notes or []) if isinstance(note, dict) and 'citation' in note}
+def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT, *, precedent_notes=None, version_hints=None, snapshot=None,
+                     read_by=None):
+    """read_by：查某一方書狀的引用時給 plaintiff 或 defendant，該方沒用 judgment 讀過全文的判決回 not_read_by_side。"""
+    if read_by:
+        snapshot = _read_by_snapshot(snapshot, read_by)
+    notes ={note['citation']: note for note in (precedent_notes or []) if isinstance(note, dict) and 'citation' in note}
     hints = version_hints or {}
     results = []
     for citation_text in citation_texts:
@@ -343,6 +371,7 @@ def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT, *, precedent_notes
             result = (verify_precedent_note(note, timeout=timeout, snapshot=snapshot) if note else
                       verify_judgment_citation(parsed["jyear"], parsed["jcase"], parsed["jno"], timeout=timeout,
                                                snapshot=snapshot))
+            result = _require_read(result, snapshot, read_by)
         else:
             result = {"status": "unparseable"}
         result["citation_text"] = citation_text

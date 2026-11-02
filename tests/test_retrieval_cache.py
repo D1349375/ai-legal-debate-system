@@ -315,6 +315,47 @@ def test_verification_with_case_root_reads_both_sides(fjud_calls, tmp_path, monk
     assert {(m["jid"], m["scope"]) for m in manifest["judgments"]} == {(JID, "defendant")}
 
 
+CITATION = "最高法院111年度台上字第1069號"
+NOTE = {"citation": CITATION, "doc_date": "20250716", "doc_type": "判決", "case_cause": "請求損害賠償",
+        "quote": "按締約上過失責任，以契約未成立為前提。", "proposition": "締約上過失以契約未成立為前提"}
+
+
+def read_with_judgment_command(snapshot, capsys):
+    import argparse
+    import main
+    args = argparse.Namespace(target=JID, doc_date=None, json=True, snapshot=snapshot, log=None, issue=None)
+    assert main.cmd_judgment(args) == 0
+    capsys.readouterr()
+
+
+def test_verify_read_by_passes_only_judgments_that_side_read(fjud_calls, tmp_path, capsys):
+    root = tmp_path / "case-snap"
+    read_with_judgment_command(str(root / "plaintiff"), capsys)
+    by_plaintiff = verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root), read_by="plaintiff")
+    by_defendant = verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root), read_by="defendant")
+    assert by_plaintiff[0]["status"] == "published"
+    assert by_defendant[0]["status"] == "not_read_by_side" and by_defendant[0]["read_by"] == "defendant"
+    with pytest.raises(ValueError, match="判例查證拒絕落地"):
+        verify.validate_precedent_notes([NOTE], snapshot=str(root), read_by="defendant")
+
+
+def test_full_text_fetched_for_a_search_list_is_not_a_read(fjud_calls, tmp_path):
+    # search-judgments --fetch 把全文存進該方快照，但角色只看到主文與命中句；摘句對得上也不算讀過
+    root = tmp_path / "case-snap"
+    retrieval_cache.get_judgment(JID, snapshot=str(root / "plaintiff"))
+    assert verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root))[0]["status"] == "published"
+    result = verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root), read_by="plaintiff")[0]
+    assert result["status"] == "not_read_by_side"
+    bare = verify.verify_citations([CITATION], snapshot=str(root), read_by="plaintiff")[0]
+    assert bare["status"] == "not_read_by_side"
+
+
+def test_read_by_needs_the_case_root(fjud_calls, monkeypatch):
+    monkeypatch.delenv(verify.SNAPSHOT_ENV, raising=False)
+    with pytest.raises(ValueError, match="快照根目錄"):
+        verify.verify_citations([CITATION], read_by="plaintiff")
+
+
 def test_retrieval_commands_ignore_the_case_root_env(fjud_calls, tmp_path, monkeypatch):
     """環境變數指向案件根目錄(查證用)；角色漏給 --snapshot 時不得把讀過的判決記到雙方都看得到的根目錄。"""
     import argparse
