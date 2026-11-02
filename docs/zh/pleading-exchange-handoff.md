@@ -20,7 +20,7 @@
 
 | 分支 | 工作目錄 | commit | 用途 | 遠端 |
 |---|---|---|---|---|
-| `pleading-exchange` | `.claude/worktrees/pleading-exchange` | `e1b5436`,W2 改動未 commit | 新架構主線 | `e1b5436` 已 push |
+| `pleading-exchange` | `.claude/worktrees/pleading-exchange` | `624fe8e`(W2)之後的文件 commit | 新架構主線 | 只 push 到 `e1b5436`,W2 沒有 push |
 | `main-finals-fixes` | `.claude/worktrees/main-finals-fixes` | `cf6f98c` 之後 W0 修正陸續 commit(T1–T3 已完成) | 新架構沒過時的退路;W0 修正 T1–T6 在這裡 | 以 `git log` 為準 |
 | `main` | 專案根目錄 | `aeb618e` | 最後保底,沒動 | 已同步 |
 | `origin/retrieval-optimization` | 無 | `e8404f7` | 組員的檢索來源 | 組員維護 |
@@ -30,7 +30,7 @@
 | R0 檢索搬入 | 完成,`7ae2d9d` | 離線 383 項、連網 11 項、CLI 實測、瀏覽器示範案 25/25 |
 | W1 案件輸入與起訴前檢查 | 完成,`ca38d03` | 離線 427 項、2 項略過;瀏覽器走過建案與舊案,深淺色都看過 |
 | W0 第二批修正實跑 | 完成,在 `main-finals-fixes` 跑(2026-11-02) | 依手冊判準通過;找到 9 項問題,T1–T6 由 Codex 在 `main-finals-fixes` 修,T7 再合併進本分支。見 `git show main-finals-fixes:docs/live-run-records/w0-2026-11-02.md` 與該分支 `docs/zh/w0-findings/README.md` |
-| W2 起訴狀 v1 | 程式與範本完成,**未 commit** | 離線 451 項、2 項略過(新增 24 項);P1 實跑見 `docs/live-run-records/w2-2026-11-02.md` |
+| W2 起訴狀 v1 | 完成,`624fe8e` | 離線 451 項、2 項略過(新增 24 項);P1 實跑見 `docs/live-run-records/w2-2026-11-02.md` |
 | W3–W11 | 未開始 | 無 |
 
 **新流程只接上 P0、P1。** v2 案件走新的 `SKILL.md` Step 1–3:原告分析(新檢索指令)→ 撰狀 subagent 交 JSON → `main.py complaint` 檢查事實對應、由程式組成正文、查證後落地。Step 4 以後暫時借舊流程(`references/legacy-v1.md`),被告仍讀全部案件事實,W4 才改。UI 的「開始執行」還沒有「只跑到起訴狀」的選項(W3 的 `stop_after`)。
@@ -41,7 +41,7 @@
 
 2026-11-02 在 `main-finals-fixes` 跑完,依手冊判準通過(11 分 54 秒、2.89 美元、分類器中止 0)。找到的問題在該分支 `docs/zh/w0-findings/`:T1–T6 由 Codex 修在 `main-finals-fixes`,T7 合併進本分支;T8(條文內容核對)、T9(最強論點選句)只修本分支。**本分支不要自己修 T1–T6**,等 T7 合併,避免衝突。
 
-### 3.2 W2:起訴狀 v1(程式完成,等使用者同意 commit)
+### 3.2 W2:起訴狀 v1(已完成,`624fe8e`)
 
 做了什麼、和計畫不同的地方、實跑結果:計畫第 6 節 W2 列、[iteration-log.md](iteration-log.md)、`docs/live-run-records/w2-2026-11-02.md`。
 
