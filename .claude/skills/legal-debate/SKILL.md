@@ -43,43 +43,38 @@ description: >-
 
 每個角色只拿自己的快照與紀錄路徑,不得把對造的路徑給角色。資料夾不存在時指令會自己建。
 
-### P1 檢索規則 `{RETRIEVAL_RULES}`
+### 派 subagent 與交接檔案
 
-組員的 `retrieval-rules` 指令還沒做好,先把下面這段原文填進 `{RETRIEVAL_RULES}`(依 `docs/zh/retrieval-interface.md` 第八節;指令做好後改成填它的輸出):
+你的上下文每一輪都會整份重讀(舊流程實跑主 agent 長到約 19 萬 token,佔全程輸入八成),所以範本、角色檔、分析與 subagent 的輸出都不要經過你:
 
-```
-- 階段:P1 起訴狀(原告,主要檢索)。紀錄檔名 plaintiff_p1 決定預算:search-judgments 最多 8 次,上網抓判決全文最多 10 份(快照或快取已有的不計);article、search-statutes 只記錄不計次。分析與撰狀共用同一個紀錄檔與預算。
-- 目標:起訴狀選定的請求權基礎(先位、備位),以及預想抗辯會打的要件。其他候選不上網搜。
-- 步驟:依訴之聲明,按「契約 → 類似契約關係 → 無因管理 → 物上請求權 → 不當得利 → 侵權行為」列候選 → python main.py article <法規名稱> <條號> 讀現行條文 → 只有涵攝要件或抗辯有爭議時才 python main.py search-judgments --kw <法條> --kw <要件詞> [--fetch N] → python main.py judgment <字號> 讀全文 → 正式引用(本輪讀過全文,附摘句與命題)。
-- 每個指令都加 --snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH}(search-statutes 只加 --log)。
-- 一次只執行一條 python main.py 指令,路徑直接寫在指令裡;不要 cd、設變數、迴圈、&&、;、管線(會被拒)。
-- 失敗:retrieval_unavailable、budget_exceeded 時相關內容寫「待確認」,不得用記憶充當查得結果。連線失敗不代表查無。
-- 只能用上面這些 python main.py 指令上網;不能用 WebFetch、WebSearch。
-```
+- **不要 Read 範本**。用 `python main.py prompt <範本名> --out <執行資料夾>/prompts/<步驟>.txt --set KEY=VALUE …` 由程式填好佔位符寫成檔,指令只印路徑;佔位符沒填完或填錯名字會被拒。檢索階段加 `--phase p1 --side plaintiff --case-dir <案件資料夾>`,程式會帶入 `{RETRIEVAL_RULES}` 與該角色的 `{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`。
+- subagent 的 prompt 只寫一句:「用 Read 讀 <上一點印出的路徑>,那是你這次的完整指示,照做。」
+- subagent 自己用 Write 把輸出寫進 `{OUTPUT_PATH}`,只回「已寫入 <路徑>」。你不要 Read 輸出檔,直接交給落地或檢查指令;被退回時把報錯原文交回同一個 subagent,請它重寫同一個檔。
+- `role-view`、`public-args` 一律加 `--out <檔>`,指令只印路徑。
 
 ### Step 1 — P0 案件輸入與起訴前檢查
 
 1. 案件要已落地(UI 建案時已落地;CLI 用 `python main.py case --json <檔>`,JSON 要有 `"protocol": "v2"`)。事實只能來自使用者,不得代為編造。
 2. 商工查核:當事人是公司或商號、且使用者提供了統一編號時,執行 `python main.py party --ban <統編> --case-id <案件ID> --role plaintiff|defendant`。**統編只能來自使用者**,不得用名稱搜尋自行選定。自然人或沒給統編的一方不查,照實留空。UI 執行時已查好,不要重查。
-3. 執行 `python main.py role-view --case-id <案件ID> --role plaintiff`,把輸出存成原告角色檔 `plaintiff_view.json`。裡面有案件輸入、商工查核、起訴審查事項(`procedural_issues`,依固定規則產生,不得增刪)與起訴前檢查(`precheck`,只是提示)。
+3. 執行 `python main.py role-view --case-id <案件ID> --role plaintiff --out <執行資料夾>/plaintiff_view.json`,產生原告角色檔。裡面有案件輸入、商工查核、起訴審查事項(`procedural_issues`,依固定規則產生,不得增刪)與起訴前檢查(`precheck`,只是提示)。
 4. 沒有證據清單時照樣繼續,但最後回覆要寫明:事實只能對應事實經過的原文。
 
 ### Step 2 — P1 原告請求權基礎檢驗
 
-- 開一個 subagent,prompt **逐字套用** `templates/stage1_prompt.txt`,只填 `{CASE_ID}`、`{ROLE_VIEW_PATH}`(Step 1 的角色檔)、`{RETRIEVAL_RULES}`、`{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`。
-- subagent 回報檢索指令被權限拒絕、因此沒有檢索時,這份分析不落地,另開新 subagent 用同一份範本重派(同一步驟最多重派 2 次,與分類器中止分開計),最後回覆照實列出。
-- 收到後機械核對:`procedural_issues.issues` 裡 `ex_officio` 為 true 的每一則,`argument` 都要有「程序補正(<id>)」段落。漏掉就退回同一個 subagent 補寫,不得代寫。
-- 存成 JSON(加上 `"case_id"`、`"stage": 1`),執行 `python main.py record --json <檔>` 落地。`record` 對內部檢討段落與自承用語的警告只警告,照實列入最後回覆。
+- 執行 `python main.py prompt stage1_prompt --out <執行資料夾>/prompts/p1_analysis.txt --phase p1 --side plaintiff --case-dir <案件資料夾> --set CASE_ID=<案件ID> --set ROLE_VIEW_PATH=<Step 1 的角色檔> --set OUTPUT_PATH=<執行資料夾>/p1_analysis.json`,照上一節派一個 subagent。
+- subagent 的回覆寫「檢索被拒」、因此沒有檢索時,這份分析不落地,另開新 subagent 用同一份範本重派(同一步驟最多重派 2 次,與分類器中止分開計),最後回覆照實列出。
+- 收到後機械核對:`procedural_issues.issues` 裡 `ex_officio` 為 true 的每一則,用 Grep 在 `p1_analysis.json` 找「程序補正(<id>)」。漏掉就退回同一個 subagent 補寫,不得代寫。
+- 執行 `python main.py record --json <執行資料夾>/p1_analysis.json` 落地。`record` 對內部檢討段落與自承用語的警告只警告,照實列入最後回覆。
 
 ### Step 3 — P1 起訴狀 v1
 
-1. 執行 `python main.py public-args --case-id <案件ID> --through-stage 1`,把輸出存成 `plaintiff_analysis.json`(已濾掉內部檢討)。
-2. 開一個新的撰狀 subagent,prompt **逐字套用** `templates/complaint_prompt.txt`,填 `{CASE_ID}`、`{ROLE_VIEW_PATH}`、`{ANALYSIS_PATH}`(上一點的檔)、`{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`(與 Step 2 相同)。把回覆原樣存成 `complaint.json`。
-3. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --check`。印「未通過」就把報錯原文交回**同一個**撰狀 subagent,請它只改被點名的地方後重新輸出整份 JSON。同一份最多退回 2 次(含第一次共 3 次);3 次都沒通過就停在這裡,不落地,在最後回覆列出每次的報錯原文。通過時會印出程式組成的正文與「落地前要全部 published 的引用」。
+1. 執行 `python main.py public-args --case-id <案件ID> --through-stage 1 --out <執行資料夾>/plaintiff_analysis.json`(已濾掉內部檢討)。
+2. 執行 `python main.py prompt complaint_prompt --out <執行資料夾>/prompts/p1_complaint.txt --phase p1 --side plaintiff --case-dir <案件資料夾> --set CASE_ID=<案件ID> --set ROLE_VIEW_PATH=<角色檔> --set ANALYSIS_PATH=<上一點的檔> --set OUTPUT_PATH=<執行資料夾>/complaint.json`,派一個新的撰狀 subagent。
+3. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --check`。印「未通過」就把報錯原文交回**同一個**撰狀 subagent,請它只改被點名的地方後重寫 `complaint.json`。同一份最多退回 2 次(含第一次共 3 次);3 次都沒通過就停在這裡,不落地,在最後回覆列出每次的報錯原文。通過時會印出程式組成的正文與「落地前要全部 published 的引用」。
 4. **開一個新的、乾淨的查證 subagent**(不能是撰狀的同一個),交給它:
    - 執行 `python main.py verify <上一步列出的全部引用> --snapshot database/live_runs/case-<案件ID>/retrieval_cache`(UI 執行時環境變數已指向根目錄,`--snapshot` 可省略),確認存在性。
    - 對 `complaint.json` 的每一個 `precedent_notes`,用 `python main.py judgment <字號>`(不加 `--snapshot`、不加 `--log`,不搜尋)讀全文,核對案由與爭點是否真的支持 `proposition`。
-   - 回覆嚴格 JSON 陣列 `[{"citation": "字號", "supports": true 或 false, "reason": "一句話,寫依據全文哪一段"}]`;沒有判決時回 `[]`。把這個陣列原樣存成 `citation_review.json`,不要改寫或補內容。
+   - 產出嚴格 JSON 陣列 `[{"citation": "字號", "supports": true 或 false, "reason": "一句話,寫依據全文哪一段"}]`;沒有判決時寫 `[]`。這個陣列由查證 subagent 自己用 Write 寫進 `<執行資料夾>/citation_review.json`,只回「已寫入 <路徑>」;你不要改寫或補內容。
 5. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --review-json citation_review.json` 落地。程式會再擋一次:引用未 published、判決實質核對不支持、判例摘句不是全文原句(`quote_not_found`)、文件身分不符、連線失敗(`network_error`)、同字號多份(`ambiguous`)都不落地。
    - 被擋的引用:回頭請撰狀 subagent 刪掉或改用通過的引用(算一次退回),不得自己改寫引用內容。
    - `lint_pleading` 的模擬流程用語警告只警告,照實列入最後回覆。

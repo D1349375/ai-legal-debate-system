@@ -6,11 +6,11 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 用法:
   python main.py case     --json <file>                 案件輸入
   python main.py precheck --case-id X                    起訴前檢查的提示(程序類型、調解、時效)
-  python main.py role-view --case-id X --role plaintiff  印出該角色可讀的案件資料
+  python main.py role-view --case-id X --role plaintiff [--out <檔>]  印出(或寫成檔)該角色可讀的案件資料
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
   python main.py finalize --case-id X [--for-judge]      機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點；--for-judge 只印給法官讀的部分
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
-  python main.py public-args --case-id X [--through-stage N]  印出法官與對手摘要可讀的論證(濾掉內部檢討)
+  python main.py public-args --case-id X [--through-stage N] [--out <檔>]  印出(或寫成檔)法官與對手摘要可讀的論證(濾掉內部檢討)
   python main.py check-judge --case-id X --json <file>    落地前檢查法官輸出(整批訊問或評估)，不寫入資料庫
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
@@ -31,6 +31,8 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
                                                           依字號或 JID 讀判決全文(經快取，印去換行版)
   python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <案件資料夾>] [--exclude <來源裁判>] [--json]
                                                           印出該階段的檢索規則(調度員填範本的 {RETRIEVAL_RULES})
+  python main.py prompt stage1_prompt --out <檔> --set KEY=VALUE [--phase p1 --side plaintiff --case-dir <案件資料夾>]
+                                                          把範本填好寫成檔，只印路徑(subagent 自己讀，主 agent 不經手全文)
   檢索指令共用：--snapshot <本次實跑快照資料夾>(角色與查證讀同一版本)、--log <檢索紀錄檔>(記錄每次查詢並計算本輪預算)
   search-judgments、judgment 另有 --issue <爭點id>、--exclude <字號或 JID>(不提供的裁判，如示範案的來源裁判)
 """
@@ -107,8 +109,20 @@ def cmd_role_view(args):
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 1
-    print(json.dumps(view, ensure_ascii=False, indent=2))
+    _emit(view, args.out)
     return 0
+
+
+def _emit(data, out):
+    """給了 --out 就寫成檔、只印路徑：主 agent 的上下文每輪都重讀，大段 JSON 不經過它，交給 subagent 自己讀檔。"""
+    text = json.dumps(data, ensure_ascii=False, indent=2)
+    if not out:
+        print(text)
+        return
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    with open(out, 'w', encoding='utf-8') as f:
+        f.write(text)
+    print(out)
 
 
 def _verdict_admission_problems(session, case_id, payload, analysis):
@@ -118,8 +132,8 @@ def _verdict_admission_problems(session, case_id, payload, analysis):
 
 def cmd_public_args(args):
     session = get_session()
-    print(json.dumps({"case_id": args.case_id, "arguments": public_arguments(session, case_id=args.case_id, through_stage=args.through_stage)},
-                     ensure_ascii=False, indent=2))
+    _emit({"case_id": args.case_id, "arguments": public_arguments(session, case_id=args.case_id, through_stage=args.through_stage)},
+          args.out)
     return 0
 
 
@@ -804,6 +818,41 @@ def cmd_retrieval_rules(args):
     return 0
 
 
+TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.claude', 'skills', 'legal-debate', 'templates')
+PLACEHOLDER_RE = re.compile(r'\{([A-Z][A-Z_]*)\}')
+
+
+def cmd_prompt(args):
+    """把範本填好寫成檔，只印路徑。主 agent 不讀範本全文，subagent 自己 Read 這個檔，填法也不靠模型照抄。
+    --phase 時檢索規則與該角色的快照、紀錄路徑由 retrieval_rules 帶入(範本有用到的才帶)。佔位符沒填完或 --set 了範本沒有的都拒絕。"""
+    from engine import retrieval_rules
+    try:
+        if any('=' not in item for item in args.set or []):
+            raise ValueError('--set 要寫成 KEY=VALUE')
+        given = dict(item.split('=', 1) for item in args.set or [])
+        with open(os.path.join(TEMPLATES_DIR, f'{args.template}.txt'), 'r', encoding='utf-8') as f:
+            template = f.read()
+        found = {}
+        if args.phase:
+            r = retrieval_rules.build(args.phase, side=args.side, case_dir=args.case_dir, exclude=args.exclude)
+            found = {'RETRIEVAL_RULES': r['text'], 'RETRIEVAL_CACHE_DIR': r.get('snapshot'), 'SEARCH_LOG_PATH': r.get('log')}
+    except (ValueError, OSError) as error:
+        print(f"拒絕產生：{error}", file=sys.stderr)
+        return 2
+    wanted = set(PLACEHOLDER_RE.findall(template))
+    values = {**{k: v for k, v in found.items() if k in wanted and v}, **given}
+    missing, unknown = sorted(wanted - values.keys()), sorted(given.keys() - wanted)
+    if missing or unknown:
+        print('拒絕產生：' + '；'.join(([f"沒有填 {'、'.join(missing)}"] if missing else [])
+                                   + ([f"範本沒有 {'、'.join(unknown)}"] if unknown else [])), file=sys.stderr)
+        return 2
+    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+    with open(args.out, 'w', encoding='utf-8') as f:
+        f.write(PLACEHOLDER_RE.sub(lambda m: values[m.group(1)], template))
+    print(args.out)
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="LegalDebate 落地 CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -819,6 +868,7 @@ def main():
     p = sub.add_parser("role-view", help="印出某角色可讀的案件資料")
     p.add_argument("--case-id", required=True)
     p.add_argument("--role", choices=("plaintiff",), required=True)
+    p.add_argument("--out", help="寫成這個檔，只印路徑")
     p.set_defaults(fn=cmd_role_view)
 
     p = sub.add_parser("record", help="落地攻防論證或法官訊問(JSON 檔)")
@@ -838,6 +888,7 @@ def main():
     p = sub.add_parser("public-args", help="印出法官與對手摘要可讀的論證(濾掉內部檢討)")
     p.add_argument("--case-id", required=True)
     p.add_argument("--through-stage", type=int, choices=(1, 2, 3), default=3)
+    p.add_argument("--out", help="寫成這個檔，只印路徑")
     p.set_defaults(fn=cmd_public_args)
 
     p = sub.add_parser("check-judge", help="落地前檢查法官輸出(整批訊問或評估)，不寫入資料庫")
@@ -947,6 +998,16 @@ def main():
                    help="示範案的來源裁判(字號或 JID，可重複)；帶進角色與法官的 search-judgments、judgment 指令")
     p.add_argument("--json", action="store_true", help="輸出結構化結果(含規則全文、預算與路徑)")
     p.set_defaults(fn=cmd_retrieval_rules)
+
+    p = sub.add_parser("prompt", help="把範本填好寫成檔，只印路徑(subagent 自己讀，主 agent 不經手全文)")
+    p.add_argument("template", help="templates/ 下的範本名，例如 stage1_prompt")
+    p.add_argument("--out", required=True)
+    p.add_argument("--set", action="append", metavar="KEY=VALUE", help="填一個佔位符，可重複")
+    p.add_argument("--phase", help="同 retrieval-rules;帶入 {RETRIEVAL_RULES}、{RETRIEVAL_CACHE_DIR}、{SEARCH_LOG_PATH}")
+    p.add_argument("--side", choices=("plaintiff", "defendant"))
+    p.add_argument("--case-dir")
+    p.add_argument("--exclude", action="append", help="示範案的來源裁判(字號或 JID，可重複)")
+    p.set_defaults(fn=cmd_prompt)
 
     args = parser.parse_args()
     if args.cmd in ('record', 'verify') and args.snapshot:
