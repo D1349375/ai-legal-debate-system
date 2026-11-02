@@ -158,6 +158,9 @@ python main.py verify "最高法院105年度台簡上字第33號" "最高法院1
 | `database/db.py` `pleading_materials` | 只給舊案補產書狀用 |
 | 被告隔離 | 只靠提示與調度,程式擋不住 `case.json`。要用 `scripts/audit_run.py`(W4 新增)稽核,對外也要照實講 |
 | 來源裁判 | 示範案的原判決查得到,可能被模型搜到,拿來講命中前要先查紀錄 |
+| P4、P5 對手摘要 | 沿用舊 Step 4 從 `public-args` 摘對造 stage 1。v2 原告的 stage 1 是 P1 分析,公開段落仍有事實經過與沒列進起訴狀的證據;被告在 P4 讀到就破了 P2 的隔離。規格 5.6 已改成摘對造書狀,W6 照做 |
+| P6 法官讀 `public-args` | 同上,原告分析等於間接給了事實經過,和 5.5「法官不讀 `facts_summary`」不一致。規格 5.7 已改成只給 stage 2、3,W7 照做 |
+| 主 agent 上下文 | 舊流程 run-4 主 agent 112 輪,上下文從 3.1 萬 token 長到 19.3 萬,每輪都重讀,約佔全程輸入 token 八成(子 agent 每個最多約 5 萬)。不是單一大檔,而是每派一個 subagent 固定多約 1 萬:回覆 JSON 進來一次、主 agent 再 Write 成檔一次;另外第一次 Read 範本約 1 萬、`finalize` 約 8 千、自行 Read `main.py` 原始碼約 8 千、範本 PDF 約 1 萬。v2 的 subagent 比舊流程多(P1、P2 各拆成分析與撰狀,另有 v2 改寫與多次查證)。P1 已改成交接檔案(`SKILL.md`「派 subagent 與交接檔案」):`main.py prompt` 填好範本寫成檔、subagent 自己讀;範本用 `{OUTPUT_PATH}` 讓 subagent 自己寫輸出、只回路徑;`role-view`、`public-args` 加 `--out`。W4 起的新範本照同一套寫 |
 | `demo/recorded_live_checks.json` | `checks` 是空的,斷網示範「查無字號」可能沒有錄製結果,W8 要確認 |
 | 離線測試偶發失敗 | `tests/test_live_run.py` 的 `test_pleading_run_lands_only_the_chosen_document` 曾失敗一次,原因未查明 |
 | 舊 worktree | `.claude/worktrees/ui-live-run-0f7cc8` 的資料庫有實跑 #1–#4,處理前不要清理 |

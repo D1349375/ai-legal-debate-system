@@ -308,6 +308,7 @@ main 若另外實作，併回來時 `verify.py` 會大衝突。決賽若用 main
   - `verify` 不變：判例寫法仍是 `unparseable`、不放行，與「舊判例不能正式引用」一致。民國38年以前的「上字」判例（如 `17年上字第1118號`）兩邊都不認得。
 - **官網忙碌時不再誤報查無**：2026-11-02 重測時官網忙碌，存在的 52台上694、44台上75、71台上737、70台上311 曾被回成 `not_found`（`verify` 會因此把真的引用判成捏造）。原因是送出查詢後的回應頁、或結果頁本身是忙碌頁，程式讀不到結果連結或列就當成 0 筆。現在只有回應頁明寫「查詢結果 0」（或「查無資料」）才算查無；其他情況拋 `fjud.UnexpectedPage`（屬連線問題），照現行流程重試一次，仍失敗為 `retrieval_unavailable`／`network_error`。
 - **「讀過全文才可引用」改由查證核對**：`verify --read-by plaintiff|defendant`，該方沒用 `judgment` 讀過全文的判決回 `not_read_by_side`（第七節）。檢索階段的規則同時告訴角色會核對、`--fetch` 不算讀過；查證階段的規則列出 `--read-by` 用法。W2 要接的只有上表第 4 項。只核對「本案讀過」，不分階段（同一份判決內容不變）。
+- `SKILL.md` 原本手貼一段 P1 規則填 `{RETRIEVAL_RULES}`,已改成 `main.py prompt <範本> --phase p1 --side plaintiff --case-dir <案件資料夾>` 由程式帶入 `retrieval-rules` 的輸出與該角色的快照、紀錄路徑。
 - `retrieval-rules` 的 P1 目標原本寫「起訴狀選定的請求權基礎」與「`internal_analysis` 的其他候選」，但分析時還沒有起訴狀，也沒有這個欄位。已改成配合分析→撰狀兩步的寫法。
 - 交接文件第 6 節與規格 5.9 說 `retrieval-rules`、排除參數尚未提供，已過時：兩者都在 `pleading-exchange`。
 

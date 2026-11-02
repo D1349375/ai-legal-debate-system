@@ -106,3 +106,26 @@ class TestFlow:
                                    "argument": "這是我方弱點。"}, ensure_ascii=False), encoding="utf-8")
         r = run_main("record", "--json", str(arg), db_url=db_url)
         assert r.returncode == 0 and "法官會讀到" in r.stderr
+
+
+class TestPleadingExchangeSources:
+    """書狀交換流程(v2)的事實經過是原告律師寫的:只算原告的話。被告的話只有律師記下的對方已知反應。"""
+
+    def _sources(self, tmp_path):
+        s = get_session(f"sqlite:///{tmp_path / 'v2.db'}")
+        record_case(s, case_id="v2", case_type="返還借款", facts_summary="原告於112年3月1日匯款100萬元予被告。",
+                    claims="返還借款", protocol="v2", represented_side="plaintiff",
+                    opponent_responses=[{"source": "LINE", "text": "被告回覆那筆錢是你送我的生日禮物"}])
+        sources = admission_sources(s, "v2")
+        s.close()
+        return sources
+
+    def test_facts_summary_is_not_the_defendants_word(self, tmp_path):
+        problems = admission_problems("被告自承「原告於112年3月1日匯款100萬元予被告」。", self._sources(tmp_path))
+        assert len(problems) == 1 and "不在該方論證" in problems[0]
+
+    def test_known_response_is_the_defendants_word(self, tmp_path):
+        assert admission_problems("被告自承「那筆錢是你送我的生日禮物」。", self._sources(tmp_path)) == []
+
+    def test_facts_summary_is_the_plaintiffs_word(self, tmp_path):
+        assert admission_problems("原告自陳「原告於112年3月1日匯款100萬元予被告」。", self._sources(tmp_path)) == []

@@ -115,6 +115,8 @@ def test_p1_rules_fit_analysis_then_complaint():
     assert "internal_analysis" not in p1 and "起訴狀選定" not in p1
     assert "分析與撰狀共用同一個紀錄檔與預算" in p1
     assert "不打算主張的候選請求權基礎只用 article 讀條文" in p1
+    # 每個 subagent 各自讀進上下文：分析讀了全文也交不出摘句，撰狀還要重讀。讀全文只留給撰狀
+    assert "分析只搜不讀全文" in p1 and "撰狀用 judgment 讀要引用的判決全文" in p1
 
 
 def test_search_phases_explain_how_to_use_old_precedents():

@@ -15,7 +15,7 @@
 - **事實缺口與律師附註(fact_gaps、lawyer_notes)**:這兩欄不進起訴狀正文,只給律師看。對應不到證據或事實經過的事實、需要向當事人確認的事,寫進 `fact_gaps`;預想的被告抗辯、金額待確認等寫進 `lawyer_notes`。
 - 案件資料沒寫的事一律寫「待確認」,不得寫成有,也不得寫成沒有。不得補寫案件資料沒有的事實、證據、姓名或日期。
 
-收到「未通過」的退回原因時,只修改被點名的地方,重新輸出整份 JSON。
+收到「未通過」的退回原因時,只修改被點名的地方,重寫整份 {OUTPUT_PATH}。
 
-你的最終回覆必須是嚴格 JSON(無任何其他文字、無 code fence):
+用 Write 把下面格式的嚴格 JSON(無任何其他文字、無 code fence)寫進 {OUTPUT_PATH}。最終回覆只寫一行「已寫入 {OUTPUT_PATH}」,有檢索指令被權限拒絕時在同一行後面加「檢索被拒 N 次」;不要把 JSON 貼在回覆裡:
 {"cause": "案由,例如:返還借款", "prayers": ["訴之聲明第一項", "訴訟費用由被告負擔。"], "claim_basis": [{"seq": 1, "role": "primary", "basis": ["民法第N條"], "prayer": "訴之聲明第一項"}], "fact_points": [{"id": "CF1", "text": "一點事實", "evidence_ids": ["甲證1"], "statement_quote": null}, {"id": "CF2", "text": "一點事實", "evidence_ids": [], "statement_quote": "事實經過的逐字原文"}], "legal_argument": "要件與事實的涵攝(繁體中文)", "procedural_statements": [{"id": "事項 id", "text": "起訴狀上的說明"}], "basis": ["民法第N條"], "citations": ["民法第N條"], "precedent_notes": [], "fact_gaps": ["對應不到的事實或待確認事項"], "lawyer_notes": ["給律師的附註"]}
