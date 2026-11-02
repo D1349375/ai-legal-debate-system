@@ -49,7 +49,7 @@ description: >-
 
 - **不要 Read 範本**。用 `python main.py prompt <範本名> --out <執行資料夾>/prompts/<步驟>.txt --set KEY=VALUE …` 由程式填好佔位符寫成檔,指令只印路徑;佔位符沒填完或填錯名字會被拒。檢索階段加 `--phase p1 --side plaintiff --case-dir <案件資料夾>`,程式會帶入 `{RETRIEVAL_RULES}` 與該角色的 `{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`。
 - subagent 的 prompt 只寫一句:「用 Read 讀 <上一點印出的路徑>,那是你這次的完整指示,照做。」
-- subagent 自己用 Write 把輸出寫進 `{OUTPUT_PATH}`,只回「已寫入 <路徑>」。你不要 Read 輸出檔,直接交給落地或檢查指令;被退回時把報錯原文交回同一個 subagent,請它重寫同一個檔。
+- subagent 自己用 Write 把輸出寫進 `{OUTPUT_PATH}`,只回「已寫入 <路徑>」。你不要 Read 輸出檔,直接交給落地或檢查指令。被退回時把報錯原文交回同一個 subagent,請它重寫同一個檔;不能用 SendMessage 時(無人值守執行就不能),另開新 subagent,prompt 寫:讀同一個派工檔、讀既有的輸出檔、報錯原文,只改被點名的地方後重寫同一個檔。這樣仍算同一份輸出的退回次數。
 - `role-view`、`public-args` 一律加 `--out <檔>`,指令只印路徑。
 
 ### Step 1 — P0 案件輸入與起訴前檢查
@@ -57,7 +57,7 @@ description: >-
 1. 案件要已落地(UI 建案時已落地;CLI 用 `python main.py case --json <檔>`,JSON 要有 `"protocol": "v2"`)。事實只能來自使用者,不得代為編造。
 2. 商工查核:當事人是公司或商號、且使用者提供了統一編號時,執行 `python main.py party --ban <統編> --case-id <案件ID> --role plaintiff|defendant`。**統編只能來自使用者**,不得用名稱搜尋自行選定。自然人或沒給統編的一方不查,照實留空。UI 執行時已查好,不要重查。
 3. 執行 `python main.py role-view --case-id <案件ID> --role plaintiff --out <執行資料夾>/plaintiff_view.json`,產生原告角色檔。裡面有案件輸入、商工查核、起訴審查事項(`procedural_issues`,依固定規則產生,不得增刪)與起訴前檢查(`precheck`,只是提示)。
-4. 沒有證據清單時照樣繼續,但最後回覆要寫明:事實只能對應事實經過的原文。
+4. 用 Grep 在角色檔找 `"evidence": []`。找到代表沒有證據清單,照樣繼續,但最後回覆要寫明:事實只能對應事實經過的原文。找不到就是有證據清單,不要這樣寫。
 
 ### Step 2 — P1 原告請求權基礎檢驗
 
