@@ -22,6 +22,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
                                                           書狀交換流程的起訴狀 v1:檢查事實對應、由程式組成正文後落地；--check 只檢查不落地
   python main.py answer --case-id X --json <file> [--check] [--review-json <file>]   檢查並落地模擬答辯狀(P2,正文由程式組成)
   python main.py issue-sheet --case-id X --json <file> [--check]   檢查並落地法官的爭點整理表(P3);--check 印出四張表
+  python main.py brief --case-id X --side plaintiff|defendant --round 2|3 [--check]   由已落地的論證組成準備書狀或言詞辯論意旨狀
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
@@ -187,16 +188,19 @@ def cmd_record(args):
             if row.target_side == "defendant" and not row.based_on.startswith("官方事實層") and looks_factual(row.question_text):
                 print("警告:這則訊問看起來要被告回答事實,被告沒有本人的事實,請確認是否該改成給原告的準備題", file=sys.stderr)
             return 0
+        round_warnings = _round_check(session, payload)  # 書狀交換流程 P4、P5:依爭點組織(有爭點整理表才檢查)
         row = record_argument(
             session, case_id=payload["case_id"], side=payload["side"], stage=int(payload["stage"]),
             position=payload["position"], reasoning=_pick(payload, "argument", "reasoning"),
             cited_statutes=payload.get("cited_statutes"), cited_precedents=payload.get("cited_precedents"),
-            falsifier=payload.get("falsifier"), model_id=payload.get("model_id"),
+            falsifier=payload.get("falsifier"), model_id=payload.get("model_id"), basis=payload.get("basis"),
         )
     except ValueError as e:  # 如重複落地(不可覆寫):與 verdict/pleading 一致，印原因而非 traceback
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地論證 {row.case_id} {row.side} stage{row.stage}")
+    for warning in round_warnings:
+        print("警告:" + warning, file=sys.stderr)
     problems = admission_problems(strip_internal_review(row.reasoning), admission_sources(session, row.case_id), allow_first_person=True)
     if problems:
         print("警告:論證含未引述原句的自承類用語,請確認:" + ";".join(problems), file=sys.stderr)
@@ -538,6 +542,80 @@ def cmd_issue_sheet(args):
     print(f"已落地爭點整理表 {row.case_id}(#{row.id},不爭執 {len(sheet.get('undisputed') or [])}、"
           f"爭點 {len(sheet.get('issues') or [])}、闡明 {len(sheet.get('clarifications') or [])}、"
           f"訊問 {len(sheet.get('questions') or [])})")
+    for warning in warnings:
+        print("警告:" + warning, file=sys.stderr)
+    return 0
+
+
+def _round_check(session, payload):
+    """書狀交換流程 P4、P5 的每輪論證(stage 2、3):非推測爭點都要有【爭點 Ix】段落、basis 只能放法條(硬擋,raise
+    ValueError 讓 record 拒絕落地,退回同一 subagent);回傳只警告的項目(第255條、推測字樣)。
+    沒有爭點整理表的案件(舊流程,或 v2 還在用過渡範本)不檢查。"""
+    from database.db import complaint_basis, issue_sheet
+    from engine.brief import basis_problems, round_problems, round_warnings
+    case = session.query(Case).filter_by(case_id=payload.get("case_id")).one_or_none()
+    if case is None or case.protocol != "v2" or int(payload.get("stage") or 0) not in (2, 3):
+        return []
+    stored = issue_sheet(session, case.case_id)
+    if stored is None:
+        return []
+    public = strip_internal_review(_pick(payload, "argument", "reasoning"))
+    basis = payload.get("basis", [])
+    problems = round_problems(public, stored["sheet"]) + basis_problems(basis)
+    if problems:
+        raise ValueError("請把以下原因交回同一個 subagent 補寫後重新輸出(依爭點組織,規格 5.6):" + ";".join(problems))
+    return round_warnings(public, stored["sheet"], side=payload.get("side"), basis=basis,
+                          complaint_basis=complaint_basis(session, case.case_id))
+
+
+def cmd_brief(args):
+    """書狀交換流程 P4 準備書狀、P5 言詞辯論意旨狀:由已落地的該方 stage 2、3 公開論證與爭點整理表組成,不呼叫模型。
+    不含內部檢討與 falsifier。--check 只印出正文,不落地。"""
+    from database.db import _assert_all_published, case_payload, complaint_basis, current_complaint, issue_sheet, latest_party_checks
+    from database.schema import DebateArgument, PleadingDraft
+    from engine.brief import PLEADING_TYPE, new_basis, render_brief
+    from engine.party_issues import procedural_issues
+    from server.pleading_export import lint_pleading, split_draft_note
+    session = get_session()
+    case = session.query(Case).filter_by(case_id=args.case_id).one_or_none()
+    if case is None or case.protocol != "v2":
+        print(f"拒絕落地:{args.case_id} 不是書狀交換流程(v2)的案件" if case else f"拒絕落地:找不到案件 {args.case_id}",
+              file=sys.stderr)
+        return 1
+    stored = issue_sheet(session, args.case_id)
+    row = session.query(DebateArgument).filter_by(case_id=args.case_id, side=args.side, stage=args.round).one_or_none()
+    current = current_complaint(session, args.case_id)
+    if stored is None or row is None or current is None:
+        missing = "爭點整理表" if stored is None else f"{args.side} stage {args.round} 的論證" if row is None else "起訴狀"
+        print(f"拒絕落地:{args.case_id} 還沒有{missing}", file=sys.stderr)
+        return 1
+    kind = PLEADING_TYPE[args.round]
+    if not args.check and any(r.pleading_type == kind and r.side == args.side and r.source in (None, "system")
+                              for r in session.query(PleadingDraft).filter_by(case_id=args.case_id).all()):
+        print(f"拒絕落地:{args.case_id} {args.side} 的{kind}已落地,不可覆寫", file=sys.stderr)
+        return 1
+    citations = list(dict.fromkeys(json.loads(row.cited_statutes or "[]") + json.loads(row.cited_precedents or "[]")))
+    checks = latest_party_checks(session, args.case_id)
+    added = new_basis(args.side, json.loads(row.basis_json or "[]"), complaint_basis(session, args.case_id))
+    text = render_brief(strip_internal_review(row.reasoning), side=args.side, round=args.round, sheet=stored["sheet"],
+                        case=case_payload(case), party_checks=checks, procedural=procedural_issues(checks),
+                        complaint_text=split_draft_note(current["draft_text"])[0], citations=citations, new_basis=added)
+    warnings = [f"書狀正文含模擬流程用語,請確認:{h['word']}×{h['count']}" for h in lint_pleading(text, args.side)]
+    if args.check:
+        print(text)
+        for warning in warnings:
+            print("警告:" + warning)
+        return 0
+    try:
+        _assert_all_published(session, citations)
+        draft = record_pleading(session, case_id=args.case_id, draft_text=text, citations_used=citations, side=args.side,
+                                pleading_type=kind, round=args.round, is_simulated=1,
+                                structured={"argument_id": row.id, "issue_sheet_id": stored["id"],
+                                            "complaint_id": current["version_id"], "new_basis": added})
+    except ValueError as e:
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
+    print(f"已落地{kind} {draft.case_id} {draft.side}(#{draft.id},第 {args.round} 輪)")
     for warning in warnings:
         print("警告:" + warning, file=sys.stderr)
     return 0
@@ -1104,6 +1182,13 @@ def main():
     p.add_argument("--json", required=True, help="法官 subagent 輸出的爭點整理表 JSON")
     p.add_argument("--check", action="store_true", help="只檢查並印出四張表,不落地")
     p.set_defaults(fn=cmd_issue_sheet)
+
+    p = sub.add_parser("brief", help="書狀交換流程:由已落地的論證組成準備書狀(第 2 輪)或言詞辯論意旨狀(第 3 輪)")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--side", choices=("plaintiff", "defendant"), required=True)
+    p.add_argument("--round", type=int, choices=(2, 3), required=True)
+    p.add_argument("--check", action="store_true", help="只印出組成後的正文,不落地")
+    p.set_defaults(fn=cmd_brief)
 
     p = sub.add_parser("pleading-source", help="印出某一方的撰狀素材(Stage 3 原文、對造摘要、引用查證狀態)")
     p.add_argument("--case-id", required=True)

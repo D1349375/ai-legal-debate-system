@@ -40,6 +40,8 @@ class DebateArgument(Base):
     falsifier = Column(Text, nullable=True)  # stage 2/3 必填
     model_id = Column(String, nullable=True)
     created_at = Column(String, nullable=False)
+    # 書狀交換流程 P4、P5 的請求權基礎清單(JSON array,規格 5.6);用來比對起訴狀，提醒第255條。舊流程為 NULL
+    basis_json = Column(Text, nullable=True)
 
 class CourtQuestion(Base):
     __tablename__ = 'court_questions'

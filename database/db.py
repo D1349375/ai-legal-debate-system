@@ -202,7 +202,7 @@ def _pleading_admission_sources(session, case_id):
 
 
 def record_argument(session, *, case_id, side, stage, position, reasoning,
-                     cited_statutes=None, cited_precedents=None, falsifier=None, model_id=None):
+                     cited_statutes=None, cited_precedents=None, falsifier=None, model_id=None, basis=None):
     if side not in VALID_SIDES:
         raise ValueError(f"非法 side: {side}")
     if stage not in (1, 2, 3):
@@ -218,6 +218,7 @@ def record_argument(session, *, case_id, side, stage, position, reasoning,
         cited_statutes=json.dumps(cited_statutes or [], ensure_ascii=False),
         cited_precedents=json.dumps(cited_precedents or [], ensure_ascii=False),
         falsifier=falsifier, model_id=model_id, created_at=_now_iso(),
+        basis_json=json.dumps(basis, ensure_ascii=False) if basis is not None else None,
     )
     session.add(row)
     session.commit()
@@ -589,3 +590,14 @@ def issue_sheet(session, case_id):
         return None
     return {"id": row.id, "complaint_id": row.complaint_id, "answer_id": row.answer_id,
             "sheet": json.loads(row.sheet_json), "created_at": row.created_at}
+
+
+def complaint_basis(session, case_id):
+    """法官與雙方讀的那一版起訴狀(current_complaint)的請求權基礎清單。律師編輯版沒有結構化內容，往回找系統原稿。"""
+    current = current_complaint(session, case_id)
+    if current is None:
+        return []
+    row = session.get(PleadingDraft, current["version_id"])
+    while row is not None and row.structured_json is None and row.parent_id is not None:
+        row = session.get(PleadingDraft, row.parent_id)
+    return json.loads(row.structured_json or "{}").get("basis") or [] if row is not None else []
