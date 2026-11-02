@@ -15,6 +15,8 @@
 
 每筆記錄一個 JSON 檔、寫入時先寫暫存檔再改名：雙方角色會同時執行，不共用同一個索引檔就不會互相覆寫。
 連線失敗重試一次；仍失敗且快取沒有時拋 RetrievalUnavailable，訊息寫明「不代表查無資料」，不退回本地舊版法典。
+連上官網但頁面無法辨認裁判全文時拋 FullTextUnavailable(RetrievalUnavailable 的子類別)：呼叫端要分開回報，
+不能說成連線問題，更不能讓查證回 doc_type_mismatch、quote_not_found 而讓人以為引用寫錯。
 """
 import hashlib
 import json
@@ -32,6 +34,7 @@ CORPUS_JUDGMENTS_DIR = os.path.join(ROOT, 'corpus', 'judgments')
 CACHE_ENV = 'LEGAL_DEBATE_RETRIEVAL_CACHE'
 STATUTE_TTL = timedelta(days=7)
 UNAVAILABLE_NOTE = '網路無法連線且無快取，不代表查無資料'
+FULL_TEXT_UNAVAILABLE_NOTE = '官網頁面無法辨認，不代表引用寫錯或查無資料'
 # served_from：本次從哪裡取得。snapshot_source：寫進快照時的來源(預先內容／長期快取／上網)。
 SERVED_FROM = ('run_snapshot', 'retrieval_cache', 'corpus', 'live')
 SNAPSHOT_SIDES = ('plaintiff', 'defendant')
@@ -52,6 +55,13 @@ class LiveFetchNotAllowed(Exception):
 class RetrievalUnavailable(Exception):
     def __init__(self, reason):
         super().__init__(f'retrieval_unavailable：{reason}；{UNAVAILABLE_NOTE}')
+        self.reason = reason
+
+
+class FullTextUnavailable(RetrievalUnavailable):
+    """連上官網但頁面無法辨認裁判全文(頁面改版或回空頁)。不是連線問題，也不代表引用寫錯。"""
+    def __init__(self, reason):
+        Exception.__init__(self, f'full_text_unavailable：{reason}；{FULL_TEXT_UNAVAILABLE_NOTE}')
         self.reason = reason
 
 
@@ -153,7 +163,7 @@ def get_judgment(jid, snapshot=None, corpus_dir=None, timeout=fjud.DEFAULT_TIMEO
         except NETWORK_ERRORS as error:
             raise RetrievalUnavailable(f'司法院裁判書查詢系統連線失敗（{error}）') from error
         if not document['full_text']:
-            raise RetrievalUnavailable('官網頁面無法辨認裁判全文')
+            raise FullTextUnavailable('司法院裁判書查詢系統的頁面無法辨認裁判全文')
         entry, served = store_judgment(jid, document['full_text'], document['case_cause'], document['url']), 'live'
     if served != 'run_snapshot':
         _record_snapshot(snapshot, _judgment_path, jid, entry, served)
@@ -166,6 +176,24 @@ def store_judgment(jid, text, case_cause, source_url, snapshot=None):
     _write(_judgment_path(cache_dir(), jid), entry)
     _record_snapshot(snapshot, _judgment_path, jid, entry, 'live')
     return entry
+
+
+def _read_path(base, jid):
+    return os.path.join(base, 'reads', _file_name(jid))
+
+
+def mark_read(snapshot, jid):
+    """judgment 指令把全文印給角色後記一筆。search-judgments --fetch 也把全文存進快照，但角色只看到主文與命中句，
+    不算讀過；查證以此判斷「該方讀過全文才可正式引用」(verify --read-by)。"""
+    if snapshot:
+        _write(_read_path(snapshot, jid), {'jid': jid, 'read_at': now_iso()})
+
+
+def read_by_side(snapshot, side, jid):
+    """該方角色(以 --snapshot <快照根目錄>/<side> 讀取)是否在本案用 judgment 讀過這份全文。"""
+    if side not in SNAPSHOT_SIDES:
+        raise ValueError(f"side 須為 {'、'.join(SNAPSHOT_SIDES)}")
+    return os.path.isfile(_read_path(os.path.join(snapshot, side), jid))
 
 
 def _citation_path(base, prefix):

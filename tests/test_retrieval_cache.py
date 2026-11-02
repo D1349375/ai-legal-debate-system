@@ -117,6 +117,33 @@ def test_cached_text_does_not_settle_which_documents_a_citation_has(offline):
     assert result["status"] == "network_error"
 
 
+@pytest.fixture
+def unreadable_page(fjud_calls, monkeypatch):
+    """連得上官網、字號查得到，但全文頁面無法辨認(fjud.extract_full_text 回空字串)。"""
+    def fetch(jid, timeout=None, session=None):
+        fjud_calls["fetch"].append(jid)
+        return {"jid": jid, "url": fjud.document_url(jid), "full_text": "", "case_cause": "請求損害賠償"}
+    monkeypatch.setattr(fjud, "fetch_document", fetch)
+    return fjud_calls
+
+
+def test_unreadable_page_is_full_text_unavailable_not_a_network_error(unreadable_page):
+    with pytest.raises(retrieval_cache.FullTextUnavailable) as caught:
+        retrieval_cache.get_judgment(JID)
+    message = str(caught.value)
+    assert message.startswith("full_text_unavailable") and "不代表引用寫錯" in message and "連線失敗" not in message
+    assert isinstance(caught.value, retrieval_cache.RetrievalUnavailable)  # 舊呼叫端仍當成無法取得，不會放行
+    assert retrieval_cache.cache_counts()["judgments"] == 0 and unreadable_page["fetch"] == [JID]
+
+
+def test_precedent_note_on_unreadable_page_is_not_reported_as_a_wrong_citation(unreadable_page):
+    note = {"citation": "最高法院111年度台上字第1069號", "doc_date": "20250716", "doc_type": "判決",
+            "case_cause": "損害賠償", "quote": "按締約上過失責任，以契約未成立為前提。", "proposition": "締約上過失"}
+    result = verify.verify_precedent_note(note)
+    assert result["status"] == "full_text_unavailable"  # 不是 doc_type_mismatch、quote_not_found 或 network_error
+    assert "不代表引用寫錯" in result["note"]
+
+
 def test_same_day_documents_stay_ambiguous_even_with_a_date():
     result = verify.verify_judgment_citation("115", "台上", "192", doc_date="20260325")
     assert result["status"] == "ambiguous" and len(result["candidates"]) == 2
@@ -170,6 +197,13 @@ def test_statute_verification_uses_fresh_cache_and_notes_fetch_time(offline, see
 def test_statute_verification_rejects_stale_cache_offline(offline, seed_article):
     seed_article("B0000001", "184", days_old=8)
     assert verify.verify_statute_citation("民法", "184")["status"] == "network_error"
+
+
+def test_statute_verification_on_unreadable_page_is_full_text_unavailable(monkeypatch):
+    article_pages(monkeypatch, page='<div class="law-reg-content"><table>改版</table></div>')
+    result = verify.verify_statute_citation("民法", "184")
+    assert result["status"] == "full_text_unavailable" and "不代表引用寫錯" in result["note"]
+    assert retrieval_cache.cache_counts()["statutes"] == 0
 
 
 def test_judgment_verification_offline_is_network_error_not_published(offline):
@@ -279,6 +313,47 @@ def test_verification_with_case_root_reads_both_sides(fjud_calls, tmp_path, monk
     assert result["status"] == "published" and result["verified_via"] == "run_snapshot"
     manifest = retrieval_cache.snapshot_manifest(str(root))
     assert {(m["jid"], m["scope"]) for m in manifest["judgments"]} == {(JID, "defendant")}
+
+
+CITATION = "最高法院111年度台上字第1069號"
+NOTE = {"citation": CITATION, "doc_date": "20250716", "doc_type": "判決", "case_cause": "請求損害賠償",
+        "quote": "按締約上過失責任，以契約未成立為前提。", "proposition": "締約上過失以契約未成立為前提"}
+
+
+def read_with_judgment_command(snapshot, capsys):
+    import argparse
+    import main
+    args = argparse.Namespace(target=JID, doc_date=None, json=True, snapshot=snapshot, log=None, issue=None)
+    assert main.cmd_judgment(args) == 0
+    capsys.readouterr()
+
+
+def test_verify_read_by_passes_only_judgments_that_side_read(fjud_calls, tmp_path, capsys):
+    root = tmp_path / "case-snap"
+    read_with_judgment_command(str(root / "plaintiff"), capsys)
+    by_plaintiff = verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root), read_by="plaintiff")
+    by_defendant = verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root), read_by="defendant")
+    assert by_plaintiff[0]["status"] == "published"
+    assert by_defendant[0]["status"] == "not_read_by_side" and by_defendant[0]["read_by"] == "defendant"
+    with pytest.raises(ValueError, match="判例查證拒絕落地"):
+        verify.validate_precedent_notes([NOTE], snapshot=str(root), read_by="defendant")
+
+
+def test_full_text_fetched_for_a_search_list_is_not_a_read(fjud_calls, tmp_path):
+    # search-judgments --fetch 把全文存進該方快照，但角色只看到主文與命中句；摘句對得上也不算讀過
+    root = tmp_path / "case-snap"
+    retrieval_cache.get_judgment(JID, snapshot=str(root / "plaintiff"))
+    assert verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root))[0]["status"] == "published"
+    result = verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root), read_by="plaintiff")[0]
+    assert result["status"] == "not_read_by_side"
+    bare = verify.verify_citations([CITATION], snapshot=str(root), read_by="plaintiff")[0]
+    assert bare["status"] == "not_read_by_side"
+
+
+def test_read_by_needs_the_case_root(fjud_calls, monkeypatch):
+    monkeypatch.delenv(verify.SNAPSHOT_ENV, raising=False)
+    with pytest.raises(ValueError, match="快照根目錄"):
+        verify.verify_citations([CITATION], read_by="plaintiff")
 
 
 def test_retrieval_commands_ignore_the_case_root_env(fjud_calls, tmp_path, monkeypatch):

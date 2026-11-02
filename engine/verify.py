@@ -8,6 +8,8 @@
   network_error。不退回 corpus/statutes/*.txt 的舊版法典：用過時條文放行比查不到更危險。
 - 法規名稱：法務部開放資料建的名稱索引(corpus/statutes/law_index.json)裡的法規都能查；已廢止法規
   歸為 version_unverified，索引查無的名稱為 unsupported_law。
+- 連上官網但頁面無法辨認條文或裁判全文時回 full_text_unavailable，與連線失敗的 network_error 分開；
+  不讓它落到 doc_type_mismatch、quote_not_found 而讓人以為引用寫錯。兩者都不放行。
 """
 import functools
 import json
@@ -184,8 +186,8 @@ def verify_statute_citation(law_name, article_no, timeout=DEFAULT_TIMEOUT, *, ci
         return {**common, 'status': 'not_found', 'primary_source_url': r['url'], 'attempts': r['attempts'],
                 'note': '官網查無此條（已重查確認），可能條號有誤或該條已刪除'}
     if r['status'] != 'found':
-        return {**common, 'status': 'network_error', 'reason': r.get('reason'), 'primary_source_url': r.get('url'),
-                'note': '官網頁面無法辨認條文，非查無此條'}
+        return {**common, 'status': 'full_text_unavailable', 'reason': r.get('reason'), 'primary_source_url': r.get('url'),
+                'note': '全國法規資料庫頁面無法辨認條文，不代表引用寫錯或查無此條'}
     return {**common, 'status': 'published', 'primary_source_url': r['url'], 'matched_text': r['text'],
             'verified_via': _VIA.get(r['served_from'], 'law_moj_live'), 'fetched_at': r['fetched_at'],
             'modified_date': r.get('modified_date'), 'attempts': r['attempts']}
@@ -292,6 +294,9 @@ def verify_precedent_note(note, timeout=DEFAULT_TIMEOUT, *, snapshot=None):
         # 與角色讀的是同一份：快照 → 長期快取 → 預先內容 → 上網，抓到的寫回快取與快照。
         try:
             entry = retrieval_cache.get_judgment(result['jid'], snapshot=snapshot, corpus_dir=JUDGMENTS_DIR, timeout=timeout)
+        except retrieval_cache.FullTextUnavailable as error:
+            return {**result, 'status': 'full_text_unavailable', 'reason': str(error),
+                    'note': '官網頁面無法辨認裁判全文，未能比對文種與摘句；不代表引用寫錯'}
         except retrieval_cache.RetrievalUnavailable as error:
             return {**result, 'status': 'network_error', 'reason': str(error)}
         result.update({k: v for k, v in _document(entry, entry['served_from']).items() if k != 'source_file'})
@@ -311,18 +316,46 @@ def verify_precedent_note(note, timeout=DEFAULT_TIMEOUT, *, snapshot=None):
     return result
 
 
-def validate_precedent_notes(notes, *, snapshot=None):
+PASSING = ('published', 'needs_explanation')
+SIDE_LABELS = {'plaintiff': '原告', 'defendant': '被告'}
+
+
+def _read_by_snapshot(snapshot, read_by):
+    snapshot = _snapshot(snapshot)
+    if read_by and not snapshot:
+        raise ValueError('read_by 須搭配案件快照根目錄(--snapshot 或環境變數 LEGAL_DEBATE_RUN_SNAPSHOT)')
+    return snapshot
+
+
+def _require_read(result, snapshot, read_by):
+    """read_by(plaintiff／defendant)：該方角色在本案沒有用 judgment 讀過全文的判決不放行。
+    字號與摘句比對過了也一樣：摘句可能取自 search-judgments 的命中句，沒讀前後文就引用。"""
+    if not read_by or result.get('status') not in PASSING or not result.get('jid'):
+        return result
+    if retrieval_cache.read_by_side(snapshot, read_by, result['jid']):
+        return result
+    return {**result, 'status': 'not_read_by_side', 'read_by': read_by,
+            'reason': f"{SIDE_LABELS.get(read_by, read_by)}在本案沒有用 judgment 讀過這份判決全文",
+            'note': '字號存在，但引用方沒讀過全文，不放行；用 judgment 讀過全文(帶本方的 --snapshot)再引用'}
+
+
+def validate_precedent_notes(notes, *, snapshot=None, read_by=None):
     if not isinstance(notes, list):
         raise ValueError('precedent_notes 必須是陣列')
-    results = [verify_precedent_note(note, snapshot=snapshot) for note in notes]
-    errors = [r for r in results if r['status'] not in ('published', 'needs_explanation')]
+    snapshot = _read_by_snapshot(snapshot, read_by)
+    results = [_require_read(verify_precedent_note(note, snapshot=snapshot), snapshot, read_by) for note in notes]
+    errors = [r for r in results if r['status'] not in PASSING]
     if errors:
         raise ValueError('判例查證拒絕落地：' + '; '.join(f"{r.get('citation_text', '')}: {r['status']} {r.get('reason', '')}" for r in errors))
     return results
 
 
-def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT, *, precedent_notes=None, version_hints=None, snapshot=None):
-    notes = {note['citation']: note for note in (precedent_notes or []) if isinstance(note, dict) and 'citation' in note}
+def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT, *, precedent_notes=None, version_hints=None, snapshot=None,
+                     read_by=None):
+    """read_by：查某一方書狀的引用時給 plaintiff 或 defendant，該方沒用 judgment 讀過全文的判決回 not_read_by_side。"""
+    if read_by:
+        snapshot = _read_by_snapshot(snapshot, read_by)
+    notes ={note['citation']: note for note in (precedent_notes or []) if isinstance(note, dict) and 'citation' in note}
     hints = version_hints or {}
     results = []
     for citation_text in citation_texts:
@@ -338,6 +371,7 @@ def verify_citations(citation_texts, timeout=DEFAULT_TIMEOUT, *, precedent_notes
             result = (verify_precedent_note(note, timeout=timeout, snapshot=snapshot) if note else
                       verify_judgment_citation(parsed["jyear"], parsed["jcase"], parsed["jno"], timeout=timeout,
                                                snapshot=snapshot))
+            result = _require_read(result, snapshot, read_by)
         else:
             result = {"status": "unparseable"}
         result["citation_text"] = citation_text
