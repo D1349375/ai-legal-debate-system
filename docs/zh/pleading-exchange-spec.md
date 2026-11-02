@@ -222,7 +222,7 @@ flowchart TD
 | `opponent_known_responses` | `known_gaps`、`lawyer_notes`、`fact_gaps` |
 | 商工查核與程序事項 | 未列入起訴狀的證據 |
 
-**防禦分析(新 `defense_stage1_prompt.txt`,落地為 `DebateArgument` stage=1)**:由現行被告段落改寫。保留抗辯窮舉與 M10 的「若被告能提出 X」寫法。先依字號讀起訴狀引用的判決,再搜起訴狀的請求權基礎與抗辯。檢索路徑用 `.../retrieval_cache/defendant` 與 `.../search_logs/defendant_p2.jsonl`,撰狀與劇本共用同一個紀錄檔。
+**防禦分析(新 `defense_stage1_prompt.txt`,落地為 `DebateArgument` stage=1)**:由現行被告段落改寫。保留抗辯窮舉與 M10 的「若被告能提出 X」寫法。搜起訴狀的請求權基礎與抗辯,只搜不讀全文:要攻擊的起訴狀判決與候選判決寫在公開論證,依字號讀全文是答辯狀撰狀的步驟(同 P1,見 `docs/zh/v2-flow-fixes.md` 第 5 節)。檢索路徑用 `.../retrieval_cache/defendant` 與 `.../search_logs/defendant_p2.jsonl`,撰狀與劇本共用同一個紀錄檔。
 
 **撰狀(新 `answer_prompt.txt`)**:
 

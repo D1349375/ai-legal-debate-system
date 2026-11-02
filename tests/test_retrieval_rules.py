@@ -119,6 +119,14 @@ def test_p1_rules_fit_analysis_then_complaint():
     assert "分析只搜不讀全文" in p1 and "撰狀用 judgment 讀要引用的判決全文" in p1
 
 
+def test_p2_analysis_searches_and_the_answer_reads():
+    # 同 P1：防禦分析交不出摘句，起訴狀引用的判決與要引用的判決都留給答辯狀撰狀讀
+    p2 = retrieval_rules.build("p2")["text"]
+    assert "分析只搜不讀全文" in p2 and "待撰狀讀全文" in p2
+    assert "撰狀用 judgment 依字號讀起訴狀引用的每一份判決" in p2 and "分析不做這一步" in p2
+    assert "防禦分析與答辯狀撰狀共用同一個紀錄檔與預算" in p2
+
+
 def test_search_phases_explain_how_to_use_old_precedents():
     for phase in ("p1", "p2", "p4", "p5"):
         text = retrieval_rules.build(phase)["text"]
