@@ -23,6 +23,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py answer --case-id X --json <file> [--check] [--review-json <file>]   檢查並落地模擬答辯狀(P2,正文由程式組成)
   python main.py issue-sheet --case-id X --json <file> [--check]   檢查並落地法官的爭點整理表(P3);--check 印出四張表
   python main.py brief --case-id X --side plaintiff|defendant --round 2|3 [--check]   由已落地的論證組成準備書狀或言詞辯論意旨狀
+  python main.py revision --case-id X --json <file> [--check] [--review-json <file>]   檢查並落地起訴狀 v2(P6 後的建議版)
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
@@ -262,17 +263,24 @@ def cmd_verdict(args):
     if problems:
         print("拒絕落地:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
         return 1
+    v2 = _verdict_v2_gate(session, args.case_id, payload)  # 書狀交換流程才有;舊案回傳原本的版本、不檢查不警告
+    if v2["problems"]:
+        print("拒絕落地,請把以下原因交回法官 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n"
+              + "\n".join(f"- {p}" for p in v2["problems"]), file=sys.stderr)
+        return 1
     try:
         row = record_verdict(
             session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
             verdict_reasoning=analysis, risk_map=payload["risk_map"],
             mechanical_anchor_json=payload["mechanical_anchor_json"],
-            protocol_version=PROTOCOL_VERSION, citations_used=payload.get("citations_used", []),
+            protocol_version=v2["protocol_version"], citations_used=payload.get("citations_used", []),
         )
     except ValueError as e:
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地判決 {row.case_id}")
+    for warning in v2["warnings"]:
+        print("警告:" + warning, file=sys.stderr)
     return 0
 
 
@@ -1093,6 +1101,128 @@ def cmd_prompt(args):
     return 0
 
 
+# ---- W7 P6 診斷與起訴狀 v2(規格 5.7)----
+
+PROTOCOL_VERSION_V2 = "v2-pleading-exchange"
+_REVISION_REFUSAL = "未通過,請把以下原因交回改寫 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n"
+
+
+def _verdict_v2_gate(session, case_id, payload):
+    """P6 評估的書狀交換流程部分。回傳 {"protocol_version", "problems", "warnings"}。
+    舊流程案件(protocol 不是 v2):原本的 PROTOCOL_VERSION,不檢查、不警告(T7.5)。
+    v2 案件:protocol_version 為 v2-pleading-exchange;勝訴機率類字樣只警告(T7.4);
+    已有爭點整理表時才檢查 risk_map 新鍵的結構(Step 4 以後還在用舊範本過渡的 v2 案件不擋)。"""
+    from database.db import current_complaint, issue_sheet
+    from engine.diagnosis import verdict_v2_problems, win_probability_warnings
+    from engine.fact_points import cf_ids
+    from server.pleading_export import split_draft_note
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if case is None or case.protocol != "v2":
+        return {"protocol_version": PROTOCOL_VERSION, "problems": [], "warnings": []}
+    problems = []
+    sheet = issue_sheet(session, case_id)
+    if sheet is not None:
+        current = current_complaint(session, case_id)
+        facts = cf_ids(split_draft_note(current["draft_text"])[0]) if current else []
+        problems = verdict_v2_problems(payload["risk_map"], issue_ids=[i.get("id") for i in sheet["sheet"].get("issues") or []
+                                                                       if isinstance(i, dict)], fact_ids=facts)
+    return {"protocol_version": PROTOCOL_VERSION_V2, "problems": problems, "warnings": win_probability_warnings(payload)}
+
+
+def cmd_revision(args):
+    """書狀交換流程 P6 起訴狀 v2。輸入格式同 P1 起訴狀(complaint),正文同樣由 engine/pleading_render.py 組成。
+    前提:v2 案件、已有起訴狀(current_complaint:關卡 1 確認版或最新系統原稿)、P6 評估已落地。
+    走同一套事實對應檢查(新事實對應不到就退回,應移到 fact_gaps);被告推測的內容整段寫進 fact_points 或
+    legal_argument 硬擋(T7.1),只有部分相同只警告。落地為 source=system_revision、parent_id 指向確認版、round=2,
+    只是建議版,不會變成原稿或確認版。--check 只檢查並印出正文,不落地。"""
+    from database.db import (_assert_all_published, case_payload, current_complaint, issue_sheet, latest_answer,
+                             latest_party_checks, record_complaint_revision)
+    from database.schema import DebateArgument, PleadingDraft, Verdict
+    from engine.fact_points import paraphrase_warnings
+    from engine.party_issues import procedural_issues
+    from engine.pleading_render import complaint_problems, render_complaint
+    from engine.revision import hypothetical_problems, hypothetical_warnings, opponent_hypotheticals, stored_revision
+    from server.pleading_export import lint_pleading, split_draft_note
+    from server.services import extract_citations
+    with open(args.json, 'r', encoding='utf-8') as f:
+        payload = json.load(f)
+    session = get_session()
+    case = session.query(Case).filter_by(case_id=args.case_id).one_or_none()
+    if case is None or case.protocol != "v2":
+        print(f"拒絕落地:{args.case_id} 不是書狀交換流程(v2)的案件" if case else f"拒絕落地:找不到案件 {args.case_id}",
+              file=sys.stderr)
+        return 1
+    current = current_complaint(session, args.case_id)
+    if current is None:
+        print(f"拒絕落地:{args.case_id} 還沒有起訴狀(關卡 1 確認版或系統原稿),不能產生 v2", file=sys.stderr)
+        return 1
+    if session.query(Verdict).filter_by(case_id=args.case_id).one_or_none() is None:
+        print(f"拒絕落地:{args.case_id} 的 P6 評估還沒落地,v2 要依評估的 complaint_revisions 改寫", file=sys.stderr)
+        return 1
+    analysis = session.query(DebateArgument).filter_by(case_id=args.case_id, side="plaintiff", stage=1).one_or_none()
+    if analysis is None:
+        print("拒絕落地:原告的請求權基礎分析(stage 1)還沒落地", file=sys.stderr)
+        return 1
+    if not args.check and any(r.pleading_type == "complaint" and r.source == "system_revision"
+                              for r in session.query(PleadingDraft).filter_by(case_id=args.case_id).all()):
+        print(f"拒絕落地:{args.case_id} 起訴狀 v2 已落地,不可覆寫", file=sys.stderr)
+        return 1
+    data, checks = case_payload(case), latest_party_checks(session, args.case_id)
+    procedural = procedural_issues(checks)
+    problems = complaint_problems(payload, case=data, procedural=procedural,
+                                  analysis_text=f"{analysis.position}\n{strip_internal_review(analysis.reasoning)}")
+    answer, sheet = latest_answer(session, args.case_id), issue_sheet(session, args.case_id)
+    guesses = opponent_hypotheticals(json.loads(answer.structured_json or "{}") if answer else None,
+                                     sheet["sheet"] if sheet else None)
+    confirmed_text = split_draft_note(current["draft_text"])[0]
+    problems += hypothetical_problems(payload, guesses, confirmed_text=confirmed_text)
+    if problems:
+        print(_REVISION_REFUSAL + "\n".join(f"- {p}" for p in problems), file=sys.stderr)
+        return 1
+    text = render_complaint(payload, case=data, party_checks=checks, procedural=procedural)
+    in_body = [c["citation_text"] for c in extract_citations(text)]
+    listed = {_judgment_key(c) for c in payload.get("citations", [])}
+    unlisted = [c for c in in_body if _judgment_key(c) != c and _judgment_key(c) not in listed]
+    if unlisted:
+        print(_REVISION_REFUSAL + "- 正文提到的判決要列進 citations 並附 precedent_notes,或從正文刪除:" + "、".join(unlisted),
+              file=sys.stderr)
+        return 1
+    gate = list(dict.fromkeys(payload.get("citations", []) + payload["basis"] + in_body))
+    warnings = [f"書狀正文含模擬流程用語,請確認:{h['word']}×{h['count']}" for h in lint_pleading(text, "plaintiff")]
+    warnings += paraphrase_warnings(payload["fact_points"], data["facts_summary"])
+    warnings += hypothetical_warnings(payload, guesses, confirmed_text=confirmed_text)
+    if args.check:
+        print(text)
+        print(f"結構檢查通過(接在起訴狀 #{current['version_id']} 之後)。落地前要全部 published 的引用:" + "、".join(gate))
+        for warning in warnings:
+            print("警告:" + warning)
+        return 0
+    review = None
+    if args.review_json:
+        with open(args.review_json, 'r', encoding='utf-8') as f:
+            review = json.load(f)
+    try:
+        _assert_all_published(session, gate)
+        review_problems = _complaint_review_problems(review, payload.get("citations", []))
+        if review_problems:
+            raise ValueError("判決實質核對:" + ";".join(review_problems))
+        if payload.get("precedent_notes"):
+            from engine.verify import validate_precedent_notes
+            validate_precedent_notes(payload["precedent_notes"], snapshot=args.snapshot, read_by="plaintiff")
+        stored = stored_revision(payload, current["version_id"])
+        if review is not None:
+            stored["citation_review"] = review
+        row = record_complaint_revision(session, case_id=args.case_id, parent_id=current["version_id"], draft_text=text,
+                                        citations_used=gate, structured=stored)
+    except ValueError as e:
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
+    print(f"已落地起訴狀 v2 {row.case_id}(#{row.id},接在 #{current['version_id']} 之後,事實點 {len(payload['fact_points'])} 個)")
+    for warning in warnings:
+        print("警告:" + warning, file=sys.stderr)
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="LegalDebate 落地 CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -1274,6 +1404,14 @@ def main():
     p.add_argument("--case-dir")
     p.add_argument("--exclude", action="append", help="示範案的來源裁判(字號或 JID，可重複)")
     p.set_defaults(fn=cmd_prompt)
+
+    p = sub.add_parser("revision", help="書狀交換流程:檢查並落地起訴狀 v2(P6 後的建議版,正文由程式組成)")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--json", required=True, help="改寫 subagent 輸出的起訴狀 JSON(格式同 complaint)")
+    p.add_argument("--check", action="store_true", help="只檢查並印出組成後的正文,不落地")
+    p.add_argument("--review-json", help="判決實質核對結果 JSON 陣列:[{citation, supports, reason}]")
+    p.add_argument("--snapshot", help="案件的快照根目錄;引用判決時用來核對原告讀過全文(UI 執行時由環境變數提供)")
+    p.set_defaults(fn=cmd_revision)
 
     args = parser.parse_args()
     if args.cmd in ('record', 'verify') and args.snapshot:

@@ -601,3 +601,26 @@ def complaint_basis(session, case_id):
     while row is not None and row.structured_json is None and row.parent_id is not None:
         row = session.get(PleadingDraft, row.parent_id)
     return json.loads(row.structured_json or "{}").get("basis") or [] if row is not None else []
+
+
+def record_complaint_revision(session, *, case_id, parent_id, draft_text, citations_used, structured):
+    """P6 起訴狀 v2(規格 5.7)落地:pleading_type=complaint、source=system_revision、round=2、is_simulated=0,
+    parent_id 指向 current_complaint(關卡 1 確認版;還沒確認時是最新系統原稿)。v2 只是建議版,不會變成原稿或確認版
+    (system_complaints、current_complaint 只看 source 為 NULL/system 的列與關卡紀錄)。每案一份,不可覆寫。
+    結構檢查由呼叫端(main.py revision)先做;這裡硬擋版本鏈、不可覆寫與查證閘門。"""
+    current = current_complaint(session, case_id)
+    if current is None:
+        raise ValueError(f"{case_id} 沒有起訴狀,不能產生 v2")
+    if parent_id != current["version_id"]:
+        raise ValueError(f"起訴狀 v2 要接在確認版(#{current['version_id']})之後,不是 #{parent_id}")
+    if any(r.source == 'system_revision' and r.pleading_type == 'complaint'
+           for r in session.query(PleadingDraft).filter_by(case_id=case_id).all()):
+        raise ValueError(f"{case_id} 起訴狀 v2 已落地,不可覆寫")
+    _assert_all_published(session, citations_used)
+    row = PleadingDraft(case_id=case_id, draft_text=draft_text, side='plaintiff', citation_verification_status='published',
+                        generated_at=_now_iso(), source='system_revision', parent_id=parent_id, pleading_type='complaint',
+                        round=2, is_simulated=0,
+                        structured_json=json.dumps({**structured, "parent_id": parent_id}, ensure_ascii=False))
+    session.add(row)
+    session.commit()
+    return row
