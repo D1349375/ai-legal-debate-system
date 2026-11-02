@@ -163,9 +163,13 @@ def _arg_to_dict(row):
 
 
 def admission_sources(session, case_id):
-    """自承類用語可以引述的原文:案件事實與雙方論證(不含 falsifier，那是假設句)。"""
+    """自承類用語可以引述的原文:案件事實與雙方論證(不含 falsifier，那是假設句)。
+    書狀交換流程(v2)的事實經過是原告律師寫的，只算原告的話；被告的話是律師記下的對方已知反應。"""
     case = session.query(Case).filter_by(case_id=case_id).one_or_none()
     sources = {"plaintiff": [], "defendant": [], "facts": [case.facts_summary] if case else []}
+    if case and case.protocol == "v2":
+        sources["plaintiff"], sources["facts"] = sources["facts"], []
+        sources["defendant"] = [r["text"] for r in json.loads(case.opponent_responses_json or "[]")]
     for row in session.query(DebateArgument).filter_by(case_id=case_id).all():
         sources[row.side] += [row.position or "", strip_internal_review(row.reasoning)]
     return sources
