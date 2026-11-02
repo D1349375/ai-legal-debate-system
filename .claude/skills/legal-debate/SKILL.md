@@ -77,6 +77,7 @@ description: >-
    - 產出嚴格 JSON 陣列 `[{"citation": "字號", "supports": true 或 false, "reason": "一句話,寫依據全文哪一段"}]`;沒有判決時寫 `[]`。這個陣列由查證 subagent 自己用 Write 寫進 `<執行資料夾>/citation_review.json`,只回「已寫入 <路徑>」;你不要改寫或補內容。
 5. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --review-json citation_review.json` 落地。程式會再擋一次:引用未 published、判決實質核對不支持、判例摘句不是全文原句(`quote_not_found`)、文件身分不符、連線失敗(`network_error`)、同字號多份(`ambiguous`)都不落地。
    - 被擋的引用:回頭請撰狀 subagent 刪掉或改用通過的引用(算一次退回),不得自己改寫引用內容。
+   - 改寫後不要整份重新查證。只刪除引用時,沿用原本的 `citation_review.json`(落地只核對起訴狀現有的判決,多的會被忽略),直接重跑第 3、5 點。有新增引用時,另開乾淨的查證 subagent,`verify` 只列新增的引用、只讀新增的判決,讀既有的 `citation_review.json`,把新結果加進去後重寫同一個檔。
    - `lint_pleading` 的模擬流程用語警告只警告,照實列入最後回覆。
 6. 起訴狀 v1 落地後畫面就看得到;當事人欄由程式依商工查核帶入,已解散公司的法定代理人寫「清算人(待查明…)」,這是刻意的,不要要求補姓名。
 

@@ -26,8 +26,9 @@ SEARCH_RULES = {
     'p1': {'sides': ('plaintiff',), 'mode': '主要檢索', 'issue': False,
            'target': ["準備在起訴狀主張的請求權基礎（先位／備位），以及預想被告抗辯會攻擊的要件",
                       "列出但不打算主張的候選請求權基礎只用 article 讀條文，不搜判決",
-                      "P1 的分析與撰狀共用同一個紀錄檔與預算；起訴狀要引用的判決須已在本階段用 judgment 讀過全文"],
-           'steps': [TOP_DOWN, ARTICLE_STEP, SEARCH_STEP, READ_STEP]},
+                      "P1 的分析與撰狀共用同一個紀錄檔與預算。分析只搜不讀全文：候選判決的字號寫在公開論證，標「待撰狀讀全文」；"
+                      "每個 subagent 讀的全文都留在自己的上下文，分析讀了也交不出摘句，撰狀還要重讀"],
+           'steps': [TOP_DOWN, ARTICLE_STEP, SEARCH_STEP, "撰狀用 judgment 讀要引用的判決全文（分析不做這一步）"]},
     'p2': {'sides': ('defendant',), 'mode': '主要檢索', 'issue': False,
            'target': ["起訴狀引用的判決：先依字號用 judgment 讀（快照或快取已有的不計預算）",
                       "起訴狀的請求權基礎與被告的抗辯（例如清償、抵銷、時效）",
