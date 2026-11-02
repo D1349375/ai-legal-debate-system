@@ -206,6 +206,7 @@ C1 仍是 `close` 6、`unquoted` 1、其他警告 0。
 **交回修正後的結果(Claude 代為實作)**
 
 - 結束時間:2026-11-03 02:10(台北時間)。
+- commit:`65f6c6d`(Claude 第二次檢核通過後由 Claude commit;Codex 額度用完)。
 - 最後測試:`python -X utf8 -m pytest -q -m "not network" -p no:cacheprovider --basetemp <暫存資料夾下的新目錄>`:**331 passed、1 skipped、13 deselected**(255.74 秒);比交回前 322 多 9 項,等於這輪新增的測試數。`node --check ui/app.js` 通過。
 - 這輪新增的測試:`tests/test_attribution_check.py` 7 項:引號內有「。」(C1 訊問 2 縮短版,含改錯版要判 `missing`)、巢狀『』不提早結束外層、未閉合引號不吞掉後面的引號、零散單字的跨案件反例要判 `missing`、C1 最低分的近似仍是 `close`、讓步條件逐字引述列 `falsifier`(另一方的讓步條件仍是 `missing`)、W0 壓縮過的讓步條件列 `falsifier`;`tests/test_cli.py` 1 項:`check-judge` 的訊問缺 `based_on` 仍回 0、不當掉;`tests/test_server.py` 1 項:讀案時引自讓步條件的轉述列 `falsifier`、警告數 0。
 - 檢核意見處理:
