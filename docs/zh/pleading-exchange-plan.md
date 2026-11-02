@@ -328,7 +328,7 @@ W1–W8 最晚可以延到 11/4 中午。超過就不做擴充,全力收斂主�
 | W1 | 已完成,`ca38d03` | 新增 44 項,全套 427 項 | 不需要 | 瀏覽器走過建案、總覽、起訴前檢查,深淺色與舊案都看過。與計畫不同:這項只加 `Case` 欄位,其他表的新欄位等用到時才加 |
 | W2 | 已完成,`624fe8e` | 新增 24 項,離線全套 451 通過、2 略過 | 2 次,只到 P1:第 2 次 5 分 12 秒、1.15 美元、5 小時額度 23%→28%、分類器中止 0、權限被拒 0 | 紀錄 `docs/live-run-records/w2-2026-11-02.md`。與計畫不同:實跑不是按 UI 按鈕(還沒有 `stop_after`),而是同一條程式路徑加一句「只跑到 Step 3」;撰狀後的查證與實質核對合成一個查證 subagent;`--review-json` 是新增的參數;正文出現的判決一定要列進 `citations`;事實點文字不是原文時只警告;`main.py party` 的法定代理人文字改用共用函數(已解散又董監事查詢失敗時,CLI 改顯示清算人,和 UI 一致);UI 沒有改,事實缺口與律師附註放在正文後的【本稿產出說明】 |
 | W3 | 未開始 | | | |
-| W4 | 未開始 | | | |
+| W4 | 程式部分完成(分支 w4-defendant-view),範本與 SKILL 待 W3 後接 | 新增 10 項(`tests/test_answer.py`,T4.1、T4.3–T4.5;T4.2 只驗以傳入的正文為準),離線全套 527 通過、2 略過(做之前 517、2 略過) | 不需要 | 做了 `main.py role-view --role defendant`(`database/db.py` `defendant_view`)與 `engine/fact_points.py` `response_problems`。與計畫不同:律師確認版由呼叫端以 `complaint_id` 指定,CLI 還沒有參數,沒給就用最新系統版,待 W3 從關卡紀錄帶入;引用未通過(blocked)的律師版不能給被告;角色檔多給 `fact_evidence`(正文每個 CF 的證據編號,律師新增的 CF 為空),供 `admit` 檢查;證據只給編號、種類、日期、描述,不給原告律師寫的 `proves`;`ground` 的值也硬擋。還沒做:`main.py answer`、答辯狀組成(T4.6)、範本、SKILL、UI、`scripts/audit_run.py` |
 | W5 | 未開始 | | | |
 | W6 | 未開始 | | | |
 | W7 | 未開始 | | | |
