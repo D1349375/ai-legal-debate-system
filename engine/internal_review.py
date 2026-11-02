@@ -10,7 +10,10 @@ START = "【內部檢討】"
 END = "【內部檢討結束】"
 # 只有開頭沒有結尾時，後面全部當內部檢討:寧可少給法官，不要外洩
 _SECTION_RE = re.compile(re.escape(START) + r".*?(?:" + re.escape(END) + r"|\Z)", re.S)
-_SELF_REVIEW_RE = re.compile(r"弱點|最大風險|最大缺口|對我方不利|對本方不利|我方不利|本方不利|基礎薄弱|自我檢討")
+_SELF_REVIEW_RE = re.compile(
+    r"弱點|最大風險|最大缺口|對我方不利|對本方不利|我方不利|本方不利|基礎薄弱|自我檢討"
+    r"|內部風險|力道會減弱|力道減弱|承認有疑義|承認[^。！？!?；;\n]{0,60}本有疑義"
+)
 
 
 def strip_internal_review(text):

@@ -471,3 +471,4 @@ V35–V37 是人工判斷,單案只能看方向,不能當統計結論。
 | T1 資料庫設定傳給即時執行的子程序 | `d4634fb8958f472ccc726aea04642875ce0d7217` | 離線全套 `288 passed, 1 skipped, 13 deselected`（基準 `285 passed`）；T1 新測試 `3 passed` | 環境變數指定的資料庫位址會一致傳給伺服器、子程序與 health；真實 Claude 實跑待 C1 驗證。Claude 檢核通過(2026-11-02)。 |
 | T2 機械彙整改由程式落地 | `fe9475f6a65e23e4212f8e963a9c18eed654b90c` | 離線全套 `298 passed, 1 skipped, 13 deselected`（基準 `288 passed`）；T2 新測試 `10 passed` | verdict 落地時自行重算；無商工查核紀錄時略過程序 ID 並顯示中性說明；舊案論證摘錄與程序事項 ID 的缺漏或內容差異分別標示。真實 Claude 實跑待 C1 驗證。Claude 第二次檢核通過(2026-11-02)。 |
 | T3 自承檢查補資料缺口詞 | `b24c343d42b4a5acb910a9cc34cbcf8a77486448` | 離線全套 `303 passed, 1 skipped, 13 deselected`（基準 `298 passed`）；T3 新增 5 個測試情境 | 補四個缺口詞；三份紀錄新增被擋 1 句（該擋），誤擋 0；「承認」僅量測，建議暫不加入；真實 Claude 實跑待 C1 驗證。 Claude 檢核通過(2026-11-02)。 |
+| T4 段落外自我檢討警告 | 未 commit | 離線全套 `307 passed, 1 skipped, 13 deselected`（基準 `303 passed`）；新增 4 項測試 | 逐句量測新增警告 3 句、誤報 0/3；讀案重算使執行摘要與攻防卡片顯示次數，深淺色 UI 已看；真實 Claude 實跑待 C1 驗證。 Claude 檢核通過(2026-11-02)。 |

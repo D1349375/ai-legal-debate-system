@@ -28,7 +28,7 @@ from engine.aggregate import VALID_SIDES, disagreement
 from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
-from engine.internal_review import strip_internal_review
+from engine.internal_review import review_warnings, strip_internal_review
 from engine.verify import (
     HISTORICAL_NOTE, HISTORICAL_PREFIX_RE, JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, STATUTE_PCODES,
     STATUTES_DIR, is_historical_statute, multiple_documents_note, parse_citation,
@@ -186,8 +186,10 @@ def _db_record(row, asked_text):
 
 
 def _arg_to_api(row):
+    public_review_count = sum(w.startswith("公開論證疑似含自我檢討") for w in review_warnings(row.reasoning))
     return {
         "side": row.side, "stage": row.stage, "position": row.position, "reasoning": row.reasoning,
+        "review_warning_count": public_review_count,
         "cited_statutes": _json_list(row.cited_statutes), "cited_precedents": _json_list(row.cited_precedents),
         "falsifier": row.falsifier, "model_id": row.model_id, "created_at": row.created_at,
     }

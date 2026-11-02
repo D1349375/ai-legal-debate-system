@@ -554,6 +554,7 @@
     var cites = a.cited_statutes.concat(a.cited_precedents);
     return h("article", { class: "arg " + a.side },
       h("div", { class: "arg-head" }, sideChip(a.side, SIDE[a.side].agent), chip("neutral", "Stage " + a.stage),
+        a.review_warning_count ? chip("warn", "公開論證疑似含自我檢討 " + a.review_warning_count + " 則") : null,
         originChip(a.origin),
         h("span", { class: "arg-time", text: "落地 " + fmtTime(a.created_at), title: "model_id：" + (a.model_id || "落地時未記錄") })),
       h("div", { class: "arg-body" },
@@ -1446,8 +1447,14 @@
       "・快取讀取 " + fmtTokens(t.cache_read_input_tokens) + "・快取寫入 " + fmtTokens(t.cache_creation_input_tokens) +
       "・輸出 " + fmtTokens(t.output_tokens) + (Object.keys(t.by_model || {}).length > 1 ? "(" + Object.keys(t.by_model).join("、") + ")" : "");
   }
+  function runReviewWarningCount(run, d) {
+    return d.arguments.filter(function (a) {
+      return a.origin.kind === "live" && a.origin.run_id === run.id && a.review_warning_count;
+    }).length;
+  }
   function runView(run, d) {
     var st = RUN_STATUS[run.status], lr = liveLog(run.id);
+    var reviewCount = run.kind === "pleadings" ? null : runReviewWarningCount(run, d);
     if (!lr.loaded && run.status !== "running") loadRunLog(run.id);
     var events = lr.events;
     var row = function (e) {
@@ -1465,6 +1472,8 @@
       run.status === "running" ? h("div", { class: "chip-row" }, d.progress.map(function (s) {
         return chip(s.state === "done" ? "ok" : s.state === "partial" ? "warn" : "neutral", (s.state === "done" ? "✓ " : s.state === "partial" ? "◐ " : "· ") + s.label);
       })) : null,
+      reviewCount === null ? null : reviewCount ? banner("warn", "!", "公開論證疑似含自我檢討:" + reviewCount + " 則。請查看攻防分頁逐則確認。") :
+        h("p", { class: "detail-note", text: "公開論證疑似含自我檢討:0 則" }),
       stoppedByClassifier(run) ? safetyStopBanner(run) : null,
       run.error ? banner(run.status === "cancelled" ? "warn" : "bad", run.status === "cancelled" ? "!" : "✗", run.error) : null,
       stoppedByClassifier(run) ? null : safetyStopBanner(run),
@@ -1613,7 +1622,8 @@
         d.live_runs.map(function (r) {
           return meta("執行 #" + r.id + (r.kind === "pleadings" ? "(只補產" + docsText(r.documents) + ")" : ""), runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
             (r.tokens ? "・" + fmtTokens(tokenTotal(r.tokens)) + " token" : "") +
-            ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
+            ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : "") +
+            (r.kind === "pleadings" ? "" : "・公開論證疑似含自我檢討:" + runReviewWarningCount(r, d) + " 則"));
         })) : null,
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "限制" }),
         h("p", { class: "detail-note", text: "標示「⚡ 本次即時生成」者由本機 Claude Code 經 UI 執行產生；標示「⏺ 錄製紀錄」者是過去產生後落地的紀錄重播。引用查證僅確認條文／字號存在，未比對判決全文是否支持該論點。研究原型，非法律意見，訴狀須由律師審核。" })));
