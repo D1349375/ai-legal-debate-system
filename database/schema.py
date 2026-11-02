@@ -137,6 +137,18 @@ class LiveRun(Base):
     stop_after = Column(String, nullable=True)
 
 
+class IssueSheet(Base):
+    """書狀交換流程 P3 法官的爭點整理表(規格 5.5)。法官 JSON(不爭執事項、爭點、闡明、訊問)原樣存;
+    每案一份，不可覆寫。complaint_id、answer_id 記法官讀的是哪一版起訴狀與答辯狀。"""
+    __tablename__ = 'issue_sheets'
+    id = Column(Integer, primary_key=True)
+    case_id = Column(String, nullable=False)
+    complaint_id = Column(Integer, nullable=True)
+    answer_id = Column(Integer, nullable=True)
+    sheet_json = Column(Text, nullable=False)
+    created_at = Column(String, nullable=False)
+
+
 def init_db(db_path='sqlite:///database/legal_debate.db'):
     engine = create_engine(db_path)
     Base.metadata.create_all(engine)

@@ -6,7 +6,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 用法:
   python main.py case     --json <file>                 案件輸入
   python main.py precheck --case-id X                    起訴前檢查的提示(程序類型、調解、時效)
-  python main.py role-view --case-id X --role plaintiff|defendant [--out <檔>]  印出(或寫成檔)該角色可讀的案件資料
+  python main.py role-view --case-id X --role plaintiff|defendant|judge [--out <檔>]  印出(或寫成檔)該角色可讀的案件資料
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
   python main.py finalize --case-id X [--for-judge]      機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點；--for-judge 只印給法官讀的部分
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
@@ -21,6 +21,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py complaint --case-id X --json <file> [--check] [--review-json <file>]
                                                           書狀交換流程的起訴狀 v1:檢查事實對應、由程式組成正文後落地；--check 只檢查不落地
   python main.py answer --case-id X --json <file> [--check] [--review-json <file>]   檢查並落地模擬答辯狀(P2,正文由程式組成)
+  python main.py issue-sheet --case-id X --json <file> [--check]   檢查並落地法官的爭點整理表(P3);--check 印出四張表
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
   python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
@@ -49,7 +50,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     sys.stderr.reconfigure(encoding='utf-8')
 
 from database.db import (
-    get_session, record_case, record_argument, record_question, case_precheck, plaintiff_view, defendant_view,
+    get_session, record_case, record_argument, record_question, case_precheck, plaintiff_view, defendant_view, judge_role_view,
     admission_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
 )
 from database.schema import Case
@@ -107,7 +108,7 @@ def cmd_precheck(args):
 def cmd_role_view(args):
     session = get_session()
     try:
-        view = (plaintiff_view if args.role == "plaintiff" else defendant_view)(session, args.case_id)
+        view = {"plaintiff": plaintiff_view, "defendant": defendant_view, "judge": judge_role_view}[args.role](session, args.case_id)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 1
@@ -479,6 +480,64 @@ def cmd_answer(args):
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
     print(f"已落地模擬答辯狀 {row.case_id}(#{row.id},回應起訴狀 #{current['version_id']},逐點表態 {len(payload['responses'])} 點)")
+    for warning in warnings:
+        print("警告:" + warning, file=sys.stderr)
+    return 0
+
+
+def cmd_issue_sheet(args):
+    """書狀交換流程 P3 爭點整理表。法官讀 role-view --role judge,交不爭執事項、爭點、闡明與訊問;這裡檢查後原樣落地。
+    結構問題與自承類用語硬擋(退回法官 subagent);推測標示不一致、要被告回答事實只警告。--check 只檢查並印出四張表。"""
+    from database.db import issue_sheet, record_issue_sheet
+    from engine.issue_sheet import issue_sheet_problems, issue_sheet_warnings, render_issue_sheet
+    with open(args.json, 'r', encoding='utf-8') as f:
+        sheet = json.load(f)
+    session = get_session()
+    case = session.query(Case).filter_by(case_id=args.case_id).one_or_none()
+    if case is None or case.protocol != "v2":
+        print(f"拒絕落地:{args.case_id} 不是書狀交換流程(v2)的案件" if case else f"拒絕落地:找不到案件 {args.case_id}",
+              file=sys.stderr)
+        return 1
+    if not args.check and issue_sheet(session, args.case_id) is not None:
+        print(f"拒絕落地:{args.case_id} 爭點整理表已落地,不可覆寫", file=sys.stderr)
+        return 1
+    try:
+        view = judge_role_view(session, args.case_id)
+    except ValueError as e:
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
+    responses = view["answer"]["responses"]
+    problems = issue_sheet_problems(sheet, complaint_text=view["complaint"]["text"], responses=responses,
+                                    evidence_ids=[e["id"] for e in view["evidence"]])
+    if not problems:  # 自承類用語:法官寫某方自認/自陳,原句要在該方的書狀或論證裡(書狀交換流程含起訴狀與答辯狀)
+        sources = admission_sources(session, args.case_id)
+        addressed = [(q.get("question_text"), q.get("target_side")) for q in sheet.get("questions") or []]
+        addressed += [(c.get("question"), c.get("target_side")) for c in sheet.get("clarifications") or []]
+        rest = {k: v for k, v in sheet.items() if k not in ("questions", "clarifications")}
+        found = [p for text in strings_in(rest) for p in admission_problems(text, sources)]
+        found += [p for text, side in addressed for p in admission_problems(text or "", sources, target_side=side)]
+        problems = [_ADMISSION_REFUSAL + ";".join(found)] if found else []
+    if problems:
+        print("未通過,請把以下原因交回法官 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n"
+              + "\n".join(f"- {p}" for p in problems), file=sys.stderr)
+        return 1
+    text = render_issue_sheet(sheet, complaint_text=view["complaint"]["text"], evidence=view["evidence"])
+    warnings = issue_sheet_warnings(sheet, responses=responses)
+    if args.check:
+        print(text)
+        print("結構檢查通過")
+        for warning in warnings:
+            print("警告:" + warning)
+        return 0
+    try:
+        row = record_issue_sheet(session, case_id=args.case_id, sheet=sheet, complaint_id=view["complaint"]["id"],
+                                 answer_id=view["answer"]["id"])
+    except ValueError as e:
+        print(f"拒絕落地:{e}", file=sys.stderr)
+        return 1
+    print(f"已落地爭點整理表 {row.case_id}(#{row.id},不爭執 {len(sheet.get('undisputed') or [])}、"
+          f"爭點 {len(sheet.get('issues') or [])}、闡明 {len(sheet.get('clarifications') or [])}、"
+          f"訊問 {len(sheet.get('questions') or [])})")
     for warning in warnings:
         print("警告:" + warning, file=sys.stderr)
     return 0
@@ -970,7 +1029,7 @@ def main():
 
     p = sub.add_parser("role-view", help="印出某角色可讀的案件資料")
     p.add_argument("--case-id", required=True)
-    p.add_argument("--role", choices=("plaintiff", "defendant"), required=True)
+    p.add_argument("--role", choices=("plaintiff", "defendant", "judge"), required=True)
     p.add_argument("--out", help="寫成這個檔，只印路徑")
     p.set_defaults(fn=cmd_role_view)
 
@@ -1039,6 +1098,12 @@ def main():
     p.add_argument("--review-json", help="判決實質核對結果 JSON 陣列:[{citation, supports, reason}]")
     p.add_argument("--snapshot", help="案件的快照根目錄;引用判決時用來核對被告讀過全文(UI 執行時由環境變數提供)")
     p.set_defaults(fn=cmd_answer)
+
+    p = sub.add_parser("issue-sheet", help="書狀交換流程:檢查並落地法官的爭點整理表(P3)")
+    p.add_argument("--case-id", required=True)
+    p.add_argument("--json", required=True, help="法官 subagent 輸出的爭點整理表 JSON")
+    p.add_argument("--check", action="store_true", help="只檢查並印出四張表,不落地")
+    p.set_defaults(fn=cmd_issue_sheet)
 
     p = sub.add_parser("pleading-source", help="印出某一方的撰狀素材(Stage 3 原文、對造摘要、引用查證狀態)")
     p.add_argument("--case-id", required=True)

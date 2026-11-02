@@ -8,7 +8,7 @@ import json
 import os
 
 from database.schema import (
-    Case, CitationVerification, CourtQuestion, DebateArgument, PleadingDraft, Verdict, PartyCheck,
+    Case, CitationVerification, CourtQuestion, DebateArgument, IssueSheet, PleadingDraft, Verdict, PartyCheck,
 )
 from engine.verify import verify_citations
 from database.db import _citation_key
@@ -23,7 +23,7 @@ PARTY_CHECKS_PATH = os.path.join(DEMO_DIR, "recorded_party_checks.json")
 _TABLES = (
     ("cases", Case), ("debate_arguments", DebateArgument), ("court_questions", CourtQuestion),
     ("verdicts", Verdict), ("citation_verifications", CitationVerification),
-    ("pleading_drafts", PleadingDraft),
+    ("pleading_drafts", PleadingDraft), ("issue_sheets", IssueSheet),
 )
 
 

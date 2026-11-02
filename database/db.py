@@ -21,6 +21,7 @@ from engine.internal_review import strip_internal_review
 from engine.precheck import precheck
 from database.schema import (
     Base, Case, DebateArgument, CourtQuestion, Verdict, CitationVerification, PleadingDraft, PartyCheck, LiveRun,
+    IssueSheet,
 )
 from engine.aggregate import compile_weak_points, disagreement, VALID_SIDES
 from engine.party_issues import procedural_issues
@@ -152,6 +153,54 @@ def defendant_view(session, case_id, complaint_id=None):
             "party_checks": checks, "procedural_issues": procedural_issues(checks)}
 
 
+def judge_role_view(session, case_id):
+    """法官的角色檔(規格 5.5):起訴狀(關卡 1 確認版)、模擬答辯狀與逐點表態、起訴狀用到的證據、商工查核與程序事項。
+    不給事實經過、已知缺口、對方已知反應、雙方的分析與內部檢討。起訴狀的部分沿用 defendant_view(同一套去除規則)。"""
+    from server.pleading_export import split_draft_note
+    current = current_complaint(session, case_id)
+    if current is None:
+        raise ValueError(f"{case_id} 沒有起訴狀")
+    answer = latest_answer(session, case_id)
+    if answer is None:
+        raise ValueError(f"{case_id} 還沒有模擬答辯狀")
+    view = defendant_view(session, case_id, complaint_id=current["version_id"])
+    structured = json.loads(answer.structured_json or "{}")
+    return {"role": "judge", "case_id": case_id, "complaint": view["complaint"],
+            "answer": {"id": answer.id, "text": split_draft_note(answer.draft_text)[0],
+                       "responses": structured.get("responses") or [], "defenses": structured.get("defenses") or []},
+            "evidence": view["evidence"], "party_checks": view["party_checks"],
+            "procedural_issues": view["procedural_issues"]}
+
+
+def latest_answer(session, case_id):
+    """流程產生的最新一份模擬答辯狀(不含律師編輯版);沒有時回傳 None。"""
+    rows = [r for r in session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
+            if r.pleading_type == "answer" and r.source in (None, "system")]
+    return rows[-1] if rows else None
+
+
+def _pleading_admission_sources(session, case_id):
+    """書狀交換流程裡書狀算誰的話(舊設計殘留第 1 項)。起訴狀正文全部是原告的話;答辯狀只有 admit 的 CF 原文、
+    表態理由、抗辯與答辯理由是被告的話。答辯狀正文會逐點引述起訴狀(含否認的點),不能整份算被告的話。"""
+    from engine.pleading_render import complaint_facts
+    from server.pleading_export import split_draft_note
+    current = current_complaint(session, case_id)
+    if current is None:
+        return [], []
+    plaintiff = [split_draft_note(current["draft_text"])[0]]
+    answer = latest_answer(session, case_id)
+    if answer is None:
+        return plaintiff, []
+    structured = json.loads(answer.structured_json or "{}")
+    facts = complaint_facts(plaintiff[0])
+    responses = structured.get("responses") or []
+    defendant = [facts[r["fact_id"]] for r in responses if r.get("stance") == "admit" and r.get("fact_id") in facts]
+    defendant += [r["reason"] for r in responses if r.get("reason")]
+    defendant += [d["statement"] for d in structured.get("defenses") or [] if d.get("statement")]
+    defendant += [structured["legal_argument"]] if structured.get("legal_argument") else []
+    return plaintiff, defendant
+
+
 def record_argument(session, *, case_id, side, stage, position, reasoning,
                      cited_statutes=None, cited_precedents=None, falsifier=None, model_id=None):
     if side not in VALID_SIDES:
@@ -205,6 +254,9 @@ def admission_sources(session, case_id):
     if case and case.protocol == "v2":
         sources["plaintiff"], sources["facts"] = sources["facts"], []
         sources["defendant"] = [r["text"] for r in json.loads(case.opponent_responses_json or "[]")]
+        plaintiff, defendant = _pleading_admission_sources(session, case_id)
+        sources["plaintiff"] += plaintiff
+        sources["defendant"] += defendant
     for row in session.query(DebateArgument).filter_by(case_id=case_id).all():
         sources[row.side] += [row.position or "", strip_internal_review(row.reasoning)]
     return sources
@@ -517,3 +569,23 @@ def latest_party_checks(session, case_id):
             out[row.role] = {**json.loads(row.result_json), "via": row.via,
                              "fetched_at": row.fetched_at, "created_at": row.created_at}
     return out
+
+
+def record_issue_sheet(session, *, case_id, sheet, complaint_id, answer_id):
+    """P3 爭點整理表落地:整份 JSON 原樣存，每案一份，不可覆寫。結構檢查由呼叫端(main.py issue-sheet)先做。"""
+    if session.query(IssueSheet).filter_by(case_id=case_id).first() is not None:
+        raise ValueError(f"{case_id} 爭點整理表已落地，不可覆寫")
+    row = IssueSheet(case_id=case_id, complaint_id=complaint_id, answer_id=answer_id,
+                     sheet_json=json.dumps(sheet, ensure_ascii=False), created_at=_now_iso())
+    session.add(row)
+    session.commit()
+    return row
+
+
+def issue_sheet(session, case_id):
+    """已落地的爭點整理表;沒有時回傳 None。"""
+    row = session.query(IssueSheet).filter_by(case_id=case_id).first()
+    if row is None:
+        return None
+    return {"id": row.id, "complaint_id": row.complaint_id, "answer_id": row.answer_id,
+            "sheet": json.loads(row.sheet_json), "created_at": row.created_at}

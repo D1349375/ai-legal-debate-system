@@ -285,7 +285,7 @@ def answer_warnings(payload, *, fact_evidence, evidence):
     return warnings
 
 
-def _complaint_facts(complaint_text):
+def complaint_facts(complaint_text):
     """起訴狀正文裡每個〔CF〕那一行的事實文字(去掉編號與標記)。"""
     facts = {}
     for line in (complaint_text or "").splitlines():
@@ -325,7 +325,7 @@ def render_answer(payload, *, case, party_checks, procedural, complaint_text):
     lines += ["答辯聲明",
               "一、駁回原告之訴及其假執行之聲請。" if _asks_provisional_execution(complaint_text) else "一、駁回原告之訴。",
               "二、訴訟費用由原告負擔。", "三、如受不利之判決,願供擔保請准宣告免為假執行。", "", "答辯理由"]
-    facts, order = _complaint_facts(complaint_text), cf.cf_ids(complaint_text)
+    facts, order = complaint_facts(complaint_text), cf.cf_ids(complaint_text)
     rows = []
     for i, item in enumerate(sorted(payload["responses"], key=lambda r: order.index(r["fact_id"])), 1):
         row = f"({numeral(i)})原告主張「{facts.get(item['fact_id'], '')}」〔{item['fact_id']}〕:{STANCE_LABEL[item['stance']]}。"
