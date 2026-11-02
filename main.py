@@ -12,6 +12,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
   python main.py public-args --case-id X [--through-stage N]  印出法官與對手摘要可讀的論證(濾掉內部檢討)
   python main.py check-judge --case-id X --json <file>    落地前檢查法官輸出(整批訊問或評估)，不寫入資料庫
+  python main.py statute-claims --json <file>              列出附有內容描述的條文引用(供查證核對條文內容)
   python main.py verify   <citation> [<citation> ...]     引用查證
   python main.py verdict  --case-id X --json <file>       落地法官判決書(引用未 published 即拒絕)
   python main.py pleading --case-id X --draft-file <file> --citations <file> [--side plaintiff|defendant]
@@ -138,6 +139,19 @@ def cmd_check_judge(args):
         print("未通過:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
         return 1
     print("法官輸出檢查通過")
+    return 0
+
+
+def cmd_statute_claims(args):
+    """列出附有內容描述的條文引用，給查證 subagent 逐條用 article 核對。只抽取，不判斷。"""
+    from engine.statute_claims import statute_claims
+    with open(args.json, 'r', encoding='utf-8') as f:
+        raw = f.read()
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        payload = raw  # 書狀正文等純文字
+    print(json.dumps({"claims": statute_claims(payload)}, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -844,6 +858,10 @@ def main():
     p.add_argument("--case-id", required=True)
     p.add_argument("--json", required=True)
     p.set_defaults(fn=cmd_check_judge)
+
+    p = sub.add_parser("statute-claims", help="列出附有內容描述的條文引用(供查證 subagent 用 article 核對)")
+    p.add_argument("--json", required=True, help="評估、書狀或訊問的 JSON 檔;不是 JSON 時當純文字")
+    p.set_defaults(fn=cmd_statute_claims)
 
     p = sub.add_parser("verify", help="引用查證")
     p.add_argument("citations", nargs="+")
