@@ -79,7 +79,7 @@ python main.py finalize --for-judge --case-id <case_id>
 
 ### Step 8 — 引用查證(獨立 subagent,涵蓋判決書引用;獨立 context 結構性強制)
 - 收集 Step 2-7 所有輸出裡出現的全部 `cited_statutes` + `cited_precedents` + verdict 的 `citations_used`,去重。程序事項的 `legal_basis` 若被法官或雙方引用,同樣要查證,不因為是規則表帶出來的就免查。
-- **開一個新的、乾淨的 subagent**(不能是剛才寫論證/判決的同一個 context 自己查自己),第一項任務:
+- **開一個新的、乾淨的 subagent**(不能是剛才寫論證/判決的同一個 context 自己查自己),第一項任務(派工時把這句寫進指示:用 Bash 工具執行,一個 `verify` 指令列出全部引用,不要用 PowerShell,也不要用迴圈逐筆跑):
   ```
   python main.py verify <citation1> <citation2> ...
   ```

@@ -41,7 +41,8 @@ QUOTA_WARN_AT = 0.9
 # 寫檔由 Edit 規則管轄(Write(...) 規則不會比對)，限定在本次執行資料夾的上層 database/live_runs/。
 ALLOWED_TOOLS = ("Bash(python main.py *)", "Skill(legal-debate *)", "Read", "Grep", "Glob", "Agent",
                  f"Edit(/{RUNS_DIR_REL}/**)")
-DISALLOWED_TOOLS = ("WebFetch", "WebSearch")
+# PowerShell:Windows 上的 CLI 有這個工具，dontAsk 下一律被拒，但模型看得到會先試(W0 F7),直接移出工具清單。
+DISALLOWED_TOOLS = ("WebFetch", "WebSearch", "PowerShell")
 
 RESULT_ERRORS = {
     "error_max_budget_usd": "已達花費上限，Claude Code 自行停止",
@@ -117,7 +118,7 @@ def build_prompt(case_id, run_dir, resume=None, documents=VALID_SIDES):
 1. 案件已由 UI 落地資料庫(案件 ID {case_id}),案件輸入檔是 {run_dir}/case.json(含使用者填寫的雙方當事人與統編)。不要再執行 `python main.py case`。SKILL.md 的 {{CASE_FACTS_PATH}} 填這個檔案。
 2. 商工查核已由 UI 依使用者提供的統編完成(沒給統編的一方不查)。不要重新查核，也不要用名稱搜尋自行選定統編。直接執行 `python main.py issues --case-id {case_id}` 取得程序事項。
 3. 所有暫存檔(檢索詞摘要、程序事項、各階段 JSON、訊問、評估、訴狀草稿、引用清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
-4. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
+4. 指令一律用 Bash 工具執行 `python main.py ...`(在目前目錄執行),一次一個指令，不要用迴圈或複合指令；其他 shell 指令會被拒絕。派 subagent 時把這一句寫進它的指示。
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
@@ -151,7 +152,7 @@ def build_pleading_prompt(case_id, run_dir, documents):
 3. 撰狀素材用 `python main.py pleading-source --case-id {case_id} --side <一方>` 取得({sides})。
 4. 落地用 `python main.py pleading --case-id {case_id} --draft-file <檔案> --citations <檔案> --side <一方>`,一份書狀落地一次。
 5. 所有暫存檔(書狀草稿、引用清單、查證用的清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
-6. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
+6. 指令一律用 Bash 工具執行 `python main.py ...`(在目前目錄執行),一次一個指令，不要用迴圈或複合指令；其他 shell 指令會被拒絕。派 subagent 時把這一句寫進它的指示。
 7. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；未通過查證的引用不寫進書狀，並在最後回覆列出。
 8. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
 """

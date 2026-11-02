@@ -36,26 +36,48 @@ Windows 上的 Claude Code CLI 有 `PowerShell` 工具。即時執行只允許 `
 
 ## 實作紀錄(Codex 填寫)
 
-- 開始時間:
-- 結束時間:
-- 基準 commit:
-- 基準測試(指令與數字):
+> 本項由組員以 Claude Code 實作(不是 Codex),工作分支 `t5-windows-tools`。
+
+- 開始時間:2026-11-02 19:30
+- 結束時間:2026-11-02 19:50
+- 基準 commit:`982075a`(`main-finals-fixes`)
+- 基準測試(指令與數字):`python -m pytest -q -m "not network" --basetemp <暫存資料夾>` → `307 passed, 1 skipped, 13 deselected`
 
 ### 迭代過程
 
 | # | 做了什麼 | 看到什麼 | 決定 |
 |---|---|---|---|
-| 1 | | | |
+| 1 | 開工前搜尋 `DISALLOWED_TOOLS`、`--disallowedTools` 與「指令只能用」的所有用處 | 只有 `server/live_run.py`(定義、兩份 prompt、`build_args`)與 `tests/test_live_run.py` 的 `test_minimal_permissions` 用到;沒有文件或 UI 列出這份清單 | 改動範圍就是這兩個檔加 SKILL |
+| 2 | 照本文件打算把測試加在 `tests/test_claude_permissions.py` | 該檔整個以 `pytestmark` 預設略過(要真的 claude.exe,設 `LEGALDEBATE_PROBE_CLAUDE=1` 才跑),加在那裡離線全套不會執行 | 改加在 `tests/test_live_run.py`,和現有 `test_minimal_permissions` 同一組 |
+| 3 | 先寫 2 個測試再跑 | `2 failed`:`--disallowedTools` 之後只有 `WebFetch`、`WebSearch`;prompt 沒有 Bash 工具的說明 | 照預期失敗,開始改程式 |
+| 4 | `DISALLOWED_TOOLS` 尾端加 `"PowerShell"`;兩份 prompt 的指令說明改成「一律用 Bash 工具…一次一個指令,不要用迴圈或複合指令…派 subagent 時把這一句寫進它的指示」 | 用 Python 改檔後 git 警告 CRLF:Windows 上 `write_text` 把整個檔案換成 CRLF | 以 LF 重寫一次,`git diff` 只剩 4 增 3 刪 |
+| 5 | 初稿把「其他 shell 指令會被拒絕」寫成「其他 shell 指令與工具會被拒絕」 | Read、Grep、Agent 等工具是允許的,這樣寫會誤導 | 保留原句「其他 shell 指令會被拒絕」 |
+| 6 | SKILL Step 8 查證 subagent 的第一項任務前加一句:派工時寫明用 Bash 工具、一個 `verify` 指令列出全部引用、不要用 PowerShell、不要用迴圈逐筆跑 | SKILL 原本沒有任何工具說明;W0 查證 subagent 正是用 PowerShell 的 `foreach` 跑 `verify` 被拒 | 加在原有句子的括號內,不動 Step 8 其他內容 |
+| 7 | 跑 `tests/test_live_run.py` 與離線全套 | `43 passed`;全套 `309 passed, 1 skipped, 13 deselected` | 通過數 = 基準 307 + 新增 2 |
 
 ### `--disallowedTools PowerShell` 的依據
 
+1. **參數接受工具名稱**:本機 `claude --help`(Claude Code 2.1.183)寫 `--disallowedTools, --disallowed-tools <tools...>  Comma or space-separated list of tool names to deny (e.g. "Bash(git *)" Edit)`。
+2. **工具名稱就是 `PowerShell`**:進 git 的 `docs/live-run-records/run-1`~`run-4/stream.jsonl` 第一行(`system`/`init`)的 `tools` 清單都有 `"PowerShell"`。
+3. **被列入的工具會從模型看得到的清單移除**:`DISALLOWED_TOOLS = ("WebFetch", "WebSearch")` 是 2026-10-28(`dbf8d87`)隨 UI 即時執行加入的,上面四份紀錄都是之後跑的(Claude Code 2.1.222、2.1.312)。四份的 `init` 工具清單都**沒有** `WebFetch`、`WebSearch`(兩者是 Claude Code 內建工具),但有 `PowerShell`;沒被允許也沒被禁止的 `Write` 仍在清單上。也就是說 `--allowedTools` 只管權限,`--disallowedTools` 才會把工具從清單拿掉,加 `PowerShell` 應有同樣效果。
+4. **沒確認的**:subagent 是否同樣看不到 PowerShell、組長電腦上的 CLI 版本行為是否一致,**待 C1**。C1 檢查方式:`stream.jsonl` 第一行 `tools` 不含 `PowerShell`;全檔 `"name":"PowerShell"` 出現 0 次;查證 subagent 沒有因工具被拒而重派。
+5. 依本文件指示沒有跑 `claude -p`。另一種不花額度的確認方式是仿照 `tests/test_claude_permissions.py`:讓 claude.exe 連本機假的 Messages API,看 CLI 送出的工具清單有沒有 `PowerShell`。這仍會執行 `claude -p`(但不連 Anthropic、不用額度),是否要做交給組長決定,本次沒做。
+
 ### 結果
 
-- 最後測試(指令與數字):
-- 新增測試與各自測什麼:
+- 最後測試(指令與數字):`python -m pytest -q -m "not network" --basetemp <暫存資料夾>` → `309 passed, 1 skipped, 13 deselected`(基準 `307 passed`)
+- 新增測試與各自測什麼(`tests/test_live_run.py`):
+  - `test_powershell_is_hidden_and_old_denials_stay`:`build_args` 的 `--disallowedTools` 之後剛好是 `WebFetch`、`WebSearch`、`PowerShell`,原有兩項與順序不變。
+  - `test_prompts_say_to_use_the_bash_tool`:`build_prompt` 與 `build_pleading_prompt` 都含「指令一律用 Bash 工具執行」、「不要用迴圈或複合指令」與「派 subagent 時」。
 - 改了的檔:
-- 與本文件不同的做法與原因:
+  - `server/live_run.py`:`DISALLOWED_TOOLS` 加 `PowerShell`(附一行註解);兩份 prompt 的指令說明改寫。
+  - `.claude/skills/legal-debate/SKILL.md`:Step 8 查證 subagent 指示加一句工具說明。
+  - `tests/test_live_run.py`:新增 2 個測試。
+  - 本文件與 `docs/zh/main-finals-fix-list.md`:實作紀錄。
+- 與本文件不同的做法與原因:測試加在 `tests/test_live_run.py` 而不是 `tests/test_claude_permissions.py`,因為後者預設整檔略過,離線全套不會執行(迭代第 2 列)。
 - 沒解決或沒驗證的事:
+  - 模型與 subagent 是否真的看不到 PowerShell、查證 subagent 是否因此一次跑完 `verify`,待 C1。
+  - SKILL 這一句會在 T7 合併時一起進 `pleading-exchange`;若 W3 也改了 Step 8 開頭附近,合併時要留意。
 
 ## 檢核結果(Claude 填寫)
 

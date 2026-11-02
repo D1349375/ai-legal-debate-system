@@ -384,6 +384,18 @@ class TestCommandAndStream:
         assert "Bash(python main.py *)" in allowed and not any(a == "Bash" or a == "Write" for a in allowed)
         assert args[args.index("--max-budget-usd") + 1] == "15"
 
+    def test_powershell_is_hidden_and_old_denials_stay(self):
+        # W0 F7:Windows 上模型看得到 PowerShell 會先試，被拒後查證 subagent 沒跑 verify。
+        args = live_run.build_args(["claude"], "x", model="claude-sonnet-5-5", budget_usd=15)
+        denied = args[args.index("--disallowedTools") + 1:]
+        assert denied == ["WebFetch", "WebSearch", "PowerShell"]
+
+    def test_prompts_say_to_use_the_bash_tool(self):
+        rule = "指令一律用 Bash 工具執行 `python main.py ...`"
+        for p in (live_run.build_prompt("c1", "database/live_runs/run-9"),
+                  live_run.build_pleading_prompt("c1", "database/live_runs/run-9", ["plaintiff"])):
+            assert rule in p and "不要用迴圈或複合指令" in p and "派 subagent 時" in p
+
     def test_pleading_prompt_runs_only_step_9c_for_chosen_documents(self):
         p = live_run.build_pleading_prompt("test-2026-10-27-gcis-001", "database/live_runs/run-9", ["defendant"])
         assert p.startswith("/legal-debate test-2026-10-27-gcis-001") and "Step 9C" in p
