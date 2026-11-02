@@ -83,13 +83,29 @@ def extract_hidden_fields(html):
     return {name: extract(name) for name in ("__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTVALIDATION")}
 
 
+class UnexpectedPage(ConnectionError):
+    """官網回的既不是結果頁也不是查無資料頁(忙碌、錯誤或防護頁)。算連線問題，不能當成查無。"""
+
+
+# 真的查無時，回應頁寫「查詢結果 0」(2026-11-02 以 105台上99999 確認)
+_NO_RESULT_RE = re.compile(r'查詢結果\s*0(?!\d)|查無資料')
+
+
 def _submit(session, form_page, fields):
-    """送出 FJUD 表單，回傳查詢 token；查無結果時官方不給結果頁連結，回 None。"""
+    """送出 FJUD 表單，回傳查詢 token；頁面明寫查無結果時回 None。
+
+    2026-11-02 評估時官網忙碌，曾把存在的 52台上694 回成沒有結果連結的頁面而被當成 not_found；
+    所以沒有結果連結、也沒寫查無時拋 UnexpectedPage，由呼叫端照連線失敗處理(重試、retrieval_unavailable)。"""
     url = f"{FJUD_BASE}/{form_page}"
     data = dict(extract_hidden_fields(session.get(url)))
     data.update(fields)
-    m = _TOKEN_RE.search(session.post(url, data, referer=url))
-    return m.group(1) if m else None
+    html = session.post(url, data, referer=url)
+    m = _TOKEN_RE.search(html)
+    if m:
+        return m.group(1)
+    if _NO_RESULT_RE.search(_text(html)):
+        return None
+    raise UnexpectedPage("司法院裁判書查詢系統回應的不是結果頁，也沒有寫查無資料（可能忙碌或被防護擋下）")
 
 
 SORT_DATE = "DS"   # 裁判日期新到舊(官網預設)
@@ -165,6 +181,9 @@ def advanced_search(keywords=(), case_cause=None, date_from=None, date_to=None, 
     if token is None:
         return {'total': 0, 'page_count': 0, 'pages_read': 0, 'rows': []}
     first = parse_result_page(session.get(_list_url(token, 1, sort), referer=f"{FJUD_BASE}/Default_AD.aspx"))
+    if first['total'] is None and not first['rows']:
+        # 真的查無時官網不給結果連結(上面已回 0)；有連結卻讀不到筆數與列，是忙碌頁，不能當成查無
+        raise UnexpectedPage("司法院裁判書查詢系統的結果頁沒有筆數也沒有裁判（可能忙碌），不代表查無")
     rows, pages_read = list(first['rows']), 1
     for page in range(2, min(pages, first['page_count'] or 1) + 1):
         rows += parse_result_page(session.get(_list_url(token, page, sort), referer=_list_url(token, page - 1, sort)))['rows']

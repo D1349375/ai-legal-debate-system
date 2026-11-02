@@ -36,7 +36,7 @@
 | `python main.py article 民法 184` | 讀現行條文（也接受「民法第191條之2」）；7 天內讀快取，否則上網 | 結束碼 0 | 1：`not_found`、`unrecognized_page`、`retrieval_unavailable`；2：法規名稱或條號格式錯 |
 | `python main.py search-statutes --kw 知有損害 [--law 民法]` | 依關鍵字找條文 | 0 | 1：`retrieval_unavailable`；2：參數錯或法規名稱不明 |
 | `python main.py search-judgments --kw 民法第184條 --kw 相當因果關係 [--fetch 3] [--title 損害賠償]` | 搜最高法院民事判決（多個 `--kw` 皆須命中）；`--fetch` 抓全文並列出主文、實體法條、命中句，最後列「常一起引用的法條」 | 0 | 1：`retrieval_unavailable`、`budget_exceeded`；2：參數錯 |
-| `python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD]` | 依字號或 JID 讀判決全文（去換行版）；正式引用前「讀過全文」靠這個指令 | 0 | 1：`not_found`、`retrieval_unavailable`、`full_text_unavailable`、`budget_exceeded`、`excluded`；2：同字號多份文件需指定日期（`ambiguous`）或格式錯 |
+| `python main.py judgment 111年度台上字第1069號 [--doc-date YYYYMMDD]` | 依字號或 JID 讀判決全文（去換行版）；正式引用前「讀過全文」靠這個指令。民國85年以前的裁判沒有全文，有 `--log` 時改列援引它的近年判決（見第十三節） | 0 | 1：`not_found`、`retrieval_unavailable`、`full_text_unavailable`、`budget_exceeded`、`excluded`；2：同字號多份文件需指定日期（`ambiguous`）或格式錯 |
 | `python main.py retrieval-rules --phase p1 [--side plaintiff --case-dir <案件資料夾>] [--json]` | 印出該階段的檢索規則，給調度員填 `{RETRIEVAL_RULES}`；調度員用，角色不用。見第四節 | 0 | 2：未知階段（訊息列出可用名稱）、角色與階段不符、給 `--case-dir` 沒給 `--side` |
 
 檢索指令共用參數：
@@ -298,6 +298,11 @@ main 若另外實作，併回來時 `verify.py` 會大衝突。決賽若用 main
 
 ### 檢索這邊已處理
 
+- **舊判例（民國85年以前）**：官網只有掃描檔，關鍵字搜不到、`judgment` 讀不到全文，但最高法院「意旨參照」最常引的就是它們（2026-11-02 抽 15 則全是）。以判例字號當關鍵字，都搜得到援引它、幾乎逐字重述要旨的近年判決（15 則各 7～54 份）。因此：
+  - `retrieval-rules` 的引用規則加一條：要用舊判例的見解時，用 `search-judgments --kw <判例字號>` 找援引它的近年判決，讀全文後引用近年判決；舊判例字號只放 `precedent_leads`。
+  - `judgment` 認得沒有「度」的判例寫法（`73年台上字第1173號`）。讀到民國85年以前的裁判時仍回 `full_text_unavailable`（結束碼 1），有 `--log` 時另自動查一次援引它的近年判決並列出前 5 份（計一次搜尋，紀錄 `note: citing_lookup`）；沒有 `--log`（法官、查證）只印提示，不替它們搜尋。
+  - `verify` 不變：判例寫法仍是 `unparseable`、不放行，與「舊判例不能正式引用」一致。民國38年以前的「上字」判例（如 `17年上字第1118號`）兩邊都不認得。
+- **官網忙碌時不再誤報查無**：2026-11-02 重測時官網忙碌，存在的 52台上694、44台上75、71台上737、70台上311 曾被回成 `not_found`（`verify` 會因此把真的引用判成捏造）。原因是送出查詢後的回應頁、或結果頁本身是忙碌頁，程式讀不到結果連結或列就當成 0 筆。現在只有回應頁明寫「查詢結果 0」（或「查無資料」）才算查無；其他情況拋 `fjud.UnexpectedPage`（屬連線問題），照現行流程重試一次，仍失敗為 `retrieval_unavailable`／`network_error`。
 - `retrieval-rules` 的 P1 目標原本寫「起訴狀選定的請求權基礎」與「`internal_analysis` 的其他候選」，但分析時還沒有起訴狀，也沒有這個欄位。已改成配合分析→撰狀兩步的寫法。
 - 交接文件第 6 節與規格 5.9 說 `retrieval-rules`、排除參數尚未提供，已過時：兩者都在 `pleading-exchange`。
 

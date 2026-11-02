@@ -35,6 +35,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
 import argparse
 import json
 import os
+import re
 import sys
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
@@ -460,7 +461,7 @@ def cmd_judgment(args):
     if ',' in target:
         jid = target
     else:
-        m = JUDGMENT_CITATION_RE.search(target)
+        m = JUDGMENT_CITATION_RE.search(target) or PRECEDENT_FORM_RE.search(target)
         if not m:
             print('請輸入裁判字號(如 111年度台上字第1069號)或 JID(如 TPSV,111,台上,1069,20250716,1)', file=sys.stderr)
             return 2
@@ -486,7 +487,10 @@ def cmd_judgment(args):
             return fail('budget_exceeded', f"budget_exceeded：{error}")
         raise
     except retrieval_cache.FullTextUnavailable as error:
-        return fail('full_text_unavailable', str(error))
+        code = fail('full_text_unavailable', str(error))
+        if _before_text_index(jid):
+            _list_citing_judgments(jid, args, log, snapshot)
+        return code
     except retrieval_cache.RetrievalUnavailable as error:
         return fail('retrieval_unavailable', str(error))
     if log:
@@ -507,6 +511,67 @@ def cmd_judgment(args):
     print()
     print(judgment_text.flatten(entry['text']))
     return 0
+
+
+# 司法院裁判書查詢系統的全文自民國85年(1996)起；之前的裁判(多為舊判例)只有掃描檔，關鍵字搜不到、全文讀不到
+TEXT_INDEX_FROM_YEAR = 85
+CITING_SHOWN = 5
+# 舊判例的寫法沒有「度」(73年台上字第1173號)；只讓 judgment 認得，查證仍只收「年度」(舊判例不能正式引用)
+PRECEDENT_FORM_RE = re.compile(r'(最高法院)?\s*([0-9]{2,3})年(台[^\s字0-9]{1,3})字第\s*([0-9]+)\s*號')
+
+
+def _before_text_index(jid):
+    parts = jid.split(',')
+    return len(parts) >= 4 and parts[1].isdigit() and int(parts[1]) < TEXT_INDEX_FROM_YEAR
+
+
+def _list_citing_judgments(jid, args, log, snapshot):
+    """舊裁判沒有可讀全文時，改列援引它的近年判決：這些判決常逐字重述舊判例的見解，讀全文後可改引。
+
+    只在有 --log 的角色檢索時自動查，並計一次搜尋；法官、查證(不帶 --log)只印提示，不替它們搜尋。"""
+    from engine.judgment_search import NETWORK_ERRORS, search_judgments
+    from engine.search_log import BudgetExceeded
+    parts = jid.split(',')
+    keyword = f"{parts[1]}年{parts[2]}字第{parts[3]}號"
+    hint = f"可用 search-judgments --kw {keyword} 找援引它的近年判決"
+    if not log:
+        print(f"民國{TEXT_INDEX_FROM_YEAR}年以前的裁判官網沒有可讀全文，不能正式引用；{hint}。")
+        return
+    exclude = getattr(args, 'exclude', None) or []
+    query = {'keywords': [keyword], 'pages': 1, 'sort': 'date', 'exclude': exclude, 'citing': jid}
+    try:
+        log.check_search()
+    except BudgetExceeded as error:
+        log.append('search-judgments', query, 'budget_exceeded', note='citing_lookup', issue=args.issue)
+        print(f"未自動查援引它的近年判決：{error}", file=sys.stderr)
+        return
+    try:
+        r = search_judgments([keyword], pages=1, sort='date', snapshot=snapshot, exclude=exclude)
+    except NETWORK_ERRORS as error:
+        log.append('search-judgments', query, 'retrieval_unavailable', note='citing_lookup', issue=args.issue)
+        print(f"retrieval_unavailable：查援引判決時連線失敗（已重試；{error}），不代表沒有援引；{hint}", file=sys.stderr)
+        return
+    log.append('search-judgments', {**r['query'], 'citing': jid}, 'found', hits=r['total'], counts_as_search=True,
+               note='citing_lookup', issue=args.issue)
+    # 援引它的裁判若也在民國85年以前，同樣沒有全文，不列(也排除判例本身)
+    rows = [row for row in r['rows'] if row['verifiable'] and row['doc_type'] == '判決'
+            and not _before_text_index(row['jid'])][:CITING_SHOWN]
+    if args.json:
+        print(json.dumps({'status': 'full_text_unavailable', 'jid': jid, 'citing_keyword': keyword,
+                          'citing_total': r['total'], 'citing_judgments': rows}, ensure_ascii=False, indent=2))
+        return
+    print(f"民國{TEXT_INDEX_FROM_YEAR}年以前的裁判官網沒有可讀全文，不能正式引用。")
+    if not rows:
+        print(f"查無援引 {keyword} 的近年最高法院判決；不要用這個見解，或寫「待確認」。")
+    else:
+        print(f"援引 {keyword} 的近年最高法院判決（共 {r['total']} 筆，依日期新到舊列前 {len(rows)} 份判決）。"
+              "要用這個見解：用 judgment 讀其中一份全文，引用那份判決，摘句取它重述該見解的原句；"
+              f"{keyword} 只放 precedent_leads。")
+        for i, row in enumerate(rows, 1):
+            print(f"\n{i}. {row['citation']}｜{_iso(row['doc_date'])}｜{row['case_cause']}")
+            if row.get('snippet'):
+                print(f"   片段：{row['snippet']}")
+    print(f"\n{log.summary()}")
 
 
 def _iso(compact_date):

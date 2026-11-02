@@ -74,6 +74,30 @@ def test_advanced_search_without_result_link_is_empty_not_error():
     assert result == {"total": 0, "page_count": 0, "pages_read": 0, "rows": []}
 
 
+def test_real_no_result_page_is_empty():
+    page = "<span>查詢結果</span><span class='badge'>0</span><a>依裁判法院區分</a>"
+    assert fjud.advanced_search(["不存在的詞"], session=FakeSession("", token_page=page))["total"] == 0
+
+
+def test_page_without_result_link_or_no_result_text_is_a_connection_problem(monkeypatch, tmp_path):
+    # 官網忙碌時回的頁面沒有結果連結：不能當成查無，否則存在的字號會被報成 not_found(捏造)
+    from engine import law_lookup, retrieval_cache
+    busy = "<html><body>系統忙碌中，請稍後再試</body></html>"
+    with pytest.raises(fjud.UnexpectedPage):
+        fjud.advanced_search(citation=("52", "台上", "694"), session=FakeSession("", token_page=busy))
+    monkeypatch.setattr(fjud, "Session", lambda *a, **k: FakeSession("", token_page=busy))
+    monkeypatch.setattr(law_lookup.time, "sleep", lambda s: None)
+    with pytest.raises(retrieval_cache.RetrievalUnavailable):
+        retrieval_cache.judgment_candidates("52", "台上", "694", corpus_dir=str(tmp_path))
+    assert verify.verify_judgment_citation("52", "台上", "694")["status"] == "network_error"
+
+
+def test_empty_result_list_after_a_result_link_is_a_connection_problem():
+    # 有結果連結(代表有結果)，結果頁卻沒有筆數也沒有列：忙碌頁，不能讀成 0 筆
+    with pytest.raises(fjud.UnexpectedPage):
+        fjud.advanced_search(citation=("71", "台上", "737"), session=FakeSession("<html>系統忙碌</html>"))
+
+
 def test_citation_lookup_uses_number_fields(monkeypatch):
     calls = []
     def search(**kwargs):

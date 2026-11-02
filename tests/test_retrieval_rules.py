@@ -115,3 +115,12 @@ def test_p1_rules_fit_analysis_then_complaint():
     assert "internal_analysis" not in p1 and "起訴狀選定" not in p1
     assert "分析與撰狀共用同一個紀錄檔與預算" in p1
     assert "不打算主張的候選請求權基礎只用 article 讀條文" in p1
+
+
+def test_search_phases_explain_how_to_use_old_precedents():
+    for phase in ("p1", "p2", "p4", "p5"):
+        text = retrieval_rules.build(phase)["text"]
+        assert "search-judgments --kw 73年台上字第1173號" in text and "precedent_leads" in text
+    # 法官不搜尋，只知道舊裁判沒有全文
+    p3 = retrieval_rules.build("p3")["text"]
+    assert "民國85年以前的裁判一律沒有全文" in p3 and "search-judgments --kw 73年" not in p3
