@@ -550,7 +550,7 @@ def export_pleading_text(case_id, version):
               "錄製紀錄(過去由 Claude Code 產生後落地)")  # 書狀由主 agent 撰寫(SKILL.md Step 9),不經 subagent
     if version["source"] == "system_revision":
         source = f"起訴狀 v2:P6 診斷後的系統建議版(接在 #{version['parent_id']} 之後),不是律師編輯版;" + source
-    body, note = (pleading_export.system_draft_for_export(version["draft_text"], version["side"])
+    body, note = (pleading_export.system_draft_for_export(version["draft_text"], version["side"], version.get("pleading_type"))
                   if version["source"] in ("system", "system_revision")
                   else (version["draft_text"], None))  # 系統版去掉畫面上不顯示的內部備註；資料庫原文不動
     body = strip_cf_tags(body)  # 事實點編號〔CF1〕只給畫面與逐點表態用,律師版也一樣不帶出去

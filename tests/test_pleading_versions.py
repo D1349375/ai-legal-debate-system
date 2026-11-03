@@ -195,3 +195,17 @@ class TestLintAndLabel:
         assert "模擬答辯,非針對實際起訴狀".replace(",", "，") in body
         body, _ = pleading_export.system_draft_for_export("民事起訴狀\n訴之聲明", side="plaintiff")
         assert "模擬答辯" not in body
+
+
+def test_brief_export_keeps_the_simulation_marker():  # 審查 W6-8:不要剝掉標題後的「(模擬…)」
+    from server import pleading_export
+    body, _ = pleading_export.system_draft_for_export("民事準備書狀(模擬,回應系統模擬的答辯)\n【爭點 I1】論證",
+                                                      side="plaintiff", pleading_type="brief")
+    title, subtitle = body.split("\n")[:2]
+    assert title == "民事準備書狀" and "模擬,回應系統模擬的答辯" in subtitle
+    body, _ = pleading_export.system_draft_for_export("民事言詞辯論意旨狀(模擬被告,非實際書狀)\n【爭點 I1】", side="defendant",
+                                                      pleading_type="closing")
+    assert body.split("\n")[1].endswith("模擬被告,非實際書狀") and "模擬答辯，非針對實際起訴狀" not in body
+    # 起訴狀、答辯狀照舊
+    body, _ = pleading_export.system_draft_for_export("民事答辯狀(模擬答辯,非針對實際起訴狀)\n答辯聲明", side="defendant")
+    assert body.split("\n")[:2] == ["民事答辯狀", pleading_export.DEFENSE_SUBTITLE]

@@ -198,3 +198,11 @@ def test_render_brief_is_pure():
     assert text == render_brief(GOOD, **kwargs)
     assert text.splitlines()[0].startswith("民事言詞辯論意旨狀") and "為返還借款事件" in text
     assert "民法第478條" in text and "(模擬被告未附證物)" in text
+
+
+def test_citations_in_the_public_text_must_be_listed(db_url, tmp_path):  # 2026-11-03 實跑:第255條只寫在正文
+    marked = GOOD.replace("【爭點 I1】", "【爭點 I1】依民事訴訟法第255條追加。", 1)
+    r = run(db_url, tmp_path, payload=stage_payload(argument=marked))
+    assert r.returncode == 1 and "民事訴訟法第255條" in r.stderr and "cited_statutes" in r.stderr
+    r = run(db_url, tmp_path, payload=stage_payload(argument=marked, cited_statutes=["民法第478條", "民事訴訟法第255條第1項"]))
+    assert r.returncode == 0, r.stderr

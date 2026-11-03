@@ -657,6 +657,16 @@ def _round_check(session, payload):
     public = strip_internal_review(_pick(payload, "argument", "reasoning"))
     basis = payload.get("basis", [])
     problems = round_problems(public, stored["sheet"]) + basis_problems(basis)
+    # 公開段落會組成書狀;正文提到、卻不在引用清單的法條與判決沒有查證過,書狀落地後畫面與匯出會一直卡在未放行
+    # (2026-11-03 實跑:原告標明民事訴訟法第255條卻沒列進 cited_statutes)
+    from server.services import extract_citations
+    lists = [c for key in ("cited_statutes", "cited_precedents") for c in payload.get(key) or [] if isinstance(c, str)]
+    listed = {c["key"] for c in extract_citations("\n".join(lists + [b for b in basis if isinstance(b, str)]))}
+    unlisted = list(dict.fromkeys(c["citation_text"] for c in extract_citations(public)
+                                  if c["recognized"] and c["key"] not in listed))
+    if unlisted:
+        problems.append("公開段落提到的法條與判決都要列進 cited_statutes 或 cited_precedents(判決要讀過全文),或從正文刪除:"
+                        + "、".join(unlisted))
     if problems:
         raise ValueError("請把以下原因交回同一個 subagent 補寫後重新輸出(依爭點組織,規格 5.6):" + ";".join(problems))
     return round_warnings(public, stored["sheet"], side=payload.get("side"), basis=basis,

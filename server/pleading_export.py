@@ -65,14 +65,23 @@ def clean_draft_note(raw):
     return "\n".join(lines)
 
 
-def system_draft_for_export(draft_text, side="plaintiff"):
-    """回傳 (訴狀正文, 系統補充說明或 None)。標題後的括號說明(早期稿在此寫內部代號)改為與畫面相同的副標題。"""
+ROUND_TITLES = {"brief": "民事準備書狀", "closing": "民事言詞辯論意旨狀"}
+
+
+def system_draft_for_export(draft_text, side="plaintiff", pleading_type=None):
+    """回傳 (訴狀正文, 系統補充說明或 None)。標題後的括號說明(早期稿在此寫內部代號)改為與畫面相同的副標題。
+    準備書狀、言詞辯論意旨狀標題後的「(模擬…)」是如實標示,移到副標題保留,不刪(審查 W6-8)。"""
     body, note = split_draft_note(draft_text)
     lines = delabel_jargon(body).strip().split("\n")
     title = 0
     while title < len(lines) - 1 and (not lines[title].strip() or re.fullmatch(r"【[^】]*】", lines[title].strip())):
         title += 1
-    lines[title] = re.sub(r"[（(][\s\S]*[）)]\s*$", "", lines[title]).strip() or (
+    paren = re.search(r"[（(]([\s\S]*)[）)]\s*$", lines[title])
+    lines[title] = re.sub(r"[（(][\s\S]*[）)]\s*$", "", lines[title]).strip() or ROUND_TITLES.get(pleading_type) or (
         "民事答辯狀" if side == "defendant" else "民事起訴狀")
-    lines.insert(title + 1, DEFENSE_SUBTITLE if side == "defendant" else SUBTITLE)
+    if pleading_type in ROUND_TITLES:
+        subtitle = SUBTITLE + ("．" + paren.group(1).strip() if paren and "模擬" in paren.group(1) else "．模擬書狀")
+    else:
+        subtitle = DEFENSE_SUBTITLE if side == "defendant" else SUBTITLE
+    lines.insert(title + 1, subtitle)
     return "\n".join(lines), (clean_draft_note(note) or None) if note else None

@@ -17,6 +17,7 @@
 - **程序事項(procedural_statements)**:角色檔 `procedural_issues.issues` 裡 `ex_officio` 為 true 的每一則寫一筆 `{"id": 事項 id, "text": 起訴狀上怎麼說明}`,依診斷的 `evidence_todo` 寫明要調閱的資料。案件資料沒有的資訊寫「待查明後補正」,**不得寫任何姓名**。沒有這類事項就給空陣列。
 - **引用(citations、precedent_notes)**:`citations` 列正文用到的全部法條與判決;正文提到的任何法條或判決都要列進來,程式會逐條查證。每個判決都要有一筆 `precedent_notes`:`citation`、`doc_date`(YYYYMMDD)、`doc_type`(判決或裁定)、`case_cause`(裁判案由)、`quote`(全文中逐字的一句原文)、`proposition`(這句支持什麼命題);案由不同時另附 `analogy_reason`。確認版已有的判決可以沿用原本的摘句。
 - **事實缺口與律師附註(fact_gaps、lawyer_notes)**:這兩欄不進起訴狀正文,只給律師看。把診斷的 `fact_gaps`、`evidence_todo` 中需要向當事人確認或調閱的事彙整進來。
+- 法條一律寫全名「OO法第N條」(可加項款,例如「民法第244條第1項」)。不寫「同法第N條」「違反OO法第N條」「本條」這類寫法,查證程式認不得(回 `unsupported_law`),書狀就落不了地。
 - 案件資料沒寫的事一律寫「待確認」,不得寫成有,也不得寫成沒有。不得補寫案件資料沒有的事實、證據、姓名或日期。
 
 收到「未通過」或「拒絕落地」的原因時,只修改被點名的地方,重寫整份 {OUTPUT_PATH}。
