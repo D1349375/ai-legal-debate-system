@@ -13,6 +13,8 @@ KINDS = ("fact", "law", "defense")  # 事實爭點、法律爭點、抗辯
 BURDENS = ("plaintiff", "defendant", "undetermined")
 SIDES = ("plaintiff", "defendant")
 OFFICIAL_PREFIX = "官方事實層("
+PREP_PREFIX = "準備清單:"  # UI 與 stage2、verdict 範本靠這個前綴認出準備題
+_PREP_RE = re.compile(r"^\s*準備清單\s*[:：]")
 BURDEN_LABEL = {"plaintiff": "原告", "defendant": "被告", "undetermined": "未定"}
 _ISSUE_REF_RE = re.compile(r"^\s*([A-Za-z]\w*)\s*[:：]")
 
@@ -129,9 +131,9 @@ def issue_sheet_problems(sheet, *, complaint_text, responses, evidence_ids):
         if not _str(based_on):
             problems.append(f"{label} 的 based_on 不可空白")
         elif not based_on.startswith(OFFICIAL_PREFIX):
-            ref = _ISSUE_REF_RE.match(based_on)
+            ref = _ISSUE_REF_RE.match(_PREP_RE.sub("", based_on, count=1))  # 準備題(M13)在爭點編號前加「準備清單:」
             if not ref or ref.group(1) not in issue_ids:
-                problems.append(f"{label} 的 based_on 要以存在的爭點編號開頭(例如「I1:…」)"
+                problems.append(f"{label} 的 based_on 要以存在的爭點編號開頭(例如「I1:…」;準備題寫「{PREP_PREFIX}I1:…」)"
                                 f"或「{OFFICIAL_PREFIX}<id>):」:{based_on!r}")
     return problems
 

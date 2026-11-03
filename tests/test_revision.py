@@ -374,6 +374,46 @@ class TestVerdictV2Problems:
                                            {"fact_id": None, "kind": "delete", "suggestion": "刪除理由段的推論"}])
         assert self.check(ok) == []
 
+    def test_evidence_todo_can_point_to_a_procedural_issue(self):  # 程序先於實體:清算人、補正要調閱的資料
+        rm = risk_map(evidence_todo=[{"issue_id": "官方事實層(plaintiff:dissolved)", "missing": "清算人登記資料",
+                                      "why": "原告已解散,要確認由誰代表起訴"}])
+        assert self.check(rm) == []
+        rm = risk_map(evidence_todo=[{"issue_id": "官方事實層", "missing": "x", "why": "x"}])
+        assert len(self.check(rm)) == 1
+
+
+class TestInheritedReviews:  # P6 不檢索:確認版已核對過的判決,v2 沿用那次核對
+    JUDGMENT = "最高法院112年度台上字第100號判決"
+
+    def land(self, url, review, *, confirm_edit):
+        s = get_session(url)
+        record_case(s, case_id="v2", case_type="x", facts_summary="x", claims="x", protocol="v2", represented_side="plaintiff")
+        stored = {**pleading_render.stored_complaint(complaint()), "citation_review": review}
+        v1 = record_pleading(s, case_id="v2", draft_text="v1", citations_used=[], pleading_type="complaint", round=1,
+                             structured=stored)
+        version = v1.id
+        if confirm_edit:
+            version = record_pleading_edit(s, case_id="v2", parent_id=v1.id, draft_text="律師版", citation_check=[]).id
+        return s, version
+
+    @pytest.mark.parametrize("confirm_edit", [False, True])
+    def test_reviewed_judgments_carry_over(self, tmp_path, confirm_edit):
+        import main
+        s, version = self.land(f"sqlite:///{tmp_path / 'r.db'}",
+                               [{"citation": self.JUDGMENT, "supports": True, "reason": "支持"}], confirm_edit=confirm_edit)
+        merged = main._with_inherited_reviews(s, version, None)
+        assert main._complaint_review_problems(merged, [self.JUDGMENT]) == []
+        new = "最高法院113年度台上字第200號判決"
+        assert main._complaint_review_problems(merged, [self.JUDGMENT, new]) == [f"{new} 沒有實質核對結果"]
+        given = [{"citation": self.JUDGMENT, "supports": False, "reason": "這次核對不支持"}]
+        assert "不支持" in main._complaint_review_problems(main._with_inherited_reviews(s, version, given), [self.JUDGMENT])[0]
+
+    def test_only_supporting_reviews_carry_over(self, tmp_path):
+        import main
+        s, version = self.land(f"sqlite:///{tmp_path / 'r.db'}",
+                               [{"citation": self.JUDGMENT, "supports": False}], confirm_edit=False)
+        assert main._with_inherited_reviews(s, version, None) is None
+
 
 class TestWinProbabilityWarnings:  # T7.4(純函數)
     @pytest.mark.parametrize("text", ["原告勝訴機率約七成", "本案勝算不高", "勝訴率偏低", "原告有百分之六十的勝訴可能",

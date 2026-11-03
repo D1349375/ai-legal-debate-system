@@ -78,6 +78,15 @@ class TestFlow:
         assert r.returncode == 0, r.stderr
         assert SECRET not in r.stdout and len(json.loads(r.stdout)["arguments"]) == 2
 
+    def test_public_args_can_give_one_side_one_stage(self, tmp_path):  # P5 對手摘要只取對造 stage 2
+        db_url, s = _landed_case(tmp_path)
+        s.close()
+        r = run_main("public-args", "--case-id", "c1", "--stage", "2", "--side", "defendant", db_url=db_url)
+        assert r.returncode == 0, r.stderr
+        assert [(a["side"], a["stage"]) for a in json.loads(r.stdout)["arguments"]] == [("defendant", 2)]
+        r = run_main("public-args", "--case-id", "c1", "--through-stage", "2", "--side", "plaintiff", db_url=db_url)
+        assert [(a["side"], a["stage"]) for a in json.loads(r.stdout)["arguments"]] == [("plaintiff", 1), ("plaintiff", 2)]
+
     def test_pleading_materials_hide_review(self, tmp_path):
         _, s = _landed_case(tmp_path)
         assert SECRET not in json.dumps(pleading_materials(s, case_id="c1", side="plaintiff"), ensure_ascii=False)

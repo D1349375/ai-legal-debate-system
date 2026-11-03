@@ -10,7 +10,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py record   --json <file>                 落地一方一階段的論證，或一則法官訊問
   python main.py finalize --case-id X [--for-judge]      機械彙整(雙方讓步條件+引用清單差異+程序事項)，印出評估錨點；--for-judge 只印給法官讀的部分
   python main.py issues   --case-id X                    依商工查核結果印出法官應依職權調查的程序事項
-  python main.py public-args --case-id X [--through-stage N] [--out <檔>]  印出(或寫成檔)法官與對手摘要可讀的論證(濾掉內部檢討)
+  python main.py public-args --case-id X [--through-stage N] [--stage N] [--side S] [--out <檔>]  印出(或寫成檔)法官與對手摘要可讀的論證(濾掉內部檢討)
   python main.py check-judge --case-id X --json <file>    落地前檢查法官輸出(整批訊問或評估)，不寫入資料庫
   python main.py statute-claims --json <file>              列出附有內容描述的條文引用(供查證核對條文內容)
   python main.py verify   <citation> [<citation> ...]     引用查證
@@ -138,8 +138,10 @@ def _verdict_admission_problems(session, case_id, payload, analysis):
 
 def cmd_public_args(args):
     session = get_session()
-    _emit({"case_id": args.case_id, "arguments": public_arguments(session, case_id=args.case_id, through_stage=args.through_stage)},
-          args.out)
+    rows = public_arguments(session, case_id=args.case_id, through_stage=args.stage or args.through_stage)
+    # 書狀交換流程的 stage 1 是各方分析,不給對造;--stage、--side 讓派工只拿到該拿的那一份
+    rows = [r for r in rows if (args.stage is None or r["stage"] == args.stage) and (args.side is None or r["side"] == args.side)]
+    _emit({"case_id": args.case_id, "arguments": rows}, args.out)
     return 0
 
 
@@ -324,6 +326,22 @@ def _complaint_review_problems(review, citations):
     return problems
 
 
+def _with_inherited_reviews(session, version_id, review):
+    """P6 不檢索:起訴狀這一版(律師編輯版往上找到系統原稿)已核對支持的判決沿用那次結果,只有 v2 新加的判決要另做
+    核對。這次 --review-json 給的優先。沒有可沿用的就原樣回傳。"""
+    from database.schema import PleadingDraft
+    row = session.get(PleadingDraft, version_id)
+    while row is not None and row.structured_json is None and row.parent_id is not None:
+        row = session.get(PleadingDraft, row.parent_id)
+    stored = json.loads(row.structured_json).get("citation_review") if row is not None and row.structured_json else None
+    inherited = [r for r in stored or [] if isinstance(r, dict) and isinstance(r.get("citation"), str) and r.get("supports") is True]
+    if not inherited:
+        return review
+    given = review if isinstance(review, list) else []
+    keys = {_judgment_key(r["citation"]) for r in given if isinstance(r, dict) and isinstance(r.get("citation"), str)}
+    return given + [r for r in inherited if _judgment_key(r["citation"]) not in keys]
+
+
 def _judgment_key(citation):
     from engine.verify import parse_citation
     parsed = parse_citation(citation)
@@ -455,6 +473,9 @@ def cmd_answer(args):
     own = text.split("答辯理由", 1)[1].split("一、對原告主張事實之表示", 1)[1]
     in_body = [c["citation_text"] for c in extract_citations("\n".join(
         line for line in own.splitlines() if not line.startswith("(") or "原告主張「" not in line))]
+    # 逐點表態那一行因為引了起訴狀原文整行被濾掉,表態理由要另外抽(理由是被告的話)
+    reasons = "\n".join(r.get("reason") or "" for r in payload.get("responses") or [] if isinstance(r, dict))
+    in_body = list(dict.fromkeys(in_body + [c["citation_text"] for c in extract_citations(reasons)]))
     listed = {_judgment_key(c) for c in payload.get("citations", [])}
     unlisted = [c for c in in_body if _judgment_key(c) != c and _judgment_key(c) not in listed]
     if unlisted:
@@ -522,14 +543,17 @@ def cmd_issue_sheet(args):
     responses = view["answer"]["responses"]
     problems = issue_sheet_problems(sheet, complaint_text=view["complaint"]["text"], responses=responses,
                                     evidence_ids=[e["id"] for e in view["evidence"]])
-    if not problems:  # 自承類用語:法官寫某方自認/自陳,原句要在該方的書狀或論證裡(書狀交換流程含起訴狀與答辯狀)
+    if isinstance(sheet, dict):  # 自承類用語:法官寫某方自認/自陳,原句要在該方的書狀或論證裡(書狀交換流程含起訴狀與答辯狀)
+        # 和結構問題一次列出,法官只有 2 次退回機會,分兩輪退很容易用完
+        def addressed(key, text_key):
+            items = sheet.get(key) if isinstance(sheet.get(key), list) else []
+            return [(i.get(text_key), i.get("target_side")) for i in items if isinstance(i, dict)]
         sources = admission_sources(session, args.case_id)
-        addressed = [(q.get("question_text"), q.get("target_side")) for q in sheet.get("questions") or []]
-        addressed += [(c.get("question"), c.get("target_side")) for c in sheet.get("clarifications") or []]
         rest = {k: v for k, v in sheet.items() if k not in ("questions", "clarifications")}
         found = [p for text in strings_in(rest) for p in admission_problems(text, sources)]
-        found += [p for text, side in addressed for p in admission_problems(text or "", sources, target_side=side)]
-        problems = [_ADMISSION_REFUSAL + ";".join(found)] if found else []
+        found += [p for text, side in addressed("questions", "question_text") + addressed("clarifications", "question")
+                  for p in admission_problems(text if isinstance(text, str) else "", sources, target_side=side)]
+        problems += [_ADMISSION_REFUSAL + ";".join(found)] if found else []
     if problems:
         print("未通過,請把以下原因交回法官 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n"
               + "\n".join(f"- {p}" for p in problems), file=sys.stderr)
@@ -1202,6 +1226,7 @@ def cmd_revision(args):
     if args.review_json:
         with open(args.review_json, 'r', encoding='utf-8') as f:
             review = json.load(f)
+    review = _with_inherited_reviews(session, current["version_id"], review)
     try:
         _assert_all_published(session, gate)
         review_problems = _complaint_review_problems(review, payload.get("citations", []))
@@ -1286,6 +1311,8 @@ def main():
     p = sub.add_parser("public-args", help="印出法官與對手摘要可讀的論證(濾掉內部檢討)")
     p.add_argument("--case-id", required=True)
     p.add_argument("--through-stage", type=int, choices=(1, 2, 3), default=3)
+    p.add_argument("--stage", type=int, choices=(1, 2, 3), help="只給這一階段(P5 對手摘要只取對造 stage 2,規格 5.6)")
+    p.add_argument("--side", choices=("plaintiff", "defendant"), help="只給這一方")
     p.add_argument("--out", help="寫成這個檔，只印路徑")
     p.set_defaults(fn=cmd_public_args)
 

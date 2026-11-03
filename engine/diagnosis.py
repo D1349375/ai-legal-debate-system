@@ -3,7 +3,7 @@
 舊鍵(對原告不利之處、對被告不利之處、建議補強證據)照舊保留,這裡不檢查。新鍵每筆的欄位由本檔定義(待組長確認):
 
     issue_assessment:      [{issue_id, strength: 強|中|弱, reason}]   爭點整理表的每個爭點有且只有一筆
-    evidence_todo:         [{issue_id, missing, why}]
+    evidence_todo:         [{issue_id, missing, why}]   issue_id 是爭點,或程序事項「官方事實層(<id>)」(程序先於實體)
     complaint_revisions:   [{fact_id: CF 或 null, kind: revise|add_alternative|delete, suggestion}]   revise 一定要有 fact_id
     fact_gaps:             [str]
     opponent_hypotheticals: [str]
@@ -15,6 +15,7 @@ import re
 V2_KEYS = ("issue_assessment", "evidence_todo", "complaint_revisions", "fact_gaps", "opponent_hypotheticals")
 STRENGTHS = ("強", "中", "弱")
 REVISION_KINDS = ("revise", "add_alternative", "delete")
+_PROCEDURAL_RE = re.compile(r"^官方事實層\([^()]+\)$")  # 和訊問 based_on 的程序事項前綴同一寫法
 
 _PROB = r"(?:勝訴|敗訴|勝算|贏|輸|機率|機會|可能|把握|成功)"
 _NUMBER = r"(?:\d+(?:\.\d+)?\s*[%％]|百分之[〇零一二兩三四五六七八九十百\d]+|[一二三四五六七八九十]成)"
@@ -65,8 +66,10 @@ def verdict_v2_problems(risk_map, *, issue_ids, fact_ids):
     if isinstance(risk_map.get("issue_assessment"), list):
         problems += [f"risk_map.issue_assessment 缺少爭點 {issue} 的評估" for issue in issues if issue not in assessed]
     for i, item in _records(risk_map, "evidence_todo", ("missing", "why"), problems):
-        if item.get("issue_id") not in issues:
-            problems.append(f"risk_map.evidence_todo 第 {i} 筆的 issue_id {item.get('issue_id')!r} 不在爭點整理表")
+        issue = item.get("issue_id")
+        if issue not in issues and not (isinstance(issue, str) and _PROCEDURAL_RE.match(issue)):
+            problems.append(f"risk_map.evidence_todo 第 {i} 筆的 issue_id {issue!r} 不在爭點整理表"
+                            f"(程序事項寫「官方事實層(<id>)」)")
     for i, item in _records(risk_map, "complaint_revisions", ("suggestion",), problems):
         kind, fact = item.get("kind"), item.get("fact_id")
         if kind not in REVISION_KINDS:

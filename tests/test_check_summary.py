@@ -60,6 +60,14 @@ class TestStrongestPoint:
         warnings = _warnings(_summary(strongest_point="原告早就知道損害，請求權已經過了時效。"))
         assert any("不是原句" in w for w in warnings)
 
+    def test_half_a_sentence_is_not_verbatim(self):  # 去掉限定語的半句也要警告
+        arguments = _arguments()
+        arguments[0]["argument"] += "原告之請求已罹於時效,惟起算日資料未載,待確認。"
+        warnings = _warnings(_summary(strongest_point="原告之請求已罹於時效"), arguments)
+        assert any("不是原句" in w for w in warnings)
+        # 連續兩句算原句(W0 那句另有條件句警告)
+        assert not any("不是原句" in w for w in _warnings(_summary(strongest_point=CLAIM + W0_SENTENCE), arguments))
+
     def test_sentence_only_in_position_counts_as_verbatim(self):
         warnings = _warnings(_summary(strongest_point="被告否認原告請求並主張時效消滅。"))
         assert warnings == []

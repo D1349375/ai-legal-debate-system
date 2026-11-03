@@ -79,6 +79,15 @@ class TestStructure:
                                    "based_on": "官方事實層(plaintiff:dissolved):公司已解散"})
         assert problems(value) == []
 
+    def test_prep_questions_keep_their_prefix(self):  # M13 準備題:UI 靠「準備清單」前綴列成原告的準備清單
+        value = sheet()
+        value["questions"].append({"question_text": "對方可能提出清償紀錄(假設,尚未發生),你方要如何準備?",
+                                   "target_side": "plaintiff", "based_on": "準備清單:I2:清償抗辯"})
+        value["questions"].append({"question_text": "同上", "target_side": "plaintiff", "based_on": "準備清單：I1：借貸合意"})
+        assert problems(value) == []
+        value["questions"].append({"question_text": "同上", "target_side": "plaintiff", "based_on": "準備清單:清償抗辯"})
+        assert len(problems(value)) == 1 and "準備清單:I1" in problems(value)[0]
+
     def test_values_and_ids_are_checked(self):
         value = sheet()
         value["issues"][0].update(kind="guess", burden="court", hypothetical="no", plaintiff_evidence=["甲證9"])
@@ -163,6 +172,12 @@ class TestJudgeView:
         assert [r["fact_id"] for r in view["answer"]["responses"]] == ["CF1", "CF2", "CF3"]
         assert [e["id"] for e in view["evidence"]] == ["甲證1", "甲證2"]
         assert {"procedural_issues", "party_checks"} <= set(view)
+        assert view["issue_sheet"] is None
+
+    def test_landed_sheet_is_in_the_view(self, db_url):  # P4–P6 與續跑從法官角色檔讀爭點整理表
+        s = get_session(db_url)
+        record_issue_sheet(s, case_id="v2", sheet=sheet(), complaint_id=1, answer_id=2)
+        assert judge_role_view(s, "v2")["issue_sheet"]["issues"][0]["id"] == "I1"
 
     def test_no_answer_yet_is_an_error(self, tmp_path):
         s = get_session(f"sqlite:///{tmp_path / 'none.db'}")
@@ -219,6 +234,13 @@ class TestIssueSheetCommand:
         value["issues"][0]["defendant_defense"] = "被告自認「兩造約定三個月內返還」"
         r = run(db_url, tmp_path, value)
         assert r.returncode == 1 and "自認" in r.stderr
+
+    def test_structure_and_admission_problems_come_back_together(self, db_url, tmp_path):
+        value = sheet()
+        value["undisputed"][0]["source"] = ["CF2"]
+        value["issues"][0]["defendant_defense"] = "被告自認「兩造約定三個月內返還」"
+        r = run(db_url, tmp_path, value)
+        assert r.returncode == 1 and "CF2" in r.stderr and "自認" in r.stderr
 
     def test_record_refuses_a_second_sheet(self, db_url):
         s = get_session(db_url)

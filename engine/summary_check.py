@@ -47,6 +47,24 @@ def _compare_form(text):
     return _norm(unicodedata.normalize("NFKC", text or ""))
 
 
+_SENTENCE_END_RE = re.compile(r"[。！？!?；;\n]+")
+
+
+def _is_whole_sentences(point, text):
+    """point 是不是 text 裡完整的一句或連續幾句。只比子字串的話，去掉「惟…待確認」的前半句也會過。"""
+    target = _compare_form(point)
+    sentences = [s for s in (_compare_form(x) for x in _SENTENCE_END_RE.split(text or "")) if s]
+    for i in range(len(sentences)):
+        joined = ""
+        for s in sentences[i:]:
+            joined += s
+            if joined == target:
+                return True
+            if not target.startswith(joined):
+                break
+    return False
+
+
 def _wording_matches(sentence):
     """回傳 (條件或讓步字樣, 舉證責任分配字樣) 兩個 list。"""
     soft = sorted({m.group(0) for regex in (_SOFT_RE, _CONDITION_RE) for m in regex.finditer(sentence)})
@@ -75,9 +93,10 @@ def summary_warnings(summary, arguments, protocol=None):
     if not rows:
         warnings.append(f"資料庫沒有{side} stage {stage} 的公開論證，無法比對最強論點與引用")
     else:
-        texts = [_compare_form(t) for r in rows for t in (r.get("position"), r.get("argument"))]
-        if not any(_compare_form(point) in t for t in texts):
-            warnings.append(f"最強論點不是原句:「{point}」沒有逐字出現在{side} stage {stage} 的公開論證(position 或論證本文)，不得改寫或合併")
+        texts = [t for r in rows for t in (r.get("position"), r.get("argument"))]
+        if not any(_is_whole_sentences(point, t) for t in texts):
+            warnings.append(f"最強論點不是原句:「{point}」不是{side} stage {stage} 公開論證(position 或論證本文)裡完整的一句或連續幾句，"
+                            "不得改寫、合併或只取半句")
         listed = {key: {_compare_form(c) for r in rows for c in r.get(key) or []} for key in ("cited_statutes", "cited_precedents")}
         for key, label in (("cited_statutes", "法條"), ("cited_precedents", "判例")):
             extra = [c for c in summary[key] if _compare_form(c) not in listed[key]]

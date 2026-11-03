@@ -123,15 +123,16 @@ def plaintiff_view(session, case_id):
 def defendant_view(session, case_id, complaint_id=None):
     """被告方的角色檔(規格 5.4):只有起訴狀這一面。給起訴狀正文(保留〔CF〕,去掉【本稿產出說明】)、正文各 CF
     用到的證據、對方已知反應、商工查核與程序事項;不給事實經過、已知缺口、原告分析、沒列進起訴狀的證據與證明目的。
-    complaint_id 是關卡 1 律師確認的版本(待 W3 從關卡紀錄帶入);沒給就用系統版起訴狀。CF 以這一版正文為準,
-    證據編號取自系統原稿的 fact_points,律師新增的 CF 沒有證據。"""
+    complaint_id 沒給時用 current_complaint(關卡 1 確認版;還沒確認時是最新系統原稿),和 answer、judge_role_view
+    讀同一版。CF 以這一版正文為準,證據編號取自系統原稿的 fact_points,律師新增的 CF 沒有證據。"""
     from server.pleading_export import split_draft_note
     row = session.query(Case).filter_by(case_id=case_id).one_or_none()
     if row is None:
         raise ValueError(f"找不到案件 {case_id}")
     drafts = {d.id: d for d in session.query(PleadingDraft).filter_by(case_id=case_id, pleading_type="complaint").all()}
     if complaint_id is None:
-        complaint_id = max((i for i, d in drafts.items() if d.source in (None, "system")), default=None)
+        current = current_complaint(session, case_id)
+        complaint_id = current["version_id"] if current else None
     complaint = drafts.get(complaint_id)
     if complaint is None or complaint.citation_verification_status != "published":
         raise ValueError(f"{case_id} 沒有可以給被告的起訴狀(#{complaint_id})")
@@ -154,7 +155,8 @@ def defendant_view(session, case_id, complaint_id=None):
 
 
 def judge_role_view(session, case_id):
-    """法官的角色檔(規格 5.5):起訴狀(關卡 1 確認版)、模擬答辯狀與逐點表態、起訴狀用到的證據、商工查核與程序事項。
+    """法官的角色檔(規格 5.5):起訴狀(關卡 1 確認版)、模擬答辯狀與逐點表態、起訴狀用到的證據、商工查核與程序事項,
+    以及已落地的爭點整理表(P3 之後的步驟與續跑從這裡讀;還沒落地時是 None)。
     不給事實經過、已知缺口、對方已知反應、雙方的分析與內部檢討。起訴狀的部分沿用 defendant_view(同一套去除規則)。"""
     from server.pleading_export import split_draft_note
     current = current_complaint(session, case_id)
@@ -165,11 +167,12 @@ def judge_role_view(session, case_id):
         raise ValueError(f"{case_id} 還沒有模擬答辯狀")
     view = defendant_view(session, case_id, complaint_id=current["version_id"])
     structured = json.loads(answer.structured_json or "{}")
+    sheet = issue_sheet(session, case_id)
     return {"role": "judge", "case_id": case_id, "complaint": view["complaint"],
             "answer": {"id": answer.id, "text": split_draft_note(answer.draft_text)[0],
                        "responses": structured.get("responses") or [], "defenses": structured.get("defenses") or []},
             "evidence": view["evidence"], "party_checks": view["party_checks"],
-            "procedural_issues": view["procedural_issues"]}
+            "procedural_issues": view["procedural_issues"], "issue_sheet": sheet["sheet"] if sheet else None}
 
 
 def latest_answer(session, case_id):

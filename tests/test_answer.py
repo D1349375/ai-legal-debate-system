@@ -115,6 +115,16 @@ class TestDefendantView:
         assert view["complaint"]["id"] == row.id and "被告曾承認借款" in view["complaint"]["text"]
         assert view["fact_evidence"] == {"CF3": [], "CF2": []} and view["evidence"] == []
 
+    def test_without_a_version_the_confirmed_complaint_is_read(self, db_url):  # 和 answer、judge 讀同一版
+        from database.db import record_gate
+        s = get_session(db_url)
+        system = defendant_view(s, "v2")["complaint"]
+        edited = system["text"].replace("〔CF1〕", "")
+        row = record_pleading_edit(s, case_id="v2", parent_id=system["id"], draft_text=edited, citation_check=[])
+        assert defendant_view(s, "v2")["complaint"]["id"] == system["id"]  # 關卡 1 還沒確認:最新系統原稿
+        record_gate(s, case_id="v2", gate="complaint", version_id=row.id, action="continue", by="ui")
+        assert defendant_view(s, "v2")["complaint"]["id"] == row.id
+
     def test_cli_writes_the_defendant_view(self, db_url, tmp_path):
         out = tmp_path / "defendant_view.json"
         env = {**os.environ, DB_URL_ENV: db_url, "PYTHONIOENCODING": "utf-8"}

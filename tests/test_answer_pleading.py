@@ -191,6 +191,12 @@ class TestAnswerCommand:
         assert r.returncode == 1 and "民法第334條" in r.stderr
         assert answers(db_url) == []
 
+    def test_judgment_in_a_stance_reason_must_be_listed(self, db_url, tmp_path):  # 表態理由是被告的話,判決也要查證
+        payload = full_answer()
+        payload["responses"][1]["reason"] = "依最高法院112年度台上字第100號判決,匯款不足以證明借貸合意"
+        r = run(db_url, tmp_path, payload, "--check")
+        assert r.returncode == 1 and "最高法院112年度台上字第100號" in r.stderr and "citations" in r.stderr
+
     def test_answers_the_version_the_lawyer_confirmed(self, db_url, tmp_path):  # T4.2 接上關卡 1
         s = get_session(db_url)
         system = s.query(PleadingDraft).filter_by(case_id="v2", pleading_type="complaint").one()
