@@ -1,6 +1,7 @@
 """主 agent 的上下文每輪都重讀:範本、角色檔與分析由程式寫成檔,指令只印路徑,主 agent 不經手全文。"""
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -67,3 +68,26 @@ class TestOut:
         assert r.returncode == 0 and r.stdout.strip() == str(analysis)
         args = json.loads(analysis.read_text(encoding="utf-8"))["arguments"]
         assert args[0]["argument"] == "公開論證。" and "弱點哨兵" not in analysis.read_text(encoding="utf-8")
+
+
+# v2 範本(docs/zh/live-run-v2.md 第 3 節):每份都能由 main.py prompt 填完，而且寫了審查列出非寫不可的規則
+V2_TEMPLATES = {
+    "defense_stage1_prompt": (("--phase", "p2", "--side", "defendant"), ("ROLE_VIEW_PATH", "OUTPUT_PATH"),
+                              ('"side": "defendant"', '"cited_precedents": []', "只讀這一份角色檔", "【內部檢討】",
+                               "若被告能提出 X")),
+    "answer_prompt": (("--phase", "p2", "--side", "defendant"), ("ROLE_VIEW_PATH", "ANALYSIS_PATH", "OUTPUT_PATH"),
+                      ("一律不能 admit", "`deny` 或 `to_confirm`", "precedent_notes", "legal_basis", "hypothetical",
+                       "不得在正文提到")),
+}
+
+
+def test_v2_templates_fill_and_carry_the_required_rules(tmp_path):
+    for name, (phase, keys, rules) in V2_TEMPLATES.items():
+        out = tmp_path / f"{name}.txt"
+        sets = [a for k in ("CASE_ID", *keys) for a in ("--set", f"{k}=x/{k.lower()}")]
+        r = run_main("prompt", name, "--out", str(out), *phase, "--case-dir", CASE_DIR, *sets)
+        assert r.returncode == 0, (name, r.stderr)
+        text = out.read_text(encoding="utf-8")
+        assert not re.search(r"\{[A-Z_]+\}", text), name
+        missing = [rule for rule in rules if rule not in text]
+        assert not missing, (name, missing)

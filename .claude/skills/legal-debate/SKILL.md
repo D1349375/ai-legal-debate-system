@@ -29,7 +29,7 @@ description: >-
 
 ## 書狀交換流程(protocol v2)
 
-目前接上的是 Step 1–3(P0、P1)與關卡 1。之後的步驟見「Step 4 以後」。
+目前接上的是 Step 1–5(P0–P2)與關卡 1。之後的步驟見「Step 6 以後」。
 
 ### 路徑
 
@@ -39,6 +39,8 @@ description: >-
 | 案件資料夾 | `database/live_runs/case-<案件ID>/`;律師確認關卡續跑時沿用同一個 |
 | 原告快照 `{RETRIEVAL_CACHE_DIR}` | `database/live_runs/case-<案件ID>/retrieval_cache/plaintiff` |
 | 原告 P1 檢索紀錄 `{SEARCH_LOG_PATH}` | `database/live_runs/case-<案件ID>/search_logs/plaintiff_p1.jsonl` |
+| 被告快照 `{RETRIEVAL_CACHE_DIR}` | `database/live_runs/case-<案件ID>/retrieval_cache/defendant` |
+| 被告 P2 檢索紀錄 `{SEARCH_LOG_PATH}` | `database/live_runs/case-<案件ID>/search_logs/defendant_p2.jsonl`(防禦分析與答辯狀撰狀共用) |
 | 案件快照根目錄(查證用) | `database/live_runs/case-<案件ID>/retrieval_cache` |
 
 每個角色只拿自己的快照與紀錄路徑,不得把對造的路徑給角色。資料夾不存在時指令會自己建。
@@ -51,6 +53,8 @@ description: >-
 - subagent 的 prompt 只寫一句:「用 Read 讀 <上一點印出的路徑>,那是你這次的完整指示,照做。」
 - subagent 自己用 Write 把輸出寫進 `{OUTPUT_PATH}`,只回「已寫入 <路徑>」。你不要 Read 輸出檔,直接交給落地或檢查指令。被退回時把報錯原文交回同一個 subagent,請它重寫同一個檔;不能用 SendMessage 時(無人值守執行就不能),另開新 subagent,prompt 寫:讀同一個派工檔、讀既有的輸出檔、報錯原文,只改被點名的地方後重寫同一個檔。這樣仍算同一份輸出的退回次數。
 - `role-view`、`public-args` 一律加 `--out <檔>`,指令只印路徑。
+- **派工的 description 要寫角色**:被告的 subagent(防禦分析、答辯狀撰狀)description 一定要含「被告」,例如「被告防禦分析」「被告答辯狀撰狀」;事後稽核(`scripts/audit_run.py --agent 被告`)靠它找出被告的 subagent,檢查它們沒有讀到案件輸入檔。其他 subagent(含查證)的 description 不要含「被告」。
+- UI 執行時,Read、Grep、Glob 只讀得到本次執行資料夾、本案件資料夾與本 skill 資料夾(舊流程文件 `references/legacy-v1.md` 也讀不到);被拒時不要換路徑重試,照實列入最後回覆。
 
 ### Step 1 — P0 案件輸入與起訴前檢查
 
@@ -85,22 +89,41 @@ description: >-
 
 關卡由 UI 記錄,你不記錄、不判斷,也不要替律師選版本。
 
-- 指示寫「只跑到起訴狀」:起訴狀 v1 落地後就停,直接到 Step 10。律師在 UI 選定版本(可先編輯成律師版)後確認並繼續,或到此結束。
-- 指示寫「跑完全程」、沒有停止點:關卡 1 自動通過,UI 在執行結束時記為「未經律師確認」,你接著做 Step 4 以後。
+- 指示寫「只跑到起訴狀」:起訴狀 v1 落地後就停,直接到 Step 13。律師在 UI 選定版本(可先編輯成律師版)後確認並繼續,或到此結束。
+- 指示寫「跑完全程」、沒有停止點:關卡 1 自動通過,UI 在執行結束時記為「未經律師確認」,你接著做 Step 4。
 - 續跑指示寫明關卡 1 確認的版本時,之後每一步需要起訴狀都讀那一版(`landed.json` 的 `confirmed_complaint`;`role-view` 的 `complaint` 也是那一版;交路徑給 subagent,不要自己 Read 全文),不要改用資料庫裡的其他版本,也不要重新產生或落地起訴狀 v1。
 
-### Step 4 以後
+### Step 4 — P2 被告防禦分析
 
-答辯狀(P2)、爭點整理表(P3)、準備書狀(P4、P5)、診斷與起訴狀 v2(P6)還沒接上(實作計畫 W4–W7)。在接上之前:
+被告只讀被告角色檔:律師確認版起訴狀(還沒確認時是最新系統原稿)、起訴狀用到的證據、被告起訴前說過的話、商工查核與起訴審查事項。不得把案件輸入檔、原告角色檔、原告分析或它們的路徑交給被告的 subagent。
 
-- 指示寫「只跑到起訴狀」或「只跑 Step 1–3」時,起訴狀 v1 落地後就停,直接到 Step 10 回報。
-- 沒有這樣的指示時,接著照 [references/legacy-v1.md](references/legacy-v1.md) 從 Step 2 往下跑完,但:原告 Stage 1 已在本文件 Step 2 落地,只派被告 Stage 1(範本 `references/legacy-v1-stage1_prompt.txt`,`{CASE_FACTS_PATH}` 填案件輸入檔);Step 9 只產被告答辯狀(9B),原告起訴狀已在 Step 3 落地。**這段是過渡做法**:舊範本的被告讀得到全部案件事實,不符合書狀交換流程「被告只讀起訴狀」的設計,回報時要照實說。
+1. 執行 `python main.py role-view --case-id <案件ID> --role defendant --out <執行資料夾>/defendant_view.json`。
+2. 執行 `python main.py prompt defense_stage1_prompt --out <執行資料夾>/prompts/p2_defense.txt --phase p2 --side defendant --case-dir <案件資料夾> --set CASE_ID=<案件ID> --set ROLE_VIEW_PATH=<執行資料夾>/defendant_view.json --set OUTPUT_PATH=<執行資料夾>/p2_defense.json`,派一個 subagent(description「被告防禦分析」)。
+3. subagent 的回覆寫「檢索被拒」、因此沒有檢索時,這份分析不落地,另開新 subagent 用同一份範本重派(同一步驟最多重派 2 次,與分類器中止分開計),最後回覆照實列出。
+4. 執行 `python main.py record --json <執行資料夾>/p2_defense.json` 落地。`record` 對內部檢討段落與自承用語的警告只警告,照實列入最後回覆。
 
-### Step 10 — 回報使用者
+### Step 5 — P2 模擬答辯狀
+
+1. 執行 `python main.py public-args --case-id <案件ID> --stage 1 --side defendant --out <執行資料夾>/defendant_analysis.json`(只有被告的分析,已濾掉內部檢討)。
+2. 執行 `python main.py prompt answer_prompt --out <執行資料夾>/prompts/p2_answer.txt --phase p2 --side defendant --case-dir <案件資料夾> --set CASE_ID=<案件ID> --set ROLE_VIEW_PATH=<執行資料夾>/defendant_view.json --set ANALYSIS_PATH=<執行資料夾>/defendant_analysis.json --set OUTPUT_PATH=<執行資料夾>/answer.json`,派一個新的撰狀 subagent(description「被告答辯狀撰狀」)。
+3. 執行 `python main.py answer --case-id <案件ID> --json <執行資料夾>/answer.json --check`。印「未通過」就把報錯原文交回**同一個**撰狀 subagent,請它只改被點名的地方後重寫 `answer.json`。同一份最多退回 2 次(含第一次共 3 次);3 次都沒通過就停在這裡,不落地,在最後回覆列出每次的報錯原文。通過時會印出程式組成的正文與「落地前要全部 published 的引用」。
+4. **開一個新的、乾淨的查證 subagent**(不能是撰狀的同一個;description 例如「答辯狀引用查證」),交給它(派工時把這句寫進指示:用 Bash 工具執行,一個 `verify` 指令列出全部引用,不要用 PowerShell,也不要用迴圈逐筆跑):
+   - 執行 `python main.py verify <上一步列出的全部引用> --snapshot database/live_runs/case-<案件ID>/retrieval_cache --read-by defendant`(UI 執行時 `--snapshot` 可省略),確認存在性,以及被告在本案用 `judgment` 讀過全文。只有 `published` 放行;`not_read_by_side` 和其他狀態一樣退回撰狀。抗辯新加的法條也在清單裡,沒有查過的法條落地時會被拒。
+   - 對 `answer.json` 的每一個 `precedent_notes`,用 `python main.py judgment <字號>`(不加 `--snapshot`、不加 `--log`,不搜尋)讀全文,核對案由與爭點是否真的支持 `proposition`。
+   - 產出嚴格 JSON 陣列 `[{"citation": "字號", "supports": true 或 false, "reason": "一句話,寫依據全文哪一段"}]`;沒有判決時寫 `[]`。由查證 subagent 自己用 Write 寫進 `<執行資料夾>/answer_citation_review.json`,只回「已寫入 <路徑>」;你不要改寫或補內容。
+5. 執行 `python main.py answer --case-id <案件ID> --json <執行資料夾>/answer.json --review-json <執行資料夾>/answer_citation_review.json` 落地(CLI 執行時另加 `--snapshot database/live_runs/case-<案件ID>/retrieval_cache`)。被擋的引用照 Step 3 第 5 點處理:請撰狀 subagent 刪掉或改用通過的引用(算一次退回),只刪除時沿用原本的查證結果,有新增引用時另開乾淨的查證 subagent 只查新增的。
+6. 指示寫「只跑到模擬答辯狀」時,落地後就停,直接到 Step 13。
+
+### Step 6 以後
+
+爭點整理表(P3)、準備書狀(P4、P5)、診斷與起訴狀 v2(P6)還沒接上(實作計畫 W5–W7)。模擬答辯狀落地後就停,直接到 Step 13 回報,並寫明「P3 以後尚未接上,本次只跑到模擬答辯狀」。不要改走舊流程。
+
+### Step 13 — 回報使用者
 
 - 官方事實層:哪一方查核了商工登記、起訴審查事項、原告如何補正;未查核的一方照實說未查核。
 - 起訴前檢查的提示(程序類型、調解、時效),只是提示。
 - 起訴狀 v1 全文;`fact_gaps`、`lawyer_notes`;哪些事實因為對應不到被移到事實缺口。
+- 有跑到 P2 時:被告讀的是哪一版起訴狀(律師確認版或系統原稿);逐點表態各幾點(不爭執、否認、爭執形式上真正、待被告本人確認)、哪幾點是推測;抗辯清單;`to_confirm`;`answer` 的警告(例如爭執形式上真正但證據不是文書)。
 - 每次退回的報錯原文與次數;查證結果(存在性、摘句比對、實質核對分開說);被排除的引用。
 - 檢索次數與實際上網抓全文數(看指令印出的預算摘要)。
 - `record` 與 `complaint` 的警告。
@@ -128,4 +151,4 @@ description: >-
 
 - 溫度參數無法透過現有工具機械落實。
 - 查證只確認條文與最高法院民事裁判存在、判例摘句是全文原句;判例是否實質支持由獨立 subagent 讀全文判斷,條文內容與引用處的描述是否相符還沒有核對(W0 發現 F6,待 T8)。
-- 角色之間的資訊隔離靠提示與調度:同一個 Claude Code 程序裡的 subagent 共用權限,程式只禁止所有 agent 直接讀檢索快取與紀錄,擋不住讀其他檔案。
+- 角色之間的資訊隔離靠提示與調度:同一個 Claude Code 程序裡的 subagent 共用權限。程式禁止所有 agent 直接讀檢索快取與紀錄;UI 執行 v2 案件時另外只放行本次執行、本案件與本 skill 資料夾的讀取。同一個執行資料夾裡的案件輸入檔與原告角色檔,被告的 subagent 仍然讀得到,只能靠事後稽核(`scripts/audit_run.py`)確認。
