@@ -53,6 +53,11 @@ DISALLOWED_TOOLS = ("WebFetch", "WebSearch", "PowerShell", "Read(/database/retri
                     f"Read(/{RUNS_DIR_REL}/*/retrieval_cache/**)", f"Read(/{RUNS_DIR_REL}/*/search_logs/**)")
 # 案件層級的資料夾：律師確認關卡與續跑會把一個案件分成多次執行，快照與檢索紀錄要跨執行沿用。
 CASE_DIR_PREFIX = "case-"
+# 書狀交換流程(v2)的讀檔白名單：Read／Grep／Glob 只讀得到本次執行資料夾、本案件資料夾與 skill 資料夾，
+# 舊實跑紀錄、舊輸入檔、講稿、docs/ 都讀不到(示範案來源裁判的防污染，審查 W8-3)。做法見 read_denials;
+# 案件資料夾裡的快照與檢索紀錄照樣由 DISALLOWED_TOOLS 擋。v2 不用舊流程文件，一併拒絕(裡面寫了示範案的來源字號)。
+SKILL_DIR_REL = ".claude/skills/legal-debate"
+V2_DENIED_READS = (f"Read(/{SKILL_DIR_REL}/references/legacy-v1.md)",)
 
 RESULT_ERRORS = {
     "error_max_budget_usd": "已達花費上限，Claude Code 自行停止",
@@ -233,11 +238,36 @@ def build_pleading_prompt(case_id, run_dir, documents):
 """
 
 
-def build_args(prefix, prompt, *, model, budget_usd):
+def read_denials(root, keep):
+    """v2 讀檔白名單的拒絕規則：專案裡 keep(相對路徑)以外的檔案與資料夾，每一層的兄弟項目各一條 Read 拒絕。
+
+    2026-11-03 以 Claude Code 2.1.183 實測：專案資料夾內的讀取預設放行，Read(路徑) 放行規則收不窄，
+    只有拒絕規則有效，所以在啟動時列出要擋的項目。執行途中才新增的頂層檔案不在清單裡，由事後稽核補。"""
+    kept = [tuple(p.strip("/").split("/")) for p in keep]
+    rules = []
+
+    def walk(prefix):
+        folder = os.path.join(root, *prefix)
+        for name in sorted(os.listdir(folder)):
+            path = (*prefix, name)
+            if path in kept:
+                continue
+            rel = "/".join(path)
+            if any(k[:len(path)] == path for k in kept):
+                walk(path)
+            else:
+                rules.append(f"Read(/{rel}/**)" if os.path.isdir(os.path.join(folder, name)) else f"Read(/{rel})")
+
+    walk(())
+    return tuple(rules)
+
+
+def build_args(prefix, prompt, *, model, budget_usd, read_denied=()):
+    """read_denied:v2 讀檔白名單的拒絕規則(read_denials 產生)。"""
     return [*prefix, "-p", prompt, "--output-format", "stream-json", "--verbose",
             "--permission-mode", "dontAsk", "--model", model, "--max-budget-usd", str(budget_usd),
             "--setting-sources", "project", "--strict-mcp-config",
-            "--allowedTools", *ALLOWED_TOOLS, "--disallowedTools", *DISALLOWED_TOOLS]
+            "--allowedTools", *ALLOWED_TOOLS, "--disallowedTools", *DISALLOWED_TOOLS, *read_denied]
 
 
 # ───────────────────────── stream-json 摘要 ─────────────────────────
@@ -853,7 +883,9 @@ class LiveRunManager:
 
     def _run_dir(self, run_id):
         """給 Claude 與存進 DB 的路徑：在專案內用相對路徑(正斜線),否則用絕對路徑。"""
-        abs_dir = os.path.join(self.runs_dir, f"run-{run_id}")
+        return self._project_path(os.path.join(self.runs_dir, f"run-{run_id}"))
+
+    def _project_path(self, abs_dir):
         try:
             rel = os.path.relpath(abs_dir, self.root)
         except ValueError:  # Windows 不同磁碟機
@@ -954,7 +986,12 @@ class LiveRunManager:
             # 交給 Claude Code 的指示另存一份，事後可核對這次執行被要求做什麼(例如續跑讀哪一版起訴狀)
             with open(os.path.join(abs_dir, "prompt.txt"), "w", encoding="utf-8") as f:
                 f.write(prompt)
-            args = build_args(self.command, prompt, model=self.model, budget_usd=self.budget_usd)
+            read_denied = ()
+            if protocol == "v2" and kind != "pleadings":
+                keep = [run_dir, self._project_path(self.case_dir(case_id)), SKILL_DIR_REL]
+                # 執行資料夾不在專案內(測試用暫存資料夾)時沒有可擋的兄弟項目，只擋 skill 以外
+                read_denied = read_denials(self.root, [k for k in keep if not os.path.isabs(k)]) + V2_DENIED_READS
+            args = build_args(self.command, prompt, model=self.model, budget_usd=self.budget_usd, read_denied=read_denied)
             env = dict(os.environ)
             env[DB_URL_ENV] = self.db_url or env.get(DB_URL_ENV) or f"sqlite:///{default_db_path()}"
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = self.model  # CLI 2.1.251 前此變數優先於 Agent 的 model 參數

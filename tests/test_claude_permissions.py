@@ -75,7 +75,7 @@ def fake_api(commands):
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(live_run.__file__)))
 
 
-def run_probe(tmp_path, cases):
+def run_probe(tmp_path, cases, read_denied=(), results=None):
     """用與 live_run 相同的旗標跑真的 Claude Code，回傳被權限拒絕的工具呼叫名稱集合。
 
     Claude Code 2.1.x 對 Read 的路徑拒絕不列在 result 的 permission_denials，而是工具結果回錯誤
@@ -91,7 +91,8 @@ def run_probe(tmp_path, cases):
                CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1", DISABLE_TELEMETRY="1", DISABLE_AUTOUPDATER="1",
                DISABLE_ERROR_REPORTING="1")
     try:
-        p = subprocess.run(live_run.build_args(prefix, "probe", model="claude-sonnet-5-5", budget_usd=1),
+        p = subprocess.run(live_run.build_args(prefix, "probe", model="claude-sonnet-5-5", budget_usd=1,
+                                               read_denied=read_denied),
                            cwd=ROOT, env=env, capture_output=True, timeout=180, stdin=subprocess.DEVNULL)
         events = [json.loads(line) for line in p.stdout.decode("utf-8", "replace").splitlines() if line.startswith("{")]
         result = [e for e in events if e.get("type") == "result"][-1]
@@ -99,6 +100,8 @@ def run_probe(tmp_path, cases):
         for event in events:
             content = (event.get("message") or {}).get("content") if event.get("type") == "user" else None
             for block in content if isinstance(content, list) else []:
+                if results is not None and block.get("type") == "tool_result":
+                    results[block["tool_use_id"].replace("toolu_", "")] = str(block.get("content"))
                 if block.get("type") == "tool_result" and block.get("is_error") and "denied by your permission settings" in str(block.get("content")):
                     denied.add(block["tool_use_id"])
         return {tool_id.replace("toolu_", "") for tool_id in denied}
@@ -129,6 +132,46 @@ def test_retrieval_cache_snapshots_and_logs_cannot_be_read_directly(tmp_path):
         assert denied == {"read_snapshot", "read_log", "read_cache", "glob_snapshot", "grep_logs"}
     finally:
         os.remove(files["cache"])
+        for folder in created:
+            shutil.rmtree(folder, ignore_errors=True)
+
+
+def test_v2_reads_only_this_run_this_case_and_the_skill(tmp_path):
+    """v2 讀檔白名單：本次執行、本案件、skill 資料夾放行；別的執行、docs/、舊流程文件、案件快照都拒絕。"""
+    live = os.path.join(ROOT, "database", "live_runs")
+    run_dir, other_run = os.path.join(live, "run-probe-v2"), os.path.join(live, "run-probe-v2-other")
+    case_dir = os.path.join(live, "case-probe-v2")
+    snapshot = os.path.join(case_dir, "retrieval_cache", "plaintiff")
+    created = [d for d in (run_dir, other_run, case_dir) if not os.path.exists(d)]
+    for folder in (run_dir, other_run, snapshot):
+        os.makedirs(folder, exist_ok=True)
+    files = {"run": os.path.join(run_dir, "role.json"), "other_run": os.path.join(other_run, "role.json"),
+             "case": os.path.join(case_dir, "note.json"), "snapshot": os.path.join(snapshot, "probe.json")}
+    for path in files.values():
+        with open(path, "w", encoding="utf-8") as f:
+            f.write('{"query": 1}')
+    skill = os.path.join(ROOT, ".claude", "skills", "legal-debate")
+    cases = [(f"read_{name}", "Read", {"file_path": path}) for name, path in files.items()]
+    cases += [("read_skill", "Read", {"file_path": os.path.join(skill, "SKILL.md")}),
+              ("read_legacy", "Read", {"file_path": os.path.join(skill, "references", "legacy-v1.md")}),
+              ("read_docs", "Read", {"file_path": os.path.join(ROOT, "docs", "zh", "teammate-collaboration.md")}),
+              ("read_cases", "Read", {"file_path": os.path.join(ROOT, "data", "cases", "test-2026-11-03-v2-gcis-001.json")}),
+              ("grep_run", "Grep", {"pattern": "query", "path": run_dir}),
+              ("glob_run", "Glob", {"pattern": "*.json", "path": run_dir}),
+              ("grep_docs", "Grep", {"pattern": "1547", "path": os.path.join(ROOT, "docs")}),
+              ("grep_root", "Grep", {"pattern": "1547"}),
+              ("glob_root", "Glob", {"pattern": "**/*.md"})]
+    results = {}
+    try:
+        keep = ["database/live_runs/run-probe-v2", "database/live_runs/case-probe-v2", live_run.SKILL_DIR_REL]
+        denied = run_probe(tmp_path, cases, read_denied=live_run.read_denials(ROOT, keep) + live_run.V2_DENIED_READS,
+                           results=results)
+        assert denied == {"read_other_run", "read_snapshot", "read_legacy", "read_docs", "read_cases", "grep_docs"}
+        # 不帶路徑的 Grep／Glob 不會被拒，但結果濾掉被拒的路徑(2026-11-03 實測 2.1.183)
+        assert results["grep_root"] == "No files found"
+        assert "SKILL.md" in results["glob_root"] and not any(
+            word in results["glob_root"] for word in ("docs", "legacy-v1", "data", "video"))
+    finally:
         for folder in created:
             shutil.rmtree(folder, ignore_errors=True)
 

@@ -360,3 +360,40 @@ class TestPlanV2:
                 "from_label": "法官訊問", "from_step": "Step 3", "from_doc": "references/legacy-v1.md", "missing_sides": []}
         p = live_run.build_prompt("c1", "database/live_runs/run-9", plan)
         assert "從 references/legacy-v1.md Step 3(法官訊問)開始" in p and "SKILL.md Step 3" not in p
+
+
+class TestV2ReadAllowlist:
+    """v2 讀檔白名單(防污染):別的執行、別的案件、docs/、舊輸入檔都擋,本次執行、本案件、skill 不擋。"""
+
+    def test_read_denials_block_siblings_on_each_level(self, tmp_path):
+        for folder in ("docs/zh", "data/cases", "video", ".claude/worktrees/x", ".claude/skills/legal-debate/references",
+                       ".claude/skills/other", "database/live_runs/run-1", "database/live_runs/run-2",
+                       "database/live_runs/case-a", "database/live_runs/case-b"):
+            os.makedirs(tmp_path / folder)
+        for f in ("main.py", "database/db.py", ".claude/launch.json"):
+            (tmp_path / f).write_text("x", encoding="utf-8")
+        keep = ["database/live_runs/run-2", "database/live_runs/case-b", live_run.SKILL_DIR_REL]
+        rules = set(live_run.read_denials(str(tmp_path), keep))
+        assert {"Read(/docs/**)", "Read(/data/**)", "Read(/video/**)", "Read(/main.py)", "Read(/database/db.py)",
+                "Read(/.claude/launch.json)", "Read(/.claude/worktrees/**)", "Read(/.claude/skills/other/**)",
+                "Read(/database/live_runs/run-1/**)", "Read(/database/live_runs/case-a/**)"} == rules
+        assert not any(k in r for r in rules for k in ("run-2", "case-b", "legal-debate"))
+
+    def test_v2_runs_carry_the_denials_and_v1_runs_do_not(self, client, db_url, tmp_path, monkeypatch):
+        seen = []
+        real = live_run.build_args
+        monkeypatch.setattr(live_run, "build_args", lambda *a, **kw: seen.append(kw.get("read_denied", ())) or real(*a, **kw))
+        run(client, create_v2(client), stop_after="complaint")
+        denied = seen[-1]
+        assert "Read(/docs/**)" in denied and "Read(/data/**)" in denied and denied[-1] == live_run.V2_DENIED_READS[0]
+        assert "legacy-v1.md" in live_run.V2_DENIED_READS[0]
+        assert not any("legal-debate/**" in r or r == "Read(/.claude/skills/**)" for r in denied)
+        args = real(["claude"], "x", model="m", budget_usd=1, read_denied=denied)
+        assert args[args.index("--disallowedTools") + 1:][-len(denied):] == list(denied)
+        # 舊流程(protocol 為 NULL)照舊，不加白名單
+        with get_session(db_url) as s:
+            record_case(s, case_id="old1", case_type="t", facts_summary="f", claims="c", created_via="ui")
+        r = client.post("/api/cases/old1/runs")
+        assert r.status_code == 201, r.text
+        client.app.state.live.wait(r.json()["run"]["id"], timeout=60)
+        assert seen[-1] == ()
