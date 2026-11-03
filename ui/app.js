@@ -685,6 +685,13 @@
   // 「程序補正(<id>)」標記與法官追問 based_on 的事項代號，不判斷補正內容是否足夠。
   function proceduralCoverageBanner(p) {
     var c = p.coverage;
+    if (c.where === "complaint") {  // 書狀交換流程：補正寫在起訴狀「四、程序事項」，法官在 P3 爭點整理表追問(舊設計殘留第 3 項)
+      if (c.debate === "answered") return banner("ok", "✓", [h("strong", { text: "起訴狀已說明全部補正事項" }),
+        "：系統以起訴狀「四、程序事項」的事項代號機械比對；補正是否足夠由法官在 P3 判斷，不足者在爭點整理表追問。"]);
+      if (c.debate === "partial") return banner("warn", "!", [h("strong", { text: "起訴狀只說明部分補正事項" }), "：未說明者標示於下方。"]);
+      if (c.debate === "not_answered") return banner("bad", "✗", [h("strong", { text: "起訴狀未說明下列補正事項" })]);
+      return null;
+    }
     if (c.debate === "answered") return banner("ok", "✓", [h("strong", { text: "原告已在 Stage 1 回應全部補正事項" }),
       "：系統以補正段落的事項代號機械比對；補正是否足夠由法官判斷，不足者會在 Stage 1 之後追問。"]);
     if (c.debate === "partial") return banner("warn", "!", [h("strong", { text: "原告 Stage 1 只回應部分補正事項" }), "：未回應者標示於下方。"]);
@@ -701,8 +708,10 @@
       h("div", { class: "party-warning-title" },
         chip(issue.level, issue.level === "bad" ? "✗ 需處理" : "! 請確認"), chip("neutral", issue.kind),
         !issue.ex_officio ? chip("neutral", "非命補正事項・供原告策略參考") : !withCoverage ? null :
-          issue.cured_in_stage1 ? chip("ok", "✓ 原告 Stage 1 已回應補正") : chip("warn", "錄製的 Stage 1 未回應"),
-        withCoverage && followed.length ? chip("judge", "法官第 " + followed.join("、") + " 則訊問追問") : null),
+          issue.cured_in === "complaint" ? (issue.cured_in_stage1 ? chip("ok", "✓ 起訴狀已說明補正") : chip("warn", "起訴狀未說明"))
+          : issue.cured_in_stage1 ? chip("ok", "✓ 原告 Stage 1 已回應補正") : chip("warn", "錄製的 Stage 1 未回應"),
+        withCoverage && followed.length ? chip("judge", issue.cured_in === "complaint" ? "法官在爭點整理表追問 " + followed.length + " 則"
+          : "法官第 " + followed.join("、") + " 則訊問追問") : null),
       h("div", { class: "proc-q prewrap" }, h("b", { text: (issue.ex_officio ? "命" + SIDE[issue.target_side].label + "補正／說明" : "提醒" + SIDE[issue.target_side].label) + "：" }), issue.question_text),
       issue.procedure ? h("div", { class: "proc-meta" }, h("b", { text: "程序效果：" }), issue.procedure) : null,
       basisChips(issue.legal_basis, d),
@@ -717,7 +726,9 @@
     return h("section", { class: "judge-band" },
       h("div", { class: "judge-band-title" }, chip("judge", "審判長"), "起訴審查 — 依商工登記命補正(官方事實層)，共 " + p.issues.length + " 項",
         chip("ok", "⚙ 規則產生，非 AI", { title: p.source }), verifyBasisButton(uniqueBasis(p.issues), d)),
-      h("p", { class: "detail-note", text: "實務上法院收狀後先審查當事人能力與法定代理權，有欠缺而可以補正者，審判長定期間命補正，逾期未補正以裁定駁回(民事訴訟法第249條第1項)；但法院須依職權調查實際代表權，不得僅憑登記認定(參最高法院115年度台抗字第105號裁定)。系統依「當事人查核」分頁的最新結果，以固定規則產生下列事項，在 Stage 1 之前交給雙方；原告在 Stage 1 補正，法官只就補正不足者追問。本區文字由規則即時產生，不是錄製的 AI 內容。" }),
+      h("p", { class: "detail-note", text: "實務上法院收狀後先審查當事人能力與法定代理權，有欠缺而可以補正者，審判長定期間命補正，逾期未補正以裁定駁回(民事訴訟法第249條第1項)；但法院須依職權調查實際代表權，不得僅憑登記認定(參最高法院115年度台抗字第105號裁定)。系統依「當事人查核」分頁的最新結果，以固定規則產生下列事項，" + (p.coverage && p.coverage.where === "complaint"
+        ? "原告在起訴狀「四、程序事項」說明補正，法官在 P3 爭點整理表只就補正不足者追問。" : "在 Stage 1 之前交給雙方；原告在 Stage 1 補正，法官只就補正不足者追問。") +
+        "本區文字由規則即時產生，不是錄製的 AI 內容。" }),
       proceduralCoverageBanner(p),
       p.issues.length ? p.issues.map(function (i) { return procIssueItem(i, d, true); })
         : banner("ok", "✓", "已查核的當事人沒有觸發程序規則；仍須由律師核對案件時點。"),

@@ -634,6 +634,39 @@ def _issue_sheet_view(session, case_row, origin):
             "undisputed_note": "不爭執事項來自模擬答辯狀的逐點表態(admit),不是對方實際的自認"}
 
 
+def _procedural_view_v2(session, case_id, view):
+    """書狀交換流程(舊設計殘留第 3 項):補正寫在起訴狀「四、程序事項」(procedural_statements),法官在 P3 爭點整理表
+    以「官方事實層(<id>):」追問。只比對事項代號,補正是否足夠屬法官判斷,這裡不評。"""
+    from database.db import current_complaint, issue_sheet
+    drafts = {d.id: d for d in session.query(PleadingDraft).filter_by(case_id=case_id, pleading_type="complaint").all()}
+    current = current_complaint(session, case_id)
+    row = drafts.get(current["version_id"]) if current else None
+    while row is not None and row.structured_json is None and row.parent_id in drafts:  # 律師版沿用原稿的結構化內容
+        row = drafts[row.parent_id]
+    statements = json.loads(row.structured_json).get("procedural_statements") or [] if row is not None and row.structured_json else []
+    answered = {s.get("id") for s in statements if isinstance(s, dict)}
+    sheet = issue_sheet(session, case_id)
+    asked = [q.get("based_on") or "" for q in (sheet["sheet"].get("questions") or [] if sheet else []) if isinstance(q, dict)]
+    for issue in view["issues"]:
+        issue["cured_in"] = "complaint"
+        issue["cured_in_stage1"] = issue["id"] in answered  # 沿用舊鍵名,UI 依 cured_in 改標示
+        issue["followed_up_in"] = [i for i, b in enumerate(asked, 1) if b.startswith(f"官方事實層({issue['id']})")]
+    required = [i for i in view["issues"] if i["ex_officio"]]
+    if not required:
+        debate = "no_issues"
+    elif current is None:
+        debate = "no_debate"
+    elif all(i["cured_in_stage1"] for i in required):
+        debate = "answered"
+    elif any(i["cured_in_stage1"] for i in required):
+        debate = "partial"
+    else:
+        debate = "not_answered"
+    view["coverage"] = {"where": "complaint", "debate": debate, "first_checked_at": None, "debate_last_recorded_at": None,
+                        "verdict": None}
+    return view
+
+
 def procedural_view(session, case_id, party_checks, arguments, questions, last_recorded_at, verdict):
     """起訴審查的程序事項 + 「錄製的攻防／評估是否真的處理過這些事項」的機械比對。
 
@@ -642,6 +675,9 @@ def procedural_view(session, case_id, party_checks, arguments, questions, last_r
     補正是否「足夠」屬法官判斷，這裡不評。
     """
     view = procedural_issues(party_checks)
+    case_row = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if case_row is not None and case_row.protocol == "v2":
+        return _procedural_view_v2(session, case_id, view)
     plaintiff_s1 = next((a for a in arguments if a["side"] == "plaintiff" and a["stage"] == 1), None)
     s1_text = f"{plaintiff_s1['position']}\n{strip_internal_review(plaintiff_s1['reasoning'])}" if plaintiff_s1 else ""
     for issue in view["issues"]:

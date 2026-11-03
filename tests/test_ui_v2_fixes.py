@@ -174,3 +174,33 @@ def test_v2_followups_come_from_the_issue_sheet(client, db_url):  # noqa: F811  
                            answer_id=latest_answer(s, case_id).id)
     issues = client.get(f"/api/cases/{case_id}").json()["procedural_issues"]["issues"]
     assert next(i for i in issues if i["id"] == issue_id)["followed_up_in"] == [1]
+
+
+def test_v2_cure_status_reads_the_complaint_statements(client, db_url):  # noqa: F811  舊設計殘留第 3 項
+    from database.db import current_complaint, get_session, record_party_check
+    from database.schema import PleadingDraft
+    from engine import party_rules
+    from engine.party_issues import procedural_issues
+    from tests.test_gcis import company
+    case_id = create_v2(client)
+    run(client, case_id, stop_after="answer")
+    with get_session(db_url) as s:
+        result = party_rules.summarize("22099131", "company", company(status="解散"))
+        result.update(query_status="ok", via="gcis_live", fetched_at="2026-10-03T00:00:00Z")
+        record_party_check(s, case_id=case_id, role="plaintiff", query_ban="22099131", result=result, raw={},
+                           fetched_at=result["fetched_at"])
+        issue_id = procedural_issues({"plaintiff": result, "defendant": None})["issues"][0]["id"]
+    view = client.get(f"/api/cases/{case_id}").json()["procedural_issues"]
+    item = next(i for i in view["issues"] if i["id"] == issue_id)
+    # 起訴狀是在查核之前寫的,「四、程序事項」沒有這則:看起訴狀,不看原告分析
+    assert item["cured_in"] == "complaint" and item["cured_in_stage1"] is False
+    assert view["coverage"]["where"] == "complaint" and view["coverage"]["debate"] == "not_answered"
+    with get_session(db_url) as s:  # 起訴狀的結構化內容補上這則說明後就算已說明
+        row = s.get(PleadingDraft, current_complaint(s, case_id)["version_id"])
+        stored = json.loads(row.structured_json)
+        stored["procedural_statements"] = [{"id": issue_id, "text": "清算人待查明後補正"}]
+        row.structured_json = json.dumps(stored, ensure_ascii=False)
+        s.commit()
+    view = client.get(f"/api/cases/{case_id}").json()["procedural_issues"]
+    assert next(i for i in view["issues"] if i["id"] == issue_id)["cured_in_stage1"] is True
+    assert view["coverage"]["debate"] == "answered"

@@ -115,9 +115,14 @@ def plaintiff_view(session, case_id):
     if row is None:
         raise ValueError(f"找不到案件 {case_id}")
     checks = latest_party_checks(session, case_id)
+    verdict = session.query(Verdict).filter_by(case_id=case_id).one_or_none()
+    risk_map = json.loads(verdict.risk_map or "{}") if verdict is not None else {}
+    # P6 起訴狀 v2 依診斷改寫(審查 W7-5):診斷落地後才有;續跑時診斷檔在前一次執行資料夾,讀不到,所以由角色檔給
+    diagnosis = ({key: risk_map.get(key) for key in ("issue_assessment", "evidence_todo", "complaint_revisions", "fact_gaps",
+                                                     "opponent_hypotheticals")} if verdict is not None else None)
     return {"role": "plaintiff", "case": case_payload(row), "party_checks": checks,
             "procedural_issues": procedural_issues(checks), "precheck": case_precheck(row),
-            "complaint": current_complaint(session, case_id)}
+            "complaint": current_complaint(session, case_id), "diagnosis": diagnosis}
 
 
 def defendant_view(session, case_id, complaint_id=None):

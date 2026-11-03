@@ -122,3 +122,16 @@ def test_every_v2_template_in_the_run_table_exists():
     assert set(V2_TEMPLATES) == {"defense_stage1_prompt", "answer_prompt", "issue_sheet_prompt", "round2_prompt",
                                  "opponent_summary_prompt", "round3_prompt", "diagnosis_prompt", "revision_prompt"}
     assert all(os.path.exists(os.path.join(folder, f"{name}.txt")) for name in V2_TEMPLATES)
+
+
+def test_skill_steps_match_the_run_table_and_name_existing_templates():
+    """server/live_run.py 的步驟表指到的 SKILL.md Step 都要有標題;SKILL 用 `prompt <範本>` 點名的範本都要存在。"""
+    from server.live_run import RUN_STEPS_V2
+    skill = open(os.path.join(ROOT, ".claude", "skills", "legal-debate", "SKILL.md"), encoding="utf-8").read()
+    steps = {step for _, _, doc, step in RUN_STEPS_V2 if doc == "SKILL.md"} | {"Step 10", "Step 11", "Step 13"}
+    assert not [s for s in steps if f"### {s} —" not in skill]
+    assert "Step 6 以後" not in skill and "Step 4 以後" not in skill  # 過渡段已拿掉
+    folder = os.path.join(ROOT, ".claude", "skills", "legal-debate", "templates")
+    named = set(re.findall(r"python main\.py prompt (\w+)", skill))
+    assert set(V2_TEMPLATES) <= named
+    assert not [n for n in named if not os.path.exists(os.path.join(folder, f"{n}.txt"))]

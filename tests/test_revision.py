@@ -516,3 +516,16 @@ class TestComplaintDiff:
         out = complaint_diff(self.OLD, self.OLD)
         assert (out["added"], out["removed"]) == (0, 0) and all(d["op"] == "equal" for d in out["lines"])
         assert complaint_diff("", "") == {"lines": [], "added": 0, "removed": 0}
+
+
+def test_plaintiff_view_carries_the_diagnosis_after_the_verdict(tmp_path):  # W7-5:續跑時診斷檔在前一次執行資料夾
+    from database.db import plaintiff_view
+    before, after = f"sqlite:///{tmp_path / 'before.db'}", f"sqlite:///{tmp_path / 'after.db'}"
+    build_case(before, verdict_landed=False)
+    build_case(after)
+    with get_session(before) as s:
+        assert plaintiff_view(s, "v2")["diagnosis"] is None
+    with get_session(after) as s:
+        diagnosis = plaintiff_view(s, "v2")["diagnosis"]
+    assert diagnosis["complaint_revisions"] == risk_map()["complaint_revisions"]
+    assert set(diagnosis) == {"issue_assessment", "evidence_todo", "complaint_revisions", "fact_gaps", "opponent_hypotheticals"}
