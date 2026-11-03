@@ -161,12 +161,18 @@ def test_v2_reads_only_this_run_this_case_and_the_skill(tmp_path):
               ("grep_docs", "Grep", {"pattern": "1547", "path": os.path.join(ROOT, "docs")}),
               ("grep_root", "Grep", {"pattern": "1547"}),
               ("glob_root", "Glob", {"pattern": "**/*.md"})]
+    outside = tmp_path / "outside"  # 專案外(例如 worktree 外層的主資料夾)
+    outside.mkdir()
+    (outside / "o.json").write_text('{"x": 1547}', encoding="utf-8")
+    cases += [("read_outside", "Read", {"file_path": str(outside / "o.json")}),
+              ("grep_outside", "Grep", {"pattern": "1547", "path": str(outside)})]
     results = {}
     try:
         keep = ["database/live_runs/run-probe-v2", "database/live_runs/case-probe-v2", live_run.SKILL_DIR_REL]
         denied = run_probe(tmp_path, cases, read_denied=live_run.read_denials(ROOT, keep) + live_run.V2_DENIED_READS,
                            results=results)
-        assert denied == {"read_other_run", "read_snapshot", "read_legacy", "read_docs", "read_cases", "grep_docs"}
+        assert denied == {"read_other_run", "read_snapshot", "read_legacy", "read_docs", "read_cases", "grep_docs",
+                          "read_outside", "grep_outside"}
         # 不帶路徑的 Grep／Glob 不會被拒，但結果濾掉被拒的路徑(2026-11-03 實測 2.1.183)
         assert results["grep_root"] == "No files found"
         assert "SKILL.md" in results["glob_root"] and not any(

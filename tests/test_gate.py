@@ -390,6 +390,9 @@ class TestV2ReadAllowlist:
         assert not any("legal-debate/**" in r or r == "Read(/.claude/skills/**)" for r in denied)
         args = real(["claude"], "x", model="m", budget_usd=1, read_denied=denied)
         assert args[args.index("--disallowedTools") + 1:][-len(denied):] == list(denied)
+        # 不限路徑的 Read／Grep／Glob 放行會放行專案外，v2 拿掉(專案內不靠它也放行)
+        allowed = args[args.index("--allowedTools") + 1:args.index("--disallowedTools")]
+        assert not {"Read", "Grep", "Glob"} & set(allowed) and "Agent" in allowed
         # 舊流程(protocol 為 NULL)照舊，不加白名單
         with get_session(db_url) as s:
             record_case(s, case_id="old1", case_type="t", facts_summary="f", claims="c", created_via="ui")

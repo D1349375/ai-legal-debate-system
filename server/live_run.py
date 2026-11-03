@@ -263,11 +263,13 @@ def read_denials(root, keep):
 
 
 def build_args(prefix, prompt, *, model, budget_usd, read_denied=()):
-    """read_denied:v2 讀檔白名單的拒絕規則(read_denials 產生)。"""
+    """read_denied:v2 讀檔白名單的拒絕規則(read_denials 產生)。有給時一併拿掉不限路徑的 Read／Grep／Glob 放行:
+    專案內的讀取不靠它也放行，留著反而放行專案外(worktree 外層的主資料夾也在專案外,2026-11-03 實測)。"""
+    allowed = ALLOWED_TOOLS if not read_denied else tuple(t for t in ALLOWED_TOOLS if t not in ("Read", "Grep", "Glob"))
     return [*prefix, "-p", prompt, "--output-format", "stream-json", "--verbose",
             "--permission-mode", "dontAsk", "--model", model, "--max-budget-usd", str(budget_usd),
             "--setting-sources", "project", "--strict-mcp-config",
-            "--allowedTools", *ALLOWED_TOOLS, "--disallowedTools", *DISALLOWED_TOOLS, *read_denied]
+            "--allowedTools", *allowed, "--disallowedTools", *DISALLOWED_TOOLS, *read_denied]
 
 
 # ───────────────────────── stream-json 摘要 ─────────────────────────
