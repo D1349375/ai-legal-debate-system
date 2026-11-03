@@ -78,6 +78,28 @@ V2_TEMPLATES = {
     "answer_prompt": (("--phase", "p2", "--side", "defendant"), ("ROLE_VIEW_PATH", "ANALYSIS_PATH", "OUTPUT_PATH"),
                       ("一律不能 admit", "`deny` 或 `to_confirm`", "precedent_notes", "legal_basis", "hypothetical",
                        "不得在正文提到")),
+    # W5-2、W5-3、W5-4:硬擋規則逐條、準備題格式、第零步看起訴狀程序事項、禁用自承
+    "issue_sheet_prompt": (("--phase", "p3"), ("ROLE_VIEW_PATH", "OUTPUT_PATH"),
+                           ("準備清單:I1:…", "「官方事實層(<id>):", "四、程序事項", "`admit`", "不得出現「自承」",
+                            "`hypothetical` 是 true 或 false", "只讀這一份角色檔")),
+    # W6-2、W6-3、W6-7、T11
+    "round2_prompt": (("--phase", "p4", "--side", "plaintiff"),
+                      ("SIDE", "SIDE_LABEL", "OWN_VIEW_PATH", "EXCHANGE_VIEW_PATH", "OWN_ANALYSIS_PATH", "OUTPUT_PATH"),
+                      ('"case_id"', '"stage": 2', '"basis"', "【爭點 I1】", "第一個爭點段落的最後", "受挫評估", "內部檢討段落",
+                       "--issue <爭點id>", "falsifier")),
+    "opponent_summary_prompt": ((), ("OPPONENT", "OPPONENT_LABEL", "OPPONENT_ARGS_PATH", "OUTPUT_PATH"),
+                                ("逐字複製", "strongest_point", "no_clear_claim", '"stage": 2')),
+    "round3_prompt": (("--phase", "p5", "--side", "defendant"),
+                      ("SIDE", "SIDE_LABEL", "OWN_VIEW_PATH", "EXCHANGE_VIEW_PATH", "OWN_PREVIOUS_PATH", "OWN_ANALYSIS_PATH",
+                       "OPPONENT_SUMMARY_PATH", "OUTPUT_PATH"),
+                      ('"stage": 3', '"basis"', "【爭點 I1】", "最強論點", "內部檢討段落", "不新增")),
+    # W7-1:risk_map 新鍵
+    "diagnosis_prompt": (("--phase", "p6"), ("JUDGE_VIEW_PATH", "BRIEF_ARGS_PATH", "CLOSING_ARGS_PATH", "ANCHOR_PATH", "OUTPUT_PATH"),
+                         ("issue_assessment", "evidence_todo", "complaint_revisions", "fact_gaps", "opponent_hypotheticals",
+                          "不給勝訴機率", "不得放在同一個括號")),
+    # W7-5:律師段落
+    "revision_prompt": ((), ("ROLE_VIEW_PATH", "ANALYSIS_PATH", "RETRIEVAL_CACHE_DIR", "OUTPUT_PATH"),
+                        ("complaint_revisions", "律師在確認版新增", "被告推測的內容不得寫進 v2", "statement_quote", "precedent_notes")),
 }
 
 
@@ -85,9 +107,18 @@ def test_v2_templates_fill_and_carry_the_required_rules(tmp_path):
     for name, (phase, keys, rules) in V2_TEMPLATES.items():
         out = tmp_path / f"{name}.txt"
         sets = [a for k in ("CASE_ID", *keys) for a in ("--set", f"{k}=x/{k.lower()}")]
-        r = run_main("prompt", name, "--out", str(out), *phase, "--case-dir", CASE_DIR, *sets)
+        case_dir = ("--case-dir", CASE_DIR) if "--side" in phase else ()
+        r = run_main("prompt", name, "--out", str(out), *phase, *case_dir, *sets)
         assert r.returncode == 0, (name, r.stderr)
         text = out.read_text(encoding="utf-8")
         assert not re.search(r"\{[A-Z_]+\}", text), name
         missing = [rule for rule in rules if rule not in text]
         assert not missing, (name, missing)
+
+
+def test_every_v2_template_in_the_run_table_exists():
+    """docs/zh/live-run-v2.md 第 3 節的 8 份範本都要有(審查 W4-1、W5-1、W6-2、W7-1、W7-2)。"""
+    folder = os.path.join(ROOT, ".claude", "skills", "legal-debate", "templates")
+    assert set(V2_TEMPLATES) == {"defense_stage1_prompt", "answer_prompt", "issue_sheet_prompt", "round2_prompt",
+                                 "opponent_summary_prompt", "round3_prompt", "diagnosis_prompt", "revision_prompt"}
+    assert all(os.path.exists(os.path.join(folder, f"{name}.txt")) for name in V2_TEMPLATES)
