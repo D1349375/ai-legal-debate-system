@@ -166,20 +166,40 @@ def cmd_check_judge(args):
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
+    if not isinstance(payload, dict):
+        print("無法檢查:法官輸出最外層必須是 JSON 物件", file=sys.stderr)
+        return 2
+    if {"issues", "undisputed", "clarifications"} & set(payload):
+        # W5-5:書狀交換流程 P3 的爭點整理表自己有檢查(結構、自承、轉述),不走這裡
+        print("無法檢查:這是爭點整理表,請改用 `python main.py issue-sheet --case-id <案件ID> --json <檔> --check`",
+              file=sys.stderr)
+        return 2
+    v2_problems, v2_warnings = [], []
     if "questions" in payload:
         sources = admission_sources(session, args.case_id)
         problems = [f"第 {i} 則:{p}" for i, q in enumerate(payload["questions"], 1)
                     for p in admission_problems(q["question_text"], sources, target_side=q["target_side"])]
         quoted = attribution_sources(session, args.case_id)
         attributions = [item for q in payload["questions"] for item in _question_attributions(q, quoted)]
-    else:
+    elif "verdict_main_text" in payload and "risk_map" in payload:
         analysis = _pick(payload, "verdict_analysis", "verdict_reasoning")
         problems = _verdict_admission_problems(session, args.case_id, payload, analysis)
         attributions = _verdict_attributions(payload, analysis, attribution_sources(session, args.case_id))
-    if problems:
-        print("未通過:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
+        # W7-4:v2 評估的 risk_map 新鍵在這裡就先擋,不要等查證完、verdict 落地才退回
+        v2 = _verdict_v2_gate(session, args.case_id, payload)
+        v2_problems, v2_warnings = v2["problems"], v2["warnings"]
+    else:
+        print("無法檢查:看不出是法官訊問(要有 questions)還是評估(要有 verdict_main_text、risk_map)", file=sys.stderr)
+        return 2
+    if problems or v2_problems:
+        parts = [_ADMISSION_REFUSAL + ";".join(problems)] if problems else []
+        if v2_problems:
+            parts.append("請把以下原因交回法官 subagent 修改後重新輸出整份 JSON:\n" + "\n".join(f"- {p}" for p in v2_problems))
+        print("未通過:" + "\n".join(parts), file=sys.stderr)
         return 1
     _print_attribution_warnings(attributions)
+    for warning in v2_warnings:
+        print("警告:" + warning, file=sys.stderr)
     print("法官輸出檢查通過")
     return 0
 
@@ -624,7 +644,7 @@ def _issue_sheet_attributions(sheet, sources):
 def _round_check(session, payload):
     """書狀交換流程 P4、P5 的每輪論證(stage 2、3):非推測爭點都要有【爭點 Ix】段落、basis 只能放法條(硬擋,raise
     ValueError 讓 record 拒絕落地,退回同一 subagent);回傳只警告的項目(第255條、推測字樣)。
-    沒有爭點整理表的案件(舊流程,或 v2 還在用過渡範本)不檢查。"""
+    舊流程案件不檢查。v2 案件還沒有爭點整理表就拒絕落地(審查第 4 節 W6 列):P3 失敗時 P4 不能完全沒檢查就落地。"""
     from database.db import complaint_basis, issue_sheet
     from engine.brief import basis_problems, round_problems, round_warnings
     case = session.query(Case).filter_by(case_id=payload.get("case_id")).one_or_none()
@@ -632,7 +652,8 @@ def _round_check(session, payload):
         return []
     stored = issue_sheet(session, case.case_id)
     if stored is None:
-        return []
+        raise ValueError(f"{case.case_id} 還沒有爭點整理表(P3),第 {payload.get('stage')} 輪論證要依爭點組織,不能先落地;"
+                         "請先完成 issue-sheet")
     public = strip_internal_review(_pick(payload, "argument", "reasoning"))
     basis = payload.get("basis", [])
     problems = round_problems(public, stored["sheet"]) + basis_problems(basis)

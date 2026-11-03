@@ -29,6 +29,12 @@ def validate_summary(data):
     stage = data.get("stage")
     if isinstance(stage, bool) or stage not in (1, 2, 3):
         raise ValueError("stage 必須是整數 1、2 或 3")
+    # T9:實跑的摘要檔寫的是 strongest_point_verbatim,兩個名字都收;兩個都給又不同就不知道該檢查哪一句
+    verbatim = data.get("strongest_point_verbatim")
+    if verbatim is not None:
+        if data.get("strongest_point") not in (None, verbatim):
+            raise ValueError("strongest_point 與 strongest_point_verbatim 不同,只留一個")
+        data = {**data, "strongest_point": verbatim}
     for key in ("position", "strongest_point"):
         if not isinstance(data.get(key), str) or not data[key].strip():
             raise ValueError(f"{key} 必須是非空字串")

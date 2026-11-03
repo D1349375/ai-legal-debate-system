@@ -295,12 +295,21 @@ def finalize_case(session, *, case_id):
     stage3 = [_arg_to_dict(r) for r in rows if r.stage == 3]
     if len(stage3) < len(VALID_SIDES):
         raise ValueError(f"{case_id} 尚未雙方皆完成 stage3，無法 finalize")
-    return {
+    anchor = {
         "weak_points": compile_weak_points(stage3),
         "position_drift": disagreement(stage1, stage3),
         # 官方事實層:依商工查核轉成的程序事項，法官評估須先處理，不得以實體理由略過
         "procedural_issues": procedural_issues(latest_party_checks(session, case_id)),
     }
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    if case is not None and case.protocol == "v2":
+        # 舊設計殘留第 2 項(組長選 B):v2 的 stage 1 是分析，不列判決，和 stage 3 比引用集合沒有意義
+        anchor["position_drift"] = {side: None for side in VALID_SIDES}
+        anchor["position_drift_note"] = V2_DRIFT_NOTE
+    return anchor
+
+
+V2_DRIFT_NOTE = "引用清單差異:書狀交換流程不適用(stage 1 是分析，不列判決，和 stage 3 比會失真)"
 
 
 def pleading_materials(session, *, case_id, side):

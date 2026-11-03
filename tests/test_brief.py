@@ -131,13 +131,14 @@ class TestRecordRound:
         r = run(db_url, tmp_path, payload=stage_payload(basis=["不當得利"]))
         assert r.returncode == 1 and "basis" in r.stderr
 
-    def test_cases_without_an_issue_sheet_are_not_checked(self, tmp_path):
+    def test_v2_cases_without_an_issue_sheet_are_refused(self, tmp_path):
+        # 第 4 批(審查第 4 節 W6 列):原本「沒有爭點整理表就不檢查」只到 W6 接線為止,之後 v2 沒有整理表就拒絕落地
         url = f"sqlite:///{tmp_path / 'old.db'}"
         s = get_session(url)
         record_case(s, case_id="v2", case_type="x", facts_summary="x", claims="x", protocol="v2", represented_side="plaintiff")
         s.close()
         r = run(url, tmp_path, payload=stage_payload(argument="沒有爭點段落的過渡寫法。"))
-        assert r.returncode == 0, r.stderr
+        assert r.returncode == 1 and "爭點整理表" in r.stderr
 
 
 def land_rounds(db_url, tmp_path):

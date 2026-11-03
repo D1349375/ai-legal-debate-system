@@ -15,7 +15,7 @@ import time
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
     record_pleading_edit, latest_party_checks, pleading_side, is_main_pleading, case_payload, case_precheck,
-    case_gates, record_gate, system_complaints, attribution_sources,
+    case_gates, record_gate, system_complaints, attribution_sources, issue_sheet, V2_DRIFT_NOTE,
 )
 from sqlalchemy import func
 
@@ -214,8 +214,12 @@ def citation_changes(arguments):
     return result
 
 
-def drift_detail(arguments):
-    """position_drift 的計算明細(與 engine.aggregate.disagreement 同一公式，額外攤開集合供人工核對)。"""
+def drift_detail(arguments, protocol=None):
+    """position_drift 的計算明細(與 engine.aggregate.disagreement 同一公式，額外攤開集合供人工核對)。
+    書狀交換流程不算(舊設計殘留第 2 項 B):回傳 not_applicable,畫面寫「新流程不適用」。"""
+    if protocol == "v2":
+        return {"not_applicable": True, "note": V2_DRIFT_NOTE,
+                **{side: {"ratio": None, "not_applicable": True} for side in VALID_SIDES}}
     stage1 = [a for a in arguments if a["stage"] == 1]
     stage3 = [a for a in arguments if a["stage"] == 3]
     ratios = disagreement(stage1, stage3)
@@ -257,8 +261,9 @@ def _collect_citations(arguments, lookup, recorded_checks):
     return citations
 
 
-def _anchor_check(stored_anchor, current_anchor, *, has_party_checks):
-    """比對落地錨點與目前的 finalize_case 結果；只以程序事項 ID 判斷該欄位。"""
+def _anchor_check(stored_anchor, current_anchor, *, has_party_checks, protocol=None):
+    """比對落地錨點與目前的 finalize_case 結果；只以程序事項 ID 判斷該欄位。
+    書狀交換流程不比引用清單差異(不適用，見 drift_detail),只附中性說明，不能變成紅色「不一致」。"""
     stored_anchor = stored_anchor or {}
     stored_drift = stored_anchor.get("position_drift") or {}
     current_drift = current_anchor["position_drift"]
@@ -267,7 +272,7 @@ def _anchor_check(stored_anchor, current_anchor, *, has_party_checks):
     diffs, stored_differs, minor, notes = [], [], [], []
     for side in VALID_SIDES:
         label = "原告" if side == "plaintiff" else "被告"
-        if stored_drift.get(side) != current_drift[side]:
+        if protocol != "v2" and stored_drift.get(side) != current_drift[side]:
             diffs.append(f"{label}引用清單差異：落地時 {stored_drift.get(side)}，本次重新計算 {current_drift[side]}")
         stored_point, current_point = stored_points.get(side, {}), current_points[side]
         stored_f, now_f = stored_point.get("falsifier"), current_point.get("falsifier")
@@ -294,6 +299,8 @@ def _anchor_check(stored_anchor, current_anchor, *, has_party_checks):
                 stored_differs.append("程序事項 ID(內容與重算不同)")
     else:
         notes.append("這個資料庫沒有該案件的商工查核紀錄，無法重算程序事項，沒有比對。")
+    if protocol == "v2":
+        notes.append(V2_DRIFT_NOTE + "，沒有比對。")
     return {"consistent": not diffs and not stored_differs, "differences": diffs, "minor_differences": minor,
             "stored_differs": stored_differs, "notes": notes, "recomputed": {"position_drift": current_drift}}
 
@@ -380,10 +387,21 @@ def extract_citations(text):
 
 # 書狀種類：side 欄位新增前的舊紀錄一律是原告起訴狀(pleading_side 視 NULL 為 plaintiff)
 PLEADING_DOCUMENT = {"plaintiff": "民事起訴狀(原告)", "defendant": "民事答辯狀(被告)"}
+VERSION_LABEL = {"system": "系統產生版", "system_revision": "起訴狀 v2(系統建議版)", "lawyer_edit": "律師編輯版"}
 
 
 def _is_system(row):
     return row.source in (None, "system")
+
+
+def _is_revision(row):
+    """P6 起訴狀 v2(系統建議版，審查 W7-3)。不算進 _is_system:總覽與關卡 1 的原告書狀仍是起訴狀 v1;
+    也不是律師編輯版：引用在 revision 落地時已過查證閘門，依資料庫判定，標籤寫 v2。"""
+    return row.source == "system_revision"
+
+
+def _version_source(row):
+    return "system" if _is_system(row) else "system_revision" if _is_revision(row) else "lawyer_edit"
 
 
 def _db_check(citations, lookup):
@@ -400,19 +418,20 @@ def _db_check(citations, lookup):
 
 def pleading_version(row, lookup, origin, parent_text=None):
     """parent_text:律師編輯版的上一版全文，用來找出新增卻沒有〔CF…〕標記的段落(只有書狀交換流程的起訴狀才比對)。"""
-    if _is_system(row):
+    if _is_system(row) or _is_revision(row):
         check = _db_check(extract_citations(row.draft_text), lookup)
         blocked = [c for c in check if c["gate"] != "pass"]
         status = "published" if not blocked else "blocked"
-        version_origin = origin(row.generated_at)
+        version_origin = origin(row.generated_at) if origin else {"kind": "recorded"}
     else:
         check = json.loads(row.citation_check_json or "[]")
         blocked = [c for c in check if c["gate"] != "pass"]
         status = row.citation_verification_status
         version_origin = {"kind": "lawyer_edit"}
-    version = {"id": row.id, "source": "system" if _is_system(row) else "lawyer_edit", "parent_id": row.parent_id,
+    source = _version_source(row)
+    version = {"id": row.id, "source": source, "parent_id": row.parent_id,
                "side": pleading_side(row), "document": PLEADING_DOCUMENT[pleading_side(row)],
-               "label": ("系統產生版" if _is_system(row) else "律師編輯版") + f" #{row.id}",
+               "label": VERSION_LABEL[source] + f" #{row.id}",
                "generated_at": row.generated_at, "draft_text": row.draft_text, "origin": version_origin,
                "status": status, "citation_check": check, "blocked_count": len(blocked),
                "exportable": status == "published" and not blocked,
@@ -420,7 +439,7 @@ def pleading_version(row, lookup, origin, parent_text=None):
     if row.pleading_type:  # 書狀交換流程才有;舊案回應維持原樣
         version.update(pleading_type=row.pleading_type, new_paragraphs_without_cf=(
             new_paragraphs_without_cf(parent_text, row.draft_text)
-            if not _is_system(row) and row.pleading_type == "complaint" and parent_text is not None else []))
+            if source == "lawyer_edit" and row.pleading_type == "complaint" and parent_text is not None else []))
     return version
 
 
@@ -529,7 +548,10 @@ def export_pleading_text(case_id, version):
               if o["kind"] == "lawyer_edit" else
               f"本次即時生成(UI 執行 #{o['run_id']},本機 Claude Code)" if o["kind"] == "live" else
               "錄製紀錄(過去由 Claude Code 產生後落地)")  # 書狀由主 agent 撰寫(SKILL.md Step 9),不經 subagent
-    body, note = (pleading_export.system_draft_for_export(version["draft_text"], version["side"]) if version["source"] == "system"
+    if version["source"] == "system_revision":
+        source = f"起訴狀 v2:P6 診斷後的系統建議版(接在 #{version['parent_id']} 之後),不是律師編輯版;" + source
+    body, note = (pleading_export.system_draft_for_export(version["draft_text"], version["side"])
+                  if version["source"] in ("system", "system_revision")
                   else (version["draft_text"], None))  # 系統版去掉畫面上不顯示的內部備註；資料庫原文不動
     body = strip_cf_tags(body)  # 事實點編號〔CF1〕只給畫面與逐點表態用,律師版也一樣不帶出去
     lines = [body.rstrip(), "", "─" * 24, "匯出資訊(非訴狀正文)",
@@ -568,6 +590,48 @@ def _progress(case_row, arguments, questions, verdict, pleadings, citations):
         {"key": "answer", "label": "答辯狀骨架(被告)", "state": "done" if pleadings.get("defendant") else "pending",
          "detail": "" if pleadings.get("defendant") else "尚未產生"},
     ]
+
+
+def _progress_v2(session, case_row, citations):
+    """書狀交換流程的進度(審查 W5-6):步驟與完成判定同 server/live_run.py RUN_STEPS_V2(看爭點整理表，不看法官訊問)。"""
+    from server.live_run import RUN_STEPS_V2, SIDE_LABEL, _v2_done
+    done, per_side = _v2_done(session, case_row.case_id)
+    gate = case_gates(case_row).get("complaint")
+    published = sum(1 for c in citations if c["db_record"] and c["db_record"]["status"] == "published")
+    out = [{"key": "case", "label": "案件輸入", "state": "done", "detail": ""}]
+    for key, label, _, _ in RUN_STEPS_V2:
+        if key == "gate1":
+            detail = ("" if not gate else "到此結束" if gate["action"] == "finish"
+                      else "自動通過(未經律師確認)" if gate["by"] == "auto" else "律師確認")
+            out.append({"key": key, "label": "關卡 1 律師確認起訴狀", "state": "done" if gate else "pending", "detail": detail})
+        elif key in per_side:
+            n = len(per_side[key])
+            out.append({"key": key, "label": label, "state": "done" if done[key] else "partial" if n else "pending",
+                        "detail": "、".join(SIDE_LABEL[x] for x in VALID_SIDES if x in per_side[key]) or f"0/{len(VALID_SIDES)} 方"})
+        else:
+            out.append({"key": key, "label": label, "state": "done" if done[key] else "pending", "detail": ""})
+    stage3 = len(per_side["stage3"]) >= len(VALID_SIDES)
+    out.insert(next(i for i, p in enumerate(out) if p["key"] == "verdict"),
+               {"key": "finalize", "label": "機械彙整", "state": "ready" if stage3 else "pending",
+                "detail": "可執行" if stage3 else "須雙方完成第 3 輪論證"})
+    out.append({"key": "verify", "label": "引用查證", "state": ("done" if citations and published == len(citations)
+                                                              else "partial" if published else "pending"),
+                "detail": f"{published}/{len(citations)} 已查證通過"})
+    return out
+
+
+def _issue_sheet_view(session, case_row, origin):
+    """書狀交換流程 P3 爭點整理表(審查 W5-6):原樣的 JSON 加上程式組成的四張表文字。沒有時 None。"""
+    from engine.issue_sheet import render_issue_sheet
+    from server.pleading_export import split_draft_note
+    stored = issue_sheet(session, case_row.case_id)
+    if stored is None:
+        return None
+    complaint = session.get(PleadingDraft, stored["complaint_id"]) if stored.get("complaint_id") else None
+    text = render_issue_sheet(stored["sheet"], complaint_text=split_draft_note(complaint.draft_text)[0] if complaint else "",
+                              evidence=case_payload(case_row).get("evidence") or [])
+    return {**stored, "text": text, "origin": origin(stored.get("created_at")),
+            "undisputed_note": "不爭執事項來自模擬答辯狀的逐點表態(admit),不是對方實際的自認"}
 
 
 def procedural_view(session, case_id, party_checks, arguments, questions, last_recorded_at, verdict):
@@ -668,7 +732,8 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "origin": origin(verdict_row.created_at),
             "anchor_check": (_anchor_check(
                 anchor, finalize_case(session, case_id=case_id),
-                has_party_checks=session.query(PartyCheck.id).filter_by(case_id=case_id).first() is not None)
+                has_party_checks=session.query(PartyCheck.id).filter_by(case_id=case_id).first() is not None,
+                protocol=case_row.protocol)
                              if len({a["side"] for a in arguments if a["stage"] == 3}) >= len(VALID_SIDES) else None),
         }
 
@@ -712,6 +777,10 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     citations = _collect_citations(arguments, lookup, recorded_checks)
     stamps = sorted([a["created_at"] for a in arguments] + [q["created_at"] for q in questions])
     party_checks = latest_party_checks(session, case_id)
+    sheet = _issue_sheet_view(session, case_row, origin) if case_row.protocol == "v2" else None
+    # 書狀交換流程的追問在爭點整理表的 questions(審查 W5-6),不在 CourtQuestion
+    followups = ([{"seq": i + 1, "based_on": q.get("based_on")} for i, q in enumerate(sheet["sheet"].get("questions") or [])
+                  if isinstance(q, dict)] if sheet else questions)
     return {
         "case": {**case_payload(case_row), "created_at": case_row.created_at, "source": "database",
                  "created_via": case_row.created_via},
@@ -725,14 +794,16 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
         "pleading": pleadings["plaintiff"], "pleadings": pleadings,  # pleading:原告起訴狀(沿用舊欄位名)
         "pleading_versions": pleading_versions,
         "citations": citations, "citation_changes": citation_changes(arguments),
-        "drift_detail": drift_detail(arguments) if any(a["stage"] == 3 for a in arguments) else None,
-        "progress": _progress(case_row, arguments, questions, verdict, pleadings, citations),
+        "drift_detail": drift_detail(arguments, case_row.protocol) if any(a["stage"] == 3 for a in arguments) else None,
+        "progress": (_progress_v2(session, case_row, citations) if case_row.protocol == "v2"
+                     else _progress(case_row, arguments, questions, verdict, pleadings, citations)),
+        "issue_sheet": sheet,
         "stats": {"arguments": len(arguments), "questions": len(questions), "citations": len(citations),
                   "citations_published": sum(1 for c in citations if c["db_record"]
                                              and c["db_record"]["status"] == "published")},
         "party_checks": party_checks,
         "live_runs": runs,
-        "procedural_issues": procedural_view(session, case_id, party_checks, arguments, questions,
+        "procedural_issues": procedural_view(session, case_id, party_checks, arguments, followups,
                                              stamps[-1] if stamps else None, verdict),
     }
 
@@ -827,7 +898,8 @@ def run_finalize(session, case_id):
     started = time.perf_counter()
     result = finalize_case(session, case_id=case_id)
     arguments = [_arg_to_api(r) for r in session.query(DebateArgument).filter_by(case_id=case_id).all()]
-    result["drift_detail"] = drift_detail(arguments)
+    case = session.query(Case).filter_by(case_id=case_id).one_or_none()
+    result["drift_detail"] = drift_detail(arguments, case.protocol if case else None)
     result["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 1)
     return result
 

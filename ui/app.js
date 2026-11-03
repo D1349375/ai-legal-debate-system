@@ -18,6 +18,14 @@
     defendant: { label: "答辯狀(被告)", title: "民事答辯狀", short: "答辯狀",
       lede: "骨架版：本機沒有司法院官方答辯狀範本，結構依民事訴訟法第116條、第266條第2項的書狀應記載事項整理，直接帶入被告方攻防結果原文，尚未經法律用語潤飾。模擬答辯：回應的是系統模擬的原告主張，不是實際起訴狀，只能用來預想防禦。" },
   };
+  // 書狀交換流程(protocol v2)的書狀由程式依結構化 JSON 組成，說明不同；舊錄製案照舊用 DOCUMENT(審查 W4-4)
+  var DOCUMENT_V2 = {
+    plaintiff: Object.assign({}, DOCUMENT.plaintiff, {
+      lede: "書狀交換流程：正文由程式依起訴狀的結構化內容組成，每個事實點〔CF〕對應證據或事實經過原文，尚未經法律用語潤飾。" }),
+    defendant: Object.assign({}, DOCUMENT.defendant, {
+      lede: "模擬答辯狀：被告方只讀起訴狀(關卡 1 確認的版本)，正文由程式依逐點表態與抗辯組成，不是對方實際的答辯；推測的內容標「推測」，只能用來預想防禦。" }),
+  };
+  function docOf(d, side) { return (isV2(d) ? DOCUMENT_V2 : DOCUMENT)[side]; }
 
   var TABS = [
     { key: "overview", label: "案件總覽" },
@@ -334,7 +342,16 @@
           return stat(pleadingOf(d, side) ? "已完成" : "尚未產生", DOCUMENT[side].short + "骨架(" + SIDE[side].label + ")");
         })),
       prepListCard(d),
+      isV2(d) ? issueSheetCard(d) : null,
     ];
+  }
+  function issueSheetCard(d) {  // 審查 W5-6:P3 爭點整理表(四張表由後端 render_issue_sheet 組成)
+    var s = d.issue_sheet;
+    if (!s) return card("爭點整理表(P3,模擬)", h("p", { class: "detail-note", text: "尚未產生。書狀交換流程在模擬答辯狀之後由法官角色整理。" }));
+    return card("爭點整理表(P3,模擬)", [
+      h("p", { class: "detail-note", text: s.undisputed_note + "。落地於 " + fmtTime(s.created_at) + "。" }),
+      fold("不爭執事項、爭點、闡明、訊問(全文)", h("div", { class: "prewrap", text: s.text }))],
+      chip("neutral", (s.sheet.issues || []).length + " 個爭點"));
   }
   function isV2(d) { return d.case.protocol === "v2"; }
   function fmtAmount(n) { return Number(n).toLocaleString("en-US"); }
@@ -758,6 +775,10 @@
   }
 
   function driftRow(side, dd) {
+    if (dd && dd.not_applicable) {  // 舊設計殘留第 2 項 B:書狀交換流程不算
+      return h("div", { class: "drift-row" },
+        h("div", { class: "drift-label" }, sideChip(side), h("span", { class: "drift-value", text: "新流程不適用" })));
+    }
     var has = dd && dd.ratio != null;
     return h("div", { class: "drift-row" },
       h("div", { class: "drift-label" }, sideChip(side), h("span", { class: "drift-value", text: has ? dd.ratio.toFixed(4) + "(" + pct(dd.ratio) + ")" : "無法計算" })),
@@ -801,7 +822,9 @@
     })));
     out.push(card("引用清單差異", [
       driftRow("plaintiff", r.drift_detail.plaintiff), driftRow("defendant", r.drift_detail.defendant),
-      h("p", { class: "detail-note", text: "0 = 兩階段引用集合完全相同，1 = 完全不重疊。只看引用的法條與判決，不代表立場或論述的變化。" })]));
+      h("p", { class: "detail-note", text: r.drift_detail.not_applicable
+        ? "書狀交換流程的第 1 輪是雙方的分析，不列判決；和第 3 輪比引用集合會失真，所以不計算。"
+        : "0 = 兩階段引用集合完全相同，1 = 完全不重疊。只看引用的法條與判決，不代表立場或論述的變化。" })]));
     var pi = r.procedural_issues;
     if (pi) out.push(card("程序事項(官方事實層)", [
       h("p", { class: "detail-note", text: "依案件最新的商工查核結果，以固定規則轉換，與讓步條件、引用清單差異一起寫入評估紀錄；法官評估須先處理 ✗ 等級的程序事項。" }),
@@ -990,6 +1013,9 @@
   function anchorBanner(a) {
     if (!a) return null;
     var ps = a.recomputed.position_drift;
+    // 書狀交換流程的引用清單差異不計算(值是 null),數字改寫「新流程不適用」
+    var na = ps.plaintiff == null && ps.defendant == null;
+    var drift = na ? "引用清單差異新流程不適用" : "原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant);
     var note = a.notes && a.notes.length ? banner("rec", "i", a.notes.join("；")) : null;
     function withNote(main) { return note ? h("div", { class: "anchor-check" }, main, note) : main; }
     if (!a.consistent) return withNote(banner("bad", "✗", [
@@ -1002,7 +1028,7 @@
     if (a.minor_differences.length) {
       return withNote(banner("warn", "!", [
         h("strong", { text: "引用清單差異一致，但讓步條件文字有細微出入" }),
-        "。落地時記錄的引用清單差異，與現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")；但 " +
+        "。落地時記錄的引用清單差異，與現在重新計算的結果相同(" + drift + ")；但 " +
         a.minor_differences.map(function (m) { return m.note; }).join("；") + "。",
         a.minor_differences.map(function (m) {
           return fold("查看" + SIDE[m.side].label + "方文字差異", [
@@ -1012,8 +1038,8 @@
       ]));
     }
     return withNote(banner("ok", "✓", [h("strong", { text: "已比對欄位與落地時的計算結果一致" }),
-      "：落地時記錄的引用清單差異、讓步條件、論證摘錄" + (note ? "" : "與程序事項 ID") +
-      "，跟現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")。"]));
+      "：落地時記錄的" + (na ? "" : "引用清單差異、") + "讓步條件、論證摘錄" + (a.notes && a.notes.some(function (n) { return n.indexOf("商工") >= 0; }) ? "" : "與程序事項 ID") +
+      "，跟現在重新計算的結果相同(" + drift + ")。"]));
   }
 
   // ───────────── 分頁：訴狀骨架 ─────────────
@@ -1077,17 +1103,19 @@
     return sys[sys.length - 1] || vs[vs.length - 1];
   }
   function versionChip(v) {
+    if (v.source === "system_revision") return chip("neutral", "起訴狀 v2・系統建議版", { title: "P6 診斷後由系統產生的建議版，不是律師編輯版" });
     return v.source === "lawyer_edit" ? chip("judge", "✎ 律師編輯版", { title: "律師在 UI 編輯後另存的版本" }) : originChip(v.origin);
   }
+  function systemMade(v) { return v.source === "system" || v.source === "system_revision"; }
   function splitDraftNote(text) {
     var noteIdx = text.search(/-{2,}\s*\n\s*(?=【)|【(?:骨架版聲明|本稿產出說明)/);
     return noteIdx >= 0 ? { body: text.slice(0, noteIdx), note: cleanDraftNote(text.slice(noteIdx)) } : { body: text, note: null };
   }
   function editableText(v) {
-    return v.source === "system" ? delabelJargon(splitDraftNote(v.draft_text).body).trim() : v.draft_text;
+    return systemMade(v) ? delabelJargon(splitDraftNote(v.draft_text).body).trim() : v.draft_text;
   }
   function pleadingDoc(v) {
-    var system = v.source === "system", doc = DOCUMENT[v.side || "plaintiff"];
+    var system = systemMade(v), doc = DOCUMENT[v.side || "plaintiff"];
     var lines = (system ? delabelJargon(splitDraftNote(v.draft_text).body) : v.draft_text).replace(/^\s+|\s+$/g, "").split("\n");
     // 標題是第一個不是整行【…】的行；之前的整行【…】(如即時生成稿開頭的骨架版說明)照原文列在標題上方
     var titleIdx = 0;
@@ -1097,7 +1125,8 @@
         if (i < titleIdx) return ln.trim() ? h("div", { class: "pl-line", text: ln }) : null;
         if (i === titleIdx) return [
           h("div", { class: "pl-title", text: ln.replace(/[（(][\s\S]*[）)]\s*$/, "").trim() || doc.title }),
-          h("div", { class: "pl-subtitle", text: (system ? "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" : "律師編輯版．須經律師審核後使用") + (v.side === "defendant" ? "．模擬答辯，非針對實際起訴狀" : "") }),
+          h("div", { class: "pl-subtitle", text: (v.source === "system_revision" ? "起訴狀 v2．系統建議版．須經律師審核後使用"
+            : system ? "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" : "律師編輯版．須經律師審核後使用") + (v.side === "defendant" ? "．模擬答辯，非針對實際起訴狀" : "") }),
         ];
         var headLine = /^(訴之聲明|答辯聲明|事實及理由|證物名稱及件數|為.*事[：:])/.test(ln);
         if (!ln.trim()) return h("div", { class: "pl-gap", "aria-hidden": "true" });
@@ -1105,6 +1134,10 @@
       }));
   }
   function versionBanner(v, d) {
+    if (v.source === "system_revision") {  // 審查 W7-3:不是律師編輯版，引用在落地時已過查證閘門
+      return banner("rec", "i", [h("strong", { text: "起訴狀 v2(系統建議版)" }), "：P6 診斷後由系統依評估的修改建議產生，於 " +
+        fmtTime(v.generated_at) + " 落地，接在 #" + v.parent_id + " 之後。不是律師編輯版，也不會取代關卡 1 確認的版本；引用在落地時已通過查證。"]);
+    }
     if (v.source === "lawyer_edit") {
       return banner("rec", "✎", [h("strong", { text: "律師編輯版" }), "：於 " + fmtTime(v.generated_at) + " 存檔，基於 #" + v.parent_id +
         "。原稿 #" + v.parent_id + " 保留不動；本版的引用在存檔時逐條查證，結果列於下方。"]);
@@ -1258,7 +1291,7 @@
     }));
   }
   function pleadingPanel(d) {
-    var id = d.case.case_id, side = pleadingSide(d), doc = DOCUMENT[side], vs = versionsOf(d, side);
+    var id = d.case.case_id, side = pleadingSide(d), doc = docOf(d, side), vs = versionsOf(d, side);
     var lede = doc.lede + "可編輯為律師版本(原稿保留)，須由執業律師審核修訂、補正當事人資訊與證物清單後方可使用，不得逕行送出。";
     var ed = state.pleadingEdit[id];
     if (!vs.length) return [panelHead("訴狀骨架初稿", null, lede), documentSwitch(d, false), partyPleadingCard(d),
@@ -1279,14 +1312,15 @@
       h("div", { class: "version-bar", role: "group", "aria-label": doc.short + "版本" }, vs.map(function (x) {
         return h("button", { class: "btn small", type: "button", "aria-pressed": String(x.id === v.id), disabled: ed ? true : null,
           onclick: function () { state.pleadingSel[id] = x.id; renderPanel(); } },
-          x.label + (x.source === "system" ? (x.origin.kind === "live" ? "・⚡即時生成" : "・⏺錄製") : "・基於 #" + x.parent_id) +
+          x.label + (x.source === "system" ? (x.origin.kind === "live" ? "・⚡即時生成" : "・⏺錄製")
+            : x.source === "system_revision" ? "・接在 #" + x.parent_id + " 之後" : "・基於 #" + x.parent_id) +
           (x.exportable ? "・✓" : "・✗ 未放行") + (gate && gate.version_id === x.id ? "・關卡 1 採用" : ""));
       })),
       state.pleadingNotice[id] || null,
     ];
     if (ed) { out.push(pleadingEditor(d, ed)); return out; }
     out.push(gateCard(d, v));
-    var note = v.source === "system" ? splitDraftNote(v.draft_text).note : null;
+    var note = systemMade(v) ? splitDraftNote(v.draft_text).note : null;
     out.push(versionBanner(v, d),
       v.lint_warnings && v.lint_warnings.length ? banner("warn", "!", [h("strong", { text: "書狀正文含模擬流程用語" }),
         "：" + v.lint_warnings.map(function (w) { return w.word + "×" + w.count; }).join("、") + "。不阻擋匯出，請律師確認是否要刪改。"]) : null,
