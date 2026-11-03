@@ -35,13 +35,39 @@ def _row_to_dict(row):
     return {c.name: getattr(row, c.name) for c in row.__table__.columns if c.name != "id"}
 
 
+def _case_ids(session):
+    return {case_id for (case_id,) in session.query(Case.case_id).all()}
+
+
+def _is_orphan(row, case_ids):
+    return row.case_id is not None and row.case_id not in case_ids
+
+
+def orphan_rows(session):
+    """→ {表名: {case_id: 筆數}}:case_id 不在 cases 表的列(例如作廢那次實跑的殘留)。只列出，不刪。"""
+    case_ids = _case_ids(session)
+    found = {}
+    for name, model in _TABLES + (("party_checks", PartyCheck),):
+        if name == "cases" or not hasattr(model, "case_id"):
+            continue
+        for row in session.query(model).order_by(model.id).all():
+            if _is_orphan(row, case_ids):
+                found.setdefault(name, {}).setdefault(row.case_id, 0)
+                found[name][row.case_id] += 1
+    return found
+
+
 def export_fixture(session):
     data = {
         "_meta": {"format": "legaldebate-recorded-cases/1", "exported_at": _now_iso(),
                   "note": "資料庫已落地紀錄的原樣匯出(含原始 created_at)，非即時生成；內容由 Claude Code subagent 產生後經 record CLI 落地。"},
     }
+    case_ids = _case_ids(session)
     for name, model in _TABLES:
-        data[name] = [_row_to_dict(r) for r in session.query(model).order_by(model.id).all()]
+        rows = session.query(model).order_by(model.id).all()
+        if name != "cases" and hasattr(model, "case_id"):
+            rows = [r for r in rows if not _is_orphan(r, case_ids)]
+        data[name] = [_row_to_dict(r) for r in rows]
     return data
 
 
@@ -120,9 +146,12 @@ def load_recorded_checks(path=LIVE_CHECKS_PATH):
 
 
 def write_party_checks(session, path=PARTY_CHECKS_PATH):
-    """僅匯出實際成功的 GCIS 查詢；保留當時回應與原始 fetched_at。"""
+    """僅匯出實際成功的 GCIS 查詢；保留當時回應與原始 fetched_at。案件已不在資料庫的查詢不匯出。"""
+    case_ids = _case_ids(session)
     rows = []
     for row in session.query(PartyCheck).filter_by(via="gcis_live").order_by(PartyCheck.id).all():
+        if _is_orphan(row, case_ids):
+            continue
         result = json.loads(row.result_json)
         if result.get("query_status") not in ("ok", "not_found"):
             continue

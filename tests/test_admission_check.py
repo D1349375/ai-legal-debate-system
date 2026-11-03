@@ -1,4 +1,6 @@
 """engine/admission_check.py:自承類用語要引述到真實的事實陳述才放行。"""
+import pytest
+
 from engine.admission_check import admission_problems, looks_factual, strings_in
 
 SOURCES = {
@@ -34,6 +36,20 @@ class TestAdmissionProblems:
 
     def test_data_gap_is_rejected(self):
         assert "不是事實陳述" in admission_problems("被告自認「行車紀錄器資料未載」。", SOURCES)[0]
+
+    def test_w0_question_rejects_evidence_gap_as_admission(self):
+        sources = {"plaintiff": ["原告對此尚待證明,標示為「證據不明,需查證」。"], "defendant": [], "facts": []}
+        text = "你方 Stage 1 自陳這一點「證據不明,需查證」,你方打算以何證據補強?"
+        assert "不是事實陳述" in admission_problems(text, sources, target_side="plaintiff")[0]
+
+    @pytest.mark.parametrize("quote", ["款項來源待證", "帳冊內容需查證", "帳冊內容有待查證"])
+    def test_other_data_gap_labels_are_rejected(self, quote):
+        sources = {"plaintiff": [f"原告將{quote}列為資料缺口。"], "defendant": [], "facts": []}
+        assert "不是事實陳述" in admission_problems(f"原告自陳「{quote}」。", sources)[0]
+
+    def test_factual_unknown_location_still_passes(self):
+        sources = {"plaintiff": ["原告指出收款人去向不明。"], "defendant": [], "facts": []}
+        assert admission_problems("原告自陳「收款人去向不明」。", sources) == []
 
     def test_quote_from_the_other_side_is_rejected(self):
         # 原告論證裡的話,不能變成被告自承

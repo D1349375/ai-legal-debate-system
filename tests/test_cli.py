@@ -4,8 +4,8 @@ import os
 import subprocess
 import sys
 
-from database.db import DB_URL_ENV, get_session, record_argument, record_case
-from database.schema import CourtQuestion
+from database.db import DB_URL_ENV, finalize_case, get_session, record_argument, record_case
+from database.schema import CourtQuestion, Verdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,7 +40,7 @@ def test_verdict_refuses_mixed_dismissal_citation(tmp_path):
     s.close()
     v = tmp_path / "verdict.json"
     v.write_text(json.dumps({"verdict_main_text": "原告尚未補正，逾期有被裁定駁回的風險(民事訴訟法第249條第1項;參最高法院115年度台抗字第105號)。",
-                             "verdict_analysis": "分析", "risk_map": {}, "mechanical_anchor_json": {}, "citations_used": []},
+                             "verdict_analysis": "分析", "risk_map": {}, "citations_used": []},
                             ensure_ascii=False), encoding="utf-8")
     r = run_main("verdict", "--case-id", "c1", "--json", str(v), db_url=db_url)
     assert r.returncode == 1 and r.stderr.startswith("拒絕落地:") and "同一個括號" in r.stderr
@@ -64,6 +64,81 @@ def test_duplicate_record_is_refused_without_traceback(tmp_path):
     again = run_main("record", "--json", str(arg), db_url=db_url)
     assert again.returncode == 1
     assert again.stderr.startswith("拒絕落地:") and "不可覆寫" in again.stderr and "Traceback" not in again.stderr
+
+
+class TestVerdictMechanicalAnchor:
+    def _ready_case(self, tmp_path):
+        db_url = f"sqlite:///{tmp_path / 'cli.db'}"
+        s = get_session(db_url)
+        record_case(s, case_id="c1", case_type="買賣價金", facts_summary="事實", claims="請求")
+        for side in ("plaintiff", "defendant"):
+            record_argument(s, case_id="c1", side=side, stage=1, position="立場", reasoning="第一階段論證")
+            record_argument(s, case_id="c1", side=side, stage=3, position="立場", reasoning=f"{side} 第三階段完整論證",
+                            falsifier="若有新證據則讓步")
+        anchor = finalize_case(s, case_id="c1")
+        s.close()
+        return db_url, anchor
+
+    def _verdict(self, tmp_path, db_url, extra=None):
+        payload = {"verdict_main_text": "主文", "verdict_analysis": "理由", "risk_map": {}, "citations_used": []}
+        if extra is not None:
+            payload["mechanical_anchor_json"] = extra
+        path = tmp_path / "verdict.json"
+        path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        return run_main("verdict", "--case-id", "c1", "--json", str(path), db_url=db_url)
+
+    def _stored(self, db_url):
+        s = get_session(db_url)
+        row = s.query(Verdict).filter_by(case_id="c1").one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        s.close()
+        return anchor
+
+    def test_payload_without_anchor_stores_recomputed_value(self, tmp_path):
+        db_url, expected = self._ready_case(tmp_path)
+        result = self._verdict(tmp_path, db_url)
+        assert result.returncode == 0, result.stderr
+        assert result.stderr == ""
+        assert self._stored(db_url) == expected
+
+    def test_attribution_warnings_do_not_block_record_or_verdict(self, tmp_path):
+        db_url, _ = self._ready_case(tmp_path)
+        question = tmp_path / "question.json"
+        question.write_text(json.dumps({"case_id": "c1", "target_side": "defendant",
+            "question_text": "被告承認沒有原句。", "based_on": "被告 Stage 1 主張"}, ensure_ascii=False), encoding="utf-8")
+        recorded = run_main("record", "--json", str(question), db_url=db_url)
+        assert recorded.returncode == 0 and "轉述警告" in recorded.stderr
+        verdict = tmp_path / "verdict-warning.json"
+        verdict.write_text(json.dumps({"verdict_main_text": "主文", "verdict_analysis":
+            "原告民法第184條降為純備位,並承認受民法第197條時效風險壓制。",
+            "risk_map": {}, "citations_used": []}, ensure_ascii=False), encoding="utf-8")
+        landed = run_main("verdict", "--case-id", "c1", "--json", str(verdict), db_url=db_url)
+        assert landed.returncode == 0 and "轉述警告" in landed.stderr
+        assert self._stored(db_url)
+
+    def test_changed_payload_anchor_warns_and_stores_recomputed_value(self, tmp_path):
+        db_url, expected = self._ready_case(tmp_path)
+        altered = json.loads(json.dumps(expected))
+        altered["weak_points"][0]["response_excerpt"] = "從略"
+        result = self._verdict(tmp_path, db_url, altered)
+        assert result.returncode == 0, result.stderr
+        assert "警告:" in result.stderr and "機械彙整" in result.stderr
+        assert self._stored(db_url) == expected
+
+    def test_matching_payload_anchor_does_not_warn(self, tmp_path):
+        db_url, expected = self._ready_case(tmp_path)
+        result = self._verdict(tmp_path, db_url, expected)
+        assert result.returncode == 0, result.stderr
+        assert result.stderr == ""
+        assert self._stored(db_url) == expected
+
+    def test_incomplete_stage3_is_refused(self, tmp_path):
+        db_url = _case_with_stage1(tmp_path)
+        result = self._verdict(tmp_path, db_url)
+        assert result.returncode == 1 and "拒絕落地:" in result.stderr and "stage3" in result.stderr
+        s = get_session(db_url)
+        assert s.query(Verdict).count() == 0
+        s.close()
 
 
 def _case_with_stage1(tmp_path, facts="事實"):
@@ -120,7 +195,7 @@ class TestAdmissionGate:
         v = tmp_path / "verdict.json"
         v.write_text(json.dumps({"verdict_main_text": "結論", "verdict_analysis": "分析",
                                  "risk_map": {"對被告不利之處": ["被告已自認欠缺客觀證據"]},
-                                 "mechanical_anchor_json": {}, "citations_used": []}, ensure_ascii=False), encoding="utf-8")
+                                 "citations_used": []}, ensure_ascii=False), encoding="utf-8")
         r = run_main("verdict", "--case-id", "c1", "--json", str(v), db_url=db_url)
         assert r.returncode == 1 and "沒有緊接引述" in r.stderr
 
@@ -164,6 +239,20 @@ class TestCheckJudge:
         db_url = _case_with_stage1(tmp_path)
         r = self._check(tmp_path, db_url, {"verdict_main_text": "結論", "verdict_analysis": "被告坦承欠缺證據。", "risk_map": {}})
         assert r.returncode == 1 and "沒有緊接引述" in r.stderr
+
+    def test_attribution_warning_does_not_fail_check(self, tmp_path):
+        db_url = _case_with_stage1(tmp_path)
+        r = self._check(tmp_path, db_url, {"verdict_main_text": "結論", "verdict_analysis":
+            "原告民法第184條降為純備位,並承認受民法第197條時效風險壓制。", "risk_map": {}})
+        assert r.returncode == 0
+        assert "轉述警告" in r.stderr and "不要退回" in r.stderr
+
+    def test_missing_based_on_is_left_to_record(self, tmp_path):
+        # 缺 based_on 由 record 原本的檢查處理;轉述核對不能因此讓 check-judge 當掉
+        db_url = _case_with_stage1(tmp_path)
+        r = self._check(tmp_path, db_url, {"questions": [
+            {"question_text": "依案件所載,此要件應由誰舉證?", "target_side": "defendant"}]})
+        assert r.returncode == 0 and "Traceback" not in r.stderr
 
 
 def test_argument_with_unquoted_admission_warns_but_lands(tmp_path):

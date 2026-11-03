@@ -35,6 +35,7 @@ def db_url(tmp_path):
 @pytest.fixture
 def client(db_url, tmp_path, monkeypatch):
     monkeypatch.setenv("FAKE_CLAUDE_MODE", "full")
+    monkeypatch.setenv("FAKE_CLAUDE_EXPECT_DB_URL", db_url)  # T7:假 Claude 確認拿到的是同一顆資料庫
     for name in ("FAKE_CLAUDE_STOP_AFTER_P1", "FAKE_CLAUDE_FORCE_RELAND"):
         monkeypatch.delenv(name, raising=False)
     opts = {"enabled": True, "command": [sys.executable, FAKE], "runs_dir": str(tmp_path / "runs")}

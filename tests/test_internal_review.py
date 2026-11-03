@@ -43,6 +43,23 @@ class TestWarnings:
     def test_self_review_outside_the_section_warns(self):
         assert "弱點" in review_warnings("公開論證:這是我方弱點。")[0]
 
+    def test_w0_public_self_review_warns(self):
+        defendant = "被告承認,若原告於言詞辯論終結前補正出確定的數額與原因,A1 的力道會減弱,此為內部風險,不是承認。"
+        plaintiff = "民法第184條第1項前段須故意過失,第2項須違反保護他人之法律且推定過失,逃漏稅捐相關規定是否為保護公司之法律,原告承認有疑義,故此一路徑列為最弱備位。"
+        plaintiff_stage3 = "原告承認第184條第2項所指保護他人之法律是否包含稅捐稽徵規定本有疑義,且第197條第1項之二年期間自知有損害及賠償義務人時起算,起算時點、是否由原告公司知悉,以及被告是否確實援用,均待確認。"
+        assert any("公開論證疑似含自我檢討" in w for w in review_warnings(defendant))
+        assert any("公開論證疑似含自我檢討" in w for w in review_warnings(plaintiff))
+        assert any("公開論證疑似含自我檢討" in w for w in review_warnings(plaintiff_stage3))
+
+    def test_strategy_terms_alone_do_not_warn(self):
+        assert review_warnings("故此一路徑列為備位。") == []
+        assert review_warnings("原告將此一路徑列為最弱備位,並保留先位請求。") == []
+        assert review_warnings("法律適用本有疑義，仍請法院審酌。") == []
+
+    def test_new_terms_inside_review_section_do_not_warn(self):
+        text = f"公開主張。{START}此為內部風險,A1 的力道會減弱,原告承認有疑義。{END}公開結論。"
+        assert review_warnings(text) == []
+
 
 def _landed_case(tmp_path):
     db_url = f"sqlite:///{tmp_path / 'r.db'}"
@@ -56,6 +73,26 @@ def _landed_case(tmp_path):
 
 
 class TestFlow:
+    def test_case_api_marks_live_argument_with_review_warning_count(self, tmp_path):
+        from fastapi.testclient import TestClient
+        from database.schema import DebateArgument, LiveRun
+        from server.app import create_app
+
+        db_url, s = _landed_case(tmp_path)
+        target = s.query(DebateArgument).filter_by(case_id="c1", side="defendant", stage=3).one()
+        target.reasoning = "A1 的力道會減弱,此為內部風險,不是承認。"
+        s.add(LiveRun(case_id="c1", status="succeeded", started_at="2000-01-01T00:00:00Z",
+                      ended_at="2100-01-01T00:00:00Z"))
+        s.commit()
+        s.close()
+
+        app = create_app(db_url=db_url, cases_dir=str(tmp_path / "none"), seed_on_empty=False)
+        detail = TestClient(app).get("/api/cases/c1").json()
+        marked = [a for a in detail["arguments"] if a["review_warning_count"]]
+        assert len(marked) == 1
+        assert marked[0]["review_warning_count"] == 1
+        assert marked[0]["origin"]["kind"] == "live"
+
     def test_public_arguments_hide_review_and_falsifier(self, tmp_path):
         _, s = _landed_case(tmp_path)
         rows = public_arguments(s, case_id="c1")

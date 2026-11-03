@@ -35,6 +35,7 @@ def db_url(tmp_path):
 
 def make_client(db_url, tmp_path, monkeypatch, mode="full", enabled=True, **live):
     monkeypatch.setenv("FAKE_CLAUDE_MODE", mode)
+    monkeypatch.setenv("FAKE_CLAUDE_EXPECT_DB_URL", db_url)
     opts = {"enabled": enabled, "command": [sys.executable, FAKE], "runs_dir": str(tmp_path / "runs"), **live}
     app = create_app(db_url=db_url, cases_dir=str(tmp_path / "none"), seed_on_empty=False,
                      local_clients=("testclient",), live=opts)
@@ -60,6 +61,45 @@ def run_to_end(client, case_id):
     run_id = r.json()["run"]["id"]
     client.app.state.live.wait(run_id, timeout=60)
     return client.get(f"/api/runs/{run_id}").json()
+
+
+class TestDatabaseUrlResolution:
+    def test_environment_url_reaches_live_manager_and_health(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("LEGALDEBATE_DB_URL", db_url)
+        app = create_app(cases_dir=str(tmp_path / "none"), seed_on_empty=False)
+
+        assert app.state.live.db_url == db_url
+        health = TestClient(app, base_url=LOCAL).get("/api/health").json()["database"]
+        assert health["path"] == "(自訂資料庫)"
+        assert health["cases"] == 1
+
+    def test_environment_url_is_used_by_fake_claude_subprocess(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("LEGALDEBATE_DB_URL", db_url)
+        monkeypatch.setenv("FAKE_CLAUDE_EXPECT_DB_URL", db_url)
+        monkeypatch.setenv("FAKE_CLAUDE_MODE", "full")
+        app = create_app(cases_dir=str(tmp_path / "none"), seed_on_empty=False,
+                         local_clients=("testclient",),
+                         live={"enabled": True, "command": [sys.executable, FAKE],
+                               "runs_dir": str(tmp_path / "runs")})
+        client = TestClient(app, base_url=LOCAL)
+        case_id = create(client)
+        result = run_to_end(client, case_id)
+
+        assert result["run"]["status"] == "succeeded", result["run"]["error"]
+        session = get_session(db_url)
+        try:
+            assert session.query(DebateArgument).filter_by(case_id=case_id).count() == 6
+        finally:
+            session.close()
+
+    def test_explicit_url_takes_precedence_over_environment(self, db_url, tmp_path, monkeypatch):
+        monkeypatch.setenv("LEGALDEBATE_DB_URL", f"sqlite:///{tmp_path / 'ignored.db'}")
+        app = create_app(db_url=db_url, cases_dir=str(tmp_path / "none"), seed_on_empty=False)
+
+        assert app.state.live.db_url == db_url
+        health = TestClient(app, base_url=LOCAL).get("/api/health").json()["database"]
+        assert health["path"] == "(自訂資料庫)"
+        assert health["cases"] == 1
 
 
 class TestLiveRun:
@@ -359,6 +399,19 @@ class TestCommandAndStream:
         assert {"WebFetch", "WebSearch", "Read(/database/retrieval_cache/**)", "Read(/database/live_runs/*/retrieval_cache/**)",
                 "Read(/database/live_runs/*/search_logs/**)"} <= set(disallowed)
         assert args[args.index("--max-budget-usd") + 1] == "15"
+
+    def test_powershell_is_hidden_and_old_denials_stay(self):
+        # W0 F7:Windows 上模型看得到 PowerShell 會先試，被拒後查證 subagent 沒跑 verify。
+        args = live_run.build_args(["claude"], "x", model="claude-sonnet-5-5", budget_usd=15)
+        denied = args[args.index("--disallowedTools") + 1:]
+        # T7 合併:新分支另有檢索快取的 Read 規則(上一項測試),既有規則全部保留,再加 PowerShell
+        assert denied[:3] == ["WebFetch", "WebSearch", "PowerShell"] and denied == list(live_run.DISALLOWED_TOOLS)
+
+    def test_prompts_say_to_use_the_bash_tool(self):
+        rule = "指令一律用 Bash 工具執行 `python main.py ...`"
+        for p in (live_run.build_prompt("c1", "database/live_runs/run-9"),
+                  live_run.build_pleading_prompt("c1", "database/live_runs/run-9", ["plaintiff"])):
+            assert rule in p and "不要用迴圈或複合指令" in p and "派 subagent 時" in p
 
     def test_pleading_prompt_runs_only_step_9c_for_chosen_documents(self):
         p = live_run.build_pleading_prompt("test-2026-10-27-gcis-001", "database/live_runs/run-9", ["defendant"])

@@ -1,5 +1,6 @@
 """UI 後端(server/)測試。所有網路行為皆以 monkeypatch 取代，不依賴外網，CI 可穩定重現。"""
 import json
+import os
 import shutil
 
 import pytest
@@ -7,11 +8,12 @@ from fastapi.testclient import TestClient
 
 from database.db import (
     get_session, make_session_factory, record_argument, record_case, record_pleading,
-    record_question, record_verdict, upsert_citation,
+    record_party_check, record_question, record_verdict, upsert_citation,
 )
 from engine import verify as engine_verify
 from server import seed, services
 from server.app import create_app
+from database.schema import CourtQuestion, Verdict, DebateArgument
 
 NONEXISTENT = "最高法院105年度台上字第99999號"
 
@@ -86,6 +88,33 @@ def no_network(monkeypatch):
 
 
 class TestCases:
+    def test_attribution_recomputed_on_read(self, db_url, client):
+        s = get_session(db_url)
+        s.query(DebateArgument).filter_by(case_id="c1", side="defendant", stage=1).one().reasoning = "惟起訴日卷內未載,本方不寫成已逾期。"
+        q = s.query(CourtQuestion).filter_by(case_id="c1").one()
+        q.question_text = "被告 Stage 3 自己寫明「起訴日卷內未載,不寫成已逾期」。"
+        q.based_on = "被告 Stage 1 表示「雙方都未說過的句子」。"
+        s.query(Verdict).filter_by(case_id="c1").one().verdict_reasoning = "原告民法第184條降為純備位,並承認受民法第197條時效風險壓制。"
+        s.commit()
+        s.close()
+        d = client.get("/api/cases/c1").json()
+        assert d["questions"][0]["attribution_warning_count"] == 1
+        assert [r["level"] for r in d["questions"][0]["attribution_items"]] == ["close", "missing"]
+        assert d["verdict"]["attribution_warning_count"] == 1
+        assert d["verdict"]["attribution_items"][0]["level"] == "unquoted"
+
+    def test_attribution_quote_from_concession_condition_is_not_a_warning(self, db_url, client):
+        s = get_session(db_url)
+        row = s.query(DebateArgument).filter(DebateArgument.case_id == "c1", DebateArgument.side == "plaintiff",
+                                             DebateArgument.falsifier.isnot(None)).first()
+        row.falsifier = "若逾期未補正,起訴不合法,本方即撤回此部分主張。"
+        s.query(CourtQuestion).filter_by(case_id="c1").one().based_on = "原告讓步條件:「若逾期未補正,起訴不合法」。"
+        s.commit()
+        s.close()
+        q = client.get("/api/cases/c1").json()["questions"][0]
+        assert [r["level"] for r in q["attribution_items"]] == ["falsifier"]
+        assert q["attribution_warning_count"] == 0
+
     def test_list_includes_db_and_input_only(self, client):
         cases = {c["case_id"]: c for c in client.get("/api/cases").json()["cases"]}
         assert cases["c1"]["source"] == "database" and cases["c1"]["status"] == "completed"
@@ -146,6 +175,85 @@ class TestCases:
         s.close()
         check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
         assert check["consistent"] is False and "原告引用清單差異" in check["differences"][0]
+
+    def test_anchor_check_reports_stored_response_excerpt_difference(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["weak_points"][0]["response_excerpt"] = "從略"
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is False
+        assert "被告論證摘錄(內容與重算不同)" in check["stored_differs"]
+
+    def test_anchor_check_labels_missing_response_excerpt(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["weak_points"][0].pop("response_excerpt")
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert "被告論證摘錄(落地紀錄未存)" in check["stored_differs"]
+
+    def test_anchor_check_reports_stored_procedural_issue_id_difference(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        record_party_check(s, case_id="c1", role="plaintiff", query_ban="00000001",
+                           result={"entity_type": "company", "query_status": "ok", "warnings": []}, raw={})
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"]["issues"] = [{"id": "plaintiff:dissolved"}]
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is False
+        assert "程序事項 ID(內容與重算不同)" in check["stored_differs"]
+
+    def test_anchor_check_labels_missing_procedural_issue_ids(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        record_party_check(s, case_id="c1", role="plaintiff", query_ban="00000001",
+                           result={"entity_type": "company", "query_status": "ok", "warnings": []}, raw={})
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"].pop("issues")
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert "程序事項 ID(落地紀錄未存)" in check["stored_differs"]
+
+    def test_anchor_check_skips_procedural_ids_without_case_party_checks(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"]["issues"] = [{"id": "plaintiff:dissolved"}]
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is True and check["stored_differs"] == []
+        assert any("沒有該案件的商工查核紀錄" in note and "沒有比對" in note for note in check["notes"])
+
+    def test_anchor_check_ignores_procedural_text_when_ids_match(self, db_url, client):
+        s = make_session_factory(db_url)()
+        from database.schema import Verdict
+        row = s.query(Verdict).one()
+        anchor = json.loads(row.mechanical_anchor_json)
+        anchor["procedural_issues"]["notes"] = ["舊查核文字"]
+        row.mechanical_anchor_json = json.dumps(anchor, ensure_ascii=False)
+        s.commit()
+        s.close()
+        check = client.get("/api/cases/c1").json()["verdict"]["anchor_check"]
+        assert check["consistent"] is True and check["stored_differs"] == []
 
     def test_pleading_citation_check_reparses_draft(self, client):
         checks = {c["citation_text"]: c for c in client.get("/api/cases/c1").json()["pleading"]["citation_check"]}
@@ -325,6 +433,44 @@ class TestSeed:
                          live_checks_path=str(tmp_path / "none.json"))
         assert app.state.seeded["cases"] == 1
         assert len(TestClient(app).get("/api/cases").json()["cases"]) >= 1
+
+    def test_orphan_rows_are_listed_and_left_out_of_the_fixture(self, db_url, tmp_path):
+        s = get_session(db_url)
+        record_argument(s, case_id="voided", side="plaintiff", stage=1, position="作廢那次的立場",
+                        reasoning="作廢", cited_statutes=[], cited_precedents=[], falsifier=None, model_id=None)
+        record_question(s, case_id="voided", question_text="作廢那次的訊問?", target_side="defendant",
+                        based_on="作廢")
+        assert seed.orphan_rows(s) == {"debate_arguments": {"voided": 1}, "court_questions": {"voided": 1}}
+        path = tmp_path / "fixture.json"
+        counts = seed.write_fixture(s, str(path))
+        assert counts["debate_arguments"] == 6 and counts["court_questions"] == 1
+        data = json.loads(path.read_text(encoding="utf-8"))
+        assert "voided" not in {r["case_id"] for name in ("debate_arguments", "court_questions") for r in data[name]}
+        from database.schema import DebateArgument
+        assert s.query(DebateArgument).filter_by(case_id="voided").count() == 1  # 資料庫裡的列不刪
+
+    def test_export_demo_out_writes_elsewhere_and_leaves_demo_alone(self, db_url, tmp_path, monkeypatch, capsys):
+        import main
+        from types import SimpleNamespace
+
+        # 預設位置指到假的 demo/,就算 --out 沒生效也不會覆寫進 git 的 fixture
+        demo = tmp_path / "demo"
+        demo.mkdir()
+        for attr in ("FIXTURE_PATH", "LIVE_CHECKS_PATH", "PARTY_CHECKS_PATH"):
+            path = demo / os.path.basename(getattr(seed, attr))
+            path.write_text("原本的內容", encoding="utf-8")
+            monkeypatch.setattr(seed, attr, str(path))
+        s = get_session(db_url)
+        record_question(s, case_id="voided", question_text="作廢那次的訊問?", target_side="defendant",
+                        based_on="作廢")
+        monkeypatch.setattr(main, "get_session", lambda: s)
+        out = tmp_path / "fixture"
+        for party in (False, True):
+            assert main.cmd_export_demo(SimpleNamespace(live_checks=False, party_checks=party, out=str(out))) == 0
+        assert {p.read_text(encoding="utf-8") for p in demo.iterdir()} == {"原本的內容"}
+        assert (out / "recorded_cases.json").is_file() and (out / "recorded_party_checks.json").is_file()
+        printed = capsys.readouterr().out
+        assert "court_questions" in printed and "voided" in printed
 
     def test_shipped_fixture_contains_demo_case(self):
         with open(seed.FIXTURE_PATH, encoding="utf-8") as f:

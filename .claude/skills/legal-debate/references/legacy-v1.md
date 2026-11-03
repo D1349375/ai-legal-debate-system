@@ -64,7 +64,7 @@
 python main.py finalize --case-id <case_id>
 python main.py finalize --for-judge --case-id <case_id>
 ```
-第一個指令取得完整的 `mechanical_anchor_json`(`weak_points` + `position_drift` + `procedural_issues`),只用來在 Step 8 落地評估。第二個指令取得給法官讀的版本(`concession_conditions` + `procedural_issues`),不含引用清單差異與論證摘錄。`procedural_issues` 取 finalize 當下最新的商工查核結果;若 Step 1 之後重新查核過,以這裡為準。
+第一個指令取得完整的機械彙整(`weak_points` + `position_drift` + `procedural_issues`)，只供核對，不用抄進 verdict JSON；`main.py verdict` 落地時會自行重算。第二個指令取得給法官讀的版本(`concession_conditions` + `procedural_issues`),不含引用清單差異與論證摘錄。`procedural_issues` 取 finalize 當下最新的商工查核結果;若 Step 1 之後重新查核過,以這裡為準。
 
 ### Step 7 — 法官頒布爭點強弱評估(獨立 subagent)
 - prompt 套用 `templates/verdict_prompt.txt`,餵入 `python main.py public-args --case-id <case_id>` 的輸出(雙方三階段公開紀錄,不含內部檢討)+ 法官訊問 + Step 6 的 `--for-judge` 輸出。法官要逐條回應讓步條件,可以不同意,沒有預先決定的方向。
@@ -73,7 +73,7 @@ python main.py finalize --for-judge --case-id <case_id>
 
 ### Step 8 — 引用查證(獨立 subagent,涵蓋判決書引用;獨立 context 結構性強制)
 - 收集 Step 2-7 所有輸出裡出現的全部 `cited_statutes` + `cited_precedents` + verdict 的 `citations_used`,去重。程序事項的 `legal_basis` 若被法官或雙方引用,同樣要查證,不因為是規則表帶出來的就免查。
-- **開一個新的、乾淨的 subagent**(不能是剛才寫論證/判決的同一個 context 自己查自己),第一項任務:
+- **開一個新的、乾淨的 subagent**(不能是剛才寫論證/判決的同一個 context 自己查自己),第一項任務(派工時把這句寫進指示:用 Bash 工具執行,一個 `verify` 指令列出全部引用,不要用 PowerShell,也不要用迴圈逐筆跑):
   ```
   python main.py verify <citation1> <citation2> ...
   ```
@@ -84,7 +84,7 @@ python main.py finalize --for-judge --case-id <case_id>
   ```
   python main.py verdict --case-id <case_id> --json <path>
   ```
-  (JSON 含 `verdict_main_text`/`verdict_analysis`/`risk_map`/`mechanical_anchor_json`/`citations_used`)。`record_verdict` 若偵測到未 published 引用會直接拒絕落地(`ValueError`,`main.py` 回傳 exit code 1)——這是機械閘門,不是你的判斷空間,遇到報錯不要試圖繞過。
+  (JSON 含 `verdict_main_text`/`verdict_analysis`/`risk_map`/`citations_used`，不需 `mechanical_anchor_json`；`main.py verdict` 會自行重算後存入)。`record_verdict` 若偵測到未 published 引用會直接拒絕落地(`ValueError`,`main.py` 回傳 exit code 1)——這是機械閘門,不是你的判斷空間,遇到報錯不要試圖繞過。
   `main.py verdict` 另會拒絕把民事訴訟法第249條與最高法院115年度台抗字第105號放在同一個括號裡的評估(並列讀起來像該裁定也支持駁回)。遇到這個報錯,把報錯原文交回同一個法官 subagent,請它只改這處引註的寫法後重新輸出;不要自己改寫評估內容。
   `main.py verdict` 也會拒絕「自承、自認、自陳、坦承」沒有緊接引述真實原句的評估;Step 7 已先檢查過,這裡是最後一道。
 
@@ -152,6 +152,7 @@ python main.py finalize --for-judge --case-id <case_id>
 - 原告的準備清單(`based_on` 以「準備清單」開頭的訊問與原告的回答,都是假設,不是對方實際主張)
 - 法官輸出被自承檢查退回的紀錄:哪一步、第幾次、報錯原文、最後是否通過
 - `main.py record` 對內部檢討段落的警告
+- 法官訊問與評估的轉述待核對警告(`check-judge`、`record`、`verdict` 印出的「轉述警告」,即 `other_side`、`missing`、`unquoted`),照印出的原句列出;引號近似(`close`,非逐字)不是警告,CLI 不印,寫「近似的轉述請在 UI 展開核對」即可。這些是程式比對,要由律師核對,不擋落地
 - 法官的爭點強弱評估與訴狀優先順序建議
 - 骨架版書狀初稿(本次產生的那幾份;使用者只選一份或 9C 只補產一份時,照實說明另一份沒有產生)
 
@@ -163,6 +164,8 @@ python main.py finalize --for-judge --case-id <case_id>
 - 任何案件層級的統計評估(如多案件命中率)不在本 skill 範圍——單案跑測不構成統計意義上的驗證,不要臨時手算了就宣稱結論。
 
 ## 法官輸出被自承檢查退回時
+
+`check-judge` 的轉述警告不退回法官,只有自承檢查報錯才依下列流程退回。
 
 1. 把 `check-judge` 的報錯原文交回同一個法官 subagent,請它只改被點名的句子後重新輸出整份 JSON。不要自己改寫,也不要刪掉被點名的訊問來過關。
 2. 同一份輸出最多退回 2 次(含第一次共 3 次)。3 次都沒通過就停在這一步,不要落地這份輸出,在最後回覆列出每次的報錯原文。UI 可以之後從這一步續跑。

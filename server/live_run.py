@@ -47,7 +47,8 @@ ALLOWED_TOOLS = ("Bash(python main.py *)", "Skill(legal-debate *)", "Read", "Gre
                  f"Edit(/{RUNS_DIR_REL}/**)")
 # 檢索快取、案件快照(依角色分子資料夾)與檢索紀錄不給任何 agent 用 Read／Grep／Glob 直接讀：讀過哪些判決、搜過哪些詞
 # 會透露該方研究方向，而同一個 Claude Code 程序裡的角色共用權限，無法只禁對造。檢索指令以 Python 讀檔，不受影響。
-DISALLOWED_TOOLS = ("WebFetch", "WebSearch", "Read(/database/retrieval_cache/**)",
+# PowerShell:Windows 上的 CLI 有這個工具，dontAsk 下一律被拒，但模型看得到會先試(W0 F7),直接移出工具清單。
+DISALLOWED_TOOLS = ("WebFetch", "WebSearch", "PowerShell", "Read(/database/retrieval_cache/**)",
                     f"Read(/{RUNS_DIR_REL}/*/retrieval_cache/**)", f"Read(/{RUNS_DIR_REL}/*/search_logs/**)")
 # 案件層級的資料夾：律師確認關卡與續跑會把一個案件分成多次執行，快照與檢索紀錄要跨執行沿用。
 CASE_DIR_PREFIX = "case-"
@@ -133,7 +134,7 @@ def build_prompt(case_id, run_dir, resume=None, documents=VALID_SIDES, *, protoc
 1. 案件已由 UI 落地資料庫(案件 ID {case_id}),案件輸入檔是 {run_dir}/case.json(含使用者填寫的雙方當事人與統編)。不要再執行 `python main.py case`。SKILL.md 的 {{CASE_FACTS_PATH}} 填這個檔案。
 2. 商工查核已由 UI 依使用者提供的統編完成(沒給統編的一方不查)。不要重新查核，也不要用名稱搜尋自行選定統編。直接執行 `python main.py issues --case-id {case_id}` 取得程序事項。
 3. 所有暫存檔(檢索詞摘要、程序事項、各階段 JSON、訊問、評估、訴狀草稿、引用清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
-4. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
+4. 指令一律用 Bash 工具執行 `python main.py ...`(在目前目錄執行),一次一個指令，不要用迴圈或複合指令；其他 shell 指令會被拒絕。派 subagent 時把這一句寫進它的指示。
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
@@ -172,7 +173,7 @@ def build_prompt_v2(case_id, run_dir, resume=None, stop_after=None):
 1. 案件已由 UI 落地資料庫(案件 ID {case_id}),案件輸入檔是 {run_dir}/case.json(含使用者填寫的雙方當事人與統編)。不要再執行 `python main.py case`。SKILL.md 提到案件輸入檔或 {{CASE_FACTS_PATH}} 時填這個檔案。
 2. 商工查核已由 UI 依使用者提供的統編完成(沒給統編的一方不查)。不要重新查核，也不要用名稱搜尋自行選定統編。原告角色檔用 `python main.py role-view --case-id {case_id} --role plaintiff` 取得。
 3. 所有暫存檔(角色檔、各階段 JSON、起訴狀 JSON、查證結果、訊問、評估、書狀草稿、引用清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
-4. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
+4. 指令一律用 Bash 工具執行 `python main.py ...`(在目前目錄執行),一次一個指令，不要用迴圈或複合指令；其他 shell 指令會被拒絕。派 subagent 時把這一句寫進它的指示。
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門或 `main.py complaint` 報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用或事實；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
@@ -221,7 +222,7 @@ def build_pleading_prompt(case_id, run_dir, documents):
 3. 撰狀素材用 `python main.py pleading-source --case-id {case_id} --side <一方>` 取得({sides})。
 4. 落地用 `python main.py pleading --case-id {case_id} --draft-file <檔案> --citations <檔案> --side <一方>`,一份書狀落地一次。
 5. 所有暫存檔(書狀草稿、引用清單、查證用的清單)一律寫在 {run_dir}/ 之下，不要寫到其他位置。
-6. 指令只能用 `python main.py ...`(在目前目錄執行);其他 shell 指令會被拒絕。
+6. 指令一律用 Bash 工具執行 `python main.py ...`(在目前目錄執行),一次一個指令，不要用迴圈或複合指令；其他 shell 指令會被拒絕。派 subagent 時把這一句寫進它的指示。
 7. 查證閘門報錯時照 legacy-v1.md 處理，不得繞過、不得自行改寫引用；未通過查證的引用不寫進書狀，並在最後回覆列出。
 8. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
 """
@@ -913,7 +914,7 @@ class LiveRunManager:
                 f.write(prompt)
             args = build_args(self.command, prompt, model=self.model, budget_usd=self.budget_usd)
             env = dict(os.environ)
-            env[DB_URL_ENV] = self.db_url or f"sqlite:///{default_db_path()}"
+            env[DB_URL_ENV] = self.db_url or env.get(DB_URL_ENV) or f"sqlite:///{default_db_path()}"
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = self.model  # CLI 2.1.251 前此變數優先於 Agent 的 model 參數
             env["PYTHONIOENCODING"] = "utf-8"
             env["PYTHONUTF8"] = "1"

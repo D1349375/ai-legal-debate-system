@@ -15,7 +15,7 @@ import time
 from database.db import (
     _citation_key, _find_citation_row, _now_iso, finalize_case, upsert_citation, record_case, record_party_check,
     record_pleading_edit, latest_party_checks, pleading_side, is_main_pleading, case_payload, case_precheck,
-    case_gates, record_gate, system_complaints,
+    case_gates, record_gate, system_complaints, attribution_sources,
 )
 from sqlalchemy import func
 
@@ -29,7 +29,9 @@ from engine.fact_points import new_paragraphs_without_cf, strip_cf_tags
 from engine.party_issues import cured_in, procedural_issues
 from server import pleading_export
 from server.live_run import run_to_dict
-from engine.internal_review import strip_internal_review
+from engine.internal_review import review_warnings, strip_internal_review
+from engine.admission_check import strings_in
+from engine.attribution_check import attribution_review, attribution_warnings
 from engine import retrieval_cache
 from engine.law_lookup import resolve_law
 from engine.verify import JUDGMENT_CITATION_RE, JUDGMENTS_DIR, STATUTE_CITATION_RE, parse_citation
@@ -185,8 +187,10 @@ def _db_record(row, asked_text):
 
 
 def _arg_to_api(row):
+    public_review_count = sum(w.startswith("公開論證疑似含自我檢討") for w in review_warnings(row.reasoning))
     return {
         "side": row.side, "stage": row.stage, "position": row.position, "reasoning": row.reasoning,
+        "review_warning_count": public_review_count,
         "cited_statutes": _json_list(row.cited_statutes), "cited_precedents": _json_list(row.cited_precedents),
         "falsifier": row.falsifier, "model_id": row.model_id, "created_at": row.created_at,
     }
@@ -253,29 +257,45 @@ def _collect_citations(arguments, lookup, recorded_checks):
     return citations
 
 
-def _anchor_check(stored_anchor, arguments):
-    """把落地當時的 mechanical_anchor_json 與「現在重新機械計算」的結果比對(finalize 為決定性函數)。"""
-    stage3 = [a for a in arguments if a["stage"] == 3]
-    if len({a["side"] for a in stage3}) < len(VALID_SIDES):
-        return None
-    now = drift_detail(arguments)
-    stored_drift = (stored_anchor or {}).get("position_drift", {})
-    stored_falsifiers = {p.get("side"): p.get("falsifier") for p in (stored_anchor or {}).get("weak_points", [])}
-    now_falsifiers = {a["side"]: a["falsifier"] for a in stage3}
-    diffs, minor = [], []
+def _anchor_check(stored_anchor, current_anchor, *, has_party_checks):
+    """比對落地錨點與目前的 finalize_case 結果；只以程序事項 ID 判斷該欄位。"""
+    stored_anchor = stored_anchor or {}
+    stored_drift = stored_anchor.get("position_drift") or {}
+    current_drift = current_anchor["position_drift"]
+    stored_points = {p.get("side"): p for p in stored_anchor.get("weak_points", [])}
+    current_points = {p["side"]: p for p in current_anchor["weak_points"]}
+    diffs, stored_differs, minor, notes = [], [], [], []
     for side in VALID_SIDES:
         label = "原告" if side == "plaintiff" else "被告"
-        if stored_drift.get(side) != now[side]["ratio"]:
-            diffs.append(f"{label}引用清單差異：落地時 {stored_drift.get(side)}，本次重新計算 {now[side]['ratio']}")
-        stored_f, now_f = stored_falsifiers.get(side), now_falsifiers.get(side)
+        if stored_drift.get(side) != current_drift[side]:
+            diffs.append(f"{label}引用清單差異：落地時 {stored_drift.get(side)}，本次重新計算 {current_drift[side]}")
+        stored_point, current_point = stored_points.get(side, {}), current_points[side]
+        stored_f, now_f = stored_point.get("falsifier"), current_point.get("falsifier")
         if stored_f != now_f:
             if _strip_parens(stored_f) == _strip_parens(now_f):
                 minor.append({"side": side, "stored": stored_f, "current": now_f,
                               "note": f"{label}方讓步條件的文字與最終階段原文略有出入(僅括號內文字不同)，實質內容一致"})
             else:
                 diffs.append(f"{label}方讓步條件與落地時不同")
-    return {"consistent": not diffs, "differences": diffs, "minor_differences": minor,
-            "recomputed": {"position_drift": {s: now[s]["ratio"] for s in VALID_SIDES}}}
+        if "response_excerpt" not in stored_point:
+            stored_differs.append(f"{label}論證摘錄(落地紀錄未存)")
+        elif stored_point["response_excerpt"] != current_point.get("response_excerpt"):
+            stored_differs.append(f"{label}論證摘錄(內容與重算不同)")
+    if has_party_checks:
+        stored_procedure = stored_anchor.get("procedural_issues")
+        if not isinstance(stored_procedure, dict) or "issues" not in stored_procedure:
+            stored_differs.append("程序事項 ID(落地紀錄未存)")
+        elif not isinstance(stored_procedure["issues"], list):
+            stored_differs.append("程序事項 ID(內容與重算不同)")
+        else:
+            stored_ids = {issue.get("id") for issue in stored_procedure["issues"]}
+            current_ids = {issue.get("id") for issue in current_anchor["procedural_issues"]["issues"]}
+            if stored_ids != current_ids:
+                stored_differs.append("程序事項 ID(內容與重算不同)")
+    else:
+        notes.append("這個資料庫沒有該案件的商工查核紀錄，無法重算程序事項，沒有比對。")
+    return {"consistent": not diffs and not stored_differs, "differences": diffs, "minor_differences": minor,
+            "stored_differs": stored_differs, "notes": notes, "recomputed": {"position_drift": current_drift}}
 
 
 def _provenance_kind(arguments):
@@ -646,8 +666,24 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             "risk_map": json.loads(verdict_row.risk_map), "mechanical_anchor": anchor,
             "protocol_version": verdict_row.protocol_version, "created_at": verdict_row.created_at,
             "origin": origin(verdict_row.created_at),
-            "anchor_check": _anchor_check(anchor, arguments),
+            "anchor_check": (_anchor_check(
+                anchor, finalize_case(session, case_id=case_id),
+                has_party_checks=session.query(PartyCheck.id).filter_by(case_id=case_id).first() is not None)
+                             if len({a["side"] for a in arguments if a["stage"] == 3}) >= len(VALID_SIDES) else None),
         }
+
+    if questions or verdict:
+        sources = attribution_sources(session, case_id)
+        for q in questions:
+            items = [item for field in ("question_text", "based_on")
+                     for item in attribution_review(q[field], sources, q["target_side"])]
+            q["attribution_items"] = [item for item in items if item["level"] != "exact"]
+            q["attribution_warning_count"] = len(attribution_warnings(items))
+        if verdict:
+            items = [item for text in strings_in([verdict["verdict_main_text"], verdict["verdict_reasoning"], verdict["risk_map"]])
+                     for item in attribution_review(text, sources)]
+            verdict["attribution_items"] = [item for item in items if item["level"] != "exact"]
+            verdict["attribution_warning_count"] = len(attribution_warnings(items))
 
     pleading_rows = session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
     # 每一方各取最新的系統產生版；沒有就是 None(UI 照實顯示尚未產生，不拿另一方的書狀充數)

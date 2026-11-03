@@ -25,7 +25,7 @@ LLM 推理不在這裡發生:原告/被告/法官的論證由 Claude Code subage
   python main.py brief --case-id X --side plaintiff|defendant --round 2|3 [--check]   由已落地的論證組成準備書狀或言詞辯論意旨狀
   python main.py revision --case-id X --json <file> [--check] [--review-json <file>]   檢查並落地起訴狀 v2(P6 後的建議版)
   python main.py serve    [--port 8000] [--no-browser]     啟動 UI 後端(重播錄製案例、執行機械環節；綁本機時可由 UI 觸發即時執行)
-  python main.py export-demo [--live-checks]               把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
+  python main.py export-demo [--live-checks] [--out <資料夾>]  把 DB 的錄製紀錄匯出為 demo/ fixture(離線重現用)
   python main.py party --ban 22099131 [--case-id X --role defendant] [--name 名稱] [--no-persist]
   python main.py article 民法 33 [--json]                  依法規名稱與條號查現行條文(經快取；也接受「民法第191條之2」)
   python main.py search-judgments --kw 締約上過失 [--title X] [--from/--to YYYY-MM-DD] [--pages 2] [--fetch 3] [--save-dir D] [--json]
@@ -54,10 +54,11 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
 
 from database.db import (
     get_session, record_case, record_argument, record_question, case_precheck, plaintiff_view, defendant_view, judge_role_view,
-    admission_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
+    admission_sources, attribution_sources, public_arguments, finalize_case, record_verdict, record_pleading, upsert_citation,
 )
 from database.schema import Case
 from engine.admission_check import admission_problems, looks_factual, strings_in
+from engine.attribution_check import attribution_review, attribution_warnings
 from engine.aggregate import judge_view
 from engine.internal_review import review_warnings, strip_internal_review
 from engine.party_issues import mixed_dismissal_citations
@@ -136,6 +137,21 @@ def _verdict_admission_problems(session, case_id, payload, analysis):
             for p in admission_problems(text, admission_sources(session, case_id))]
 
 
+def _question_attributions(question, sources):
+    return [item for field in ("question_text", "based_on")
+            for item in attribution_review(question.get(field), sources, question["target_side"])]
+
+
+def _verdict_attributions(payload, analysis, sources):
+    return [item for text in strings_in([payload["verdict_main_text"], analysis, payload["risk_map"]])
+            for item in attribution_review(text, sources)]
+
+
+def _print_attribution_warnings(items):
+    for item in attribution_warnings(items):
+        print(f"轉述警告（不擋落地、不要退回法官）:{item['level']} {item['side']} {item['sentence']}", file=sys.stderr)
+
+
 def cmd_public_args(args):
     session = get_session()
     rows = public_arguments(session, case_id=args.case_id, through_stage=args.stage or args.through_stage)
@@ -154,11 +170,16 @@ def cmd_check_judge(args):
         sources = admission_sources(session, args.case_id)
         problems = [f"第 {i} 則:{p}" for i, q in enumerate(payload["questions"], 1)
                     for p in admission_problems(q["question_text"], sources, target_side=q["target_side"])]
+        quoted = attribution_sources(session, args.case_id)
+        attributions = [item for q in payload["questions"] for item in _question_attributions(q, quoted)]
     else:
-        problems = _verdict_admission_problems(session, args.case_id, payload, _pick(payload, "verdict_analysis", "verdict_reasoning"))
+        analysis = _pick(payload, "verdict_analysis", "verdict_reasoning")
+        problems = _verdict_admission_problems(session, args.case_id, payload, analysis)
+        attributions = _verdict_attributions(payload, analysis, attribution_sources(session, args.case_id))
     if problems:
         print("未通過:" + _ADMISSION_REFUSAL + ";".join(problems), file=sys.stderr)
         return 1
+    _print_attribution_warnings(attributions)
     print("法官輸出檢查通過")
     return 0
 
@@ -189,6 +210,7 @@ def cmd_record(args):
             row = record_question(session, case_id=payload["case_id"], question_text=payload["question_text"],
                                    target_side=payload["target_side"], based_on=payload["based_on"])
             print(f"已落地訊問 {row.case_id} -> {row.target_side}")
+            _print_attribution_warnings(_question_attributions(payload, attribution_sources(session, payload["case_id"])))
             if row.target_side == "defendant" and not row.based_on.startswith("官方事實層") and looks_factual(row.question_text):
                 print("警告:這則訊問看起來要被告回答事實,被告沒有本人的事實,請確認是否該改成給原告的準備題", file=sys.stderr)
             return 0
@@ -272,18 +294,22 @@ def cmd_verdict(args):
               + "\n".join(f"- {p}" for p in v2["problems"]), file=sys.stderr)
         return 1
     try:
+        anchor = finalize_case(session, case_id=args.case_id)
         row = record_verdict(
             session, case_id=args.case_id, verdict_main_text=payload["verdict_main_text"],
             verdict_reasoning=analysis, risk_map=payload["risk_map"],
-            mechanical_anchor_json=payload["mechanical_anchor_json"],
+            mechanical_anchor_json=anchor,
             protocol_version=v2["protocol_version"], citations_used=payload.get("citations_used", []),
         )
     except ValueError as e:
         print(f"拒絕落地:{e}", file=sys.stderr)
         return 1
+    if "mechanical_anchor_json" in payload and payload["mechanical_anchor_json"] != anchor:
+        print("警告:模型提供的機械彙整與程式重算結果不同，已改用機械結果落地", file=sys.stderr)
     print(f"已落地判決 {row.case_id}")
     for warning in v2["warnings"]:
         print("警告:" + warning, file=sys.stderr)
+    _print_attribution_warnings(_verdict_attributions(payload, analysis, attribution_sources(session, args.case_id)))
     return 0
 
 
@@ -679,6 +705,7 @@ def cmd_serve(args):
     if app.state.seeded:
         print(f"資料庫原本沒有案件，已由 demo/recorded_cases.json 匯入錄製紀錄:{app.state.seeded}")
     print(f"LegalDebate UI:{url}(Ctrl+C 結束)")
+    print("資料庫:" + ("自訂資料庫" if app.state.live.db_url else "預設資料庫"))
     avail = app.state.live.availability()
     print("即時執行:" + (f"已啟用(模型 {avail['model']},每次花費上限 {avail['budget_usd']:g} 美元)" if avail["enabled"]
                         else f"停用——{avail['reason']}"))
@@ -691,18 +718,25 @@ def cmd_serve(args):
 def cmd_export_demo(args):
     from server import seed
     session = get_session()
+    # 沒給 --out 時寫進 demo/(進 git);給了就三個檔都寫到該資料夾
+    fixture_path, live_path, party_path = (
+        os.path.join(args.out, os.path.basename(p)) if args.out else p
+        for p in (seed.FIXTURE_PATH, seed.LIVE_CHECKS_PATH, seed.PARTY_CHECKS_PATH))
+    for table, by_case in seed.orphan_rows(session).items():
+        detail = "、".join(f"{case_id} {n} 筆" for case_id, n in by_case.items())
+        print(f"不匯出 {table}:案件已不在 cases 表({detail})")
     # 維持既有 --live-checks 同時匯出案件 fixture 的行為；僅單獨 --party-checks 略過。
     if not args.party_checks or args.live_checks:
-        counts = seed.write_fixture(session)
-        print(f"已匯出 {seed.FIXTURE_PATH}:{counts}")
+        counts = seed.write_fixture(session, fixture_path)
+        print(f"已匯出 {fixture_path}:{counts}")
     if args.live_checks:
-        checks = seed.write_live_checks(session)
-        print(f"已記錄 {len(checks)} 筆即時查證結果到 {seed.LIVE_CHECKS_PATH}")
+        checks = seed.write_live_checks(session, live_path)
+        print(f"已記錄 {len(checks)} 筆即時查證結果到 {live_path}")
         for c in checks:
             print(f"  {c['citation_text']} → {c['status']}")
     if args.party_checks:
-        checks = seed.write_party_checks(session)
-        print(f"已匯出 {len(checks)} 筆過去實際商工查詢到 {seed.PARTY_CHECKS_PATH}")
+        checks = seed.write_party_checks(session, party_path)
+        print(f"已匯出 {len(checks)} 筆過去實際商工查詢到 {party_path}")
     return 0
 
 
@@ -1392,6 +1426,7 @@ def main():
     p.add_argument("--live-checks", action="store_true",
                    help="另對 DB 中無 published 紀錄的引用實際連線查證並記錄(需要網路)")
     p.add_argument("--party-checks", action="store_true", help="匯出既有商工實際查詢結果供離線重播")
+    p.add_argument("--out", help="寫到這個資料夾，不寫 demo/(先驗證再決定要不要進 git)")
     p.set_defaults(fn=cmd_export_demo)
 
     p = sub.add_parser("party", help="依統編即時查核商工登記當事人")

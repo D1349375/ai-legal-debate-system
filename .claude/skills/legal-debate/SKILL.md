@@ -71,7 +71,7 @@ description: >-
 1. 執行 `python main.py public-args --case-id <案件ID> --through-stage 1 --out <執行資料夾>/plaintiff_analysis.json`(已濾掉內部檢討)。
 2. 執行 `python main.py prompt complaint_prompt --out <執行資料夾>/prompts/p1_complaint.txt --phase p1 --side plaintiff --case-dir <案件資料夾> --set CASE_ID=<案件ID> --set ROLE_VIEW_PATH=<角色檔> --set ANALYSIS_PATH=<上一點的檔> --set OUTPUT_PATH=<執行資料夾>/complaint.json`,派一個新的撰狀 subagent。
 3. 執行 `python main.py complaint --case-id <案件ID> --json complaint.json --check`。印「未通過」就把報錯原文交回**同一個**撰狀 subagent,請它只改被點名的地方後重寫 `complaint.json`。同一份最多退回 2 次(含第一次共 3 次);3 次都沒通過就停在這裡,不落地,在最後回覆列出每次的報錯原文。通過時會印出程式組成的正文與「落地前要全部 published 的引用」。
-4. **開一個新的、乾淨的查證 subagent**(不能是撰狀的同一個),交給它:
+4. **開一個新的、乾淨的查證 subagent**(不能是撰狀的同一個),交給它(派工時把這句寫進指示:用 Bash 工具執行,一個 `verify` 指令列出全部引用,不要用 PowerShell,也不要用迴圈逐筆跑):
    - 執行 `python main.py verify <上一步列出的全部引用> --snapshot database/live_runs/case-<案件ID>/retrieval_cache --read-by plaintiff`(UI 執行時環境變數已指向根目錄,`--snapshot` 可省略),確認存在性,以及原告在本案用 `judgment` 讀過全文(摘句由第 5 點落地時比對)。只有 `published` 放行;`not_read_by_side`(原告沒讀過全文)和其他狀態一樣退回撰狀。
    - 對 `complaint.json` 的每一個 `precedent_notes`,用 `python main.py judgment <字號>`(不加 `--snapshot`、不加 `--log`,不搜尋)讀全文,核對案由與爭點是否真的支持 `proposition`。
    - 產出嚴格 JSON 陣列 `[{"citation": "字號", "supports": true 或 false, "reason": "一句話,寫依據全文哪一段"}]`;沒有判決時寫 `[]`。這個陣列由查證 subagent 自己用 Write 寫進 `<執行資料夾>/citation_review.json`,只回「已寫入 <路徑>」;你不要改寫或補內容。
@@ -104,6 +104,7 @@ description: >-
 - 每次退回的報錯原文與次數;查證結果(存在性、摘句比對、實質核對分開說);被排除的引用。
 - 檢索次數與實際上網抓全文數(看指令印出的預算摘要)。
 - `record` 與 `complaint` 的警告。
+- 轉述待核對警告(`check-judge`、`record`、`verdict`印出的「轉述警告」,即 `other_side`、`missing`、`unquoted`),照印出的原句列出;這些是程式比對,要由律師核對,不擋落地,也不要因此退回法官。
 - 每次分類器中止(哪個 subagent、第幾次、最後是否重派成功)。
 
 結尾必附一句:**「本結果為起訴狀初稿與分析,非法院判決預測,正式書狀仍需律師覆核。」**

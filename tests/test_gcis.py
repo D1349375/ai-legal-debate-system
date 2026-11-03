@@ -466,13 +466,14 @@ def test_export_demo_flag_keeps_existing_live_checks_behavior(monkeypatch):
 
     calls = []
     monkeypatch.setattr(main, "get_session", lambda: object())
-    monkeypatch.setattr(seed, "write_fixture", lambda session: calls.append("fixture") or {})
-    monkeypatch.setattr(seed, "write_live_checks", lambda session: calls.append("live") or [])
-    monkeypatch.setattr(seed, "write_party_checks", lambda session: calls.append("party") or [])
-    assert main.cmd_export_demo(SimpleNamespace(live_checks=True, party_checks=False)) == 0
+    monkeypatch.setattr(seed, "orphan_rows", lambda session: {})
+    monkeypatch.setattr(seed, "write_fixture", lambda session, path: calls.append("fixture") or {})
+    monkeypatch.setattr(seed, "write_live_checks", lambda session, path: calls.append("live") or [])
+    monkeypatch.setattr(seed, "write_party_checks", lambda session, path: calls.append("party") or [])
+    assert main.cmd_export_demo(SimpleNamespace(live_checks=True, party_checks=False, out=None)) == 0
     assert calls == ["fixture", "live"]
     calls.clear()
-    assert main.cmd_export_demo(SimpleNamespace(live_checks=False, party_checks=True)) == 0
+    assert main.cmd_export_demo(SimpleNamespace(live_checks=False, party_checks=True, out=None)) == 0
     assert calls == ["party"]
 
 
@@ -511,6 +512,24 @@ def test_recorded_fallback_keeps_original_time_and_live_failure_separate(monkeyp
     with get_session(url) as session:
         assert session.query(PartyCheck).count() == 2
         assert latest_party_checks(session, "c1")["plaintiff"]["via"] == "recorded"
+
+
+def test_party_check_export_skips_rows_of_cases_no_longer_in_the_database(tmp_path):
+    from database.db import record_case, record_party_check
+    from server import seed
+    raw = {key: {"rows": value["rows"], "url": value["url"], "ok": value["ok"], "error": value["error"]}
+           for key, value in company().items()}
+    with get_session(f"sqlite:///{tmp_path / 'orphan.db'}") as session:
+        record_case(session, case_id="kept", case_type="測試", facts_summary="事實", claims="請求")
+        for case_id, ban in (("kept", "22099131"), (None, "22099132"), ("voided", "22099133")):
+            result = party_rules.summarize(ban, "company", company())
+            result.update(query_status="ok", via="gcis_live", fetched_at="2026-10-03T00:00:00Z")
+            record_party_check(session, case_id=case_id, role="plaintiff" if case_id else None,
+                               query_ban=ban, result=result, raw=raw, fetched_at=result["fetched_at"])
+        rows = seed.write_party_checks(session, str(tmp_path / "party.json"))
+        assert [r["ban"] for r in rows] == ["22099131", "22099132"]
+        assert seed.orphan_rows(session) == {"party_checks": {"voided": 1}}
+        assert session.query(PartyCheck).count() == 3
 
 
 @pytest.mark.network

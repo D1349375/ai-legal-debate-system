@@ -594,6 +594,7 @@
     var cites = a.cited_statutes.concat(a.cited_precedents);
     return h("article", { class: "arg " + a.side },
       h("div", { class: "arg-head" }, sideChip(a.side, SIDE[a.side].agent), chip("neutral", "Stage " + a.stage),
+        a.review_warning_count ? chip("warn", "公開論證疑似含自我檢討 " + a.review_warning_count + " 則") : null,
         originChip(a.origin),
         h("span", { class: "arg-time", text: "落地 " + fmtTime(a.created_at), title: "model_id：" + (a.model_id || "落地時未記錄") })),
       h("div", { class: "arg-body" },
@@ -617,6 +618,26 @@
   }
 
   function isPrepQuestion(q) { return /^準備清單/.test(q.based_on || ""); }
+  function attributionReview(row) {
+    var items = row.attribution_items || [];
+    if (!items.length) return null;
+    var names = { close: "近似(非逐字)", falsifier: "引自讓步條件(假設句)", other_side: "只在另一方原文", missing: "兩方原文均找不到", unquoted: "未引述的承認" };
+    var warns = { other_side: true, missing: true, unquoted: true };
+    return h("div", { class: "attribution-review" },
+      row.attribution_warning_count ? chip("warn", "轉述待核對 " + row.attribution_warning_count + " 處") : null,
+      fold("查看轉述比對（共 " + items.length + " 處）", [
+        h("p", { class: "detail-note", text: "程式比對,非 AI 判斷;只找得到有引號或寫『承認』的轉述。" }),
+        items.map(function (item) {
+          return h("div", { class: "field-label" },
+            h("div", { class: "chip-row" },
+              chip(warns[item.level] ? "warn" : "neutral", (warns[item.level] ? "待核對・" : "") + names[item.level]),
+              sideChip(item.side)),
+            item.quote ? h("p", { class: "prewrap", text: "比對的引號：「" + item.quote + "」" }) : null,
+            h("p", { class: "prewrap", text: "法官原句：" + item.sentence }),
+            item.source_snippet ? h("p", { class: "prewrap", text: "對照原文：" + item.source_snippet }) : null);
+        }),
+      ]));
+  }
   function prepListCard(d) {
     var items = d.questions.filter(isPrepQuestion);
     if (!items.length) return null;
@@ -637,7 +658,8 @@
             isPrepQuestion(q) ? chip("judge", "準備題・假設") : null,
             h("span", { class: "arg-time", text: "落地 " + fmtTime(q.created_at) })),
           h("div", { class: "judge-q-text prewrap", text: q.question_text }),
-          h("div", { class: "judge-q-basis" }, h("b", { text: "訊問依據(based_on，須回溯至具體論點)：" }), q.based_on));
+          h("div", { class: "judge-q-basis" }, h("b", { text: "訊問依據(based_on，須回溯至具體論點)：" }), q.based_on),
+          attributionReview(q));
       }));
   }
 
@@ -942,7 +964,7 @@
     var oldRules = v.protocol_version === "v1-2026-08-07" ? banner("warn", "!", "這份評估在舊規則下產生，當時要求法官不得偏離彙整結果。文中的「錨點」「自承」不代表系統判定，請對照原文。") : null;
     var risk = v.risk_map || {};
     var list = function (items) { return h("ul", { class: "risk-list" }, (items || []).map(function (t) { return h("li", { text: t }); })); };
-    var out = [head, oldRules,
+    var out = [head, oldRules, attributionReview(v),
       card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "落地 " + fmtTime(v.created_at))),
       card("評估理由", paragraphs(delabelJargon(v.verdict_reasoning))),
       proceduralRiskCard(d),
@@ -968,9 +990,17 @@
   function anchorBanner(a) {
     if (!a) return null;
     var ps = a.recomputed.position_drift;
-    if (!a.consistent) return banner("bad", "✗", [h("strong", { text: "與落地時的計算結果不一致" }), "：" + a.differences.join("；")]);
+    var note = a.notes && a.notes.length ? banner("rec", "i", a.notes.join("；")) : null;
+    function withNote(main) { return note ? h("div", { class: "anchor-check" }, main, note) : main; }
+    if (!a.consistent) return withNote(banner("bad", "✗", [
+      h("strong", { text: "落地時的機械彙整與重算不同" }),
+      "。這是落地紀錄與目前資料重算的差異；單憑比對不能判定原因。",
+      a.stored_differs && a.stored_differs.length ? " 落地欄位差異：" + a.stored_differs.join("、") + "。" : "",
+      a.differences.length ? " 其他比對差異：" + a.differences.join("；") + "。" : "",
+      a.minor_differences.length ? " 另有僅括號內文字不同的讓步條件。" : "",
+    ]));
     if (a.minor_differences.length) {
-      return banner("warn", "!", [
+      return withNote(banner("warn", "!", [
         h("strong", { text: "引用清單差異一致，但讓步條件文字有細微出入" }),
         "。落地時記錄的引用清單差異，與現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")；但 " +
         a.minor_differences.map(function (m) { return m.note; }).join("；") + "。",
@@ -979,10 +1009,11 @@
             h("p", null, h("strong", { text: "落地紀錄的版本：" }), m.stored),
             h("p", null, h("strong", { text: "Stage 3 原文(現行)：" }), m.current)]);
         }),
-      ]);
+      ]));
     }
-    return banner("ok", "✓", [h("strong", { text: "與落地時的計算結果一致" }),
-      "：落地時記錄的引用清單差異與讓步條件，跟現在重新計算的結果完全相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")。"]);
+    return withNote(banner("ok", "✓", [h("strong", { text: "已比對欄位與落地時的計算結果一致" }),
+      "：落地時記錄的引用清單差異、讓步條件、論證摘錄" + (note ? "" : "與程序事項 ID") +
+      "，跟現在重新計算的結果相同(原告 " + pct(ps.plaintiff) + "、被告 " + pct(ps.defendant) + ")。"]));
   }
 
   // ───────────── 分頁：訴狀骨架 ─────────────
@@ -1615,8 +1646,14 @@
       "・快取讀取 " + fmtTokens(t.cache_read_input_tokens) + "・快取寫入 " + fmtTokens(t.cache_creation_input_tokens) +
       "・輸出 " + fmtTokens(t.output_tokens) + (Object.keys(t.by_model || {}).length > 1 ? "(" + Object.keys(t.by_model).join("、") + ")" : "");
   }
+  function runReviewWarningCount(run, d) {
+    return d.arguments.filter(function (a) {
+      return a.origin.kind === "live" && a.origin.run_id === run.id && a.review_warning_count;
+    }).length;
+  }
   function runView(run, d) {
     var st = RUN_STATUS[run.status], lr = liveLog(run.id);
+    var reviewCount = run.kind === "pleadings" ? null : runReviewWarningCount(run, d);
     if (!lr.loaded && run.status !== "running") loadRunLog(run.id);
     var events = lr.events;
     var row = function (e) {
@@ -1637,6 +1674,8 @@
       run.status === "running" ? h("div", { class: "chip-row" }, d.progress.map(function (s) {
         return chip(s.state === "done" ? "ok" : s.state === "partial" ? "warn" : "neutral", (s.state === "done" ? "✓ " : s.state === "partial" ? "◐ " : "· ") + s.label);
       })) : null,
+      reviewCount === null ? null : reviewCount ? banner("warn", "!", "公開論證疑似含自我檢討:" + reviewCount + " 則。請查看攻防分頁逐則確認。") :
+        h("p", { class: "detail-note", text: "公開論證疑似含自我檢討:0 則" }),
       stoppedByClassifier(run) ? safetyStopBanner(run) : null,
       run.error ? banner(run.status === "cancelled" ? "warn" : "bad", run.status === "cancelled" ? "!" : "✗", run.error) : null,
       stoppedByClassifier(run) ? null : safetyStopBanner(run),
@@ -1834,7 +1873,8 @@
         d.live_runs.map(function (r) {
           return meta("執行 #" + r.id + (r.kind === "pleadings" ? "(只補產" + docsText(r.documents) + ")" : ""), runLabel(r) + (r.cost_usd != null ? "・約 " + r.cost_usd.toFixed(2) + " 美元" : "") +
             (r.tokens ? "・" + fmtTokens(tokenTotal(r.tokens)) + " token" : "") +
-            ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : ""));
+            ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : "") +
+            (r.kind === "pleadings" ? "" : "・公開論證疑似含自我檢討:" + runReviewWarningCount(r, d) + " 則"));
         })) : null,
       h("div", { class: "detail-section" }, h("div", { class: "detail-section-title", text: "限制" }),
         h("p", { class: "detail-note", text: "標示「⚡ 本次即時生成」者由本機 Claude Code 經 UI 執行產生；標示「⏺ 錄製紀錄」者是過去產生後落地的紀錄重播。引用查證僅確認條文／字號存在，未比對判決全文是否支持該論點。研究原型，非法律意見，訴狀須由律師審核。" })));
