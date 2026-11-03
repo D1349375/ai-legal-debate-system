@@ -146,6 +146,7 @@ def build_prompt(case_id, run_dir, resume=None, documents=VALID_SIDES, *, protoc
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
+   派 subagent 時不要填 model 參數，一律沿用本次執行指定的模型。
 """ + documents_instructions(documents, 8) + (resume_instructions(resume, run_dir) if resume else "")
 
 
@@ -191,6 +192,7 @@ def build_prompt_v2(case_id, run_dir, resume=None, stop_after=None):
 5. 落地論證時 model_id 填實際產生該論證的模型 ID。
 6. 查證閘門或 `main.py` 的檢查指令報錯時照 SKILL.md 處理，不得繞過、不得自行改寫引用或事實；若因此無法完成某一步，停止並在最後回覆寫明卡在哪一步、原因為何。
 7. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
+   派 subagent 時不要填 model 參數，一律沿用本次執行指定的模型。
 8. {scope}
 """ + (resume_instructions_v2(resume, run_dir, case_id) if resume else "")
 
@@ -236,6 +238,17 @@ def build_pleading_prompt(case_id, run_dir, documents):
 7. 查證閘門報錯時照 legacy-v1.md 處理，不得繞過、不得自行改寫引用；未通過查證的引用不寫進書狀，並在最後回覆列出。
 8. subagent 的回覆被安全分類器中止時，依 SKILL.md「subagent 的回覆被安全分類器中止時」一節處理(另開新 subagent 以同一份範本重派，最多 2 次)。
 """
+
+
+MODEL_ALIAS_ENVS = ("ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL", "ANTHROPIC_DEFAULT_HAIKU_MODEL")
+
+
+def model_env(model):
+    """主 agent 與 subagent 一律用同一個模型。CLI 2.1.251 前 CLAUDE_CODE_SUBAGENT_MODEL 優先於 Agent 的 model 參數;
+    之後反過來,主 agent 派工填 model=opus 就真的用 opus(2026-11-03 CLI 自動更新到 2.1.317,實跑一次 subagent
+    輸出 19,005 token 是 opus)。所以另把 opus／sonnet／haiku 三個別名都指到同一個模型:本機假 API 探測,填 opus
+    時送出的是指定模型。"""
+    return {"CLAUDE_CODE_SUBAGENT_MODEL": model, **{name: model for name in MODEL_ALIAS_ENVS}}
 
 
 def read_denials(root, keep):
@@ -996,7 +1009,7 @@ class LiveRunManager:
             args = build_args(self.command, prompt, model=self.model, budget_usd=self.budget_usd, read_denied=read_denied)
             env = dict(os.environ)
             env[DB_URL_ENV] = self.db_url or env.get(DB_URL_ENV) or f"sqlite:///{default_db_path()}"
-            env["CLAUDE_CODE_SUBAGENT_MODEL"] = self.model  # CLI 2.1.251 前此變數優先於 Agent 的 model 參數
+            env.update(model_env(self.model))
             env["PYTHONIOENCODING"] = "utf-8"
             env["PYTHONUTF8"] = "1"
             # 案件快照根目錄：查證與判例落地以此比對雙方讀過的同一版本(engine/retrieval_cache.py)。

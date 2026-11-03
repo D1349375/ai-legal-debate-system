@@ -220,3 +220,54 @@ def test_bash_redirect_outside_runs_dir_is_denied(tmp_path):
     finally:
         server.shutdown()
         shutil.rmtree(inside_dir, ignore_errors=True)
+
+
+def test_subagent_asking_for_opus_still_gets_the_run_model(tmp_path):
+    """主 agent 派 Agent 時填 model=opus:加上 live_run.model_env 的別名後,送出的請求一律是執行指定的模型。"""
+    prefix, missing = live_run.resolve_claude_command()
+    if prefix is None:
+        pytest.skip(missing)
+    seen, sent = [], []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_POST(self):
+            body = json.loads(self.rfile.read(int(self.headers.get("content-length", 0))) or b"{}")
+            if not self.path.startswith("/v1/messages") or "count_tokens" in self.path:
+                payload, ctype = b'{"input_tokens": 1}', "application/json"
+            else:
+                seen.append(body.get("model"))
+                if "Agent" in {x.get("name") for x in body.get("tools") or []} and not sent:
+                    sent.append(1)
+                    evs = _events([{"type": "tool_use", "id": "toolu_agent", "name": "Agent", "input": {
+                        "description": "probe", "prompt": "say done", "subagent_type": "general-purpose", "model": "opus"}}],
+                        "tool_use")
+                else:
+                    evs = _events([{"type": "text", "text": "done"}], "end_turn")
+                if body.get("stream"):
+                    payload = "".join(f"event: {e['type']}\ndata: {json.dumps(e)}\n\n" for e in evs).encode()
+                    ctype = "text/event-stream"
+                else:
+                    payload = json.dumps({**evs[0]["message"], "content": [{"type": "text", "text": "done"}],
+                                          "stop_reason": "end_turn"}).encode()
+                    ctype = "application/json"
+            self.send_response(200)
+            self.send_header("content-type", ctype)
+            self.end_headers()
+            self.wfile.write(payload)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "CLAUDE_CODE_OAUTH"))}
+    env.update(ANTHROPIC_BASE_URL=f"http://127.0.0.1:{server.server_address[1]}",
+               ANTHROPIC_API_KEY="sk-ant-api03-localprobe-not-a-real-key", CLAUDE_CONFIG_DIR=str(tmp_path / "cfg"),
+               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1", DISABLE_TELEMETRY="1", DISABLE_AUTOUPDATER="1",
+               **live_run.model_env("claude-sonnet-5-5"))
+    try:
+        subprocess.run(live_run.build_args(prefix, "probe", model="claude-sonnet-5-5", budget_usd=1), cwd=ROOT, env=env,
+                       capture_output=True, timeout=180, stdin=subprocess.DEVNULL)
+    finally:
+        server.shutdown()
+    assert sent and len(seen) >= 2 and set(seen) == {"claude-sonnet-5-5"}

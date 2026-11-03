@@ -50,7 +50,7 @@ Step 1–13 依序是:P0 案件輸入、P1 原告分析與起訴狀 v1、關卡 
 你的上下文每一輪都會整份重讀(舊流程實跑主 agent 長到約 19 萬 token,佔全程輸入八成),所以範本、角色檔、分析與 subagent 的輸出都不要經過你:
 
 - **不要 Read 範本**。用 `python main.py prompt <範本名> --out <執行資料夾>/prompts/<步驟>.txt --set KEY=VALUE …` 由程式填好佔位符寫成檔,指令只印路徑;佔位符沒填完或填錯名字會被拒。檢索階段加 `--phase p1 --side plaintiff --case-dir <案件資料夾>`,程式會帶入 `{RETRIEVAL_RULES}` 與該角色的 `{RETRIEVAL_CACHE_DIR}`、`{SEARCH_LOG_PATH}`。
-- subagent 的 prompt 只寫一句:「用 Read 讀 <上一點印出的路徑>,那是你這次的完整指示,照做。」
+- subagent 的 prompt 只寫一句:「用 Read 讀 <上一點印出的路徑>,那是你這次的完整指示,照做。」派工時**不要填 model 參數**,一律沿用本次執行的模型(UI 執行時程式另把模型別名都指到同一個模型)。
 - subagent 自己用 Write 把輸出寫進 `{OUTPUT_PATH}`,只回「已寫入 <路徑>」。你不要 Read 輸出檔,直接交給落地或檢查指令。被退回時把報錯原文交回同一個 subagent,請它重寫同一個檔;不能用 SendMessage 時(無人值守執行就不能),另開新 subagent,prompt 寫:讀同一個派工檔、讀既有的輸出檔、報錯原文,只改被點名的地方後重寫同一個檔。這樣仍算同一份輸出的退回次數。
 - `role-view`、`public-args` 一律加 `--out <檔>`,指令只印路徑。
 - **派工的 description 要寫角色**:被告的 subagent(防禦分析、答辯狀撰狀)description 一定要含「被告」,例如「被告防禦分析」「被告答辯狀撰狀」;事後稽核(`scripts/audit_run.py --agent 被告`)靠它找出被告的 subagent,檢查它們沒有讀到案件輸入檔。其他 subagent(含查證)的 description 不要含「被告」。

@@ -626,3 +626,11 @@ class TestDocumentChoice:
         assert run["status"] == "succeeded" and run["documents"] == ["defendant"]
         d = c.get(f"/api/cases/{case_id}").json()
         assert d["pleadings"]["plaintiff"] is None and d["pleadings"]["defendant"]
+
+
+def test_subagents_cannot_pick_another_model():
+    # 2026-11-03:CLI 2.1.317 讓 Agent 的 model 參數優先,主 agent 填 opus 就真的用 opus;三個別名都指到同一個模型
+    env = live_run.model_env("claude-sonnet-5-5")
+    assert env["CLAUDE_CODE_SUBAGENT_MODEL"] == "claude-sonnet-5-5"
+    assert all(env[name] == "claude-sonnet-5-5" for name in live_run.MODEL_ALIAS_ENVS)
+    assert "不要填 model 參數" in live_run.build_prompt("c1", "database/live_runs/run-9")
