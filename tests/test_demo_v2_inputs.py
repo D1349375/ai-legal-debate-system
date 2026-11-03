@@ -53,9 +53,17 @@ def test_gcis_facts_and_claims_are_unchanged():
 @pytest.mark.parametrize("path", [GCIS, E2E])
 def test_missing_inputs_are_gaps_not_filled_in(path):
     data = load(path)
-    assert data["evidence"] == [] and data["opponent_known_responses"] == []
+    assert data["opponent_known_responses"] == []
     gaps = "".join(data["known_gaps"])
-    assert "證據清單" in gaps and "被告起訴前的反應" in gaps
+    assert "被告起訴前的反應" in gaps
+    if path == GCIS:
+        # 甲證1–2 照 P1 實跑放回(使用者 2026-11-03 決定):只用事實經過提到的文件與日期，全文待確認
+        assert [e["id"] for e in data["evidence"]] == ["甲證1", "甲證2"]
+        assert all(e["description"].split("(")[0][:6] in data["facts_summary"] or e["type"] in data["facts_summary"]
+                   for e in data["evidence"])
+        assert "證據內容" in gaps and "待確認" in gaps
+    else:
+        assert data["evidence"] == [] and "證據清單" in gaps
 
 
 def test_forbid_lists_cover_source_judgments_and_answer_files():
