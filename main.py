@@ -715,12 +715,15 @@ def cmd_serve(args):
     from server.app import create_app
 
     from server.live_run import options_for_host
-    app = create_app(live=options_for_host(args.host, model=args.model, budget_usd=args.budget_usd))
+    app = create_app(live=options_for_host(args.host, model=args.model, budget_usd=args.budget_usd,
+                                           exclude=args.exclude or ()))
     url = f"http://{args.host}:{args.port}/"
     if app.state.seeded:
         print(f"資料庫原本沒有案件，已由 demo/recorded_cases.json 匯入錄製紀錄:{app.state.seeded}")
     print(f"LegalDebate UI:{url}(Ctrl+C 結束)")
     print("資料庫:" + ("自訂資料庫" if app.state.live.db_url else "預設資料庫"))
+    if app.state.live.exclude:
+        print(f"即時執行排除的裁判:{len(app.state.live.exclude)} 件(檢索指令自己套用，不寫進 prompt)")
     avail = app.state.live.availability()
     print("即時執行:" + (f"已啟用(模型 {avail['model']},每次花費上限 {avail['budget_usd']:g} 美元)" if avail["enabled"]
                         else f"停用——{avail['reason']}"))
@@ -885,7 +888,7 @@ def cmd_judgment(args):
     if doc_date and (len(doc_date) != 8 or not doc_date.isdigit()):
         return fail('invalid_document_date', '--doc-date 須為 YYYYMMDD', 2)
     try:
-        excluded = exclusion_keys(getattr(args, 'exclude', None))
+        excluded = exclusion_keys(_exclusions(args))
     except ValueError as error:
         print(str(error), file=sys.stderr)
         return 2
@@ -976,7 +979,7 @@ def _list_citing_judgments(jid, args, log, snapshot):
     if not log:
         print(f"民國{TEXT_INDEX_FROM_YEAR}年以前的裁判官網沒有可讀全文，不能正式引用；{hint}。")
         return
-    exclude = getattr(args, 'exclude', None) or []
+    exclude = _exclusions(args)
     query = {'keywords': [keyword], 'pages': 1, 'sort': 'date', 'exclude': exclude, 'citing': jid}
     try:
         log.check_search()
@@ -1023,12 +1026,18 @@ MANY_RESULTS = 200
 SHARED_STATUTES_SHOWN = 10
 
 
+def _exclusions(args):
+    """這次檢索要排除的裁判:指令的 --exclude 加上伺服器設定的排除清單(環境變數,見 engine/judgment_search.py)。"""
+    from engine.judgment_search import env_exclusions
+    return list(dict.fromkeys((getattr(args, 'exclude', None) or []) + env_exclusions()))
+
+
 def cmd_search_judgments(args):
     from engine.judgment_search import NETWORK_ERRORS, search_judgments
     from engine.search_log import BudgetExceeded
     log = _search_log(args)
     query = {'keywords': args.kw or [], 'case_cause': args.title, 'date_from': args.date_from, 'date_to': args.date_to,
-             'pages': args.pages, 'fetch': args.fetch, 'sort': args.sort, 'exclude': getattr(args, 'exclude', None) or []}
+             'pages': args.pages, 'fetch': args.fetch, 'sort': args.sort, 'exclude': _exclusions(args)}
     if log:
         try:
             log.check_search()
@@ -1041,7 +1050,7 @@ def cmd_search_judgments(args):
                              pages=args.pages, fetch=args.fetch, include_rulings=args.include_rulings,
                              min_size_kb=args.min_size, sort=args.sort, save_dir=args.save_dir,
                              snapshot=_snapshot(args), max_live_fetches=log.remaining_fetches() if log else None,
-                             exclude=getattr(args, 'exclude', None) or ())
+                             exclude=_exclusions(args))
     except ValueError as error:
         print(str(error), file=sys.stderr)
         return 2
@@ -1435,6 +1444,8 @@ def main():
     p.add_argument("--no-browser", action="store_true", help="不自動開啟瀏覽器")
     p.add_argument("--model", help="即時執行使用的 Claude 模型(預設 claude-sonnet-5-5,主 agent 與 subagent 相同)")
     p.add_argument("--budget-usd", type=float, help="即時執行每次的花費上限(美元，預設 15)")
+    p.add_argument("--exclude", action="append",
+                   help="即時執行時所有檢索指令都不提供的裁判(字號或 JID,可重複;示範案的來源裁判,見案件檔的 demo_audit.exclude)")
     p.set_defaults(fn=cmd_serve)
 
     p = sub.add_parser("export-demo", help="匯出錄製紀錄 fixture 到 demo/")

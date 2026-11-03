@@ -34,6 +34,15 @@ def _check_date(value, label):
         raise ValueError(f"{label}須為 YYYY-MM-DD")
 
 
+# 伺服器設定的排除清單(main.py serve --exclude,示範案的來源裁判):live_run 設進 Claude Code 的環境變數,
+# 檢索指令自己併進 --exclude。模型看不到這份清單,規則文字也不列,免得提示哪一件是來源裁判。以「;」分隔。
+EXCLUDE_ENV = 'LEGALDEBATE_EXCLUDE'
+
+
+def env_exclusions(environ=None):
+    return [v.strip() for v in (environ if environ is not None else os.environ).get(EXCLUDE_ENV, '').split(';') if v.strip()]
+
+
 def exclusion_keys(values):
     """--exclude 的字號或 JID → {(年度, 字別, 號)}；不分文件日期。無法解析時拋 ValueError。"""
     keys = set()

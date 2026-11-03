@@ -86,7 +86,7 @@ class RunRequest(BaseModel):
     # 要產生的書狀，由使用者選擇以控制花費。完整流程省略時兩份都產；補產時必填
     documents: list[Literal["plaintiff", "defendant"]] | None = Field(default=None, min_length=1, max_length=2)
     # 書狀交換流程(protocol v2)的停止點:complaint=只跑到起訴狀 v1,停在關卡 1。省略=跑完全程(關卡 1 自動通過)
-    stop_after: Literal["complaint"] | None = None
+    stop_after: Literal["complaint", "answer", "issue_sheet"] | None = None
 
 
 class GateRequest(BaseModel):

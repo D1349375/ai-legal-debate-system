@@ -128,7 +128,8 @@ class TestStopAfter:
             record_case(s, case_id="old", case_type="t", facts_summary="舊流程案件事實", claims="c", created_via="ui")
         r = start(client, "old", stop_after="complaint")
         assert r.status_code == 409 and "書狀交換流程" in r.json()["detail"]
-        assert start(client, "old", stop_after="answer").status_code == 422
+        assert start(client, "old", stop_after="answer").status_code == 409  # 第 3 批:answer 是 v2 的停止點
+        assert start(client, "old", stop_after="closing").status_code == 422
 
     def test_v2_has_no_document_choice_or_step_9c(self, client):
         case_id = create_v2(client)
@@ -163,14 +164,15 @@ class TestGate:
         assert done["run"]["status"] == "succeeded", done["run"]["error"]
         assert done["run"]["resume_from"] == "被告防禦分析"
         prompt = (run_dir(tmp_path, done) / "prompt.txt").read_text(encoding="utf-8")
-        assert "本次是續跑" in prompt and f"#{cid}" in prompt and "legacy-v1.md Step 2" in prompt
-        assert "從 SKILL.md Step" not in prompt
+        # 第 3 批:關卡 1 之後照新流程從 SKILL.md Step 4 往下,不再借舊流程(審查 A1)
+        assert "本次是續跑" in prompt and f"#{cid}" in prompt and "從 SKILL.md Step 4" in prompt
+        assert "legacy-v1.md" not in prompt
         landed = json.loads((run_dir(tmp_path, done) / "landed.json").read_text(encoding="utf-8"))
         assert landed["confirmed_complaint"]["version_id"] == cid
         with get_session(db_url) as s:
             assert {(a.side, a.stage) for a in s.query(DebateArgument).filter_by(case_id=case_id)} == {
                 (side, n) for side in ("plaintiff", "defendant") for n in (1, 2, 3)}
-            assert s.query(PleadingDraft).filter_by(case_id=case_id, side="defendant").count() == 1
+            assert s.query(PleadingDraft).filter_by(case_id=case_id, side="defendant", pleading_type="answer").count() == 1
         assert complaint_id(db_url, case_id) == cid  # 起訴狀沒有重新落地
         assert stored_gates(db_url, case_id)["complaint"]["by"] == "ui"  # 續跑不會把律師確認改成自動
         assert client.get(f"/api/cases/{case_id}").json()["resume"]["possible"] is False
@@ -246,7 +248,7 @@ class TestGate:
         assert g["run_id"] == done["run"]["id"] and "未經律師確認" in g["note"]
         assert any("關卡 1 自動通過" in e["text"] for e in done["events"])
         with get_session(db_url) as s:
-            assert s.query(PleadingDraft).filter_by(case_id=case_id, side="defendant").count() == 1
+            assert s.query(PleadingDraft).filter_by(case_id=case_id, side="defendant", pleading_type="answer").count() == 1
         d = client.get(f"/api/cases/{case_id}").json()
         assert d["gates"]["complaint"]["by"] == "auto" and d["resume"]["possible"] is False
 
@@ -310,12 +312,12 @@ class TestPlanV2:
             assert plan["possible"] is False and plan["gate_pending"] is True
             record_gate(s, case_id="v", gate="complaint", version_id=cid, action="continue", by="ui")
             plan = live_run.resume_plan(s, "v")
-            assert plan["from_key"] == "defense" and plan["from_doc"] == "references/legacy-v1.md"
+            assert plan["from_key"] == "defense" and plan["from_doc"] == "SKILL.md" and plan["from_step"] == "Step 4"
             assert plan["landed"] == ["原告請求權基礎檢驗", "起訴狀 v1", "關卡 1(確認起訴狀 #%d)" % cid]
             record_argument(s, case_id="v", side="defendant", stage=1, position="p", reasoning="r")
-            assert live_run.resume_plan(s, "v")["from_key"] == "questions"
+            assert live_run.resume_plan(s, "v")["from_key"] == "answer"
             record_argument(s, case_id="v", side="plaintiff", stage=2, position="p", reasoning="r", falsifier="x")
-            plan = live_run.resume_plan(s, "v")  # 訊問沒落地，Stage 2 卻有：不猜
+            plan = live_run.resume_plan(s, "v")  # 答辯狀、爭點整理表沒落地，第 2 輪卻有：不猜
             assert plan["possible"] is False and "不連續" in plan["reason"]
 
     def test_complaint_without_analysis_is_a_gap(self, tmp_path):
@@ -333,10 +335,12 @@ class TestPlanV2:
             self.complaint(s)
             assert live_run.pipeline_missing(s, "v", stop_after="complaint") == []
             full = live_run.pipeline_missing(s, "v")
-            assert full[0] == "被告防禦分析" and full[-1] == "被告答辯狀"
+            assert full[0] == "被告防禦分析" and full[1] == "被告答辯狀" and full[-1] == "起訴狀 v2"
             assert "原告 Stage 1" not in full and "原告起訴狀骨架" not in full
+            # 第 3 批:完成判定看爭點整理表,不看 CourtQuestion(審查 A1)
+            assert "法官訊問" not in full and "爭點整理表" in full
             record_question(s, case_id="v", question_text="q", target_side="defendant", based_on="b")
-            assert "法官訊問" not in live_run.pipeline_missing(s, "v")
+            assert "爭點整理表" in live_run.pipeline_missing(s, "v")
 
     def test_gate_rules_in_db(self, tmp_path):
         with get_session(f"sqlite:///{tmp_path / 'p.db'}") as s:
