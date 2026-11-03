@@ -41,11 +41,12 @@
 - 2026-11-03 約 13:00–13:40(組員,Claude Code)。基準 `live-run-v2` `a75737f`,離線全套 813 通過、2 略過、13 未選。
 - 先寫 `tests/test_ui_v2_fixes.py`(15 項)再改程式;第一次跑 2 項失敗(匯出檔名、UI 文字),照預期。之後補 1 項(追問讀爭點整理表),**這一項是先改程式再寫測試**,沒有先看到紅燈;第一次寫的版本沒有商工查核、程序事項是空的,斷言空清單也會過,改成先記一筆「解散」的查核。
 - 兩次用 bash heredoc 寫 Python 改檔時字串裡的 `\n` 被換成真的換行(第 3 批也發生一次),改用 Edit 工具或先寫成檔再執行。
+- 第一次離線全套跑了 1 小時 45 分(電腦當時異常慢),**3 項失敗**:`test_answer_pleading.py` 2 項是 `subprocess.TimeoutExpired`(子程序 60 秒逾時),單獨重跑通過,不是本批造成;`test_brief.py` `test_cases_without_an_issue_sheet_are_not_checked` 斷言的正是本批要改掉的行為(v2 沒有爭點整理表照樣落地),改名為 `test_v2_cases_without_an_issue_sheet_are_refused`、預期改成拒絕落地。這是改既有測試的預期,原因是組長交辦的 W6 列。
 - 新增測試(16 項):`check-judge` 對 v2 評估擋新鍵、勝訴機率只警告、爭點整理表與看不懂的 JSON 回 2 不當掉;v2 沒有爭點整理表時 stage 2、3 拒絕落地、舊流程照常;`strongest_point_verbatim` 收、兩欄不同回 2;`finalize_case` 的 v2 不適用與舊流程不變;假 Claude 跑完全程的案件:回傳爭點整理表、進度照新步驟、起訴狀 v2 是自己的來源且匯出檔名 `_revision`、總覽原告書狀仍是 v1、引用清單差異不適用且一致;追問讀爭點整理表;`app.js` 有 v2 文字。
-- 改了的檔:`main.py`、`engine/summary_check.py`、`database/db.py`、`server/services.py`、`server/app.py`、`ui/app.js`、新測試檔、本文件。
+- 改了的檔:`tests/test_brief.py`(上一點)、`main.py`、`engine/summary_check.py`、`database/db.py`、`server/services.py`、`server/app.py`、`ui/app.js`、新測試檔、本文件。
 - 沒驗證:沒有 Claude 實跑;沒有斷網重播;舊錄製案只看了訴狀分頁的說明,其他分頁靠既有測試;程序事項畫面只用測試確認,瀏覽器那件案件沒有商工查核。
 
 ## 5. 測試數字
 
 - 基準:813 通過、2 略過(`a75737f`)。
-- 做完:見 commit 與回報。
+- 做完:重跑離線全套 **829 通過、2 略過、13 未選**(5 分 36 秒;多 16 項,都是 `test_ui_v2_fixes.py`)。
