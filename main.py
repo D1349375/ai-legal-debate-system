@@ -586,6 +586,7 @@ def cmd_issue_sheet(args):
         return 1
     text = render_issue_sheet(sheet, complaint_text=view["complaint"]["text"], evidence=view["evidence"])
     warnings = issue_sheet_warnings(sheet, responses=responses)
+    _print_attribution_warnings(_issue_sheet_attributions(sheet, attribution_sources(session, args.case_id)))
     if args.check:
         print(text)
         print("結構檢查通過")
@@ -604,6 +605,20 @@ def cmd_issue_sheet(args):
     for warning in warnings:
         print("警告:" + warning, file=sys.stderr)
     return 0
+
+
+def _issue_sheet_attributions(sheet, sources):
+    """W5-7:爭點整理表的轉述核對(T10)。訊問與闡明以 target_side 判斷「你方」是誰,其餘欄位只認明寫的原告、被告。"""
+    def asked(key, text_key):
+        items = sheet.get(key) if isinstance(sheet.get(key), list) else []
+        return [(i, text_key) for i in items if isinstance(i, dict)]
+    found = [item for text in strings_in({k: v for k, v in sheet.items() if k not in ("questions", "clarifications")})
+             for item in attribution_review(text, sources)]
+    for entry, text_key in asked("questions", "question_text") + asked("clarifications", "question"):
+        for field in (text_key, "based_on"):
+            if isinstance(entry.get(field), str):
+                found += attribution_review(entry[field], sources, entry.get("target_side"))
+    return found
 
 
 def _round_check(session, payload):
