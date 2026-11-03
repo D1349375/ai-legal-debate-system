@@ -71,7 +71,7 @@
 
 ### 結果
 
-- 最後測試:見下方「最後數字」。
+- 最後測試:`python -m pytest -q -m "not network" --basetemp <暫存>`,**780 通過、2 略過、13 未選**(`22e628a`;基準 719)。多出的 61 項:`main-finals-fixes` 帶進來的 T1–T6、T10 測試,第 1 批 9 項,本批新增 6 項(`test_issue_sheet_attribution.py` 3、`test_t7_merge.py` 3)。改了預期的既有測試:`test_live_run.py` 1 項(第 2 點)、`test_revision.py` 的 fixture(第 6 點,斷言沒改)。
 - T3、T4 量測在新分支的結果:**沒做**。v2 案件還沒有法官輸出(P3 以後沒接線),沒有東西可量;等 W5–W7 接線後的實跑再量(審查 T7-5)。
 - 改了的檔(合併以外):`references/legacy-v1.md`、`SKILL.md`(v2 Step 3、Step 10 各一句)、`server/live_run.py`(`build_prompt_v2` 第 4 點)、`main.py`(`_issue_sheet_attributions`)、`tests/test_gate.py`、`tests/test_live_run.py`(上面第 2 點)、新增 `tests/test_issue_sheet_attribution.py`、`tests/test_t7_merge.py`、本文件。
 - 沒做:`pleading-exchange-handoff.md`、`iteration-log.md`、`pleading-exchange-plan.md` 的 W0 列(第 5 點)由組長合併時一起更新;沒有另開埠用瀏覽器看舊案與 v2 案(第 3 批做完假 Claude 全程後一起看);連網測試沒跑。
