@@ -24,7 +24,7 @@
 - 準備題(`based_on` 以「準備清單」開頭,只有原告會收到):寫在它指的爭點段落裡,寫清楚要先向當事人確認什麼、要調閱什麼、對方真的提出時如何回應。不得寫成對方已經有,也不得寫成你方承認該事實存在。
 - 被告收到需要被告本人事實才答得出來的問題時,回答「此為事實問題,卷內未見,待確認」,對應的抗辯繼續保留。
 
-**對方引用判決的查核(硬性)**:對方書狀引用的每一個判決,先用 `python main.py judgment <字號> --snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH} --issue <爭點id>` 讀全文,確認案由、爭點與判決意旨是否真的支持對方的主張,再決定如何回應。查核發現不符時,這是應優先指出的攻擊點,具體引用該判決原文的案由與爭點。
+**對方引用判決的查核(硬性)**:對方書狀引用的每一個判決,先看書狀角色檔的 `complaint.precedents`、`answer.precedents`(落地時程式已比對全文的摘句與命題,以及獨立查證的實質核對結果 `review_supports`、`review_reason`),確認案由、爭點與判決意旨是否真的支持對方的主張,再決定如何回應。要爭執它的見解、核對結果看不出來,或你方也要引用它時,才用 `python main.py judgment <字號> --snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH} --issue <爭點id>` 讀全文。你方先前讀過全文的判決(讀時會先印出你方筆記),用 `--kw <關鍵詞>` 只看筆記與相關段落,不重讀全文。新讀全文、決定要引用時,用 `python main.py judgment <字號> --save-note --quote "<全文逐字原句>" --proposition "<這句支持的命題>" --snapshot {RETRIEVAL_CACHE_DIR}` 記下要用的原句與命題(程式會比對原句是不是全文逐字),之後的階段就不必重讀全文。查核發現不符時,這是應優先指出的攻擊點,具體引用該判決原文的案由與爭點。
 
 **檢索**:法條與判決只能用下列指令從官網或快取取得,每個檢索指令一律加 `--snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH}`,搜尋與讀全文另加 `--issue <爭點id>`(這兩個路徑是你這一方專用的,不得改用其他路徑,也不得用 Read、Grep、Glob 直接讀檢索快取或檢索紀錄):
 {RETRIEVAL_RULES}

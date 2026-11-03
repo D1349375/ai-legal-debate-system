@@ -60,6 +60,25 @@ def flatten(text):
     return re.sub(r'(?<=。)(?!$)', '\n', flat)
 
 
+def excerpt(text, keywords, context=1, limit=4000):
+    """→ (摘錄文字, 命中句數)。flatten 後含任一關鍵詞的句子,前後各帶 context 句;相連的合併,不相連的以「……」分開。
+    超過 limit 字截斷並註明。給已讀過全文的角色回頭查段落用,不是全文。"""
+    lines = flatten(text).split('\n')
+    words = [w for w in (_WHITESPACE.sub('', k) for k in keywords or []) if w]
+    hits = [i for i, line in enumerate(lines) if any(w in line for w in words)]
+    keep = sorted({j for i in hits for j in range(max(0, i - context), min(len(lines), i + context + 1))})
+    out, prev = [], None
+    for i in keep:
+        if prev is not None and i != prev + 1:
+            out.append('……')
+        out.append(lines[i])
+        prev = i
+    body = '\n'.join(out)
+    if len(body) > limit:
+        body = body[:limit] + '\n……(摘錄超過 ' + str(limit) + ' 字,已截斷;請換更精確的關鍵詞)'
+    return body, len(hits)
+
+
 def document_type(text):
     first = next((line.strip() for line in (text or '').splitlines() if line.strip()), '')
     m = re.search(r'(判決|裁定)', first)

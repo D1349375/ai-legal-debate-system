@@ -153,10 +153,36 @@ def defendant_view(session, case_id, complaint_id=None):
                 for e in json.loads(row.evidence_json or "[]") if e["id"] in used]
     checks = latest_party_checks(session, case_id)
     return {"role": "defendant", "case_id": case_id,
-            "complaint": {"id": complaint.id, "source": complaint.source or "system", "text": text},
+            "complaint": {"id": complaint.id, "source": complaint.source or "system", "text": text,
+                          "precedents": precedent_digest(json.loads(origin.structured_json or "{}"), text)},
             "fact_evidence": fact_evidence, "evidence": evidence,
             "opponent_known_responses": json.loads(row.opponent_responses_json or "[]"),
             "party_checks": checks, "procedural_issues": procedural_issues(checks)}
+
+
+def precedent_digest(structured, text):
+    """書狀引用判決的摘要:落地時程式比對過全文的摘句與命題(precedent_notes),加上獨立查證的實質核對結果
+    (citation_review)。只列正文還提到的判決(律師版刪掉的不列)。對方與法官先看這份,要爭執見解時才讀全文。"""
+    import re
+    from engine.verify import parse_citation
+
+    def key(citation):
+        parsed = parse_citation(citation or "")
+        return (parsed.get("jyear"), parsed.get("jcase"), parsed.get("jno")) if parsed["type"] == "judgment" else citation
+    flat = re.sub(r"\s+", "", text or "")
+    reviews = {key(r.get("citation")): r for r in structured.get("citation_review") or [] if isinstance(r, dict)}
+    digest = []
+    for note in structured.get("precedent_notes") or []:
+        if not isinstance(note, dict) or not note.get("citation"):
+            continue
+        parsed = parse_citation(note["citation"])
+        if parsed["type"] == "judgment" and f"{parsed.get('jcase')}字第{parsed.get('jno')}號" not in flat:
+            continue
+        review = reviews.get(key(note["citation"])) or {}
+        digest.append({"citation": note["citation"], "case_cause": note.get("case_cause"), "quote": note.get("quote"),
+                       "proposition": note.get("proposition"), "review_supports": review.get("supports"),
+                       "review_reason": review.get("reason")})
+    return digest
 
 
 def judge_role_view(session, case_id):
@@ -173,9 +199,11 @@ def judge_role_view(session, case_id):
     view = defendant_view(session, case_id, complaint_id=current["version_id"])
     structured = json.loads(answer.structured_json or "{}")
     sheet = issue_sheet(session, case_id)
+    answer_text = split_draft_note(answer.draft_text)[0]
     return {"role": "judge", "case_id": case_id, "complaint": view["complaint"],
-            "answer": {"id": answer.id, "text": split_draft_note(answer.draft_text)[0],
-                       "responses": structured.get("responses") or [], "defenses": structured.get("defenses") or []},
+            "answer": {"id": answer.id, "text": answer_text,
+                       "responses": structured.get("responses") or [], "defenses": structured.get("defenses") or [],
+                       "precedents": precedent_digest(structured, answer_text)},
             "evidence": view["evidence"], "party_checks": view["party_checks"],
             "procedural_issues": view["procedural_issues"], "issue_sheet": sheet["sheet"] if sheet else None}
 

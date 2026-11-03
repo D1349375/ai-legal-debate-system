@@ -3,7 +3,7 @@
 1. 用 Read 讀取原告角色檔:{ROLE_VIEW_PATH}。裡面有案件輸入(`case`:事實經過 `facts_summary`、證據清單 `evidence`、已知缺口 `known_gaps`)、商工查核、起訴審查事項 `procedural_issues`、現在的起訴狀 `complaint`(`draft_text` 是關卡 1 律師確認的那一版;還沒確認時是系統原稿;`source` 為 `lawyer` 代表律師編輯過),以及法官的診斷 `diagnosis`(`complaint_revisions` 修改建議、`evidence_todo` 待補證據、`fact_gaps` 事實缺口、`opponent_hypotheticals` 被告推測的事實、`issue_assessment` 爭點強弱)。
 2. 用 Read 讀取原告的請求權基礎分析(已濾掉內部檢討):{ANALYSIS_PATH}。
 3. 除了這兩份檔案,不要讀其他任何檔案。
-4. 這一步不檢索、不搜尋。要引用確認版沒有的判決,只能用原告先前已讀過全文的判決:用 `python main.py judgment <字號> --snapshot {RETRIEVAL_CACHE_DIR}` 從快照讀全文(不加 `--log`),摘句從全文逐字複製;快照沒有的判決不得引用。**下指令的方式**:一律用 Bash 工具,一次只執行一條 `python main.py ...`,不要 `cd`、不要用迴圈、`&&`、`;`、管線。
+4. 這一步不檢索、不搜尋。要引用確認版沒有的判決,只能用原告先前已讀過全文的判決:先用 `python main.py judgment <字號> --kw <關鍵詞> --snapshot {RETRIEVAL_CACHE_DIR}` 看原告先前記下的筆記與相關段落(不加 `--log`),筆記的原句可以直接當摘句;筆記與段落不夠時才不加 `--kw` 讀全文。摘句一律從全文逐字複製;快照沒有的判決不得引用。**下指令的方式**:一律用 Bash 工具,一次只執行一條 `python main.py ...`,不要 `cd`、不要用迴圈、`&&`、`;`、管線。
 
 改寫規則:
 - **以確認版為底稿**,逐一處理 `diagnosis.complaint_revisions`:`revise` 改寫該〔CF〕那一點事實的寫法;`add_alternative` 在 `claim_basis` 加一筆 `role: alternative` 的備位請求權基礎(法條要用 `article` 確認存在,沒有的建議不採用,理由寫進 `lawyer_notes`);`delete` 刪除不利的陳述。不採用某一則建議時,在 `lawyer_notes` 寫明是哪一則、為什麼。

@@ -206,3 +206,15 @@ def test_citations_in_the_public_text_must_be_listed(db_url, tmp_path):  # 2026-
     assert r.returncode == 1 and "民事訴訟法第255條" in r.stderr and "cited_statutes" in r.stderr
     r = run(db_url, tmp_path, payload=stage_payload(argument=marked, cited_statutes=["民法第478條", "民事訴訟法第255條第1項"]))
     assert r.returncode == 0, r.stderr
+
+
+def test_precedent_digest_merges_notes_and_reviews_for_judgments_still_in_the_text():  # 2026-11-03
+    from database.db import precedent_digest
+    structured = {"precedent_notes": [
+        {"citation": "最高法院106年度台上字第304號判決", "case_cause": "確認贈與關係不存在", "quote": "原句甲", "proposition": "命題甲"},
+        {"citation": "最高法院99年度台上字第1號判決", "case_cause": "x", "quote": "原句乙", "proposition": "命題乙"}],
+        "citation_review": [{"citation": "最高法院106年度台上字第304號", "supports": True, "reason": "理由末段"}]}
+    digest = precedent_digest(structured, "依最高法院106年度台上字第304號判決意旨……")  # 律師版刪掉了 99 台上 1
+    assert digest == [{"citation": "最高法院106年度台上字第304號判決", "case_cause": "確認贈與關係不存在", "quote": "原句甲",
+                       "proposition": "命題甲", "review_supports": True, "review_reason": "理由末段"}]
+    assert precedent_digest({}, "正文") == []

@@ -189,6 +189,33 @@ def mark_read(snapshot, jid):
         _write(_read_path(snapshot, jid), {'jid': jid, 'read_at': now_iso()})
 
 
+def has_read(snapshot, jid):
+    """本角色(--snapshot 是該方的快照資料夾)是否在本案用 judgment 讀過這份全文。"""
+    return bool(snapshot) and os.path.isfile(_read_path(snapshot, jid))
+
+
+def _note_path(base, jid):
+    return os.path.join(base, 'notes', _file_name(jid))
+
+
+def read_notes(snapshot, jid):
+    """本角色讀全文後記下的筆記(原句已由程式比對全文)。之後的階段先看筆記與段落摘錄,不必每個 subagent 重讀全文。"""
+    if not snapshot:
+        return []
+    path = _note_path(snapshot, jid)
+    if not os.path.isfile(path):
+        return []
+    with open(path, encoding='utf-8') as f:
+        return json.load(f).get('notes') or []
+
+
+def add_note(snapshot, jid, note):
+    """記一筆筆記;同一句原句再記時以新的命題取代。回傳這份判決的全部筆記。"""
+    notes = [n for n in read_notes(snapshot, jid) if n.get('quote') != note['quote']] + [{**note, 'saved_at': now_iso()}]
+    _write(_note_path(snapshot, jid), {'jid': jid, 'notes': notes})
+    return notes
+
+
 def read_by_side(snapshot, side, jid):
     """該方角色(以 --snapshot <快照根目錄>/<side> 讀取)是否在本案用 judgment 讀過這份全文。"""
     if side not in SNAPSHOT_SIDES:

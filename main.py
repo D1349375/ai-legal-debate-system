@@ -906,6 +906,8 @@ def cmd_judgment(args):
     from engine.search_log import BudgetExceeded
     from engine.verify import JUDGMENT_CITATION_RE, JUDGMENTS_DIR, _document_type
     snapshot, log = _snapshot(args), _search_log(args)
+    # 段落摘錄與記筆記(2026-11-03 加);直接組 Namespace 呼叫的舊程式沒有這些屬性
+    kw, save_note = getattr(args, 'kw', None), getattr(args, 'save_note', False)
     target = args.target.strip()
     doc_date = args.doc_date.replace('-', '').replace('/', '') if args.doc_date else None
     query = {'target': target, 'doc_date': doc_date}
@@ -965,11 +967,16 @@ def cmd_judgment(args):
         return code
     except retrieval_cache.RetrievalUnavailable as error:
         return fail('retrieval_unavailable', str(error))
+    if save_note:
+        return _save_judgment_note(args, snapshot, jid, entry)
+    if kw:
+        query['kw'] = kw  # 段落摘錄:紀錄照記(預算照算),但不算讀過全文
     if log:
         log.append('judgment', query, 'found', hits=1, fetched=[{'jid': jid, 'served_from': entry['served_from']}],
                    issue=args.issue)
-    retrieval_cache.mark_read(snapshot, jid)
-    if args.json:
+    if not kw:
+        retrieval_cache.mark_read(snapshot, jid)
+    if args.json and not kw:
         print(json.dumps({**entry, 'flat_text': judgment_text.flatten(entry['text'])}, ensure_ascii=False, indent=2))
         return 0
     parts = jid.split(',')
@@ -981,8 +988,50 @@ def cmd_judgment(args):
         print('警示：不是最高法院民事字號（TPSV），查證引擎不支援，不可正式引用。')
     if log:
         print(log.summary())
+    notes = retrieval_cache.read_notes(snapshot, jid)
+    if notes:
+        print()
+        print(f"本方筆記 {len(notes)} 筆(讀全文時記下,原句已比對全文):")
+        for n in notes:
+            print(f"- 原句:{n['quote']}")
+            print(f"  命題:{n['proposition']}" + (f"(爭點 {n['issue']})" if n.get('issue') else ""))
     print()
+    if kw:
+        body, hits = judgment_text.excerpt(entry['text'], kw, context=getattr(args, 'context', 1))
+        read = retrieval_cache.has_read(snapshot, jid)
+        print(f"段落摘錄(關鍵詞 {'、'.join(kw)},命中 {hits} 句,前後各 {getattr(args, 'context', 1)} 句)。這不是全文,不算讀過全文;"
+              + ("本方在本案已讀過全文,可正式引用。" if read else
+                 "本方在本案還沒讀過全文:要正式引用這份判決,先不加 --kw 讀全文,否則查證回 not_read_by_side。"))
+        print(body or "(沒有命中的句子;換關鍵詞,或不加 --kw 讀全文)")
+        return 0
     print(judgment_text.flatten(entry['text']))
+    print()
+    print("要正式引用這份判決時,把要用的原句與命題記下(之後的階段可以先看筆記與段落摘錄,不必重讀全文):"
+          "python main.py judgment <字號> --save-note --quote \"<全文逐字原句>\" --proposition \"<支持的命題>\" "
+          "[--issue <爭點id>] 並帶同樣的 --snapshot")
+    return 0
+
+
+def _save_judgment_note(args, snapshot, jid, entry):
+    """judgment --save-note:記下本方要用的原句與命題。原句要是全文逐字子字串(同 verify 的摘句比對,只忽略空白),
+    而且本方要已用 judgment 讀過全文;筆記存在本方快照,對造讀不到。"""
+    from engine import retrieval_cache
+    if not snapshot:
+        print("--save-note 要帶本方的 --snapshot(筆記存在本方快照)", file=sys.stderr)
+        return 2
+    if not getattr(args, 'quote', None) or not getattr(args, 'proposition', None):
+        print("--save-note 要同時給 --quote(全文逐字原句)與 --proposition(這句支持的命題)", file=sys.stderr)
+        return 2
+    if not retrieval_cache.has_read(snapshot, jid):
+        print("本方在本案還沒讀過這份判決的全文:先不加 --kw 讀全文,再記筆記", file=sys.stderr)
+        return 1
+    normalize = lambda text: re.sub(r'\s+', '', text or '')
+    if normalize(args.quote) not in normalize(entry['text']):
+        print("quote_not_found:原句不是這份判決全文的逐字子字串(只容許空白不同),請從全文重新複製", file=sys.stderr)
+        return 1
+    notes = retrieval_cache.add_note(snapshot, jid, {'quote': args.quote.strip(), 'proposition': args.proposition.strip(),
+                                                      'issue': args.issue})
+    print(f"已記下筆記(這份判決共 {len(notes)} 筆)")
     return 0
 
 
@@ -1528,6 +1577,12 @@ def main():
     p.add_argument("target", help="例如：111年度台上字第1069號、最高法院111年度台上字第1069號，或 JID")
     p.add_argument("--doc-date", help="同字號多份文件時指定裁判日期 YYYYMMDD")
     p.add_argument("--json", action="store_true", help="輸出結構化結果(含原文與去換行版)")
+    p.add_argument("--kw", action="append",
+                   help="只印含這個關鍵詞的句子與前後文(可重複);段落摘錄不算讀過全文,給已讀過全文的角色回頭查")
+    p.add_argument("--context", type=int, default=1, help="段落摘錄時命中句前後各帶幾句(預設 1)")
+    p.add_argument("--save-note", action="store_true", help="記下本方要用的原句與命題(要已讀過全文,原句由程式比對)")
+    p.add_argument("--quote", help="--save-note 的全文逐字原句")
+    p.add_argument("--proposition", help="--save-note 的命題:這句支持什麼")
     _retrieval_options(p, judgments=True)
     p.set_defaults(fn=cmd_judgment)
 

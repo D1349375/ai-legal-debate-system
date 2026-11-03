@@ -123,7 +123,9 @@ def test_p2_analysis_searches_and_the_answer_reads():
     # 同 P1：防禦分析交不出摘句，起訴狀引用的判決與要引用的判決都留給答辯狀撰狀讀
     p2 = retrieval_rules.build("p2")["text"]
     assert "分析只搜不讀全文" in p2 and "待撰狀讀全文" in p2
-    assert "撰狀用 judgment 依字號讀起訴狀引用的每一份判決" in p2 and "分析不做這一步" in p2
+    assert "撰狀用 judgment 讀要引用的判決全文" in p2 and "分析不做這一步" in p2
+    # 2026-11-03:起訴狀引用的判決先看角色檔的摘要(已比對全文、已獨立核對),要爭執見解時才讀全文;讀完記筆記
+    assert "complaint.precedents" in p2 and "--save-note" in p2 and "--kw" in p2
     assert "防禦分析與答辯狀撰狀共用同一個紀錄檔與預算" in p2
 
 
@@ -134,3 +136,16 @@ def test_search_phases_explain_how_to_use_old_precedents():
     # 法官不搜尋，只知道舊裁判沒有全文
     p3 = retrieval_rules.build("p3")["text"]
     assert "民國85年以前的裁判一律沒有全文" in p3 and "search-judgments --kw 73年" not in p3
+
+
+def test_v2_rounds_reuse_reads_and_the_judge_reads_excerpts():  # 2026-11-03:重複讀全文
+    for phase in ("p4", "p5"):
+        text = retrieval_rules.build(phase, side="plaintiff", case_dir="database/live_runs/case-x")["text"]
+        assert "--kw <關鍵詞>" in text and "--save-note" in text and "不重讀全文" in text
+    p4 = retrieval_rules.build("p4")["text"]
+    assert "precedents" in p4 and "優先用 judgment 讀對方書狀引用的判決" not in p4
+    for phase in ("p3", "p6"):
+        text = retrieval_rules.build(phase)["text"]
+        assert "看相關段落" in text and "段落不足以判斷時才讀" in text
+    # 舊流程(現行三輪)照舊
+    assert "--save-note" not in retrieval_rules.build("stage2")["text"]

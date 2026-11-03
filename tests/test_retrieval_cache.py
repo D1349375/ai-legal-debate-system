@@ -365,3 +365,39 @@ def test_retrieval_commands_ignore_the_case_root_env(fjud_calls, tmp_path, monke
     args = argparse.Namespace(target=JID, doc_date=None, json=True, snapshot=None, log=None, issue=None)
     assert main.cmd_judgment(args) == 0
     assert not (root / "judgments").exists()
+
+
+def judgment_args(snapshot, **over):
+    import argparse
+    base = dict(target=JID, doc_date=None, json=False, snapshot=snapshot, log=None, issue=None, kw=None, context=1,
+                save_note=False, quote=None, proposition=None)
+    return argparse.Namespace(**{**base, **over})
+
+
+def test_excerpt_is_not_a_read_and_notes_are_reused(fjud_calls, tmp_path, capsys):
+    """2026-11-03:同一份判決被不同 subagent 重複讀全文。段落摘錄不算讀過全文;讀過全文才能記筆記,原句要是全文逐字;
+    之後讀同一份(全文或摘錄)先印本方筆記。"""
+    import main
+    root = tmp_path / "case-snap"
+    side = str(root / "plaintiff")
+    assert main.cmd_judgment(judgment_args(side, kw=["締約上過失"])) == 0
+    out = capsys.readouterr().out
+    assert "不算讀過全文" in out and "還沒讀過全文" in out and "以契約未成立為前提" in out
+    assert not retrieval_cache.has_read(side, JID)
+    assert verify.verify_citations([CITATION], precedent_notes=[NOTE], snapshot=str(root), read_by="plaintiff")[0]["status"] \
+        == "not_read_by_side"
+    # 沒讀過全文不能記筆記
+    assert main.cmd_judgment(judgment_args(side, save_note=True, quote="以契約未成立為前提", proposition="p")) == 1
+    assert main.cmd_judgment(judgment_args(side)) == 0
+    assert retrieval_cache.has_read(side, JID)
+    capsys.readouterr()
+    # 原句要是全文逐字(只容許空白不同)
+    assert main.cmd_judgment(judgment_args(side, save_note=True, quote="以契約已成立為前提", proposition="p")) == 1
+    assert main.cmd_judgment(judgment_args(side, save_note=True, quote="以契約未成立 為前提", proposition="締約上過失的前提",
+                                           issue="I1")) == 0
+    capsys.readouterr()
+    assert main.cmd_judgment(judgment_args(side, kw=["締約"])) == 0
+    out = capsys.readouterr().out
+    assert "本方筆記 1 筆" in out and "締約上過失的前提" in out and "已讀過全文" in out
+    # 筆記存在本方快照,對造讀不到
+    assert retrieval_cache.read_notes(str(root / "defendant"), JID) == []

@@ -3,7 +3,7 @@
 1. 用 Read 讀取被告角色檔:{ROLE_VIEW_PATH}(起訴狀全文 `complaint.text`、每點事實附的證據 `fact_evidence`、證據描述 `evidence`、被告起訴前說過的話 `opponent_known_responses`、商工查核、起訴審查事項)。
 2. 用 Read 讀取被告的防禦分析(已濾掉內部檢討):{ANALYSIS_PATH}。答辯狀以這份分析的抗辯為準,不另開新的抗辯路徑。
 3. 除了這兩份檔案,不要讀執行資料夾或其他位置的任何檔案(案件輸入檔、原告的分析都不是給你的)。
-4. 正式引用判決前,要用 `python main.py judgment <字號> --snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH}` 讀過全文,摘句從全文逐字複製。只讀分析已列的判決與起訴狀引用的判決,不另外搜尋。不得用 Read、Grep、Glob 直接讀檢索快取或檢索紀錄。**下指令的方式**:一律用 Bash 工具,一次只執行一條 `python main.py ...`,把 `--snapshot`、`--log` 的完整路徑直接寫在這條指令裡。不要 `cd`、不要設 shell 變數、不要用迴圈、`&&`、`;`、管線,也不要換用其他 shell 工具——無人值守執行只允許單一 `python main.py` 指令,其餘都會被拒。被拒時改成單一指令重試,不得因此放棄檢索;真的查不到才寫「待確認」。
+4. 正式引用判決前,要用 `python main.py judgment <字號> --snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH}` 讀過全文,摘句從全文逐字複製。讀完全文、決定要引用時,用 `python main.py judgment <字號> --save-note --quote "<全文逐字原句>" --proposition "<這句支持的命題>" --snapshot {RETRIEVAL_CACHE_DIR}` 記下要用的原句與命題(程式會比對原句是不是全文逐字),之後的階段就不必重讀全文。起訴狀引用的判決,先看角色檔 `complaint.precedents`(落地時已比對全文的摘句、命題與獨立核對結果);只有要爭執它的見解、或自己也要引用時才讀全文。只讀分析已列的判決與起訴狀引用的判決,不另外搜尋。不得用 Read、Grep、Glob 直接讀檢索快取或檢索紀錄。**下指令的方式**:一律用 Bash 工具,一次只執行一條 `python main.py ...`,把 `--snapshot`、`--log` 的完整路徑直接寫在這條指令裡。不要 `cd`、不要設 shell 變數、不要用迴圈、`&&`、`;`、管線,也不要換用其他 shell 工具——無人值守執行只允許單一 `python main.py` 指令,其餘都會被拒。被拒時改成單一指令重試,不得因此放棄檢索;真的查不到才寫「待確認」。
 
 以下是檢索規則(撰狀只用其中讀全文與讀條文的指令):
 {RETRIEVAL_RULES}

@@ -2,7 +2,7 @@
 
 1. 用 Read 讀取原告角色檔:{ROLE_VIEW_PATH}(案件輸入、證據清單、商工查核、起訴審查事項、起訴前檢查)。
 2. 用 Read 讀取原告的請求權基礎分析(已濾掉內部檢討):{ANALYSIS_PATH}。起訴狀以這份分析選定的請求權基礎為準,不另開新的請求權基礎。
-3. 正式引用判決前,要用 `python main.py judgment <字號> --snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH}` 讀過全文,摘句從全文逐字複製。只讀分析已列的判決,不另外搜尋。不得用 Read、Grep、Glob 直接讀檢索快取或檢索紀錄。**下指令的方式**:一律用 Bash 工具,一次只執行一條 `python main.py ...`,把 `--snapshot`、`--log` 的完整路徑直接寫在這條指令裡。不要 `cd`、不要設 shell 變數、不要用迴圈、`&&`、`;`、管線,也不要換用其他 shell 工具——無人值守執行只允許單一 `python main.py` 指令,其餘都會被拒。被拒時改成單一指令重試,不得因此放棄檢索;真的查不到才寫「待確認」。
+3. 正式引用判決前,要用 `python main.py judgment <字號> --snapshot {RETRIEVAL_CACHE_DIR} --log {SEARCH_LOG_PATH}` 讀過全文,摘句從全文逐字複製。讀完全文、決定要引用時,用 `python main.py judgment <字號> --save-note --quote "<全文逐字原句>" --proposition "<這句支持的命題>" --snapshot {RETRIEVAL_CACHE_DIR}` 記下要用的原句與命題(程式會比對原句是不是全文逐字),之後的階段就不必重讀全文。只讀分析已列的判決,不另外搜尋。不得用 Read、Grep、Glob 直接讀檢索快取或檢索紀錄。**下指令的方式**:一律用 Bash 工具,一次只執行一條 `python main.py ...`,把 `--snapshot`、`--log` 的完整路徑直接寫在這條指令裡。不要 `cd`、不要設 shell 變數、不要用迴圈、`&&`、`;`、管線,也不要換用其他 shell 工具——無人值守執行只允許單一 `python main.py` 指令,其餘都會被拒。被拒時改成單一指令重試,不得因此放棄檢索;真的查不到才寫「待確認」。
 
 撰狀規則:
 - **事實點(fact_points)**:把起訴要主張的事實拆成一點一點,編號 CF1、CF2…。每一點都要有 `evidence_ids`(只能用角色檔 `case.evidence` 裡存在的甲證編號),或 `statement_quote`(從 `case.facts_summary` 逐字複製的一段原文,一個字都不能改,只有空白可以不同)。兩者都對不到的事實不寫進 fact_points,改寫進 `fact_gaps`。事實點的 `text` 不要自己加〔CF〕標記,程式會加。

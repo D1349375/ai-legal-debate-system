@@ -31,7 +31,7 @@
 
 **程式會硬擋、退回給你重寫的規則**(逐條照做,最多退回 2 次):`issue_assessment` 每個爭點恰好一筆、`issue_id` 要在爭點整理表、`strength` 只能是強中弱、`reason` 不可空白;`evidence_todo` 的 `issue_id` 是爭點編號或「官方事實層(<id>)」,`missing`、`why` 不可空白;`complaint_revisions` 的 `kind` 只能是三種之一、`revise` 一定要有 `fact_id`、`fact_id` 要在起訴狀、`suggestion` 不可空白;`fact_gaps`、`opponent_hypotheticals` 是字串陣列;第249條與115台抗105 不得同括號;自承類用語要緊接引述原句。
 
-**引用紀律**:`citations_used` 列你在本階段實際引用的全部法條與判決(標準格式:「OO法第N條」「最高法院N年度台上字第N號」),每一項只能是純粹的引用字串。判決只能引用雙方已引用、你用 `judgment` 讀過全文的;查證會逐條核對,沒通過就不能落地。
+**引用紀律**:`citations_used` 列你在本階段實際引用的全部法條與判決(標準格式:「OO法第N條」「最高法院N年度台上字第N號」),每一項只能是純粹的引用字串。判決只能引用雙方已引用的;查證會逐條核對,沒通過就不能落地。雙方起訴狀、答辯狀引用的判決,角色檔 `precedents` 已有摘句與獨立核對結果,直接用;其他判決用 `python main.py judgment <字號> --kw <關鍵詞>` 看相關段落,段落不足以判斷時才讀全文。
 
 收到「未通過」或「拒絕落地」的原因時,只修改被點名的地方,重寫整份 {OUTPUT_PATH}。
 

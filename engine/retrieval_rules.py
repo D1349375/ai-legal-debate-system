@@ -20,6 +20,12 @@ ARTICLE_STEP = "用 article 讀選定請求權基礎的現行條文"
 SEARCH_STEP = ("用 search-judgments 以「法條＋要件詞」搜（例如 --kw 民法第184條 --kw 相當因果關係）；官網沒有相似案件搜尋與"
                "相關度排序，要靠要件詞縮小範圍。加 --fetch 時看輸出最後「常一起引用的法條」，檢查有沒有漏掉該一起主張的補充性法條")
 READ_STEP = "用 judgment 讀要引用的判決全文"
+# 書狀交換流程:同一份判決常被不同 subagent 重複讀全文(2026-11-03 實跑一次 28 次、只有 11 份不同)。讀過全文就記筆記,
+# 之後看筆記與段落摘錄;「本案讀過」一次就夠正式引用(verify --read-by 不分階段)
+READ_NOTE_STEP = "用 judgment 讀要引用、本方還沒讀過全文的判決，讀完用 --save-note 記下要用的原句與命題"
+REUSE_STEP = ("本方先前讀過全文的判決，用 judgment <字號> --kw <關鍵詞> 只看本方筆記與相關段落，不重讀全文"
+              "（本方在本案讀過全文就可以正式引用）")
+V2_NOTE_PHASES = ('p1', 'p2', 'p4', 'p5')  # 指令清單多列段落摘錄與記筆記
 
 # 需要檢索的階段：sides 為可執行的角色(給 --side 時檢查)，issue 為是否每次都要加 --issue
 SEARCH_RULES = {
@@ -28,27 +34,27 @@ SEARCH_RULES = {
                       "列出但不打算主張的候選請求權基礎只用 article 讀條文，不搜判決",
                       "P1 的分析與撰狀共用同一個紀錄檔與預算。分析只搜不讀全文：候選判決的字號寫在公開論證，標「待撰狀讀全文」；"
                       "每個 subagent 讀的全文都留在自己的上下文，分析讀了也交不出摘句，撰狀還要重讀"],
-           'steps': [TOP_DOWN, ARTICLE_STEP, SEARCH_STEP, "撰狀用 judgment 讀要引用的判決全文（分析不做這一步）"]},
+           'steps': [TOP_DOWN, ARTICLE_STEP, SEARCH_STEP, "撰狀用 judgment 讀要引用的判決全文，讀完用 --save-note 記下要用的原句與命題（分析不做這一步）"]},
     'p2': {'sides': ('defendant',), 'mode': '主要檢索', 'issue': False,
            'target': ["起訴狀的請求權基礎與被告的抗辯（例如清償、抵銷、時效）",
-                      "起訴狀引用的判決：由撰狀依字號用 judgment 讀（快照或快取已有的不計預算）",
+                      "起訴狀引用的判決：先看角色檔 complaint.precedents 的摘句、命題與核對結果；"
+                      "要爭執它的見解或自己也要引用時，撰狀才依字號用 judgment 讀全文",
                       "P2 的防禦分析與答辯狀撰狀共用同一個紀錄檔與預算（擴充的答辯劇本也是）。分析只搜不讀全文："
                       "要攻擊的起訴狀判決與搜到的候選判決，字號寫在公開論證，標「待撰狀讀全文」；"
                       "每個 subagent 讀的全文都留在自己的上下文，分析讀了也交不出摘句，撰狀還要重讀"],
            'steps': ["用 article 讀起訴狀的請求權基礎與抗辯所依據的現行條文",
                      SEARCH_STEP.replace("相當因果關係）", "相當因果關係），只搜有爭議的要件與抗辯"),
-                     "撰狀用 judgment 依字號讀起訴狀引用的每一份判決，以及要引用的判決全文（分析不做這一步）"]},
+                     "撰狀用 judgment 讀要引用的判決全文，讀完用 --save-note 記下要用的原句與命題（分析不做這一步）"]},
     'p4': {'sides': SIDES, 'mode': '補充檢索', 'issue': True,
            'target': ["依爭點整理表的爭點補充，每次 search-judgments、judgment 都加 --issue <爭點id>",
-                      "優先用 judgment 讀對方書狀引用的判決",
+                      "對方書狀引用的判決先看書狀角色檔的 precedents（摘句已比對全文、已獨立核對）；"
+                      "要爭執它的見解或自己也要引用時，才用 judgment 讀全文",
                       "要改用或追加請求權基礎時，須先在書狀標記民事訴訟法第255條（訴之變更、追加），標記後才可為它新搜判決"],
-           'steps': ["用 judgment 讀對方書狀引用、與本爭點有關的判決", ARTICLE_STEP.replace("選定請求權基礎", "本爭點涉及"),
-                     SEARCH_STEP, READ_STEP]},
+           'steps': [REUSE_STEP, ARTICLE_STEP.replace("選定請求權基礎", "本爭點涉及"), SEARCH_STEP, READ_NOTE_STEP]},
     'p5': {'sides': SIDES, 'mode': '少量檢索', 'issue': True,
            'target': ["只深化既有爭點，每次 search-judgments、judgment 都加 --issue <爭點id>",
                       "不新增請求權基礎（這是系統為了收斂而設的限制，不是法律禁止引用新法條）"],
-           'steps': ["先用已讀過的判決與條文（judgment、article 讀快照或快取不計預算）",
-                     "仍不足時才用 search-judgments 補搜既有爭點的要件", READ_STEP]},
+           'steps': [REUSE_STEP, "仍不足時才用 search-judgments 補搜既有爭點的要件", READ_NOTE_STEP]},
     'stage1': {'sides': SIDES, 'mode': '主要檢索（現行三輪，相容用）', 'issue': False,
                'target': ["本方的請求權基礎或抗辯所依據的條文與判決"],
                'steps': [TOP_DOWN, ARTICLE_STEP, SEARCH_STEP, READ_STEP]},
@@ -146,6 +152,9 @@ def _search_text(code, side, paths, exclude):
         f"- 搜判決：python main.py search-judgments --kw <法條> --kw <要件詞> [--fetch <份數>] [--title <案由>] "
         f"--snapshot {snapshot} --log {log}{issue}",
         f"- 讀判決全文：python main.py judgment <字號> [--doc-date YYYYMMDD] --snapshot {snapshot} --log {log}{issue}",
+        *([f"- 看筆記與相關段落（不算讀過全文）：python main.py judgment <字號> --kw <關鍵詞> --snapshot {snapshot} --log {log}{issue}",
+           f"- 記筆記（讀過全文後）：python main.py judgment <字號> --save-note --quote \"<全文逐字原句>\" "
+           f"--proposition \"<支持的命題>\" --snapshot {snapshot}{issue}"] if code in V2_NOTE_PHASES else []),
         "", "引用：", *_bullets(WHEN_TO_CITE),
         "", "檢索失敗時：", *_bullets(ON_FAILURE),
         "", "禁止：", *_bullets(FORBIDDEN + ["不得使用對造的快照資料夾或紀錄檔"]),
@@ -167,8 +176,10 @@ def _no_search_text(code, paths, exclude):
                   "- 只有 published 放行；network_error（官網無法連線）與 full_text_unavailable（官網頁面無法辨認）"
                   "都不代表查無或引用寫錯，照實回報，不得改判為 published"]
     else:
-        lines += [f"- 讀判決全文：python main.py judgment <字號> [--doc-date YYYYMMDD]{_exclude_args(exclude)}"
-                  "（讀雙方已引用的判決；不加 --snapshot、--log）",
+        lines += [f"- 看相關段落：python main.py judgment <字號> --kw <關鍵詞>{_exclude_args(exclude)}"
+                  "（只印含關鍵詞的句子與前後文；雙方起訴狀、答辯狀引用的判決，角色檔 precedents 已有摘句與核對結果）",
+                  f"- 讀判決全文：python main.py judgment <字號> [--doc-date YYYYMMDD]{_exclude_args(exclude)}"
+                  "（段落不足以判斷時才讀；不加 --snapshot、--log）",
                   "- 讀條文：python main.py article <法規名稱> <條號>"]
         if code == 'p6':
             lines += ["", "診斷：",
