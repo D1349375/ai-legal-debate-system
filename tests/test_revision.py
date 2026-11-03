@@ -96,7 +96,7 @@ def risk_map(**over):
 
 def verdict(rm=None, **over):
     v = {"verdict_main_text": "借貸合意爭點中等,建議補強書面證據。", "verdict_analysis": "爭點一中等;爭點二弱。",
-         "risk_map": risk_map() if rm is None else rm, "mechanical_anchor_json": {}, "citations_used": []}
+         "risk_map": risk_map() if rm is None else rm, "citations_used": []}  # T2 起機械彙整由 main.py verdict 重算
     v.update(over)
     return v
 
@@ -442,9 +442,19 @@ def stored_verdict(db_url, case_id="v2"):
         return s.query(Verdict).filter_by(case_id=case_id).one_or_none()
 
 
+def add_rounds(db_url, case_id="v2", *, stage1=False):
+    """T7 合併後 main.py verdict 會自己跑 finalize(T2),評估之前雙方要有 stage 3,和實際流程一樣。"""
+    with get_session(db_url) as s:
+        for stage in ((1, 2, 3) if stage1 else (2, 3)):
+            for side in ("plaintiff", "defendant"):
+                record_argument(s, case_id=case_id, side=side, stage=stage, position=f"{side} s{stage}",
+                                reasoning="推理", falsifier="若對方補證則讓步" if stage > 1 else None)
+
+
 class TestVerdictCommand:
     def test_v2_with_issue_sheet_checks_new_keys(self, db_url, tmp_path):
         build_case(db_url, verdict_landed=False)
+        add_rounds(db_url)
         bad = risk_map()
         del bad["issue_assessment"]
         r = land_verdict(tmp_path, db_url, verdict(bad))
@@ -458,6 +468,7 @@ class TestVerdictCommand:
 
     def test_v2_without_issue_sheet_is_not_blocked(self, db_url, tmp_path):
         build_case(db_url, sheet=False, verdict_landed=False)
+        add_rounds(db_url)
         old_style = {"對原告不利之處": ["x"], "對被告不利之處": ["y"], "建議補強證據": ["z"]}
         r = land_verdict(tmp_path, db_url, verdict(old_style))
         assert r.returncode == 0, r.stderr
@@ -465,6 +476,7 @@ class TestVerdictCommand:
 
     def test_win_probability_only_warns(self, db_url, tmp_path):  # T7.4
         build_case(db_url, verdict_landed=False)
+        add_rounds(db_url)
         r = land_verdict(tmp_path, db_url, verdict(verdict_main_text="原告勝訴機率約七成。"))
         assert r.returncode == 0, r.stderr
         assert "警告" in r.stderr and "勝訴機率" in r.stderr
@@ -474,6 +486,7 @@ class TestVerdictCommand:
         import main
         with get_session(db_url) as s:
             record_case(s, case_id="old", case_type="消費借貸", facts_summary="借款未還", claims="返還借款")
+        add_rounds(db_url, "old", stage1=True)
         old_style = {"對原告不利之處": ["x"], "對被告不利之處": ["y"], "建議補強證據": ["z"]}
         r = land_verdict(tmp_path, db_url, verdict(old_style, verdict_main_text="原告勝訴機率約七成。"), case_id="old")
         assert r.returncode == 0 and r.stderr == ""
