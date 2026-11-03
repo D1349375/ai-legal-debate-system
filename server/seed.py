@@ -20,10 +20,12 @@ LIVE_CHECKS_PATH = os.path.join(DEMO_DIR, "recorded_live_checks.json")
 PARTY_CHECKS_PATH = os.path.join(DEMO_DIR, "recorded_party_checks.json")
 
 # 匯出/匯入順序即資料表順序；court_questions 依原始 id 排序以保留訊問先後
+# party_checks 也要跟著案件走:斷網重播時起訴審查卡片讀的是案件最新的商工查核(V39、W8-5);
+# 依 id 順序匯入，「每方最新一筆」不變。recorded_party_checks.json 仍另存，供重新查核時的錄製回退
 _TABLES = (
     ("cases", Case), ("debate_arguments", DebateArgument), ("court_questions", CourtQuestion),
     ("verdicts", Verdict), ("citation_verifications", CitationVerification),
-    ("pleading_drafts", PleadingDraft),
+    ("pleading_drafts", PleadingDraft), ("party_checks", PartyCheck),
 )
 
 
@@ -47,7 +49,7 @@ def orphan_rows(session):
     """→ {表名: {case_id: 筆數}}:case_id 不在 cases 表的列(例如作廢那次實跑的殘留)。只列出，不刪。"""
     case_ids = _case_ids(session)
     found = {}
-    for name, model in _TABLES + (("party_checks", PartyCheck),):
+    for name, model in _TABLES:
         if name == "cases" or not hasattr(model, "case_id"):
             continue
         for row in session.query(model).order_by(model.id).all():

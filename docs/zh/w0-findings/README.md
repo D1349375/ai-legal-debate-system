@@ -125,6 +125,7 @@ W0 依手冊判準通過(全部落地、V35 不成立 0、分類器中止 0)。�
 | 11 | [T10 法官轉述核對](T10-attribution-review.md) | C1 V35 邊界 | `main-finals-fixes` | Codex | 是(C3) |
 | 12 | [T11 受挫評估移進內部檢討段落](T11-public-self-review-template.md) | C1 T4 漏報 | `main-finals-fixes` | Codex | 是(C3) |
 | 13 | C3 修正後重跑(T10、T11) | T10、T11 | `main-finals-fixes` | Claude | 是,約 16 分鐘 |
+| 14 | [重播帶商工查核、評估理由重複用語](mff-small-fixes.md) | V39、W8-5 | `mff-small-fixes` | 組員(Claude Code) | 否 |
 
 - T1–T6 互不依賴,但都改 `main.py` 或 `server/`,**照順序一次做一項**,每項檢核通過、commit 之後才開下一項,避免兩項改動混在同一個工作目錄分不開。
 - W2 不必等 T8、T9。T7 合併完成後 W2 就能在 `pleading-exchange` 繼續。
