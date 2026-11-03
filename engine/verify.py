@@ -51,8 +51,27 @@ STATUTE_PCODES = {
 # (兩者是完全不同的條文，前者為汽車駕駛人責任，後者為工作物所有人責任)，卻回傳 published，
 # 是比查不到更危險的靜默誤判。法規全文資料庫(law.moj.gov.tw)的 flno 參數對子條文採「N-M」格式
 # (如 flno=191-2)，故子條文號需轉換後才能查對正確條文。
-_ARTICLE_REF_RE = re.compile(r'第\s*([0-9]+(?:-[0-9]+)?)\s*條(?:\s*之\s*([0-9]+))?')
+# 判決書多用國字條號(「民法第一百二十七條」)。判例摘句要從全文逐字複製,國字條號就會進到書狀正文;
+# 2026-11-03 實跑四份書狀因此被標 unparseable、不能匯出。國字條號換成阿拉伯數字再查(flno 用阿拉伯數字)。
+_CN_NUM = '零〇一二兩三四五六七八九十百千'
+_ARTICLE_REF_RE = re.compile(rf'第\s*([0-9]+(?:-[0-9]+)?|[{_CN_NUM}]+)\s*條(?:\s*之\s*([0-9]+|[{_CN_NUM}]+))?')
 _NAME_WINDOW = 40
+
+
+def _arabic(number):
+    """國字數字(一百二十七、二百零五、十二)→ '127'、'205'、'12';已是阿拉伯數字的原樣回傳。"""
+    if not number or number[0].isdigit():
+        return number
+    digits = {'零': 0, '〇': 0, '一': 1, '二': 2, '兩': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+    units = {'十': 10, '百': 100, '千': 1000}
+    total, current = 0, 0
+    for ch in number:
+        if ch in digits:
+            current = digits[ch]
+        else:
+            total += (current or 1) * units[ch]
+            current = 0
+    return str(total + current)
 UNSUPPORTED_STATUTE_RE = re.compile(
     r'([㐀-鿿]+?(?:法|條例|規則|辦法|通則))\s*第\s*([0-9]+(?:-[0-9]+)?)\s*條(?:\s*之\s*([0-9]+))?'
 )
@@ -104,7 +123,7 @@ class _StatuteCitationFinder:
             if name is None:
                 continue
             start = m.start() - (len(before) - len(stripped)) - len(name)
-            article_no = m.group(1) + (f"-{m.group(2)}" if m.group(2) else '')
+            article_no = _arabic(m.group(1)) + (f"-{_arabic(m.group(2))}" if m.group(2) else '')
             yield _StatuteMatch(text[start:m.end()], start, m.end(), name, article_no)
 
     def search(self, text):

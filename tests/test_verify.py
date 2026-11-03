@@ -109,3 +109,12 @@ class TestStatuteLiveVerification:
     def test_unknown_law_name(self):
         result = verify_statute_citation("外星人保護法", "1")
         assert result["status"] == "unsupported_law"
+
+
+def test_chinese_numeral_articles_parse_like_arabic():  # 2026-11-03 實跑:判例摘句帶進「民法第一百二十七條」
+    from engine.verify import parse_citation
+    assert parse_citation("民法第一百二十七條") == {"type": "statute", "law_name": "民法", "article_no": "127"}
+    assert parse_citation("上訴人以民法第一百二十七條") == {"type": "statute", "law_name": "民法", "article_no": "127"}
+    assert parse_citation("民法第一百九十一條之二")["article_no"] == "191-2"
+    assert parse_citation("民法第二百零五條")["article_no"] == "205" and parse_citation("民法第十條")["article_no"] == "10"
+    assert parse_citation("民法第127條")["article_no"] == "127"
