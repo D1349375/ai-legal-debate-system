@@ -118,3 +118,11 @@ def test_chinese_numeral_articles_parse_like_arabic():  # 2026-11-03 實跑:判�
     assert parse_citation("民法第一百九十一條之二")["article_no"] == "191-2"
     assert parse_citation("民法第二百零五條")["article_no"] == "205" and parse_citation("民法第十條")["article_no"] == "10"
     assert parse_citation("民法第127條")["article_no"] == "127"
+
+
+def test_circle_zero_in_article_numbers():  # 2026-11-04 檢核:判決書的「○」不是國字〇,原本解析不到
+    from engine.verify import parse_citation
+    assert parse_citation("民法第一○一條")["article_no"] == "101"
+    assert parse_citation("民法第一〇一條")["article_no"] == "101"
+    assert parse_citation("民法第一千○三十條之一")["article_no"] == "1030-1"
+    assert parse_citation("民法第二二七條")["article_no"] == "227"  # 逐位寫法(沒有十百千)
