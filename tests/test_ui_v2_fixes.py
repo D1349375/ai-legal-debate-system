@@ -138,6 +138,26 @@ class TestCaseDetailV2:  # 用假 Claude 跑完全程的案件看畫面資料
         r = client.get(f"/api/cases/{case_id}/pleadings/{rev[0]['id']}/export")
         assert r.status_code == 200 and "_revision.txt" in r.headers["content-disposition"]
 
+    def test_revision_carries_a_diff_against_its_parent(self, detail):  # 交接 F
+        _, d = detail
+        versions = {v["id"]: v for v in d["pleading_versions"]}
+        rev = next(v for v in versions.values() if v["source"] == "system_revision")
+        from engine.pleading_diff import complaint_diff
+        assert rev["diff"] == complaint_diff(versions[rev["parent_id"]]["draft_text"], rev["draft_text"])
+        assert all("diff" not in v for v in versions.values() if v["source"] != "system_revision")
+
+    def test_answer_carries_the_complaint_facts_it_answered(self, detail):  # 交接 C
+        _, d = detail
+        answer = d["pleadings"]["defendant"]
+        facts = answer["complaint_facts"]
+        assert {r["fact_id"] for r in answer["structured"]["responses"]} <= set(facts)
+        assert all(text and "〔" not in text for text in facts.values())  # 去掉了〔CF〕標記
+
+    def test_case_list_says_which_protocol(self, client, detail):  # noqa: F811  交接 A:分頁在明細載入前就要分流
+        case_id, _ = detail
+        item = next(c for c in client.get("/api/cases").json()["cases"] if c["case_id"] == case_id)
+        assert item["protocol"] == "v2"
+
     def test_drift_is_not_applicable_and_not_red(self, client, detail):  # noqa: F811
         case_id, d = detail
         assert d["drift_detail"]["not_applicable"] is True
@@ -151,6 +171,14 @@ class TestCaseDetailV2:  # 用假 Claude 跑完全程的案件看畫面資料
 def test_ui_has_v2_wording_for_the_answer_and_drift():  # W4-4 與第 2 項 B:文字有分流(畫面另在瀏覽器看)
     source = open(os.path.join(ROOT, "ui", "app.js"), encoding="utf-8").read()
     assert "DOCUMENT_V2" in source and "新流程不適用" in source and "system_revision" in source
+
+
+def test_ui_has_the_v2_flow_views():  # 交接 A–G:畫面另在瀏覽器看,這裡只確認分流與用的欄位都在
+    source = open(os.path.join(ROOT, "ui", "app.js"), encoding="utf-8").read()
+    for key in ("TABS_V2", "TAB_ALIAS_V2", "progressTrack", "answerPanel", "sheetPanel", "roundsPanel", "diagnosisPanel",
+                "complaint_facts", "issue_assessment", "evidence_todo", "complaint_revisions", "fact_gaps",
+                "opponent_hypotheticals", "diffBlock", "stop_after_options", "跑到爭點整理表"):
+        assert key in source, key
 
 
 def test_v2_followups_come_from_the_issue_sheet(client, db_url):  # noqa: F811  W5-6

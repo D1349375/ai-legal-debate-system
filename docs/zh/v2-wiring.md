@@ -67,5 +67,5 @@
 2. **示範資料**:要不要用這次實跑的兩件 v2 案件重新匯出 `demo/recorded_cases.json`(現在的 demo 是舊流程)。匯出指令見第 3 節;`recorded_party_checks.json` 只會匯出這個資料庫查過的那一筆,會蓋掉 demo 現有的 150 KB,要一起決定。
 3. **subagent 模型**:主 agent 常指定 opus,要不要在 SKILL 寫明不指定(沿用 `CLAUDE_CODE_SUBAGENT_MODEL`)。
 4. **答辯狀 admit 的門檻**:範本規定只有附證據、而且被告無從爭執的事實才能 admit,實跑結果 0 點 admit,爭點整理表因此沒有不爭執事項(X6 驗不到)。要放寬(例如官方文書記載的事實可以 admit)還是維持保守,請組長決定。
-5. **UI 改成新流程介面**:目前 UI 仍是舊流程骨架,新流程的資料是附加上去的。交給另一位實作,要做的事與資料來源見 [ui-v2-flow-handoff.md](ui-v2-flow-handoff.md)。
+5. **UI 改成新流程介面**:已照 [ui-v2-flow-handoff.md](ui-v2-flow-handoff.md) 的 A–G 實作(v2 案件改用照流程排的 8 個分頁,舊案不變);和交接建議不同的地方寫在該文件第 0 節,請組長檢核。
 6. **合併順序**:本分支已包含 `mff-small-fixes` → `t7-merge` → `live-run-v2` → `ui-v2-fixes` 與 `demo-v2-inputs`,合進 `pleading-exchange` 時可以直接合本分支。

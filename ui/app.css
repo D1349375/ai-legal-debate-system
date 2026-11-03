@@ -41,6 +41,7 @@
   /* 訴狀「紙張」 */
   --paper-bg: #f2f2f2;  --paper-fg: #1a1a1a;  --paper-muted: #55555a;  --paper-border: #cccccc;
   --paper-note-bg: #e6e6e6;
+  --diff-ins-bg: #dcf1e3;  --diff-ins-fg: #17663a;  --diff-del-bg: #fbe1dd;  --diff-del-fg: #a4281a;
 
   --shadow-card: none;
   --shadow-pop: 0 6px 24px rgba(0, 0, 0, 0.5);
@@ -81,6 +82,7 @@
 
   --paper-bg: #ffffff;  --paper-fg: #1a1a1a;  --paper-muted: #55555a;  --paper-border: #cfd3da;
   --paper-note-bg: #f1f3f6;
+  --diff-ins-bg: #dcf1e3;  --diff-ins-fg: #17663a;  --diff-del-bg: #fbe1dd;  --diff-del-fg: #a4281a;
 
   --shadow-card: 0 1px 2px rgba(20, 24, 33, 0.06);
   --shadow-pop: 0 6px 24px rgba(20, 24, 33, 0.16);
@@ -460,3 +462,36 @@ a.btn { display: inline-block; text-decoration: none; }
 .proc-q { font-size: 13px; line-height: 1.75; margin: 2px 0 6px; color: var(--text-primary); }
 .proc-q b, .proc-meta b { font-weight: 600; color: var(--text-primary); }
 .proc-meta { font-size: 12px; line-height: 1.7; color: var(--text-secondary); margin-bottom: 6px; }
+
+/* ===== 書狀交換流程(v2):進度軌、表格、差異對照 ===== */
+.track { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 8px; }
+.track-step { display: flex; }
+.track-btn { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--bg-input); color: var(--text-secondary); font: inherit; font-size: 12px; cursor: pointer; }
+.track-btn:hover { background: var(--bg-card-hover); }
+.track-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.track-phase { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+.track-label { color: var(--text-primary); font-weight: 600; line-height: 1.4; }
+.track-state { font-size: 11px; line-height: 1.4; }
+.track-step.done .track-btn { border-color: var(--ok-bd); background: var(--ok-bg); }
+.track-step.done .track-state { color: var(--ok-fg); }
+.track-step.done.auto .track-btn, .track-step.active .track-btn, .track-step.partial .track-btn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.track-step.done.auto .track-state, .track-step.active .track-state, .track-step.partial .track-state { color: var(--warn-fg); }
+.table-wrap { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.65; }
+.data-table th, .data-table td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }
+.data-table th { background: var(--bg-input); color: var(--text-secondary); font-weight: 600; white-space: nowrap; }
+.data-table.wide { min-width: 960px; }
+.data-table .chip-row { margin-top: 4px; }
+.nowrap { white-space: nowrap; }
+.diff-doc { border: 1px solid var(--paper-border); border-radius: var(--radius-sm); background: var(--paper-bg); color: var(--paper-fg);
+  font-family: var(--font-serif); font-size: 14px; line-height: 1.85; padding: 10px 0; }
+.diff-line { display: flex; gap: 8px; padding: 0 14px; }
+.diff-mark { width: 1em; flex-shrink: 0; font-weight: 700; text-align: center; }
+.diff-text { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.diff-line.insert { background: var(--diff-ins-bg); }
+.diff-line.insert .diff-mark { color: var(--diff-ins-fg); }
+.diff-line.delete { background: var(--diff-del-bg); }
+.diff-line.delete .diff-mark { color: var(--diff-del-fg); }
+.diff-line.delete .diff-text { text-decoration: line-through; text-decoration-color: var(--diff-del-fg); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

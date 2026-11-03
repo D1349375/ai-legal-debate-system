@@ -154,6 +154,7 @@ def list_cases(session, cases_dir=None):
             "has_verdict": row.case_id in verdict_ids, "has_pleading": row.case_id in pleading_ids,
             "has_answer": "defendant" in pleading_sides.get(row.case_id, ()),
             "created_via": row.created_via, "last_run_status": run_status.get(row.case_id),
+            "protocol": row.protocol,  # UI 在案件明細載入前就要知道用哪一組分頁
         })
     for cid, payload in _load_input_cases(cases_dir).items():
         if cid in db_ids:
@@ -440,6 +441,9 @@ def pleading_version(row, lookup, origin, parent_text=None):
         version.update(pleading_type=row.pleading_type, new_paragraphs_without_cf=(
             new_paragraphs_without_cf(parent_text, row.draft_text)
             if source == "lawyer_edit" and row.pleading_type == "complaint" and parent_text is not None else []))
+        if source == "system_revision" and parent_text is not None:  # 起訴狀 v2 對上一版的逐行差異(規格 5.7)
+            from engine.pleading_diff import complaint_diff
+            version["diff"] = complaint_diff(parent_text, row.draft_text)
     return version
 
 
@@ -789,6 +793,7 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
     pleading_rows = session.query(PleadingDraft).filter_by(case_id=case_id).order_by(PleadingDraft.id).all()
     # 每一方各取最新的系統產生版；沒有就是 None(UI 照實顯示尚未產生，不拿另一方的書狀充數)
     pleadings = {}
+    texts = {r.id: r.draft_text for r in pleading_rows}
     for side in VALID_SIDES:
         # 依書狀類型過濾:之後的模擬準備書狀、言詞辯論意旨狀不能蓋掉起訴狀或答辯狀
         system_rows = [r for r in pleading_rows if _is_system(r) and is_main_pleading(r, side)]
@@ -806,8 +811,13 @@ def get_case_detail(session, case_id, cases_dir=None, recorded_checks=None):
             if pleading_row.pleading_type:  # 書狀交換流程才有;舊案回應維持原樣
                 pleading.update(pleading_type=pleading_row.pleading_type, round=pleading_row.round,
                                 structured=json.loads(pleading_row.structured_json) if pleading_row.structured_json else None)
+                answered = (pleading["structured"] or {}).get("complaint_id")
+                if pleading_row.pleading_type == "answer" and answered in texts:
+                    # 逐點表態表的「原告主張」欄:答辯狀回應的那一版起訴狀中各〔CF〕那一行(同 render_answer)
+                    from engine.pleading_render import complaint_facts
+                    from server.pleading_export import split_draft_note
+                    pleading["complaint_facts"] = complaint_facts(split_draft_note(texts[answered])[0])
         pleadings[side] = pleading
-    texts = {r.id: r.draft_text for r in pleading_rows}
     pleading_versions = [pleading_version(r, lookup, origin, parent_text=texts.get(r.parent_id)) for r in pleading_rows]
 
     citations = _collect_citations(arguments, lookup, recorded_checks)
