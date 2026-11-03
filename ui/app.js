@@ -747,6 +747,19 @@
           liveInfo().enabled && d.case.source === "database" ? "可到「案件總覽」按「即時執行」。" : "即時執行目前停用。"])];
     }
     var idx = citeIndex(d);
+    if (isV2(d)) {  // 書狀交換流程：stage 1–3 是 P1/P2 分析、P4 準備書狀、P5 言詞辯論意旨狀的論證(舊設計殘留第 4 項)
+      return [
+        panelHead("攻防過程", provChip(d.arguments),
+          "書狀交換流程：起訴審查(依商工登記命補正) → P1 原告請求權基礎檢驗與起訴狀 → P2 被告只讀起訴狀，防禦分析與答辯狀 → P3 法官爭點整理表、闡明與訊問 → P4 雙方依爭點寫準備書狀 → P5 言詞辯論意旨狀 → P6 診斷。除標示「規則產生」的起訴審查事項外，以下皆為資料庫已落地的原文。"),
+        banner("warn", "!", "雙方論證都是 AI 依輸入資料模擬，不是當事人或對方律師的實際主張。"),
+        proceduralBlock(d),
+        stageGroup(d, 1, "P1、P2 — 起訴前與答辯前的分析(被告只讀起訴狀，看不到原告的分析)", idx),
+        d.issue_sheet ? h("p", { class: "detail-note", text: "P3 爭點整理表與法官的闡明、訊問見「案件總覽」。" }) : null,
+        stageGroup(d, 2, "P4 — 準備書狀的論證(依爭點整理表逐爭點回應)", idx),
+        stageGroup(d, 3, "P5 — 言詞辯論意旨狀的論證(收斂到最終立場)", idx),
+        changesCard(d),
+      ];
+    }
     return [
       panelHead("攻防過程", provChip(d.arguments),
         "協議：起訴審查(依商工登記命補正) → Stage 1 雙方獨立盲判(原告一併補正) → 法官依 Stage 1 訊問(含補正不足之追問) → Stage 2 訊問攻防 → Stage 3 辯論終結。除標示「規則產生」的起訴審查事項外，以下皆為資料庫已落地的原文。"),
@@ -1089,8 +1102,28 @@
     return (d.pleadings || {})[side] || (side === "plaintiff" ? d.pleading : null);
   }
   function pleadingSide(d) { return state.pleadingSide[d.case.case_id] || "plaintiff"; }
+  // 版本列只放起訴狀與答辯狀；P4 準備書狀、P5 言詞辯論意旨狀是各方另一份書狀，列在 roundDocsCard
+  var ROUND_DOC = { brief: "民事準備書狀", closing: "民事言詞辯論意旨狀" };
   function versionsOf(d, side) {
-    return (d.pleading_versions || []).filter(function (v) { return (v.side || "plaintiff") === side; });
+    return (d.pleading_versions || []).filter(function (v) { return (v.side || "plaintiff") === side && !ROUND_DOC[v.pleading_type]; });
+  }
+  function roundDocsCard(d) {
+    var docs = (d.pleading_versions || []).filter(function (v) { return ROUND_DOC[v.pleading_type]; });
+    if (!docs.length) return null;
+    var id = d.case.case_id;
+    return card("準備書狀與言詞辯論意旨狀(P4、P5)", [
+      h("p", { class: "detail-note", text: "雙方依爭點整理表交換的書狀，正文由程式依該方公開論證組成(不含內部檢討與讓步條件)。都是 AI 模擬，不是當事人或對方律師的實際書狀。" }),
+      docs.map(function (v) {
+        var lines = delabelJargon(splitDraftNote(v.draft_text).body).replace(/^\s+|\s+$/g, "").split("\n");
+        var exportUrl = API_BASE + "/api/cases/" + encodeURIComponent(id) + "/pleadings/" + v.id + "/export";
+        return fold(SIDE[v.side || "plaintiff"].label + " " + ROUND_DOC[v.pleading_type] + " #" + v.id + (v.exportable ? "・✓" : "・✗ 未放行"), [
+          h("div", { class: "controls" }, v.exportable ? h("a", { class: "btn small", href: exportUrl, download: "" }, "匯出 .txt") : null,
+            h("span", { class: "detail-note", text: "產生於 " + fmtTime(v.generated_at) })),
+          h("div", { class: "pleading-doc" }, lines.map(function (ln, i) {
+            if (i === 0) return h("div", { class: "pl-title", text: ln });
+            return ln.trim() ? h("div", { class: "pl-line" + (/^【爭點/.test(ln) ? " pl-head" : ""), text: ln }) : h("div", { class: "pl-gap", "aria-hidden": "true" });
+          }))]);
+      })]);
   }
   function selectedVersion(d) {
     var vs = versionsOf(d, pleadingSide(d));
@@ -1303,7 +1336,7 @@
           ? "答辯狀骨架於 2026-10-29 加入流程，之前跑完的案件只產生了原告起訴狀；之後的案件只產使用者選的書狀。"
           : "即時執行時只產使用者選的書狀；沒選起訴狀的案件就不會有。") +
           "系統不會拿另一方的書狀充數。已有該方 Stage 3 與查證結果的案件，可依 legal-debate 流程 Step 9C 只補產這一份，不必重跑整場攻防。" })]),
-      pleadingRunCard(d, side, false)];
+      pleadingRunCard(d, side, false), roundDocsCard(d)];
     var v = selectedVersion(d), busy = state.pleadingBusy[id], gate = side === "plaintiff" ? complaintGate(d) : null;
     var exportUrl = API_BASE + "/api/cases/" + encodeURIComponent(id) + "/pleadings/" + v.id + "/export";
     var out = [
@@ -1344,6 +1377,7 @@
       h("p", { class: "detail-note", text: v.source === "lawyer_edit"
         ? "存檔時由版本文字重新找出引用並逐條查證；重新查證只處理未通過者。"
         : "由草稿文字重新找出其中的法條與裁判字號，對照目前的查證紀錄。" })]));
+    out.push(roundDocsCard(d));
     return out;
   }
 
