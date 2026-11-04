@@ -341,8 +341,10 @@ _LOOSE_STATUTE_RE = re.compile(r"[一-鿿]{1,15}法第\s*[0-9０-９一二三四
 _LOOSE_JUDGMENT_RE = re.compile(r"[0-9０-９一二三四五六七八九十百]+\s*年度?\s*[一-鿿]{1,4}\s*字\s*第\s*"
                                 r"[0-9０-９一二三四五六七八九十百千]+\s*號")
 _CUT_CHARS = "依按據及與並且另又同如即參照見項款目之第、，,"  # 法規名之前常見的連接字，截在最後一個之後
+_SAME_LAW_HEAD = "同"  # 「同法第N條」切掉「法第」後剩下的結尾
 UNRECOGNIZED_NOTE = ("系統無法辨識此引用寫法，無法查證；請改寫為「法規名第N條」或「最高法院N年度台X字第N號」"
-                     "(查證範圍限法規名稱索引內的法規與最高法院民事裁判)")
+                     "(查證範圍限法規名稱索引內的法規與最高法院民事裁判)。"
+                     "「同法第N條」要在同一段(引號內則同一個引號內)前面寫出完整的法規名稱，否則請直接寫出法規名稱")
 
 
 # 「108年民法第205條」這類前綴:抽取引用時要連版本一起列出，否則會借用現行條文的查證紀錄
@@ -361,7 +363,8 @@ def extract_citations(text):
         # 「108年民法第205條」要連版本一起列出，否則會被當成現行條文而借用它的查證紀錄
         prefix = _HISTORICAL_PREFIX_RE.search(text[max(0, m.start() - 12):m.start()])
         start = m.start() - len(prefix.group(0)) if prefix else m.start()
-        found.append((start, text[start:m.end()].strip(), True))
+        # 用 group(0) 不切原文:「同法第N條」回指時 group(0) 是解析後的「<法規名>第N條」
+        found.append((start, (text[start:m.start()] + m.group(0)).strip(), True))
         spans.append((start, m.end()))
     for m in JUDGMENT_CITATION_RE.finditer(text):
         found.append((m.start(), m.group(0).strip(), True))
@@ -373,7 +376,9 @@ def extract_citations(text):
             t = m.group(0)
             head = t.split("法第", 1)[0] if "法第" in t else ""
             cut = max((head.rfind(ch) for ch in _CUT_CHARS), default=-1)
-            if 0 <= cut < len(head) - 1:
+            if head.endswith(_SAME_LAW_HEAD):  # 找不到回指對象的「同法第N條」:只列這幾個字，撰狀者才看得出哪裡要改
+                t = t[len(head) - 1:]
+            elif 0 <= cut < len(head) - 1:
                 t = t[cut + 1:]
             found.append((m.start(), t, False))
             spans.append(m.span())
@@ -384,6 +389,18 @@ def extract_citations(text):
             seen.add(key)
             out.append({"citation_text": t, "recognized": ok, "key": key})
     return out
+
+
+def unparseable_citations(text):
+    """匯出時會被判 unparseable 的引用寫法(看起來像引用、查證引擎認不得)。落地檢查與匯出共用 extract_citations,
+    兩邊才不會一邊放行、一邊擋下(2026-11-04 實跑 W8 工程案:「同法第五百十四條」落地沒擋，匯出被標 unparseable)。"""
+    return [c["citation_text"] for c in extract_citations(text) if not c["recognized"]]
+
+
+def unparseable_problem(text):
+    """給撰狀 subagent 的退回原因；沒有無法辨識的引用時回傳 None。"""
+    found = unparseable_citations(text)
+    return ("正文有系統無法辨識的引用寫法，匯出時會被擋下:" + "、".join(found) + "。" + UNRECOGNIZED_NOTE) if found else None
 
 
 # 書狀種類：side 欄位新增前的舊紀錄一律是原告起訴狀(pleading_side 視 NULL 為 plaintiff)

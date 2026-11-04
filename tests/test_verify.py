@@ -126,3 +126,40 @@ def test_circle_zero_in_article_numbers():  # 2026-11-04 檢核:判決書的「�
     assert parse_citation("民法第一〇一條")["article_no"] == "101"
     assert parse_citation("民法第一千○三十條之一")["article_no"] == "1030-1"
     assert parse_citation("民法第二二七條")["article_no"] == "227"  # 逐位寫法(沒有十百千)
+
+
+# 2026-11-04 實跑 W8 工程案:判決原句「如係依民法第五百十一條但書規定請求賠償，其請求權時效自應適用同法第五百十四條
+# 第二項之規定」進到被告書狀。「同法」回指前面最近的法規名稱(同一引號內、同一段正文),找不到就不猜。
+QUOTE_2413 = ("又依最高法院99年度台上字第2413號民事裁定所載「定作人於工作未完成前，任意終止承攬契約者，承攬人就已完成"
+              "工作部分之報酬，如係依民法第五百十一條但書規定請求賠償，其請求權時效自應適用同法第五百十四條第二項之規定」")
+
+
+def _statutes(text):
+    from engine.verify import STATUTE_CITATION_RE
+    return [(m.group(0), m.law_name, m.article_no) for m in STATUTE_CITATION_RE.finditer(text)]
+
+
+class TestSameLawBackReference:
+    def test_resolves_to_the_nearest_law_in_the_same_quote(self):  # 國字條號
+        assert _statutes(QUOTE_2413) == [("民法第五百十一條", "民法", "511"), ("民法第五百十四條", "民法", "514")]
+
+    def test_arabic_numerals_and_chains(self):
+        assert _statutes("依民法第511條但書，同法第514條第2項") == [("民法第511條", "民法", "511"), ("民法第514條", "民法", "514")]
+        assert [a for _, _, a in _statutes("民法第1條、同法第2條、同法第3條之1")] == ["1", "2", "3-1"]
+        assert _statutes("依民法第一○一條及同法第二二七條")[1] == ("民法第二二七條", "民法", "227")
+
+    def test_nearest_law_wins(self):
+        assert _statutes("民法第184條，民事訴訟法第277條，同法第255條")[2] == ("民事訴訟法第255條", "民事訴訟法", "255")
+
+    def test_nothing_to_refer_back_to_is_not_guessed(self):
+        assert _statutes("其請求權時效自應適用同法第514條") == []
+        # 前一段的法規不跨段落沿用
+        assert _statutes("依民法第511條請求。\n其請求權時效適用同法第514條")[1:] == []
+        # 引號裡的「同法」只在引號內往前找:引號外的民法不一定是判決原文指的法規
+        assert _statutes("依民法第184條。判決稱「其時效適用同法第514條」")[1:] == []
+        # 中間夾著索引外的法規時,不越過它去接更前面的法規
+        assert _statutes("民法第1條，外星人保護法第3條，同法第4條") == [("民法第1條", "民法", "1")]
+
+    def test_parse_citation_of_a_bare_back_reference_is_not_a_known_statute(self):
+        from engine.verify import parse_citation
+        assert parse_citation("同法第514條").get("law_name") != "民法"
