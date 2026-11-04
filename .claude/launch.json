@@ -6,6 +6,25 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["main.py", "serve", "--port", "8000", "--no-browser"],
       "port": 8000
+    },
+    {
+      "name": "v2-live-review",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d .claude\\worktrees\\v2-review-fixes && set LEGALDEBATE_DB_URL=sqlite:///database/v2-live.db&& python main.py serve --port 8150 --no-browser --exclude 115年度台上字第308號 --exclude 114年度台上字第1987號 --exclude 114年度台上字第1547號"],
+      "port": 8150
+    },
+    {
+      "name": "v2-finals-run",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d .claude\\worktrees\\v2-review-fixes && set LEGALDEBATE_DB_URL=sqlite:///database/finals-v2.db&& python main.py serve --port 8160 --no-browser --exclude 115年度台上字第308號 --exclude 114年度台上字第1987號 --exclude 114年度台上字第1547號"],
+      "port": 8160
+    },
+    {
+      "name": "v2-finals-screenshot",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d .claude\\worktrees\\v2-review-fixes && set LEGALDEBATE_DB_URL=sqlite:///database/finals-v2-screenshot.db&& python main.py serve --port 8170 --no-browser --exclude 115年度台上字第308號 --exclude 114年度台上字第1987號 --exclude 114年度台上字第1547號"],
+      "port": 8170,
+      "autoPort": false
     }
   ]
 }
