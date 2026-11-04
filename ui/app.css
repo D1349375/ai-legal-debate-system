@@ -495,3 +495,19 @@ a.btn { display: inline-block; text-decoration: none; }
 .diff-line.delete .diff-mark { color: var(--diff-del-fg); }
 .diff-line.delete .diff-text { text-decoration: line-through; text-decoration-color: var(--diff-del-fg); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* ───────── 律師工作台整理：摘要列、技術細節收合 ───────── */
+.sum-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.sum-row { display: grid; grid-template-columns: 22px 64px 1fr auto; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.sum-row:last-child { border-bottom: 0; }
+.sum-ico { text-align: center; color: var(--text-secondary); }
+.sum-label { color: var(--text-muted); font-size: 12px; }
+.sum-text { color: var(--text-primary); line-height: 1.6; }
+details.detail-tech > summary { cursor: pointer; list-style: revert; }
+details.detail-tech[open] > summary { margin-bottom: 8px; }
+.detail-disclaimer { padding: 0 2px; }
+.lede-short { font-size: 12.5px; color: var(--text-secondary); line-height: 1.7; flex-basis: 100%; }
+.lede-short > details { margin-top: 4px; }
+.lede-short summary { cursor: pointer; color: var(--text-muted); font-size: 12px; }
+.lede-short details p { margin-top: 4px; }
+.issue-chips { display: flex; flex-wrap: wrap; gap: 6px; }
