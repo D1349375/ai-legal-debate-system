@@ -708,10 +708,12 @@
             [clamp(i.defendant_defense, 3), subLine("證據", i.defendant_evidence)],
             BURDEN_LABEL[i.burden] || i.burden];
         })), chip("neutral", issues.length + " 個爭點")),
+      // 法官的闡明與訊問是律師要預先準備的重點，緊接在爭點表後面並預設展開
+      band("闡明", clar, true),
+      band("訊問", qs, false),
       und.length ? t2card() : fold("不爭執事項(表二)・0 項", h("p", { class: "detail-note", text: s.undisputed_note + "；無不爭執事項是模擬被告保守表態的預期結果，不代表當事人真的每一點都爭執。" })),
       fold("聲明與請求權基礎(表一，取自起訴狀正文)", h("div", { class: "prewrap", text: t1 || "(起訴狀未列)" })),
       fold("證據清單(表四)", ev.length ? dataTable(["編號", "種類", "日期", "內容"], ev) : h("p", { class: "detail-note", text: "(起訴狀未附證據)" })),
-      clar.length || qs.length ? fold("法官闡明與訊問(" + (clar.length + qs.length) + " 則)", [band("闡明", clar, true), band("訊問", qs, false)]) : null,
       fold("四張表的文字版(與匯出內容相同)", h("div", { class: "prewrap", text: s.text }))];
   }
 
