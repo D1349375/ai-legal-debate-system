@@ -330,13 +330,12 @@
       return;
     }
     document.getElementById("topbar-id").textContent = d ? d.case.case_id : "—";
-    var parties = d && d.case.parties, pn = function (side) { return parties && parties[side] && parties[side].name; };
-    document.getElementById("topbar-title").textContent = !d ? "LegalDebate AI" :
-      pn("plaintiff") && pn("defendant") ? pn("plaintiff") + " 對 " + pn("defendant") : (d.case.case_type || "案件");
+    // 標題用案由，不放當事人名稱(示範案件取材自真實判決，頂部常駐的名稱太顯眼)
+    document.getElementById("topbar-title").textContent = !d ? "LegalDebate AI" : (d.case.case_type || "案件");
     var kind = d && d.provenance && d.provenance.kind;
     document.getElementById("topbar-sub").replaceChildren(!d ? "" :
       d.case.source === "input_only" ? "民事 ／ 案件輸入(data/cases，尚未存入資料庫)" :
-        "民事 ／ " + (pn("plaintiff") && pn("defendant") && d.case.case_type ? d.case.case_type + " ／ " : "") + "建立於 " + fmtTime(d.case.created_at),
+        "民事 ／ 建立於 " + fmtTime(d.case.created_at),
       kind === "recorded_replay" ? chip("rec", "⏺ 示範資料(錄製重播)", { title: "內容是先前由 AI 產生並存入資料庫的紀錄，此處重播，不是即時生成" }) :
         kind === "mixed" ? chip("warn", "部分即時生成、部分錄製", { title: "各分頁逐筆標示" }) : null);
     document.getElementById("export-btn").disabled = !d;
