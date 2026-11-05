@@ -53,17 +53,21 @@ STATUTE_PCODES = {
 # (如 flno=191-2)，故子條文號需轉換後才能查對正確條文。
 # 判決書多用國字條號(「民法第一百二十七條」)。判例摘句要從全文逐字複製,國字條號就會進到書狀正文;
 # 2026-11-03 實跑四份書狀因此被標 unparseable、不能匯出。國字條號換成阿拉伯數字再查(flno 用阿拉伯數字)。
-_CN_NUM = '零〇一二兩三四五六七八九十百千'
+# 判決書的「零」也常寫成圓圈「○」(第一○一條),和國字〇是不同字元,兩個都要認得。
+_CN_NUM = '零〇○一二兩三四五六七八九十百千'
 _ARTICLE_REF_RE = re.compile(rf'第\s*([0-9]+(?:-[0-9]+)?|[{_CN_NUM}]+)\s*條(?:\s*之\s*([0-9]+|[{_CN_NUM}]+))?')
 _NAME_WINDOW = 40
 
 
 def _arabic(number):
-    """國字數字(一百二十七、二百零五、十二)→ '127'、'205'、'12';已是阿拉伯數字的原樣回傳。"""
+    """國字數字(一百二十七、二百零五、十二)→ '127'、'205'、'12';已是阿拉伯數字的原樣回傳。
+    沒有十百千的逐位寫法(一○一、二二七)照位數讀:'101'、'227'。"""
     if not number or number[0].isdigit():
         return number
-    digits = {'零': 0, '〇': 0, '一': 1, '二': 2, '兩': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+    digits = {'零': 0, '〇': 0, '○': 0, '一': 1, '二': 2, '兩': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
     units = {'十': 10, '百': 100, '千': 1000}
+    if not any(ch in units for ch in number):
+        return str(int(''.join(str(digits[ch]) for ch in number)))
     total, current = 0, 0
     for ch in number:
         if ch in digits:
@@ -107,6 +111,21 @@ class _StatuteMatch:
         return self._span
 
 
+# 「同法第N條」回指前面最近一個認得的法規(2026-11-04 實跑 W8 工程案:判決原句「如係依民法第五百十一條但書…
+# 其請求權時效自應適用同法第五百十四條第二項」進到被告書狀，匯出時被標 unparseable)。只在「同一個引號內」
+# (「同法」在引號裡時)或「同一段」(在引號外時)往前找；判決摘句裡的「同法」可能指引號外看不到的法規，
+# 跨段落也可能已換了話題，這兩種找不到就不猜，維持無法辨識。
+_SAME_LAW = '同法'
+_LAW_SUFFIX_RE = re.compile(r'(?:法|條例|規則|辦法|通則)$')
+
+
+def _back_reference_scope(text, pos):
+    """「同法」可以往前找的範圍起點：在引號「…」裡時是該引號的開頭，否則是該段(換行)的開頭。"""
+    paragraph = text.rfind('\n', 0, pos) + 1
+    opened, closed = text.rfind('「', 0, pos), text.rfind('」', 0, pos)
+    return max(paragraph, opened) if opened > closed else paragraph
+
+
 class _StatuteCitationFinder:
     """在文字中找「法規名稱第N條(之M)」；介面同正規式的 search／finditer。
 
@@ -116,14 +135,27 @@ class _StatuteCitationFinder:
 
     def finditer(self, text):
         names = _law_names()
+        last = None  # (起點, 法規名稱):最近一個認得的法條引用,給後面的「同法」回指用
         for m in _ARTICLE_REF_RE.finditer(text):
             before = text[max(0, m.start() - _NAME_WINDOW):m.start()]
             stripped = before.rstrip()
             name = next((stripped[i:] for i in range(len(stripped)) if stripped[i:] in names), None)
+            article_no = _arabic(m.group(1)) + (f"-{_arabic(m.group(2))}" if m.group(2) else '')
+            if name is None and stripped.endswith(_SAME_LAW):
+                start = m.start() - (len(before) - len(stripped)) - len(_SAME_LAW)
+                if last is None or last[0] < _back_reference_scope(text, start):
+                    continue  # 前面(同一引號或同一段)沒有可回指的法規:不猜,交給寬鬆比對列為無法辨識
+                last = (start, last[1])
+                ref = text[m.start():m.end()]
+                # 文字寫成「<法規名>第N條」:解析、比對 key 與顯示都和直接寫出法規名稱的引用一致
+                yield _StatuteMatch(last[1] + ref, start, m.end(), last[1], article_no)
+                continue
             if name is None:
+                if _LAW_SUFFIX_RE.search(stripped):
+                    last = None  # 索引外的法規(如「外星人保護法第3條」):後面的「同法」不能越過它接更前面的法規
                 continue
             start = m.start() - (len(before) - len(stripped)) - len(name)
-            article_no = _arabic(m.group(1)) + (f"-{_arabic(m.group(2))}" if m.group(2) else '')
+            last = (start, name)
             yield _StatuteMatch(text[start:m.end()], start, m.end(), name, article_no)
 
     def search(self, text):

@@ -219,6 +219,12 @@ class TestComplaintCommand:
         r = run_main("complaint", "--case-id", "v2", "--json", write(tmp_path, p), "--check", db_url=db_url)
         assert r.returncode == 1 and "最高法院105年度台簡上字第33號" in r.stderr and "citations" in r.stderr
 
+    def test_unparseable_citation_is_refused_with_a_rewrite_hint(self, db_url, tmp_path):
+        # 2026-11-04 實跑 W8 工程案:匯出時會是 unparseable 的寫法,落地(含 --check)時就退回,原因寫明怎麼改
+        p = payload(legal_argument="其請求權時效適用同法第245條。")
+        r = run_main("complaint", "--case-id", "v2", "--json", write(tmp_path, p), "--check", db_url=db_url)
+        assert r.returncode == 1 and "同法第245條" in r.stderr and "法規名第N條" in r.stderr
+
     def test_paraphrased_fact_only_warns(self, db_url, tmp_path):
         fp = payload()["fact_points"]
         p = payload(fact_points=[fp[0], {**fp[1], "text": "原告公司於104年4月間解散,並已清算完結。"}])

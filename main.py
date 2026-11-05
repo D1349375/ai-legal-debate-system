@@ -403,7 +403,7 @@ def cmd_complaint(args):
     from engine.party_issues import procedural_issues
     from engine.pleading_render import complaint_problems, render_complaint, stored_complaint
     from server.pleading_export import lint_pleading
-    from server.services import extract_citations
+    from server.services import extract_citations, unparseable_problem
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
@@ -430,6 +430,11 @@ def cmd_complaint(args):
               + "\n".join(f"- {p}" for p in problems), file=sys.stderr)
         return 1
     text = render_complaint(payload, case=data, party_checks=checks, procedural=procedural)
+    unparseable = unparseable_problem(text)  # 匯出時會被判 unparseable 的寫法,落地(含 --check)就退回
+    if unparseable:
+        print("未通過,請把以下原因交回撰狀 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n- " + unparseable,
+              file=sys.stderr)
+        return 1
     # 正文裡看起來像引用的文字(含 legal_argument 順帶提到的)一律要 published,不只 citations 欄位
     in_body = [c["citation_text"] for c in extract_citations(text)]
     listed = {_judgment_key(c) for c in payload.get("citations", [])}
@@ -483,7 +488,7 @@ def cmd_answer(args):
     from database.schema import DebateArgument, PleadingDraft
     from engine.pleading_render import answer_problems, answer_warnings, render_answer, stored_answer
     from server.pleading_export import lint_pleading
-    from server.services import extract_citations
+    from server.services import extract_citations, unparseable_problem
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
@@ -517,11 +522,17 @@ def cmd_answer(args):
                          procedural=view["procedural_issues"], complaint_text=complaint_text)
     # 抗辯與理由裡順帶提到的判決也要列進 citations 並附 precedent_notes(引述的起訴狀事實不算被告的引用)
     own = text.split("答辯理由", 1)[1].split("一、對原告主張事實之表示", 1)[1]
-    in_body = [c["citation_text"] for c in extract_citations("\n".join(
-        line for line in own.splitlines() if not line.startswith("(") or "原告主張「" not in line))]
+    own_text = "\n".join(line for line in own.splitlines() if not line.startswith("(") or "原告主張「" not in line)
+    in_body = [c["citation_text"] for c in extract_citations(own_text)]
     # 逐點表態那一行因為引了起訴狀原文整行被濾掉,表態理由要另外抽(理由是被告的話)
     reasons = "\n".join(r.get("reason") or "" for r in payload.get("responses") or [] if isinstance(r, dict))
     in_body = list(dict.fromkeys(in_body + [c["citation_text"] for c in extract_citations(reasons)]))
+    # 匯出時會被判 unparseable 的寫法,落地(含 --check)就退回;只看被告自己寫的部分,引述的起訴狀不是撰狀 subagent 能改的
+    unparseable = unparseable_problem(own_text + "\n" + reasons)
+    if unparseable:
+        print("未通過,請把以下原因交回撰狀 subagent 修改後重新輸出整份 JSON(同一份最多退回 2 次):\n- " + unparseable,
+              file=sys.stderr)
+        return 1
     listed = {_judgment_key(c) for c in payload.get("citations", [])}
     unlisted = [c for c in in_body if _judgment_key(c) != c and _judgment_key(c) not in listed]
     if unlisted:
@@ -659,7 +670,7 @@ def _round_check(session, payload):
     problems = round_problems(public, stored["sheet"]) + basis_problems(basis)
     # 公開段落會組成書狀;正文提到、卻不在引用清單的法條與判決沒有查證過,書狀落地後畫面與匯出會一直卡在未放行
     # (2026-11-03 實跑:原告標明民事訴訟法第255條卻沒列進 cited_statutes)
-    from server.services import extract_citations
+    from server.services import extract_citations, unparseable_problem
     lists = [c for key in ("cited_statutes", "cited_precedents") for c in payload.get(key) or [] if isinstance(c, str)]
     listed = {c["key"] for c in extract_citations("\n".join(lists + [b for b in basis if isinstance(b, str)]))}
     unlisted = list(dict.fromkeys(c["citation_text"] for c in extract_citations(public)
@@ -667,6 +678,10 @@ def _round_check(session, payload):
     if unlisted:
         problems.append("公開段落提到的法條與判決都要列進 cited_statutes 或 cited_precedents(判決要讀過全文),或從正文刪除:"
                         + "、".join(unlisted))
+    # 匯出用同一個 extract_citations 判定;認不得的寫法(如前面沒有法規名稱的「同法第N條」)落地時就退回,不要等到匯出才卡住
+    unparseable = unparseable_problem(public)
+    if unparseable:
+        problems.append(unparseable)
     if problems:
         raise ValueError("請把以下原因交回同一個 subagent 補寫後重新輸出(依爭點組織,規格 5.6):" + ";".join(problems))
     return round_warnings(public, stored["sheet"], side=payload.get("side"), basis=basis,
@@ -705,6 +720,13 @@ def cmd_brief(args):
     text = render_brief(strip_internal_review(row.reasoning), side=args.side, round=args.round, sheet=stored["sheet"],
                         case=case_payload(case), party_checks=checks, procedural=procedural_issues(checks),
                         complaint_text=split_draft_note(current["draft_text"])[0], citations=citations, new_basis=added)
+    from server.services import unparseable_problem
+    # 匯出用同一個 extract_citations 判定全文;修正前落地的每輪論證沒經過 record 的這項檢查,組成書狀時再擋一次,
+    # 不讓書狀落地後才在匯出時卡住
+    unparseable = unparseable_problem(text)
+    if unparseable:
+        print(f"拒絕落地:{unparseable}(這段文字來自已落地的 {args.side} stage {args.round} 論證)", file=sys.stderr)
+        return 1
     warnings = [f"書狀正文含模擬流程用語,請確認:{h['word']}×{h['count']}" for h in lint_pleading(text, args.side)]
     if args.check:
         print(text)
@@ -1306,7 +1328,7 @@ def cmd_revision(args):
     from engine.pleading_render import complaint_problems, render_complaint
     from engine.revision import hypothetical_problems, hypothetical_warnings, opponent_hypotheticals, stored_revision
     from server.pleading_export import lint_pleading, split_draft_note
-    from server.services import extract_citations
+    from server.services import extract_citations, unparseable_problem
     with open(args.json, 'r', encoding='utf-8') as f:
         payload = json.load(f)
     session = get_session()
@@ -1343,6 +1365,10 @@ def cmd_revision(args):
         print(_REVISION_REFUSAL + "\n".join(f"- {p}" for p in problems), file=sys.stderr)
         return 1
     text = render_complaint(payload, case=data, party_checks=checks, procedural=procedural)
+    unparseable = unparseable_problem(text)  # 匯出時會被判 unparseable 的寫法,落地(含 --check)就退回
+    if unparseable:
+        print(_REVISION_REFUSAL + "- " + unparseable, file=sys.stderr)
+        return 1
     in_body = [c["citation_text"] for c in extract_citations(text)]
     listed = {_judgment_key(c) for c in payload.get("citations", [])}
     unlisted = [c for c in in_body if _judgment_key(c) != c and _judgment_key(c) not in listed]

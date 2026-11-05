@@ -218,3 +218,27 @@ def test_precedent_digest_merges_notes_and_reviews_for_judgments_still_in_the_te
     assert digest == [{"citation": "最高法院106年度台上字第304號判決", "case_cause": "確認贈與關係不存在", "quote": "原句甲",
                        "proposition": "命題甲", "review_supports": True, "review_reason": "理由末段"}]
     assert precedent_digest({}, "正文") == []
+
+
+# 2026-11-04 實跑 W8 工程案:正文的「同法第五百十四條」在落地時沒擋、匯出時卻是 unparseable。落地時就要退回。
+def test_unparseable_citation_in_the_public_text_is_refused(db_url, tmp_path):
+    bad = GOOD.replace("【爭點 I1】", "【爭點 I1】其請求權時效適用同法第五百十四條。", 1)
+    r = run(db_url, tmp_path, payload=stage_payload(argument=bad))
+    assert r.returncode == 1 and "同法第五百十四條" in r.stderr and "法規名第N條" in r.stderr
+    resolved = GOOD.replace("【爭點 I1】", "【爭點 I1】依民法第478條,同法第179條。", 1)
+    r = run(db_url, tmp_path, payload=stage_payload(argument=resolved, cited_statutes=["民法第478條", "民法第179條"]))
+    assert r.returncode == 0, r.stderr
+
+
+def test_brief_refuses_text_the_export_would_mark_unparseable(db_url, tmp_path):
+    # 修正前已落地的每輪論證(例如 #10、#11 的來源)沒經過上面的檢查,組成書狀時也要擋
+    s = get_session(db_url)
+    record_argument(s, case_id="v2", side="defendant", stage=2, position="否認",
+                    reasoning=GOOD.replace("【爭點 I1】", "【爭點 I1】其時效適用同法第五百十四條。", 1),
+                    cited_statutes=["民法第478條"], falsifier="哨兵讓步條件")
+    s.close()
+    r = run(db_url, tmp_path, "brief", "--case-id", "v2", "--side", "defendant", "--round", "2", "--check")
+    assert r.returncode == 1 and "同法第五百十四條" in r.stderr
+    r = run(db_url, tmp_path, "brief", "--case-id", "v2", "--side", "defendant", "--round", "2")
+    assert r.returncode == 1
+    assert get_session(db_url).query(PleadingDraft).filter_by(case_id="v2", pleading_type="brief").count() == 0

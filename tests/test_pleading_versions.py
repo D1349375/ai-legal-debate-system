@@ -209,3 +209,18 @@ def test_brief_export_keeps_the_simulation_marker():  # 審查 W6-8:不要剝掉
     # 起訴狀、答辯狀照舊
     body, _ = pleading_export.system_draft_for_export("民事答辯狀(模擬答辯,非針對實際起訴狀)\n答辯聲明", side="defendant")
     assert body.split("\n")[:2] == ["民事答辯狀", pleading_export.DEFENSE_SUBTITLE]
+
+
+class TestSameLawInDraft:  # 2026-11-04 實跑 W8 工程案:#10、#11 因「同法第五百十四條」被標 unparseable
+    def test_back_reference_uses_the_same_key_as_the_named_statute(self):
+        found = services.extract_citations(
+            "如係依民法第五百十一條但書規定請求賠償，其請求權時效自應適用同法第五百十四條第二項之規定。前開請求適用民法第514條第2項。")
+        assert [(c["citation_text"], c["recognized"]) for c in found] == [("民法第五百十一條", True), ("民法第五百十四條", True)]
+        assert found[1]["key"] == ("statute", "民法", "514")
+
+    def test_unresolved_back_reference_stays_unparseable_and_is_named_plainly(self):
+        found = services.extract_citations("其請求權時效自應適用同法第五百十四條第二項之規定")
+        assert [(c["citation_text"], c["recognized"]) for c in found] == [("同法第五百十四條", False)]
+        assert services.unparseable_citations("其請求權時效自應適用同法第五百十四條") == ["同法第五百十四條"]
+        assert services.unparseable_citations("依民法第511條但書，同法第514條") == []
+        assert "同法" in services.UNRECOGNIZED_NOTE
