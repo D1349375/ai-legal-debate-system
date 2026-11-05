@@ -569,3 +569,44 @@ body.focus .reader { grid-template-columns: minmax(0, 1fr) 300px; }
 .lede-short { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
 .lede-short > details { margin-top: 0; }
 .lede-short > details[open] { flex-basis: 100%; }
+
+/* ───────── 律師視角整理(ui-lawyer-polish):結果數字列、爭點卡、沒有右側欄 ───────── */
+/* 新流程案件不顯示右側欄(案件摘要與頂部重複)；技術細節在總覽，免責聲明在每頁底部 */
+body.v2-case .detail-panel { display: none; }
+.panel-disclaimer { text-align: center; margin-top: -8px; }
+.topbar-cause { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.case-filter-btn { float: right; background: none; border: 0; padding: 0; color: var(--focus); font-size: 11px; font-weight: 600; letter-spacing: 0; cursor: pointer; }
+.case-filter-btn:hover { text-decoration: underline; }
+
+/* 總覽頂端的結果數字：每格可點到對應分頁 */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; text-align: left; font: inherit;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card); cursor: pointer; color: var(--text-primary); }
+.kpi:hover:not(:disabled) { border-color: var(--accent); background: var(--bg-card-hover); }
+.kpi:disabled { cursor: default; }
+.kpi-num { font-size: 28px; font-weight: 700; line-height: 1.15; }
+.kpi-label { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+.kpi.ok .kpi-num { color: var(--ok-fg); }
+.kpi.bad .kpi-num { color: var(--bad-fg); }
+.kpi.warn .kpi-num { color: var(--warn-fg); }
+
+/* 表格：主要文字不截斷，證據與法條用小字跟在同一格 */
+.cell-main { color: var(--text-primary); min-width: 12em; }
+.cell-sub { margin-top: 4px; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+.ok-mark { color: var(--ok-fg); font-weight: 700; }
+
+/* 弱點頁：一個爭點一張卡 */
+.issue-cards { display: flex; flex-direction: column; gap: 8px; }
+.issue-card { border: 1px solid var(--border); border-left: 4px solid var(--border-light); border-radius: var(--radius-sm); background: var(--bg-input); }
+.issue-card.bad { border-left-color: var(--bad-bd); }
+.issue-card.warn { border-left-color: var(--warn-bd); }
+.issue-card.ok { border-left-color: var(--ok-bd); }
+.issue-card > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 9px 12px; font-size: 13px; line-height: 1.6; }
+.issue-card > summary:hover { background: var(--bg-card-hover); }
+.issue-card-id { white-space: nowrap; }
+.issue-card-text { flex: 1 1 20em; min-width: 0; color: var(--text-primary); }
+.issue-card[open] > summary { border-bottom: 1px solid var(--border); }
+.issue-card-body { padding: 10px 14px 12px; font-size: 13px; line-height: 1.8; display: flex; flex-direction: column; gap: 4px; }
+.issue-card-body .field-label { margin-top: 6px; }
+.juris-row { justify-content: flex-start; gap: 14px; padding: 4px 0; font-size: 13.5px; }
+.juris-row .meta-val { text-align: left; color: var(--text-primary); }

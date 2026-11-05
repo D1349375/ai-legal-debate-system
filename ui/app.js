@@ -39,13 +39,13 @@
   // 書狀交換流程(protocol v2)的分頁照流程排(交接 A);舊錄製案照舊 TABS
   var TABS_V2 = [
     { key: "overview", label: "案件總覽" },
-    { key: "parties", label: "起訴前檢查" },
-    { key: "complaint", label: "起訴狀(P1)" },
-    { key: "answer", label: "答辯狀(P2)" },
-    { key: "sheet", label: "爭點整理表(P3)" },
-    { key: "rounds", label: "書狀交換(P4–P5)" },
-    { key: "diagnosis", label: "診斷與 v2(P6)" },
-    { key: "verify", label: "引用查證" },
+    { key: "parties", label: "當事人與管轄" },
+    { key: "complaint", label: "起訴狀" },
+    { key: "answer", label: "對方答辯(模擬)" },
+    { key: "sheet", label: "爭點整理" },
+    { key: "rounds", label: "攻防模擬" },
+    { key: "diagnosis", label: "弱點與修改建議" },
+    { key: "verify", label: "引用查核" },
   ];
   // 舊網址的分頁(#/<id>/debate 等)對 v2 案件導到新分頁；新分頁的網址對舊案導回總覽，連結不會壞
   var TAB_ALIAS_V2 = { debate: "rounds", aggregate: "diagnosis", verdict: "diagnosis", pleading: "complaint" };
@@ -141,15 +141,24 @@
   }
   function chip(cls, text, extra) { return h("span", Object.assign({ class: "chip " + cls }, extra || {}), text); }
   function sideChip(side, text) { return chip(side, text || SIDE[side].label); }
+  // 時間一律以台灣時間顯示(資料庫存 UTC)；解析不了的字串照原樣顯示
+  var TW_TIME = (function () {
+    try { return new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }); }
+    catch (e) { return null; }
+  })();
   function fmtTime(iso) {
-    return iso ? iso.replace("T", " ").replace(/:\d\dZ$/, " UTC") : "—";
+    if (!iso) return "—";
+    var t = Date.parse(iso);
+    if (!TW_TIME || isNaN(t) || !/Z$|[+-]\d\d:?\d\d$/.test(iso)) return iso.replace("T", " ").replace(/:\d\dZ$/, " UTC");
+    return TW_TIME.format(new Date(t));
   }
   function pct(x) { return (x * 100).toFixed(1) + "%"; }
   function banner(cls, icon, kids) {
     return h("div", { class: "banner " + cls, role: cls === "bad" ? "alert" : null },
       h("span", { class: "b-ico", "aria-hidden": "true", text: icon }), h("div", null, kids));
   }
-  function recChip() { return chip("rec", "⏺ 錄製紀錄", { title: "已落地資料庫的內容重播，非即時生成" }); }
+  // 錄製紀錄只在頂部列標一次(renderTopbar)，各分頁不再重複；即時生成與混合的內容照舊逐筆標示
+  function recChip() { return null; }
   // 「本次即時生成」只標在落於 UI 即時執行期間的紀錄(後端依 live_runs 起訖時間判定)，其餘一律是錄製紀錄。
   function originChip(o) {
     return o && o.kind === "live"
@@ -241,8 +250,19 @@
     d.citations.forEach(function (c) { idx[c.citation_text] = c; });
     return idx;
   }
-  function usedByLabel(used) {
-    return used.map(function (u) { return SIDE[u.side].label + " S" + u.stage; }).join("、");
+  // v2 的 stage 1/2/3 對應起訴狀或答辯狀／準備書狀／言詞辯論意旨狀；舊流程照舊寫 S1–S3
+  var V2_STAGE_DOC = { 1: { plaintiff: "起訴狀", defendant: "答辯狀" }, 2: "準備書狀", 3: "意旨狀" };
+  function usedByLabel(used, v2) {
+    if (!v2) return used.map(function (u) { return SIDE[u.side].label + " S" + u.stage; }).join("、");
+    return SIDES.map(function (side) {
+      var docs = [];
+      used.forEach(function (u) {
+        if (u.side !== side) return;
+        var m = V2_STAGE_DOC[u.stage], name = m && typeof m === "object" ? m[side] : m || "S" + u.stage;
+        if (docs.indexOf(name) < 0) docs.push(name);
+      });
+      return docs.length ? SIDE[side].label + "：" + docs.join("、") : null;
+    }).filter(Boolean).join("；");
   }
 
   // ───────────── 主題切換 ─────────────
@@ -262,11 +282,27 @@
   }
 
   // ───────────── 側欄 / 頂欄 / 分頁 ─────────────
+  // 側欄預設只列新流程(v2)且已存入資料庫的案件；舊流程測試案與只在 data/cases 的輸入檔用切換鈕顯示
+  var ALL_CASES_KEY = "legaldebate-all-cases";
+  var allCasesPref = (function () { try { return localStorage.getItem(ALL_CASES_KEY) === "1"; } catch (e) { return false; } })();
+  function showAllCases() { return allCasesPref; }
+  function visibleCases() {
+    var main = state.cases.filter(function (c) { return c.protocol === "v2" && c.status !== "input_only"; });
+    if (showAllCases() || !main.length) return state.cases;
+    return state.cases.filter(function (c) { return main.indexOf(c) >= 0 || c.case_id === state.caseId; });
+  }
   function renderCaseList() {
     var box = document.getElementById("case-list");
     box.replaceChildren();
     if (!state.cases.length) { box.append(h("div", { class: "detail-note", text: "資料庫中沒有案件。" })); return; }
-    state.cases.forEach(function (c) {
+    var list = visibleCases(), hidden = state.cases.length - list.length, all = showAllCases();
+    var label = document.getElementById("case-list-label");
+    if (label) label.replaceChildren(h("span", { text: all ? "全部案件" : "案件" }),
+      hidden || all ? h("button", { class: "case-filter-btn", type: "button",
+        title: all ? "只顯示新流程、已存入資料庫的案件" : "另有 " + hidden + " 件舊流程測試案或未存入資料庫的輸入檔",
+        onclick: function () { allCasesPref = !all; try { localStorage.setItem(ALL_CASES_KEY, allCasesPref ? "1" : "0"); } catch (e) { /* 不記憶 */ } renderCaseList(); },
+        text: all ? "只看新流程" : "顯示全部(" + state.cases.length + ")" }) : null);
+    list.forEach(function (c) {
       var st = CASE_STATUS[c.status] || CASE_STATUS.case_only;
       if (c.status === "in_progress" && c.last_run_status === "running") st = { cls: "warn", label: "進行中" };
       box.append(h("button", {
@@ -284,6 +320,8 @@
 
   function renderTopbar() {
     var d = state.detail;
+    // 新流程案件不顯示右側欄(案件摘要與頂部重複)，主畫面寬度留給書狀與表格
+    document.body.classList.toggle("v2-case", !!d && !state.creating && isV2(d));
     if (state.creating) {
       document.getElementById("topbar-id").textContent = "新案件";
       document.getElementById("topbar-title").textContent = "建立新案件";
@@ -292,10 +330,15 @@
       return;
     }
     document.getElementById("topbar-id").textContent = d ? d.case.case_id : "—";
-    document.getElementById("topbar-title").textContent = d ? (d.case.case_type || "案件") : "LegalDebate AI";
-    document.getElementById("topbar-sub").textContent = !d ? "" :
-      d.case.source === "input_only" ? "民事 ／ 案件輸入(data/cases，尚未落地資料庫)" :
-        "民事 ／ 案件落地於 " + fmtTime(d.case.created_at);
+    var parties = d && d.case.parties, pn = function (side) { return parties && parties[side] && parties[side].name; };
+    document.getElementById("topbar-title").textContent = !d ? "LegalDebate AI" :
+      pn("plaintiff") && pn("defendant") ? pn("plaintiff") + " 對 " + pn("defendant") : (d.case.case_type || "案件");
+    var kind = d && d.provenance && d.provenance.kind;
+    document.getElementById("topbar-sub").replaceChildren(!d ? "" :
+      d.case.source === "input_only" ? "民事 ／ 案件輸入(data/cases，尚未存入資料庫)" :
+        "民事 ／ " + (pn("plaintiff") && pn("defendant") && d.case.case_type ? d.case.case_type + " ／ " : "") + "建立於 " + fmtTime(d.case.created_at),
+      kind === "recorded_replay" ? chip("rec", "⏺ 示範資料(錄製重播)", { title: "內容是先前由 AI 產生並存入資料庫的紀錄，此處重播，不是即時生成" }) :
+        kind === "mixed" ? chip("warn", "部分即時生成、部分錄製", { title: "各分頁逐筆標示" }) : null);
     document.getElementById("export-btn").disabled = !d;
   }
 
@@ -383,14 +426,16 @@
     var running = (d.live_runs || []).some(function (r) { return r.status === "running"; });
     var cur = steps.filter(function (x) { return x.state !== "done"; })[0], rp = d.resume;
     var next, nextTab = null;
-    if (running) next = "即時執行進行中，各階段落地後會自動出現。";
-    else if (rp && rp.gate_pending) { next = "起訴狀 v1 已落地，請到「起訴狀(P1)」確認或編輯，確認後才能續跑。"; nextTab = "complaint"; }
+    if (running) next = "即時執行進行中，各階段完成後會自動出現。";
+    else if (rp && rp.gate_pending) { next = "起訴狀初稿已完成，請到「" + tabLabel("complaint") + "」確認或編輯，確認後才能續跑。"; nextTab = "complaint"; }
     else if (cur && rp && rp.possible) { next = "可從「" + rp.from_label + "」續跑(控制在下方「即時執行」)。"; }
-    else if (cur) { next = "尚未完成的步驟：" + cur.label + "。"; }
-    else { next = "流程已全部落地。到「診斷與 v2(P6)」看修改建議，到「起訴狀(P1)」編輯或匯出書狀。"; nextTab = "diagnosis"; }
-    var assess = ((d.verdict && d.verdict.risk_map && d.verdict.risk_map.issue_assessment) || []);
+    else if (cur) { next = "尚未完成的步驟：" + stepLabel(cur.label) + "。"; }
+    else { next = "流程已全部完成。到「" + tabLabel("diagnosis") + "」看哪裡弱、怎麼改，到「" + tabLabel("complaint") + "」編輯或匯出書狀。"; nextTab = "diagnosis"; }
+    var risk = (d.verdict && d.verdict.risk_map) || {}, assess = risk.issue_assessment || [];
     var cnt = { "強": 0, "中": 0, "弱": 0 };
     assess.forEach(function (a) { if (cnt[a.strength] != null) cnt[a.strength]++; });
+    var todoN = (risk.evidence_todo || []).length, revN = (risk.complaint_revisions || []).length;
+    var g = complaintGate(d), autoGate = g && g.by === "auto";
     var docs = (d.pleading_versions || []);
     var blockedDocs = docs.filter(function (v) { return v.exportable === false; }).length;
     var s = d.stats, badCites = s.citations - s.citations_published;
@@ -400,14 +445,21 @@
         tab ? h("button", { class: "btn small", type: "button", text: tabText, onclick: function () { switchTab(tab); } }) : null);
     };
     var nextNote = nextTab === "complaint" ? "前往確認" : nextTab ? "查看" : null;
-    return card(null, h("ul", { class: "sum-list" },
-      row(running ? "⏳" : doneN === steps.length ? "✓" : "◐", "進度", "已完成 " + doneN + " / " + steps.length + " 步" + (cur && !running ? "，停在「" + cur.label + "」" : ""), null),
+    // 頂端數字列：每格可點，直接跳到對應分頁(demo 時照著點就是講稿)
+    var tile = function (num, label, cls, tab) {
+      return h("button", { class: "kpi " + (cls || ""), type: "button", disabled: tab ? null : true, onclick: tab ? function () { switchTab(tab); } : null },
+        h("span", { class: "kpi-num", text: num }), h("span", { class: "kpi-label", text: label }));
+    };
+    var kpis = h("div", { class: "kpi-row" },
+      tile(assess.length ? String(assess.length) : "—", assess.length ? "個爭點：強 " + cnt["強"] + "／中 " + cnt["中"] + "／弱 " + cnt["弱"] : "尚未評估爭點強弱", cnt["弱"] ? "bad" : "", assess.length ? "diagnosis" : null),
+      tile(todoN ? String(todoN) : "—", "項待補證據", todoN ? "warn" : "", todoN ? "diagnosis" : null),
+      tile(revN ? String(revN) : "—", "項起訴狀修改建議", "", revN ? "diagnosis" : null),
+      tile(s.citations ? s.citations_published + "/" + s.citations : "—", s.citations ? (badCites ? "條引用通過，" + badCites + " 條未過" : "條引用全部對到官方原文") : "沒有引用", s.citations ? (badCites ? "bad" : "ok") : "", s.citations ? "verify" : null));
+    return [kpis, card(null, h("ul", { class: "sum-list" },
       row("▶", "下一步", next, nextTab, nextNote),
-      row(assess.length ? "⚖" : "·", "爭點強弱", assess.length ? assess.length + " 個爭點：強 " + cnt["強"] + "、中 " + cnt["中"] + "、弱 " + cnt["弱"] + "(原告方立場，不是勝訴機率)" : "尚未診斷",
-        assess.length ? "diagnosis" : null, "看診斷"),
-      row(docs.length ? "✓" : "·", "書狀", docs.length ? docs.length + " 份書狀版本" + (blockedDocs ? "，其中 ✗ " + blockedDocs + " 份未放行不能匯出" : "，可閱讀、編輯、匯出") : "尚未產生書狀", docs.length ? "complaint" : null, "看書狀"),
-      row(!s.citations ? "·" : badCites ? "✗" : "✓", "引用", s.citations ? s.citations_published + " / " + s.citations + " 條已查證通過" + (badCites ? "，✗ " + badCites + " 條未通過" : "") : "沒有引用",
-        s.citations ? "verify" : null, "看引用查證")));
+      autoGate ? row("!", "律師確認", "起訴狀初稿是流程自動採用的，尚未經律師確認。", "complaint", "看起訴狀") : null,
+      row(running ? "⏳" : doneN === steps.length ? "✓" : "◐", "進度", "已完成 " + doneN + " / " + steps.length + " 步" + (cur && !running ? "，停在「" + stepLabel(cur.label) + "」" : ""), null),
+      row(docs.length ? "✓" : "·", "書狀", docs.length ? docs.length + " 份書狀版本" + (blockedDocs ? "，其中 ✗ " + blockedDocs + " 份未放行不能匯出" : "，可閱讀、編輯、匯出") : "尚未產生書狀", docs.length ? "complaint" : null, "看書狀")))];
   }
   function overviewPanelV2(d) {
     var runs = (d.live_runs || []).filter(function (r) { return r.kind !== "pleadings"; }), latest = runs[runs.length - 1], rp = d.resume;
@@ -437,17 +489,21 @@
     });
     var check = card("商工登記查核", [checkCards,
       h("div", { class: "controls" }, h("button", { class: "btn small", type: "button", text: "查看查核細節", onclick: function () { switchTab("parties"); } }))]);
+    var steps = (d.progress || []).filter(function (x) { return STEP_TAB[x.key]; });
+    var doneN = steps.filter(function (x) { return x.state === "done"; }).length;
+    var running = (d.live_runs || []).some(function (r) { return r.status === "running"; });
     return [
-      panelHead("案件總覽", d.arguments.length ? provChip(d.arguments) : null),
-      h("div", { class: "overview-split" }, input, check),
-      progressTrack(d),
+      panelHead("案件總覽", d.arguments.length ? provChip(d.arguments) : null, "這個案件目前的結果，以及下一步要做什麼。"),
       (state.caseNotices[d.case.case_id] || []).map(function (n) { return banner(n.cls, n.icon, n.text); }),
       liveFront ? live : null,
-      fold("目前狀態與下一步", v2Summary(d)),
+      v2Summary(d),
+      h("div", { class: "overview-split" }, input, check),
+      // 流程進度和上方分頁列重複；跑完時收合，執行中或停在中途時展開
+      fold("流程進度・已完成 " + doneN + " / " + steps.length + " 步", progressTrack(d), running || doneN < steps.length),
       fold("完整案件輸入與技術細節", [
         h("p", { class: "detail-note", text: partySummary(d) }),
         card("我方主張的事實經過", paragraphs(c.facts_summary)), card("請求／訴之聲明", paragraphs(c.claims)),
-        caseInputCards(d), provenanceBanner(d), liveFront ? null : live, prepListCard(d)]),
+        caseInputCards(d), provenanceBanner(d), liveFront ? null : live, prepListCard(d), techDetails(d)]),
     ];
   }
   function isV2(d) { return d.case.protocol === "v2"; }
@@ -470,12 +526,13 @@
     var p = d.precheck;
     return card("程序與時效提示", [
       h("div", { class: "chip-row" }, chip("neutral", "程序類型：" + p.procedure.type), p.warnings.length ? chip("warn", "提示 " + p.warnings.length + " 則") : null),
-      fold("提示內容", [h("p", { class: "detail-note", text: p.note }),
-        h("p", null, p.procedure.message), h("p", { class: "detail-note", text: "條文：" + p.procedure.legal_basis.join("、") }),
-        p.warnings.map(function (w) {
-          return h("div", { class: "precheck-row" }, h("p", { text: w.message }),
-            w.legal_basis.length ? h("p", { class: "detail-note", text: "條文：" + w.legal_basis.join("、") }) : null);
-        })])]);
+      // 有時效或程序提示時直接攤開(這是本頁最該看的)；說明與程序類型細節收合
+      p.warnings.map(function (w) {
+        return h("div", { class: "precheck-row" }, h("p", { text: w.message }),
+          w.legal_basis.length ? h("p", { class: "detail-note", text: "條文：" + w.legal_basis.join("、") }) : null);
+      }),
+      fold("程序類型說明", [h("p", { class: "detail-note", text: p.note }),
+        h("p", null, p.procedure.message), h("p", { class: "detail-note", text: "條文：" + p.procedure.legal_basis.join("、") })])]);
   }
   function stat(num, label, cls) {
     return h("div", { class: "stat " + (cls || "") }, h("div", { class: "stat-num", text: num }), h("div", { class: "stat-label", text: label }));
@@ -483,16 +540,23 @@
 
   // ───────────── 書狀交換流程(protocol v2)的分頁 ─────────────
   // 交接 B:總覽的進度軌。步驟與完成判定用後端的 progress(同 server/live_run.py RUN_STEPS_V2 與續跑判定)，UI 不自己重算
-  var STEP_PHASE = { "case": "P0", analysis: "P1", complaint: "P1", gate1: "關卡 1", defense: "P2", answer: "P2", issue_sheet: "P3",
-    stage2: "P4", brief: "P4", stage3: "P5", closing: "P5", verdict: "P6", revision: "P6" };
+  // 進度格上方的小字：對應的分頁名稱(不用 P0–P6 代號)
   var STEP_TAB = { "case": "overview", analysis: "complaint", complaint: "complaint", gate1: "complaint", defense: "answer", answer: "answer",
     issue_sheet: "sheet", stage2: "rounds", brief: "rounds", stage3: "rounds", closing: "rounds", verdict: "diagnosis", revision: "diagnosis" };
-  var TRACK_STATE = { done: ["✓", "已落地"], active: ["⏳", "進行中"], partial: ["◐", "部分落地"], pending: ["·", "未開始"] };
+  var STEP_PHASE = {};
+  Object.keys(STEP_TAB).forEach(function (k) { STEP_PHASE[k] = (TABS_V2.filter(function (t) { return t.key === STEP_TAB[k]; })[0] || {}).label; });
+  STEP_PHASE.gate1 = "律師確認";
+  // 後端步驟名稱裡的流程代號換成律師用語(只換顯示)
+  function stepLabel(label) {
+    return String(label || "").replace(/關卡\s*1\s*律師確認起訴狀/, "律師確認起訴狀").replace(/起訴狀 v1/, "起訴狀初稿")
+      .replace(/起訴狀 v2/, "修訂版起訴狀").replace(/第 2 輪論證/, "第一次書狀往返的論證").replace(/第 3 輪論證/, "最後辯論的論證");
+  }
+  var TRACK_STATE = { done: ["✓", "已完成"], active: ["⏳", "進行中"], partial: ["◐", "部分完成"], pending: ["·", "未開始"] };
   function progressTrack(d) {
     var steps = d.progress.filter(function (s) { return STEP_TAB[s.key]; });
     var running = (d.live_runs || []).some(function (r) { return r.status === "running"; });
     var current = running ? steps.filter(function (s) { return s.state !== "done"; })[0] : null;
-    return card("流程進度(P0–P6)", [
+    return card(null, [
       h("ol", { class: "track" }, steps.map(function (s) {
         var st = s === current ? "active" : s.state === "done" ? "done" : s.state === "partial" ? "partial" : "pending";
         var auto = s.key === "gate1" && /自動/.test(s.detail || "");
@@ -502,7 +566,7 @@
           h("button", { class: "track-btn", type: "button", title: "前往「" + tabLabel(STEP_TAB[s.key]) + "」分頁",
             onclick: function () { switchTab(STEP_TAB[s.key]); } },
             h("span", { class: "track-phase", text: STEP_PHASE[s.key] }),
-            h("span", { class: "track-label", text: s.label }),
+            h("span", { class: "track-label", text: stepLabel(s.label) }),
             h("span", { class: "track-state", text: (auto ? "!" : TRACK_STATE[st][0]) + " " + label })));
       })),
       null]);
@@ -526,8 +590,12 @@
 
   // 起訴狀(P1、關卡 1):起訴狀 v1、律師版與關卡卡片，加上起訴審查(補正寫在起訴狀「四、程序事項」)
   function complaintTabPanel(d) {
-    var pb = proceduralBlock(d), n = d.procedural_issues ? d.procedural_issues.issues.length : 0;
-    return [].concat(pleadingPanel(d, { title: "起訴狀(P1)與關卡 1", fixedSide: true, reader: true }),
+    var p = d.procedural_issues, n = p ? p.issues.length : 0;
+    var checked = p && SIDES.some(function (s) { return p.parties[s]; });
+    // 已查核且 0 項時不佔版面(「當事人與管轄」分頁已列查核結果)；有事項才顯示
+    var pb = checked && !n ? null : proceduralBlock(d);
+    return [].concat(pleadingPanel(d, { title: "起訴狀", fixedSide: true, reader: true,
+        lede: "AI 依案情起草的起訴狀，須由執業律師審核後使用。" }),
       [pb && n ? fold("起訴審查(依商工登記命補正)・" + n + " 項", pb) : pb]);
   }
 
@@ -545,16 +613,17 @@
   }
   function answerPanel(d) {
     var a = (d.pleadings || {}).defendant, st = a && a.structured;
-    var full = pleadingPanel(d, { title: st ? "答辯狀全文" : "答辯狀(P2,模擬)", fixedSide: true, reader: true, noHead: !!st });
+    var full = pleadingPanel(d, { title: st ? "答辯狀全文" : "對方答辯狀(模擬)", fixedSide: true, reader: true, noHead: !!st });
     if (!st) return full;
     var facts = a.complaint_facts || {}, responses = st.responses || [], counts = {};
     var ver = (d.pleading_versions || []).filter(function (v) { return v.id === a.id; })[0], checks = ver ? ver.citation_check : [];
     responses.forEach(function (r) { counts[r.stance] = (counts[r.stance] || 0) + 1; });
     return [
-      panelHead("答辯狀(P2,模擬)", originChip(a.origin),
-        "模擬答辯，不是對方實際的答辯；推測的內容標「推測」，只用來預想防禦。",
-        "模擬被告只讀關卡 1 採用的起訴狀，讀不到原告的分析、事實經過全文與已知缺口。以下不是對方實際的答辯，推測的內容標「推測」，只能用來預想防禦。"),
-      banner("rec", "🔒", "被告角色只拿到起訴狀，看不到原告的分析。執行稽核的工具呼叫紀錄未見被告方 agent 讀取原告分析(稽核只看工具輸入，不看結果)。"),
+      panelHead("對方答辯狀(模擬)", originChip(a.origin),
+        "AI 扮演對方律師寫的答辯，用來預想對方會怎麼打；標「推測」的是 AI 猜的，不是對方實際主張。"),
+      banner("rec", "🔒", [h("strong", { text: "模擬的對方律師只看得到你的起訴狀" }),
+        "，看不到你的內部分析、事實經過全文與已知缺口。",
+        h("span", { class: "detail-note", text: "(依執行紀錄稽核：對方角色沒有讀取我方分析的紀錄)" })]),
     ].concat(full, [fold("逐點表態、抗辯與待確認事項", [
       card("逐點表態(共 " + responses.length + " 點)", [
         h("div", { class: "chip-row" }, Object.keys(STANCE).filter(function (k) { return counts[k]; }).map(function (k) {
@@ -602,11 +671,18 @@
       h("div", { class: "judge-q-text prewrap", text: q.question || q.question_text }),
       h("div", { class: "judge-q-basis" }, h("b", { text: "依據：" }), based + (q.basis ? "(" + q.basis + ")" : "")));
   }
+  // 爭點代號 I1 → 1(畫面上加「爭點」二字即可，代號律師看不懂)；非 I 開頭的(如程序事項)照原樣
+  function issueNum(id) { var m = /^I(\d+)$/.exec(id || ""); return m ? m[1] : (id || "—"); }
+  function factName(id) { var m = /^CF(\d+)$/.exec(id || ""); return m ? "事實 " + m[1] : (id || "—"); }
+  function issueName(id) { var m = /^I(\d+)$/.exec(id || ""); return m ? "爭點 " + m[1] : (id || "—"); }
+  function subLine(label, list) {
+    return list && list.length ? h("div", { class: "cell-sub", text: label + "：" + list.join("、") }) : null;
+  }
   function sheetPanel(d) {
     var s = d.issue_sheet;
-    var head = panelHead("爭點整理表(P3,模擬)", s ? originChip(s.origin) : null,
-      "AI 模擬，非法院的爭點整理。",
-      "法官角色整理的爭點、不爭執事項與證據。法官角色只讀起訴狀與模擬答辯狀，照司法院民事訴訟事件審理須知例示的格式整理聲明、不爭執事項、爭點與證據，並列出闡明與訊問。這是 AI 模擬，不是法院的爭點整理。");
+    var head = panelHead("爭點整理(模擬)", s ? originChip(s.origin) : null,
+      "模擬法官讀完起訴狀與答辯狀後，整理兩造到底在爭什麼；不是法院的爭點整理。",
+      "法官角色只讀起訴狀與模擬答辯狀，照司法院民事訴訟事件審理須知例示的四張表格式整理聲明、不爭執事項、爭點與證據，並列出闡明與訊問。最重要的表三(爭點)放最前面。");
     if (!s) return [head, emptyState("尚未產生。書狀交換流程在模擬答辯狀之後由法官角色整理。")];
     var sh = s.sheet || {}, issues = sh.issues || [], und = sh.undisputed || [];
     var clar = sh.clarifications || [], qs = sh.questions || [];
@@ -616,23 +692,26 @@
         h("div", { class: "judge-band-title" }, chip("judge", "法官"), title + "(" + items.length + " 則)"),
         items.map(function (q) { return sheetQuestion(q, isClar); })) : null;
     };
-    var t2card = function () { return card("表二　預期不爭執事項", und.length
+    var t2card = function () { return card("不爭執事項(表二)", und.length
         ? dataTable(["編號", "不爭執事項", "來源", "證據"], und.map(function (u) {
           return [u.id, u.text, (u.source || []).join("、"), (u.evidence || []).join("、") || "無"]; }))
         : h("p", { class: "detail-note", text: "(無)" }),
         chip("neutral", und.length + " 項", { title: s.undisputed_note + "；無不爭執事項是模擬被告保守表態的預期結果，不代表當事人真的每一點都爭執。" })); };
     return [head,
-      card("表三　爭點整理表", dataTable(["序次", "爭點", "原告主張", "原告證據", "被告抗辯", "被告證據", "法律依據", "舉證責任"],
+      // 5 欄：證據與法條併到主張／爭點格的小字，爭點全文不截斷，主張與抗辯先顯示 3 行(點一下看全文)
+      card("爭點(表三)", dataTable(["#", "爭點", "原告主張", "被告抗辯", "舉證責任"],
         issues.map(function (i) {
-          return [h("strong", { text: i.id }),
-            [clamp(i.text), h("div", { class: "chip-row" }, ISSUE_KIND[i.kind] ? chip("neutral", ISSUE_KIND[i.kind]) : null,
-              i.hypothetical ? chip("warn", "推測") : null)],
-            clamp(i.plaintiff_claim), (i.plaintiff_evidence || []).join("、"), clamp(i.defendant_defense), (i.defendant_evidence || []).join("、"),
-            clamp((i.legal_basis || []).join("、")), BURDEN_LABEL[i.burden] || i.burden];
-        }), true), chip("neutral", issues.length + " 個爭點")),
-      und.length ? t2card() : fold("表二　預期不爭執事項・0 項", h("p", { class: "detail-note", text: s.undisputed_note + "；無不爭執事項是模擬被告保守表態的預期結果，不代表當事人真的每一點都爭執。" })),
-      fold("表一　聲明與請求權基礎(取自起訴狀正文)", h("div", { class: "prewrap", text: t1 || "(起訴狀未列)" })),
-      fold("表四　證據清單", ev.length ? dataTable(["編號", "種類", "日期", "內容"], ev) : h("p", { class: "detail-note", text: "(起訴狀未附證據)" })),
+          return [h("strong", { class: "nowrap", text: issueNum(i.id) }),
+            [h("div", { class: "cell-main", text: i.text }), h("div", { class: "chip-row" }, ISSUE_KIND[i.kind] ? chip("neutral", ISSUE_KIND[i.kind]) : null,
+              i.hypothetical ? chip("warn", "推測") : null),
+              subLine("法律依據", i.legal_basis)],
+            [clamp(i.plaintiff_claim, 3), subLine("證據", i.plaintiff_evidence)],
+            [clamp(i.defendant_defense, 3), subLine("證據", i.defendant_evidence)],
+            BURDEN_LABEL[i.burden] || i.burden];
+        })), chip("neutral", issues.length + " 個爭點")),
+      und.length ? t2card() : fold("不爭執事項(表二)・0 項", h("p", { class: "detail-note", text: s.undisputed_note + "；無不爭執事項是模擬被告保守表態的預期結果，不代表當事人真的每一點都爭執。" })),
+      fold("聲明與請求權基礎(表一，取自起訴狀正文)", h("div", { class: "prewrap", text: t1 || "(起訴狀未列)" })),
+      fold("證據清單(表四)", ev.length ? dataTable(["編號", "種類", "日期", "內容"], ev) : h("p", { class: "detail-note", text: "(起訴狀未附證據)" })),
       clar.length || qs.length ? fold("法官闡明與訊問(" + (clar.length + qs.length) + " 則)", [band("闡明", clar, true), band("訊問", qs, false)]) : null,
       fold("四張表的文字版(與匯出內容相同)", h("div", { class: "prewrap", text: s.text }))];
   }
@@ -652,8 +731,9 @@
       var a = assess[i.id];
       return h("li", null, h("button", { type: "button", class: "issue-btn", "aria-pressed": String(i.id === issue.id),
         onclick: function () { state.roundIssue[id] = i.id; renderPanel(); } },
-        h("strong", { text: i.id }), h("span", { class: "issue-btn-text", text: i.text }),
-        a ? chip(STRENGTH_CLS[a.strength] || "neutral", (a.strength === "強" ? "▲ " : a.strength === "弱" ? "▼ " : "● ") + a.strength) : null));
+        h("strong", { text: issueName(i.id) }), h("span", { class: "issue-btn-text", text: i.text }),
+        a ? chip(STRENGTH_CLS[a.strength] || "neutral", "我方 " + (a.strength === "強" ? "▲ " : a.strength === "弱" ? "▼ " : "● ") + a.strength,
+          { title: "原告(我方)在這個爭點的強弱，不是勝訴機率" }) : null));
     }));
     var column = function (side) {
       var v = docOfSide(side), sec = v ? roundIssueSection(v.draft_text, issue.id) : null;
@@ -664,14 +744,15 @@
     };
     var kinds = h("div", { class: "seg", role: "group", "aria-label": "書狀種類" }, ["brief", "closing"].map(function (k) {
       return h("button", { type: "button", "aria-pressed": String(k === kind), disabled: docs.some(function (v) { return v.pleading_type === k; }) ? null : true,
-        onclick: function () { state.roundKind[id] = k; renderPanel(); }, text: (k === "brief" ? "P4 " : "P5 ") + ROUND_DOC[k] }, null);
+        onclick: function () { state.roundKind[id] = k; renderPanel(); }, title: ROUND_DOC[k],
+        text: k === "brief" ? "第一次書狀往返(準備書狀)" : "最後辯論(意旨狀)" }, null);
     }));
     return [
-      panelHead("準備書狀與言詞辯論意旨狀(P4、P5)", d.arguments.length ? provChip(d.arguments) : null,
-        "AI 模擬，非實際主張。"),
+      panelHead("攻防模擬", d.arguments.length ? provChip(d.arguments) : null,
+        "左邊選爭點，右邊並排看兩造書狀怎麼寫；皆為 AI 模擬，不是實際主張。"),
       h("div", { class: "issue-split" }, list,
         h("div", { class: "issue-main" },
-          h("div", { class: "issue-title" }, h("strong", { text: issue.id }), h("span", { text: issue.text }),
+          h("div", { class: "issue-title" }, h("strong", { text: issueName(issue.id) }), h("span", { text: issue.text }),
             ISSUE_KIND[issue.kind] ? chip("neutral", ISSUE_KIND[issue.kind]) : null, BURDEN_LABEL[issue.burden] ? chip("neutral", "舉證責任：" + BURDEN_LABEL[issue.burden]) : null,
             issue.hypothetical ? chip("warn", "推測") : null, kinds),
           h("div", { class: "debate-layout" }, column("plaintiff"), column("defendant")))),
@@ -694,13 +775,13 @@
       return g ? fold(title, g) : null;
     };
     return [
-      panelHead("準備書狀與言詞辯論意旨狀(P4、P5)", d.arguments.length ? provChip(d.arguments) : null,
-        "P4 準備書狀逐爭點回應，P5 言詞辯論意旨狀收斂最終立場。⚠ 皆為 AI 模擬，不是當事人或對方律師的實際主張。"),
+      panelHead("攻防模擬", d.arguments.length ? provChip(d.arguments) : null,
+        "準備書狀逐爭點回應，言詞辯論意旨狀收斂最終立場。皆為 AI 模擬，不是當事人或對方律師的實際主張。"),
       roundDocsCard(d) || emptyState("尚未產生。準備書狀在爭點整理表之後的續跑產生。"),
       d.arguments.length ? h("div", { class: "section-title", text: "論證原文(書狀正文由各方公開論證組成)" }) : null,
-      foldStage(1, "P1、P2 — 起訴前與答辯前的分析(被告只讀起訴狀，看不到原告的分析)"),
-      foldStage(2, "P4 — 準備書狀的論證(依爭點整理表逐爭點回應)"),
-      foldStage(3, "P5 — 言詞辯論意旨狀的論證(收斂到最終立場)"),
+      foldStage(1, "起訴前與答辯前的分析(被告只讀起訴狀，看不到原告的分析)"),
+      foldStage(2, "準備書狀的論證(依爭點整理表逐爭點回應)"),
+      foldStage(3, "言詞辯論意旨狀的論證(收斂到最終立場)"),
       d.arguments.length ? fold("技術細節：階段間引用變化", changesCard(d)) : null];
   }
 
@@ -727,15 +808,15 @@
       h("button", { type: "button", "aria-pressed": String(on), onclick: function () { state.diffOn[id] = true; renderPanel(); } }, "與 #" + v.parent_id + " 比較"));
   }
   function revisionCard(d, rev) {
-    if (!rev) return card("起訴狀 v2(系統建議版)", h("p", { class: "detail-note", text: "尚未產生。診斷落地後由原告方依修改建議改寫。" }));
+    if (!rev) return card("修訂版起訴狀", h("p", { class: "detail-note", text: "尚未產生。診斷完成後由原告方依修改建議改寫。" }));
     var id = d.case.case_id, exportUrl = API_BASE + "/api/cases/" + encodeURIComponent(id) + "/pleadings/" + rev.id + "/export";
-    return h("div", { id: "revision-card" }, card("起訴狀 v2(系統建議版)與 #" + rev.parent_id + " 的差異", [
-      h("div", { class: "chip-row" }, originChip(rev.origin), chip(rev.exportable ? "ok" : "bad", rev.exportable ? "✓ 可匯出" : "✗ 未放行，不能匯出"),
-        chip("neutral", "系統建議版", { title: "不是律師編輯版，也不取代關卡 1 確認的版本；引用在落地時已通過查證。" + fmtTime(rev.generated_at) + " 落地" })),
+    return h("div", { id: "revision-card" }, card("修訂版起訴狀：和初稿相比改了什麼", [
+      h("div", { class: "chip-row" }, originChip(rev.origin), chip(rev.exportable ? "ok" : "bad", rev.exportable ? "✓ 引用全部通過，可匯出" : "✗ 未放行，不能匯出"),
+        chip("neutral", "依診斷建議產生", { title: "不是律師編輯版，也不取代律師確認的版本；引用在存入時已通過查證。存入於 " + fmtTime(rev.generated_at) })),
       h("div", { class: "controls" },
         h("button", { class: "btn small", type: "button", text: "在起訴狀分頁看全文",
           onclick: function () { state.pleadingSel[id] = rev.id; state.diffOn[id] = false; switchTab("complaint"); } }),
-        rev.exportable ? h("a", { class: "btn small", href: exportUrl, download: "" }, "匯出起訴狀 v2 .txt") : null),
+        rev.exportable ? h("a", { class: "btn small", href: exportUrl, download: "" }, "匯出修訂版 .txt") : null),
       rev.diff ? diffBlock(rev.diff) : h("p", { class: "detail-note", text: "找不到上一版，無法比較。" })],
       rev.diff ? chip("neutral", "＋" + rev.diff.added + " ／ −" + rev.diff.removed) : null));
   }
@@ -751,40 +832,66 @@
   }
   function diagnosisPanel(d) {
     var v = d.verdict;
-    var head = panelHead("診斷與起訴狀 v2(P6)", v ? originChip(v.origin) : null,
-      "不預測判決，不給勝訴機率。",
-      "協助決定怎麼改起訴狀、先蒐哪些證據。法官角色讀雙方書狀後做診斷：每個爭點的強弱、待補證據、起訴狀修改建議。用途是協助律師決定怎麼改起訴狀、先蒐哪些證據，不是預測法院會怎麼判，也不給勝訴機率。");
-    if (!v) return [head, emptyState("此案件尚未落地診斷。書狀交換流程在言詞辯論意旨狀之後產生。"), revisionCard(d, revisionOf(d))];
+    var head = panelHead("弱點與修改建議", v ? originChip(v.origin) : null,
+      "模擬法官讀完雙方書狀後指出：哪個爭點弱、缺什麼證據、起訴狀怎麼改。不預測判決，不給勝訴機率。");
+    if (!v) return [head, emptyState("此案件尚未完成診斷。書狀交換流程在言詞辯論意旨狀之後產生。"), revisionCard(d, revisionOf(d))];
     var risk = v.risk_map || {}, issues = {}, rev = revisionOf(d);
     ((d.issue_sheet && d.issue_sheet.sheet.issues) || []).forEach(function (i) { issues[i.id] = i; });
     var issueCell = function (id) {
       if (/^官方事實層\(/.test(id || "")) return [chip("judge", "程序"), h("div", { class: "detail-note", text: id })];
-      return [h("strong", { text: id }), issues[id] ? clamp(issues[id].text) : null];
+      return [h("strong", { text: issueName(id) }), issues[id] ? clamp(issues[id].text, 2) : null];
     };
     var revisions = risk.complaint_revisions || [];
     var assess = risk.issue_assessment || [], cnt = { "強": 0, "中": 0, "弱": 0 };
     assess.forEach(function (a) { if (cnt[a.strength] != null) cnt[a.strength]++; });
+    var todo = risk.evidence_todo || [];
+    var jump = function () { var el = document.getElementById("revision-card"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); };
     var summary = h("div", { class: "summary-bar" },
       assess.length ? [chip("ok", "▲ 強 " + cnt["強"]), chip("warn", "● 中 " + cnt["中"]), chip("bad", "▼ 弱 " + cnt["弱"])] : null,
-      (risk.evidence_todo || []).length ? chip("neutral", "待補證據 " + risk.evidence_todo.length + " 項") : null,
+      todo.length ? chip("neutral", "待補證據 " + todo.length + " 項") : null,
       revisions.length ? chip("neutral", "修改建議 " + revisions.length + " 項") : null,
-      rev ? h("button", { class: "btn small primary", type: "button", text: "看起訴狀 v2 差異 ↓",
-        onclick: function () { var el = document.getElementById("revision-card"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); } }) : null);
+      rev ? h("button", { class: "btn small primary", type: "button", text: "看修訂版起訴狀改了什麼 ↓", onclick: jump }) : null);
+    // 一個爭點一張卡：強弱＋理由＋缺什麼證據，預設收合成一行(點開看理由)，避免同一爭點要跨三張表看
+    var todoOf = function (id) { return todo.filter(function (e) { return e.issue_id === id; }); };
+    var assessed = {};
+    assess.forEach(function (a) { assessed[a.issue_id] = true; });
+    var issueCard = function (a) {
+      var t = todoOf(a.issue_id), sym = a.strength === "強" ? "▲ " : a.strength === "弱" ? "▼ " : "● ";
+      var proc = /^官方事實層\(/.test(a.issue_id || "");
+      return h("details", { class: "issue-card " + (STRENGTH_CLS[a.strength] || "neutral") },
+        h("summary", null,
+          chip(STRENGTH_CLS[a.strength] || "neutral", sym + a.strength),
+          h("strong", { class: "issue-card-id", text: proc ? "程序" : issueName(a.issue_id) }),
+          h("span", { class: "issue-card-text", text: proc ? a.issue_id : (issues[a.issue_id] ? issues[a.issue_id].text : "") }),
+          t.length ? chip("neutral", "缺 " + t.length + " 項證據") : null),
+        h("div", { class: "issue-card-body" },
+          field("為什麼是「" + a.strength + "」", h("p", { text: a.reason })),
+          t.length ? field("缺什麼證據", h("ul", { class: "risk-list" }, t.map(function (e) {
+            return h("li", null, h("span", { text: e.missing }), e.why ? h("div", { class: "cell-sub", text: "為什麼需要：" + e.why }) : null);
+          }))) : null));
+    };
+    var orphanTodo = todo.filter(function (e) { return !assessed[e.issue_id]; });
     return [head, summary,
-      assess.length ? card("爭點強弱(原告方立場)", dataTable(["爭點", "強弱", "理由"], assess.map(function (a) {
-          return [issueCell(a.issue_id), chip(STRENGTH_CLS[a.strength] || "neutral", (a.strength === "強" ? "▲ " : a.strength === "弱" ? "▼ " : "● ") + a.strength), clamp(a.reason)];
-        })), chip("neutral", "不是勝訴機率", { title: "強／中／弱指原告方在該爭點的立場，依目前的書狀與證據判斷" })) : null,
-      (risk.evidence_todo || []).length ? card("待補證據", dataTable(["爭點", "缺少什麼", "為什麼需要"], risk.evidence_todo.map(function (e) {
-        return [issueCell(e.issue_id), clamp(e.missing), clamp(e.why)];
+      assess.length ? h("section", { class: "card" },
+        h("div", { class: "card-header" }, h("span", { class: "card-title", text: "各爭點的強弱與待補證據(我方立場)" }),
+          chip("neutral", "不是勝訴機率", { title: "強／中／弱指原告方在該爭點的立場，依目前的書狀與證據判斷" }),
+          h("button", { class: "btn small", type: "button", style: "margin-left:auto", text: "展開弱的爭點",
+            onclick: function (e) { var cards = e.target.closest(".card").querySelectorAll(".issue-card");
+              var weak = Array.prototype.filter.call(cards, function (c) { return c.classList.contains("bad"); });
+              var anyClosed = weak.some(function (c) { return !c.open; });
+              weak.forEach(function (c) { c.open = anyClosed; }); e.target.textContent = anyClosed ? "收合" : "展開弱的爭點"; } })),
+        h("div", { class: "card-body issue-cards" }, assess.map(issueCard))) : null,
+      orphanTodo.length ? card("其他待補證據", dataTable(["爭點", "缺少什麼", "為什麼需要"], orphanTodo.map(function (e) {
+        return [issueCell(e.issue_id), clamp(e.missing, 3), clamp(e.why, 3)];
       }))) : null,
       revisions.length ? card("起訴狀修改建議", [
-        dataTable(["事實點", "建議", "內容"], revisions.map(function (r) {
-          return [r.fact_id || "—", chip("neutral", REVISION_KIND[r.kind] || r.kind), clamp(r.suggestion)];
+        dataTable(["位置", "建議", "內容"], revisions.map(function (r) {
+          return [h("span", { class: "nowrap", text: factName(r.fact_id) }), chip("neutral", REVISION_KIND[r.kind] || r.kind), clamp(r.suggestion, 3)];
         }))],
         chip("neutral", revisions.length + " 項")) : null,
       revisionCard(d, rev),
       fold("評估結論、事實缺口與雙方不利之處", [
-      card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "落地 " + fmtTime(v.created_at))),
+      card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "存入 " + fmtTime(v.created_at))),
       proceduralRiskCard(d),
       (risk.fact_gaps || []).length ? card("事實缺口", bulletList(risk.fact_gaps)) : null,
       (risk.opponent_hypotheticals || []).length ? card("被告推測的事實，請向當事人確認", [
@@ -881,6 +988,25 @@
       j.source_url ? h("a", { href: j.source_url, target: "_blank", rel: "noopener noreferrer", text: "司法院管轄區域來源" }) : null,
       partySourceFooter(result)]);
   }
+  // 兩造的管轄建議合成一張卡，一方一行；分公司候選、說明與來源收在「細節」
+  function jurisdictionCard(results) {
+    var rows = results.map(function (x) {
+      var j = x.result.jurisdiction || {};
+      return h("div", { class: "meta-row juris-row" }, h("span", { class: "meta-key" }, sideChip(x.role, "依" + SIDE[x.role].label + "所在地")),
+        h("span", { class: "meta-val", text: j.primary ? j.primary.court + "（" + j.primary.basis + "）"
+          : j.primary_candidates && j.primary_candidates.length ? j.primary_candidates.join("、") + "；需依行政區確認" : j.note || "無法確認" }));
+    });
+    var alts = results.filter(function (x) { var j = x.result.jurisdiction || {}; return j.alternatives && j.alternatives.length; });
+    var j0 = results[0].result.jurisdiction || {};
+    return card("管轄法院建議", [rows,
+      fold("細節：分公司所在地候選法院、管轄區域來源", [
+        alts.map(function (x) {
+          return h("div", { class: "party-alt-list" }, h("div", { class: "field-label", text: SIDE[x.role].label + "分公司所在地候選法院" }),
+            x.result.jurisdiction.alternatives.map(function (a) { return h("div", { text: a.court + "（" + a.basis + "；" + a.condition + "）" }); }));
+        }),
+        h("p", { class: "detail-note", text: j0.notice || "管轄區域以司法院公告為準；本建議不含合意管轄、專屬管轄等其他情形。" }),
+        j0.source_url ? h("a", { href: j0.source_url, target: "_blank", rel: "noopener noreferrer", text: "司法院管轄區域來源" }) : null])]);
+  }
   function partyResultBlock(result, d) {
     if (!result) return emptyState("尚未查核。請輸入統一編號，或用名稱搜尋後點選候選公司。");
     var isBranch = result.entity_type === "branch";
@@ -916,7 +1042,8 @@
     pieces.push(partyWarnings(result, d));
     pieces.push(result.query_status !== "failed" && result.always_notes ?
       h("p", { class: "detail-note", text: result.always_notes.join("；") }) : null);
-    pieces.push(partySourceFooter(result));
+    // 資料來源與授權在 v2 分頁底部統一列一次；舊流程照舊每張卡各列
+    if (!isV2(d)) pieces.push(partySourceFooter(result));
     return h("div", { class: "party-result" }, pieces);
   }
   function candidateButton(p) {
@@ -993,18 +1120,25 @@
       partyResultBlock(result, d)]);
   }
   function partiesPanel(d) {
-    var checks = d.party_checks || {};
-    return [panelHead("起訴前檢查", chip("ok", "⚡ 即時查詢"),
-      "以統編查商工登記，確認當事人與管轄。",
+    var checks = d.party_checks || {}, v2 = isV2(d);
+    var resultOf = function (side) { return partyState(d.case.case_id, side).result || checks[side]; };
+    var juris = SIDES.map(function (side) { var r = resultOf(side);
+      return r && r.query_status !== "failed" && r.entity_type !== "not_found" && r.entity_type !== "branch" && r.address ? { role: side, result: r } : null; }).filter(Boolean);
+    var footers = SIDES.map(resultOf).filter(function (r) { return r && r.attribution; });
+    return [panelHead(v2 ? "當事人與管轄" : "起訴前檢查", chip("ok", "⚡ 即時查詢"),
+      v2 ? "對方公司是否存在、誰是法定代理人、該告到哪個法院；直接查經濟部商工登記，不經 AI。" : "以統編查商工登記，確認當事人與管轄。",
       "以統一編號查詢經濟部商工登記，確認當事人名稱、法定代理人、公司狀態與管轄法院。本分頁為即時查詢，不呼叫 AI。查核結果僅反映商工登記公示資料，不代表該公司涉入本案；登記為查詢當下的狀態。"),
-      isV2(d) && d.precheck ? precheckCard(d) : null,
+      v2 && d.precheck ? precheckCard(d) : null,
       h("div", { class: "party-grid" }, SIDES.map(function (side) { return partyCard(d, side); })),
       d.procedural_issues && d.procedural_issues.issues.length ? banner("rec", "→", [
         h("strong", { text: "這些警示已轉成 " + d.procedural_issues.issues.length + " 項起訴審查命補正事項" }),
         "：當事人能力與法定代理屬法院應依職權調查的事項，系統依固定規則把警示轉成命補正事項，在 Stage 1 之前交給雙方，並寫入爭點評估的機械錨點。 ",
         h("button", { class: "btn small", type: "button", onclick: function () { switchTab(isV2(d) ? "complaint" : "debate"); }, text: isV2(d) ? "到起訴狀分頁查看" : "到攻防過程查看" })]) : null,
-      SIDES.map(function (side) { var r = partyState(d.case.case_id, side).result || checks[side];
-        return r && r.query_status !== "failed" && r.entity_type !== "not_found" && r.entity_type !== "branch" && r.address ? partyJurisdiction(r, side) : null; })];
+      v2 ? (juris.length ? jurisdictionCard(juris) : null) : juris.map(function (x) { return partyJurisdiction(x.result, x.role); }),
+      v2 && footers.length ? h("div", { class: "party-source" },
+        h("div", { text: footers[0].attribution }),
+        h("div", { text: "查詢時間：" + footers.map(function (r) { return fmtTime(r.fetched_at); }).filter(function (t, i, a) { return a.indexOf(t) === i; }).join("、") }),
+        h("a", { href: "https://data.gov.tw/license", target: "_blank", rel: "noopener noreferrer", text: "依政府資料開放授權條款第1版" })) : null];
   }
 
   // ───────────── 分頁：攻防過程 ─────────────
@@ -1300,7 +1434,7 @@
     try { state.detail = await api("/api/cases/" + encodeURIComponent(state.caseId)); renderDetail(); } catch (e) { /* 保留舊資料 */ }
   }
 
-  function verifyRow(c, r, busy, pendingText) {
+  function verifyRow(c, r, busy, pendingText, v2) {
     var pending = pendingText === c.citation_text;
     var meta, cls = "";
     if (pending) meta = { cls: "idle", icon: "", label: "查證中…" };
@@ -1333,7 +1467,7 @@
         h("div", { class: "vrow-meta" }, chip("neutral", c.kind === "judgment" ? "判例" : c.kind === "statute" ? "法條" : "未分類"),
           (r && r.primary_source_url) || (c.db_record && c.db_record.primary_source_url)
             ? h("a", { class: "chip neutral", href: (r && r.primary_source_url) || c.db_record.primary_source_url, target: "_blank", rel: "noopener noreferrer", text: "官方頁面 ↗" }) : null,
-          c.used_by.length ? chip("neutral", "引用者：" + usedByLabel(c.used_by)) : null,
+          c.used_by.length ? chip("neutral", (v2 ? "出現在 " : "引用者：") + usedByLabel(c.used_by, v2)) : null,
           r && r.gate ? (r.gate === "pass" ? chip("ok", "✓ 本次放行")
             : r.status === "not_found" ? chip("bad", "✗ 閘門攔截，不得進入訴狀") : chip("warn", "本次未放行(不視為已查證)")) : null),
         h("div", { style: "margin-top:6px" }, fold("查證細節", [h("div", { class: "vrow-lines" }, lines),
@@ -1346,8 +1480,9 @@
   function verifyPanel(d) {
     var run = runsFor(d.case.case_id), v = run.verify, opts = state.verifyOpts;
     var cites = d.citations;
-    var head = panelHead("引用查證", null,
-      "逐條比對官方來源。",
+    var v2 = isV2(d);
+    var head = panelHead(v2 ? "引用查核" : "引用查證", null,
+      v2 ? "書狀裡引用的每條法條、判決，逐條對到官方原文；只確認存在，不代表判決支持該論點。" : "逐條比對官方來源。",
       "每條引用都當作「未經證實」；只確認字號／條文存在，不代表判決支持該論點。每一條引用都當作「未經證實」處理：判例先比對判決預先內容(1,000 餘份最高法院裁判)與快取，未命中再即時查司法院系統；法條 7 天內讀快取，否則即時查全國法規資料庫。連線失敗時，過期或未確認的快取只標示為待核，不算通過、不寫入紀錄。");
     if (!cites.length) return [head, emptyState("此案件的論證沒有引用任何法條或判例。")];
 
@@ -1360,12 +1495,14 @@
       [3, 6, 12].map(function (s) { return h("option", { value: String(s), selected: opts.timeout === s ? true : null, text: s + " 秒" }); }));
     var persist = h("input", { type: "checkbox", id: "v-persist", checked: opts.persist ? true : null, disabled: v.busy ? true : null,
       onchange: function (e) { opts.persist = e.target.checked; } });
-    var controls = h("div", { class: "controls" }, seg,
-      h("label", { for: "v-timeout" }, "即時查詢逾時", sel),
-      h("label", { for: "v-persist" }, persist, "查證通過的引用要記錄下來"),
+    // 主按鈕常駐；查詢模式、逾時、是否記錄收進「查證設定」
+    var controls = h("div", { class: "controls" },
       h("button", { class: "btn primary", type: "button", disabled: v.busy ? true : null,
         onclick: function () { runVerify(cites.map(function (c) { return c.citation_text; })); } },
-        h("span", { class: "ico", "aria-hidden": "true", text: "▶" }), v.busy ? "查證中…" : "逐條查證全部(" + cites.length + " 條)"));
+        h("span", { class: "ico", "aria-hidden": "true", text: "▶" }), v.busy ? "查證中…" : "現在重新逐條查證(" + cites.length + " 條)"),
+      fold("查證設定", h("div", { class: "controls" }, seg,
+        h("label", { for: "v-timeout" }, "即時查詢逾時", sel),
+        h("label", { for: "v-persist" }, persist, "查證通過的引用要記錄下來"))));
 
     var results = cites.map(function (c) { return v.results[c.citation_text]; }).filter(function (r) { return r && !r.error; });
     var count = function (fn) { return results.filter(fn).length; };
@@ -1379,7 +1516,11 @@
       stat(effective.length ? String(ecount(function (r) { return r.status === "not_found"; })) : "—", "✗ 確認查無", "bad"),
       stat(effective.length ? String(ecount(function (r) { return ["network_error", "verification_failed", "unparseable", "unsupported_law", "unknown_law", "version_unverified", "ambiguous"].indexOf(r.status) >= 0; })) : "—", "⏱ 無法完成查證／無法解析", "warn"));
 
-    var out = [head, controls, tiles];
+    var okN = ecount(function (r) { return r.status === "published"; });
+    var allOk = effective.length === cites.length && okN === cites.length;
+    // 全部通過時四格大多是 0，改成一句話；有問題才顯示四格
+    var out = [head, allOk ? banner("ok", "✓", [h("strong", { text: cites.length + " 條引用全部對到官方原文" }),
+      prior ? "(依資料庫先前的查證紀錄；按下方按鈕可現在重新查一次)" : "(本次查證結果)"]) : tiles, controls];
     if (v.notice) out.push(banner("warn", "!", [h("strong", { text: "網路狀態" }), "：" + v.notice]));
 
     var done = cites.filter(function (c) { return v.results[c.citation_text]; });
@@ -1402,13 +1543,30 @@
       }
     }
 
-    var group = function (title, kind) {
-      var items = cites.filter(function (c) { return c.kind === kind; });
+    // 通過的(本次結果或先前紀錄為 published)收成一份精簡清單；有問題或尚未查的照舊逐條列出細節。查證進行中時全部逐條列出，才看得到進度
+    var passed = function (c) {
+      var r = v.results[c.citation_text];
+      return r ? !r.error && r.status === "published" : !!(c.db_record && c.db_record.status === "published");
+    };
+    var group = function (title, kind, items) {
+      items = items.filter(function (c) { return c.kind === kind; });
       if (!items.length) return null;
       return [h("div", { class: "section-title", text: title + "(" + items.length + ")" }),
-        items.map(function (c) { return verifyRow(c, v.results[c.citation_text], v.busy, v.pending); })];
+        items.map(function (c) { return verifyRow(c, v.results[c.citation_text], v.busy, v.pending, v2); })];
     };
-    out.push(group("判例", "judgment"), group("法條", "statute"), group("未分類", "unknown"));
+    var rest = v.busy ? cites : cites.filter(function (c) { return !passed(c); });
+    var okList = v.busy ? [] : cites.filter(passed);
+    if (rest.length) out.push(group("判例", "judgment", rest), group("法條", "statute", rest), group("未分類", "unknown", rest));
+    if (okList.length) {
+      var url = function (c) { var r = v.results[c.citation_text]; return (r && r.primary_source_url) || (c.db_record && c.db_record.primary_source_url); };
+      var kindName = { judgment: "判決", statute: "法條" };
+      out.push(fold("已通過的 " + okList.length + " 條(點開看清單與官方原文連結)", dataTable(["", "引用", "類型", "出現在", "官方原文"], okList.map(function (c) {
+        var u = url(c);
+        return [h("span", { class: "ok-mark", "aria-label": "已通過", text: "✓" }), h("span", { class: "nowrap", text: c.citation_text }),
+          kindName[c.kind] || "未分類", c.used_by.length ? usedByLabel(c.used_by, v2) : "—",
+          u ? h("a", { href: u, target: "_blank", rel: "noopener noreferrer", text: "開啟 ↗" }) : "—"];
+      })), !rest.length));
+    }
     return out;
   }
 
@@ -1422,7 +1580,7 @@
     var risk = v.risk_map || {};
     var list = function (items) { return h("ul", { class: "risk-list" }, (items || []).map(function (t) { return h("li", { text: t }); })); };
     var out = [head, oldRules, attributionReview(v),
-      card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "落地 " + fmtTime(v.created_at))),
+      card("評估結論", paragraphs(delabelJargon(v.verdict_main_text)), chip("neutral", "存入 " + fmtTime(v.created_at))),
       card("評估理由", paragraphs(delabelJargon(v.verdict_reasoning))),
       proceduralRiskCard(d),
       h("div", { class: "risk-grid" },
@@ -1532,7 +1690,7 @@
     var docs = (d.pleading_versions || []).filter(function (v) { return ROUND_DOC[v.pleading_type]; });
     if (!docs.length) return null;
     var id = d.case.case_id;
-    return card("準備書狀與言詞辯論意旨狀(P4、P5)", [
+    return card("準備書狀與言詞辯論意旨狀", [
       h("p", { class: "detail-note", text: "正文由程式依各方公開論證組成(不含內部檢討與讓步條件)。" }),
       docs.map(function (v) {
         var lines = delabelJargon(splitDraftNote(v.draft_text).body).replace(/^\s+|\s+$/g, "").split("\n");
@@ -1557,7 +1715,7 @@
     return sys[sys.length - 1] || vs[vs.length - 1];
   }
   function versionChip(v) {
-    if (v.source === "system_revision") return chip("neutral", "起訴狀 v2・系統建議版", { title: "P6 診斷後由系統產生的建議版，不是律師編輯版" });
+    if (v.source === "system_revision") return chip("neutral", "修訂版(依診斷建議)", { title: "診斷後由系統依修改建議產生的版本，不是律師編輯版" });
     return v.source === "lawyer_edit" ? chip("judge", "✎ 律師編輯版", { title: "律師在 UI 編輯後另存的版本" }) : originChip(v.origin);
   }
   function systemMade(v) { return v.source === "system" || v.source === "system_revision"; }
@@ -1579,7 +1737,7 @@
         if (i < titleIdx) return ln.trim() ? h("div", { class: "pl-line", text: ln }) : null;
         if (i === titleIdx) return [
           h("div", { class: "pl-title", text: ln.replace(/[（(][\s\S]*[）)]\s*$/, "").trim() || doc.title }),
-          h("div", { class: "pl-subtitle", text: (v.source === "system_revision" ? "起訴狀 v2．系統建議版．須經律師審核後使用"
+          h("div", { class: "pl-subtitle", text: (v.source === "system_revision" ? "修訂版．依診斷建議．須經律師審核後使用"
             : system ? "骨架版初稿．尚未經法律用語潤飾．須經律師審核後使用" : "律師編輯版．須經律師審核後使用") + (v.side === "defendant" ? "．模擬答辯，非針對實際起訴狀" : "") }),
         ];
         var headLine = /^(訴之聲明|答辯聲明|事實及理由|證物名稱及件數|為.*事[：:])/.test(ln);
@@ -1589,8 +1747,8 @@
   }
   function versionBanner(v, d) {
     if (v.source === "system_revision") {  // 審查 W7-3:不是律師編輯版，引用在落地時已過查證閘門
-      return banner("rec", "i", [h("strong", { text: "起訴狀 v2(系統建議版)" }), "：P6 診斷後由系統依評估的修改建議產生，於 " +
-        fmtTime(v.generated_at) + " 落地，接在 #" + v.parent_id + " 之後。不是律師編輯版，也不會取代關卡 1 確認的版本；引用在落地時已通過查證。"]);
+      return banner("rec", "i", [h("strong", { text: "修訂版起訴狀(依診斷建議)" }), "：診斷後由系統依修改建議產生，於 " +
+        fmtTime(v.generated_at) + " 存入，接在 #" + v.parent_id + " 之後。不是律師編輯版，也不會取代律師確認的版本；引用在存入時已通過查證。"]);
     }
     if (v.source === "lawyer_edit") {
       return banner("rec", "✎", [h("strong", { text: "律師編輯版" }), "：於 " + fmtTime(v.generated_at) + " 存檔，基於 #" + v.parent_id +
@@ -1709,9 +1867,10 @@
     var g = d.gates.complaint, id = d.case.case_id;
     if (g) {
       var kind = g.source === "lawyer_edit" ? "律師編輯版" : "系統原稿";
-      return banner(g.by === "auto" ? "warn" : "ok", g.by === "auto" ? "!" : "✓", [h("strong", { text: "關卡 1:" + GATE_ACTION[g.action] }),
-        "・採用" + kind + " #" + g.version_id + "・" + (g.by === "auto" ? "自動通過，未經律師確認" : "律師已確認") +
-        (v.id !== g.version_id ? "・目前檢視 #" + v.id + "，非確認版" : ""),
+      return banner(g.by === "auto" ? "warn" : "ok", g.by === "auto" ? "!" : "✓", [
+        h("strong", { text: g.by === "auto" ? "尚未經律師確認" : "律師已確認" }),
+        "：" + (g.by === "auto" ? "流程自動採用" : "採用") + kind + " #" + g.version_id + (g.action === "finish" ? "，案件停在起訴狀" : "，以這一版往下模擬") + "。" +
+        (v.id !== g.version_id ? "目前檢視的 #" + v.id + " 不是採用的版本。" : ""),
         h("span", { class: "sr-only", text: gateHow(g) + "，" + fmtTime(g.recorded_at) })]);
     }
     if (!d.gates.pending) return null;
@@ -1733,6 +1892,12 @@
           onclick: function () { confirmGate(d, v, "finish"); }, text: "到此結束" }))]);
   }
 
+  // 閱讀器版本列的名稱：律師看的是「初稿／修訂版／我改的版本」，編號只在同類有多份時才加
+  function readerVersionName(x, vs) {
+    var same = vs.filter(function (y) { return y.source === x.source; }).length > 1;
+    var name = x.source === "system_revision" ? "修訂版(依診斷建議)" : x.source === "lawyer_edit" ? "律師修改版" : "初稿";
+    return name + (same || x.source === "lawyer_edit" ? " #" + x.id : "");
+  }
   function documentSwitch(d, locked) {
     var id = d.case.case_id, cur = pleadingSide(d);
     return h("div", { class: "seg document-switch", role: "group", "aria-label": "書狀種類" }, SIDES.map(function (side) {
@@ -1763,12 +1928,12 @@
     var v = selectedVersion(d), busy = state.pleadingBusy[id], gate = side === "plaintiff" ? complaintGate(d) : null;
     var exportUrl = API_BASE + "/api/cases/" + encodeURIComponent(id) + "/pleadings/" + v.id + "/export";
     var out = [
-      panelHead(title, versionChip(v), o.reader ? "須由執業律師審核後使用。" : lede, o.reader ? doc.lede + ledeMore : ledeMore),
+      panelHead(title, versionChip(v), o.reader ? (o.lede || "須由執業律師審核後使用。") : lede, o.reader ? null : ledeMore),
       o.fixedSide ? null : documentSwitch(d, !!ed),
       o.reader && vs.length < 2 ? null : h("div", { class: "version-bar", role: "group", "aria-label": doc.short + "版本" }, vs.map(function (x) {
         return h("button", { class: "btn small", type: "button", "aria-pressed": String(x.id === v.id), disabled: ed ? true : null,
-          onclick: function () { state.pleadingSel[id] = x.id; renderPanel(); } },
-          o.reader ? x.label + (x.exportable ? "" : "・✗ 未放行") + (gate && gate.version_id === x.id ? "・關卡 1 採用" : "") :
+          title: x.label, onclick: function () { state.pleadingSel[id] = x.id; renderPanel(); } },
+          o.reader ? readerVersionName(x, vs) + (x.exportable ? "" : "・✗ 未放行") + (gate && gate.version_id === x.id ? (gate.by === "auto" ? "・流程採用" : "・律師確認版") : "") :
           x.label + (x.source === "system" ? (x.origin.kind === "live" ? "・⚡即時生成" : "・⏺錄製")
             : x.source === "system_revision" ? "・接在 #" + x.parent_id + " 之後" : "・基於 #" + x.parent_id) +
           (x.exportable ? "・✓" : "・✗ 未放行") + (gate && gate.version_id === x.id ? "・關卡 1 採用" : ""));
@@ -2397,7 +2562,6 @@
       return;
     }
     if (!d) return;
-    var hl = state.health;
     var mark = { done: "✓", partial: "◐", ready: "▶", pending: "·" };
     box.append(
       // v2 總覽已有進度軌，右側不再重複；其他分頁留著當定位用
@@ -2411,8 +2575,14 @@
         meta("落地時間", fmtTime(d.case.created_at)),
         meta("引用查證", d.stats.citations ? d.stats.citations_published + "/" + d.stats.citations + " 已查證通過" : "—"),
         h("p", { class: "detail-note", text: partySummary(d) })),
-      h("p", { class: "detail-note detail-disclaimer", text: "研究原型，非法律意見，書狀須由執業律師審核。" }),
-      h("details", { class: "detail-section detail-tech" }, h("summary", { class: "detail-section-title", text: "技術細節(資料來源、即時執行、限制)" }),
+      h("p", { class: "detail-note detail-disclaimer", text: DISCLAIMER }),
+      techDetails(d));
+  }
+  var DISCLAIMER = "研究原型，非法律意見，書狀須由執業律師審核。";
+  // 技術細節：舊流程放右側欄；新流程(沒有右側欄)放在總覽的「完整案件輸入與技術細節」裡
+  function techDetails(d) {
+    var hl = state.health;
+    return h("details", { class: "detail-section detail-tech" }, h("summary", { class: "detail-section-title", text: "技術細節(資料來源、即時執行、限制)" }),
         h("p", { class: "detail-note", text: "案件與論證：本機資料庫。" +
           (hl && hl.database.seeded_from_fixture ? "本次啟動時資料庫為空，已自動匯入示範案例存檔。" : "") }),
         hl ? h("p", { class: "detail-note", text: "判決預先內容 " + hl.corpus.judgments + " 份；檢索快取：判決 " +
@@ -2425,7 +2595,7 @@
             ((r.safety_stops || []).length && !stoppedByClassifier(r) ? "・安全分類器中止 " + r.safety_stops.length + " 次" : "") +
             (r.kind === "pleadings" ? "" : "・公開論證疑似含自我檢討:" + runReviewWarningCount(r, d) + " 則"));
         }) : null,
-        h("p", { class: "detail-note", text: "標示「⚡ 本次即時生成」者由本機 Claude Code 經 UI 執行產生；標示「⏺ 錄製紀錄」者是過去產生後落地的紀錄重播。引用查證僅確認條文／字號存在，未比對判決全文是否支持該論點。" })));
+        h("p", { class: "detail-note", text: "標示「⚡ 本次即時生成」者由本機 Claude Code 經 UI 執行產生；標示「⏺ 錄製紀錄」者是過去產生後落地的紀錄重播。引用查證僅確認條文／字號存在，未比對判決全文是否支持該論點。" }));
   }
   function meta(k, v) { return h("div", { class: "meta-row" }, h("span", { class: "meta-key", text: k }), h("span", { class: "meta-val", text: v })); }
 
@@ -2449,6 +2619,8 @@
         complaint: complaintTabPanel, answer: answerPanel, sheet: sheetPanel, rounds: roundsPanel, diagnosis: diagnosisPanel }[state.tab];
       add(panel, view(d));
       panel.append(stepNav());
+      // 新流程沒有右側欄(見 renderAll)，免責聲明放在每頁底部
+      if (isV2(d)) panel.append(h("p", { class: "detail-note panel-disclaimer", text: DISCLAIMER }));
     } catch (e) {
       panel.append(banner("bad", "✗", [h("strong", { text: "畫面繪製失敗" }), "：" + e.message]));
     }
@@ -2547,6 +2719,8 @@
     document.getElementById("export-btn").addEventListener("click", exportCase);
     var focusOn = false;
     try { focusOn = localStorage.getItem(FOCUS_KEY) === "1"; } catch (e) { /* 預設關 */ }
+    // demo 用：網址帶 ?demo=1 或 ?focus=1 直接進專注模式(不寫入記憶)
+    if (/[?&](demo|focus)=1\b/.test(location.search)) focusOn = true;
     setFocus(focusOn, false);
     document.getElementById("focus-btn").addEventListener("click", function () { setFocus(!document.body.classList.contains("focus"), true); });
     document.addEventListener("keydown", onKey);
