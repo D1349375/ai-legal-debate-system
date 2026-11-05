@@ -595,7 +595,10 @@
     var pb = checked && !n ? null : proceduralBlock(d);
     return [].concat(pleadingPanel(d, { title: "起訴狀", fixedSide: true, reader: true,
         lede: "AI 依案情起草的起訴狀，須由執業律師審核後使用。" }),
-      [pb && n ? fold("起訴審查(依商工登記命補正)・" + n + " 項", pb) : pb]);
+      [revisionOf(d) && state.pleadingSel[d.case.case_id] !== revisionOf(d).id
+        ? h("p", { class: "detail-note" }, "診斷完成後已依修改建議產生修訂版起訴狀，請到",
+          h("button", { class: "btn small", type: "button", text: "弱點與修改建議", onclick: function () { switchTab("diagnosis"); } }), "查看。") : null,
+        pb && n ? fold("起訴審查(依商工登記命補正)・" + n + " 項", pb) : pb]);
   }
 
   // 交接 C:答辯狀的逐點表態表
@@ -753,9 +756,11 @@
         "左邊選爭點，右邊並排看兩造書狀怎麼寫；皆為 AI 模擬，不是實際主張。"),
       h("div", { class: "issue-split" }, list,
         h("div", { class: "issue-main" },
-          h("div", { class: "issue-title" }, h("strong", { text: issueName(issue.id) }), h("span", { text: issue.text }),
-            ISSUE_KIND[issue.kind] ? chip("neutral", ISSUE_KIND[issue.kind]) : null, BURDEN_LABEL[issue.burden] ? chip("neutral", "舉證責任：" + BURDEN_LABEL[issue.burden]) : null,
-            issue.hypothetical ? chip("warn", "推測") : null, kinds),
+          h("div", { class: "issue-title" },
+            h("div", { class: "issue-title-head" }, h("strong", { class: "issue-title-name", text: issueName(issue.id) }),
+              ISSUE_KIND[issue.kind] ? chip("neutral", ISSUE_KIND[issue.kind]) : null, BURDEN_LABEL[issue.burden] ? chip("neutral", "舉證責任：" + BURDEN_LABEL[issue.burden]) : null,
+              issue.hypothetical ? chip("warn", "推測") : null, kinds),
+            h("div", { class: "issue-title-text", text: issue.text })),
           h("div", { class: "debate-layout" }, column("plaintiff"), column("defendant")))),
       fold("完整書狀、論證原文與技術細節", roundsPanelFull(d).slice(1)),
     ];
@@ -1685,7 +1690,11 @@
   // 版本列只放起訴狀與答辯狀；P4 準備書狀、P5 言詞辯論意旨狀是各方另一份書狀，列在 roundDocsCard
   var ROUND_DOC = { brief: "民事準備書狀", closing: "民事言詞辯論意旨狀" };
   function versionsOf(d, side) {
-    return (d.pleading_versions || []).filter(function (v) { return (v.side || "plaintiff") === side && !ROUND_DOC[v.pleading_type]; });
+    // 診斷後才產生的修訂版不放進起訴狀分頁的版本列(那一步律師還沒看到攻防與診斷)，只有從「弱點與修改建議」點進來時才顯示
+    var sel = state.pleadingSel[d.case.case_id];
+    return (d.pleading_versions || []).filter(function (v) {
+      return (v.side || "plaintiff") === side && !ROUND_DOC[v.pleading_type] && (v.source !== "system_revision" || v.id === sel);
+    });
   }
   function roundDocsCard(d) {
     var docs = (d.pleading_versions || []).filter(function (v) { return ROUND_DOC[v.pleading_type]; });

@@ -534,8 +534,13 @@ details.detail-tech[open] > summary { margin-bottom: 8px; }
 .issue-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--bg-active); }
 .issue-btn-text { flex-basis: 100%; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .issue-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.issue-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; line-height: 1.7; }
-.issue-title .seg { margin-left: auto; }
+/* 目前爭點：獨立一塊，左側色條 + 大字，讓人一眼知道正在看哪個爭點 */
+.issue-title { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; background: var(--bg-card);
+  border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius); }
+.issue-title-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.issue-title-head .seg { margin-left: auto; }
+.issue-title-name { font-size: 13px; color: var(--accent); letter-spacing: .04em; }
+.issue-title-text { font-size: 18px; font-weight: 600; line-height: 1.6; color: var(--text-primary, inherit); }
 .round-text { max-height: calc(60vh / var(--z)); overflow-y: auto; font-size: 13px; line-height: 1.9; }
 .round-text p { margin-bottom: 8px; }
 .step-nav { position: sticky; bottom: -40px; margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px;
