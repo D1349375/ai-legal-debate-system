@@ -4,8 +4,31 @@
     {
       "name": "legaldebate-ui",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["main.py", "serve", "--port", "8000", "--no-browser"],
+      "runtimeArgs": [
+        "main.py",
+        "serve",
+        "--port",
+        "8000",
+        "--no-browser"
+      ],
       "port": 8000
+    },
+    {
+      "name": "pleading-exchange-ui",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd /d .claude\\worktrees\\pleading-exchange && set LEGALDEBATE_DB_URL=sqlite:///C:/Users/berto/AppData/Local/Temp/claude/C--Users-berto-Desktop-my-personal-ai-legal-debate-system/f1b82288-c93f-4894-80fd-309943841e61/scratchpad/px.db&& python main.py serve --port 8125 --no-browser"
+      ],
+      "port": 8125
+    },
+    {
+      "name": "v2-wiring-live",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "C:/Users/berto/AppData/Local/Temp/claude/C--Users-berto-Desktop-my-personal-ai-legal-debate-system/448134b8-52a3-4d21-8014-8f5eaf99a342/scratchpad/serve_v2_wiring.py"
+      ],
+      "port": 8150
     }
   ]
 }
